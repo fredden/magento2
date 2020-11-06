@@ -1,31 +1,31 @@
 {
     "name": "magento/module-integration",
+    "type": "magento2-module",
     "description": "N/A",
-    "config": {
-        "sort-packages": true
-    },
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
     "require": {
-        "php": "~7.3.0||~7.4.0",
+        "php": "~7.3.0 || ~7.4.0",
         "magento/framework": "*",
         "magento/module-authorization": "*",
         "magento/module-backend": "*",
         "magento/module-customer": "*",
         "magento/module-security": "*",
         "magento/module-store": "*",
-        "magento/module-user": "*",
-        "magento/module-ui": "*"
+        "magento/module-ui": "*",
+        "magento/module-user": "*"
     },
-    "type": "magento2-module",
-    "license": [
-        "OSL-3.0",
-        "AFL-3.0"
-    ],
+    "config": {
+        "sort-packages": true
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\Integration\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

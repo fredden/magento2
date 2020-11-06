@@ -1,22 +1,22 @@
 {
     "name": "magento/module-media-content-api",
-    "description": "Magento module provides the API interfaces for managing relations between content and media files used in that content",
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/module-media-gallery-api": "*",
-        "magento/framework": "*"
-    },
     "type": "magento2-module",
+    "description": "Magento module provides the API interfaces for managing relations between content and media files used in that content",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "magento/framework": "*",
+        "magento/module-media-gallery-api": "*"
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\MediaContentApi\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

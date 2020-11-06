@@ -1,22 +1,22 @@
 {
     "name": "magento/module-quote-downloadable-links",
-    "description": "Magento module provides data provider for creating buy request for links of downloadable products",
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/framework": "*",
-        "magento/module-quote": "*"
-    },
     "type": "magento2-module",
+    "description": "Magento module provides data provider for creating buy request for links of downloadable products",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "magento/framework": "*",
+        "magento/module-quote": "*"
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\QuoteDownloadableLinks\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

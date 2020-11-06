@@ -1,11 +1,13 @@
 {
     "name": "magento/module-theme",
+    "type": "magento2-module",
     "description": "N/A",
-    "config": {
-        "sort-packages": true
-    },
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
     "require": {
-        "php": "~7.3.0||~7.4.0",
+        "php": "~7.3.0 || ~7.4.0",
         "magento/framework": "*",
         "magento/module-backend": "*",
         "magento/module-cms": "*",
@@ -19,21 +21,19 @@
         "magento/module-widget": "*"
     },
     "suggest": {
-        "magento/module-theme-sample-data": "*",
         "magento/module-deploy": "*",
-        "magento/module-directory": "*"
+        "magento/module-directory": "*",
+        "magento/module-theme-sample-data": "*"
     },
-    "type": "magento2-module",
-    "license": [
-        "OSL-3.0",
-        "AFL-3.0"
-    ],
+    "config": {
+        "sort-packages": true
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\Theme\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

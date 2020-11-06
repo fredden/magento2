@@ -1,12 +1,13 @@
 {
     "name": "magento/module-newsletter-graph-ql",
-    "description": "Provides GraphQl functionality for the newsletter subscriptions.",
-    "config": {
-        "sort-packages": true
-    },
     "type": "magento2-module",
+    "description": "Provides GraphQl functionality for the newsletter subscriptions.",
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
     "require": {
-        "php": "~7.3.0||~7.4.0",
+        "php": "~7.3.0 || ~7.4.0",
         "magento/framework": "*",
         "magento/module-customer": "*",
         "magento/module-newsletter": "*",
@@ -15,16 +16,15 @@
     "suggest": {
         "magento/module-graph-ql": "*"
     },
-    "license": [
-        "OSL-3.0",
-        "AFL-3.0"
-    ],
+    "config": {
+        "sort-packages": true
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\NewsletterGraphQl\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

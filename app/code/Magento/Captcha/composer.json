@@ -1,32 +1,32 @@
 {
     "name": "magento/module-captcha",
-    "description": "N/A",
-    "config": {
-        "sort-packages": true
-    },
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/framework": "*",
-        "magento/module-backend": "*",
-        "magento/module-checkout": "*",
-        "magento/module-customer": "*",
-        "magento/module-store": "*",
-        "magento/module-authorization": "*",
-        "laminas/laminas-captcha": "^2.7.1",
-        "laminas/laminas-db": "^2.8.2",
-        "laminas/laminas-session": "^2.7.3"
-    },
     "type": "magento2-module",
+    "description": "N/A",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "laminas/laminas-captcha": "^2.7.1",
+        "laminas/laminas-db": "^2.8.2",
+        "laminas/laminas-session": "^2.7.3",
+        "magento/framework": "*",
+        "magento/module-authorization": "*",
+        "magento/module-backend": "*",
+        "magento/module-checkout": "*",
+        "magento/module-customer": "*",
+        "magento/module-store": "*"
+    },
+    "config": {
+        "sort-packages": true
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\Captcha\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

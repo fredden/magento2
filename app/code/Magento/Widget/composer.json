@@ -1,34 +1,34 @@
 {
     "name": "magento/module-widget",
+    "type": "magento2-module",
     "description": "N/A",
-    "config": {
-        "sort-packages": true
-    },
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
     "require": {
-        "php": "~7.3.0||~7.4.0",
+        "php": "~7.3.0 || ~7.4.0",
         "magento/framework": "*",
         "magento/module-backend": "*",
         "magento/module-catalog": "*",
         "magento/module-cms": "*",
         "magento/module-store": "*",
         "magento/module-theme": "*",
-        "magento/module-variable": "*",
-        "magento/module-ui": "*"
+        "magento/module-ui": "*",
+        "magento/module-variable": "*"
     },
     "suggest": {
         "magento/module-widget-sample-data": "*"
     },
-    "type": "magento2-module",
-    "license": [
-        "OSL-3.0",
-        "AFL-3.0"
-    ],
+    "config": {
+        "sort-packages": true
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\Widget\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

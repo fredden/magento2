@@ -1,23 +1,23 @@
 {
     "name": "magento/module-review-analytics",
-    "description": "N/A",
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/framework": "*",
-        "magento/module-review": "*",
-        "magento/module-analytics": "*"
-    },
     "type": "magento2-module",
+    "description": "N/A",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "magento/framework": "*",
+        "magento/module-analytics": "*",
+        "magento/module-review": "*"
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\ReviewAnalytics\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

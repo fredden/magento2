@@ -1,22 +1,22 @@
 {
     "name": "magento/module-media-gallery-synchronization-api",
-    "description": "Magento module responsible for the media gallery synchronization implementation API",
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/framework": "*",
-        "magento/module-media-gallery-api": "*"
-    },
     "type": "magento2-module",
+    "description": "Magento module responsible for the media gallery synchronization implementation API",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "magento/framework": "*",
+        "magento/module-media-gallery-api": "*"
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\MediaGallerySynchronizationApi\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

@@ -1,17 +1,17 @@
 {
     "name": "magento/language-zh_hans_cn",
+    "type": "magento2-language",
     "description": "Chinese (China) language",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
-    "config": {
-        "sort-packages": true
-    },
     "require": {
         "magento/framework": "*"
     },
-    "type": "magento2-language",
+    "config": {
+        "sort-packages": true
+    },
     "autoload": {
         "files": [
             "registration.php"

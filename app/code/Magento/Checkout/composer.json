@@ -1,12 +1,16 @@
 {
     "name": "magento/module-checkout",
+    "type": "magento2-module",
     "description": "N/A",
-    "config": {
-        "sort-packages": true
-    },
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
     "require": {
-        "php": "~7.3.0||~7.4.0",
+        "php": "~7.3.0 || ~7.4.0",
         "magento/framework": "*",
+        "magento/module-authorization": "*",
+        "magento/module-captcha": "*",
         "magento/module-catalog": "*",
         "magento/module-catalog-inventory": "*",
         "magento/module-config": "*",
@@ -23,24 +27,20 @@
         "magento/module-store": "*",
         "magento/module-tax": "*",
         "magento/module-theme": "*",
-        "magento/module-ui": "*",
-        "magento/module-captcha": "*",
-        "magento/module-authorization": "*"
+        "magento/module-ui": "*"
     },
     "suggest": {
         "magento/module-cookie": "*"
     },
-    "type": "magento2-module",
-    "license": [
-        "OSL-3.0",
-        "AFL-3.0"
-    ],
+    "config": {
+        "sort-packages": true
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\Checkout\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

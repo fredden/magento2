@@ -1,25 +1,25 @@
 {
     "name": "magento/module-gift-message-graph-ql",
-    "description": "N/A",
     "type": "magento2-module",
+    "description": "N/A",
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
     "require": {
-        "php": "~7.3.0||~7.4.0",
+        "php": "~7.3.0 || ~7.4.0",
         "magento/framework": "*",
         "magento/module-gift-message": "*"
     },
     "suggest": {
         "magento/module-graph-ql": "*"
     },
-    "license": [
-        "OSL-3.0",
-        "AFL-3.0"
-    ],
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\GiftMessageGraphQl\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

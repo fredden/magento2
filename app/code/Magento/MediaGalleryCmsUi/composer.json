@@ -1,23 +1,23 @@
 {
     "name": "magento/module-media-gallery-cms-ui",
-    "description": "Cms related UI elements in the magento media gallery",
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/framework": "*",
-        "magento/module-cms": "*",
-        "magento/module-backend": "*"
-    },
     "type": "magento2-module",
+    "description": "Cms related UI elements in the magento media gallery",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "magento/framework": "*",
+        "magento/module-backend": "*",
+        "magento/module-cms": "*"
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\MediaGalleryCmsUi\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

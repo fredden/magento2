@@ -1,32 +1,32 @@
 {
     "name": "magento/module-media-storage",
-    "description": "N/A",
-    "config": {
-        "sort-packages": true
-    },
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/framework": "*",
-        "magento/framework-bulk": "*",
-        "magento/module-backend": "*",
-        "magento/module-config": "*",
-        "magento/module-store": "*",
-        "magento/module-catalog": "*",
-        "magento/module-theme": "*",
-        "magento/module-asynchronous-operations": "*",
-        "magento/module-authorization": "*"
-    },
     "type": "magento2-module",
+    "description": "N/A",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "magento/framework": "*",
+        "magento/framework-bulk": "*",
+        "magento/module-asynchronous-operations": "*",
+        "magento/module-authorization": "*",
+        "magento/module-backend": "*",
+        "magento/module-catalog": "*",
+        "magento/module-config": "*",
+        "magento/module-store": "*",
+        "magento/module-theme": "*"
+    },
+    "config": {
+        "sort-packages": true
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\MediaStorage\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

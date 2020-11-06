@@ -1,15 +1,15 @@
 {
     "name": "magento/module-csp-config2",
+    "type": "magento2-module",
     "description": "test csp module 2",
-    "config": {
-        "sort-packages": true
-    },
     "require": {
-        "php": "~7.3.0||~7.4.0",
+        "php": "~7.3.0 || ~7.4.0",
         "magento/framework": "*",
         "magento/module-integration": "*"
     },
-    "type": "magento2-module",
+    "config": {
+        "sort-packages": true
+    },
     "extra": {
         "map": [
             [

@@ -1,23 +1,23 @@
 {
     "name": "magento/module-media-gallery-catalog",
-    "description": "Magento module responsible for catalog gallery processor delete operation handling",
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/framework": "*",
-        "magento/module-media-gallery-api": "*",
-        "magento/module-catalog": "*"
-    },
     "type": "magento2-module",
+    "description": "Magento module responsible for catalog gallery processor delete operation handling",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "magento/framework": "*",
+        "magento/module-catalog": "*",
+        "magento/module-media-gallery-api": "*"
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\MediaGalleryCatalog\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

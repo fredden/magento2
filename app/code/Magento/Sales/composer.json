@@ -1,16 +1,18 @@
 {
     "name": "magento/module-sales",
+    "type": "magento2-module",
     "description": "N/A",
-    "config": {
-        "sort-packages": true
-    },
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
     "require": {
-        "php": "~7.3.0||~7.4.0",
+        "php": "~7.3.0 || ~7.4.0",
         "magento/framework": "*",
         "magento/module-authorization": "*",
         "magento/module-backend": "*",
-        "magento/module-catalog": "*",
         "magento/module-bundle": "*",
+        "magento/module-catalog": "*",
         "magento/module-catalog-inventory": "*",
         "magento/module-checkout": "*",
         "magento/module-config": "*",
@@ -35,17 +37,15 @@
     "suggest": {
         "magento/module-sales-sample-data": "*"
     },
-    "type": "magento2-module",
-    "license": [
-        "OSL-3.0",
-        "AFL-3.0"
-    ],
+    "config": {
+        "sort-packages": true
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\Sales\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

@@ -1,27 +1,27 @@
 {
     "name": "magento/module-msrp-grouped-product",
-    "description": "N/A",
-    "config": {
-        "sort-packages": true
-    },
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/framework": "*",
-        "magento/module-catalog": "*",
-        "magento/module-msrp": "*",
-        "magento/module-grouped-product": "*"
-    },
     "type": "magento2-module",
+    "description": "N/A",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "magento/framework": "*",
+        "magento/module-catalog": "*",
+        "magento/module-grouped-product": "*",
+        "magento/module-msrp": "*"
+    },
+    "config": {
+        "sort-packages": true
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\MsrpGroupedProduct\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

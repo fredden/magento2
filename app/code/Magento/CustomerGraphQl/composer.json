@@ -1,29 +1,29 @@
 {
     "name": "magento/module-customer-graph-ql",
-    "description": "N/A",
     "type": "magento2-module",
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/module-authorization": "*",
-        "magento/module-customer": "*",
-        "magento/module-eav": "*",
-        "magento/module-graph-ql": "*",
-        "magento/module-newsletter": "*",
-        "magento/module-integration": "*",
-        "magento/module-store": "*",
-        "magento/framework": "*",
-        "magento/module-directory": "*"
-    },
+    "description": "N/A",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "magento/framework": "*",
+        "magento/module-authorization": "*",
+        "magento/module-customer": "*",
+        "magento/module-directory": "*",
+        "magento/module-eav": "*",
+        "magento/module-graph-ql": "*",
+        "magento/module-integration": "*",
+        "magento/module-newsletter": "*",
+        "magento/module-store": "*"
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\CustomerGraphQl\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

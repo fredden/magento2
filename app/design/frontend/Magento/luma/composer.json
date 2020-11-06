@@ -1,19 +1,19 @@
 {
     "name": "magento/theme-frontend-luma",
-    "description": "N/A",
-    "config": {
-        "sort-packages": true
-    },
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/framework": "*",
-        "magento/theme-frontend-blank": "*"
-    },
     "type": "magento2-theme",
+    "description": "N/A",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "magento/framework": "*",
+        "magento/theme-frontend-blank": "*"
+    },
+    "config": {
+        "sort-packages": true
+    },
     "autoload": {
         "files": [
             "registration.php"

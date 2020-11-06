@@ -1,28 +1,28 @@
 {
     "name": "magento/module-admin-analytics",
-    "description": "N/A",
-    "config": {
-        "sort-packages": true
-    },
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/framework": "*",
-        "magento/module-backend": "*",
-        "magento/module-config": "*",
-        "magento/module-ui": "*",
-        "magento/module-release-notification": "*"
-    },
     "type": "magento2-module",
+    "description": "N/A",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "magento/framework": "*",
+        "magento/module-backend": "*",
+        "magento/module-config": "*",
+        "magento/module-release-notification": "*",
+        "magento/module-ui": "*"
+    },
+    "config": {
+        "sort-packages": true
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\AdminAnalytics\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

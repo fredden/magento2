@@ -1,23 +1,23 @@
 {
     "name": "magento/module-catalog-analytics",
-    "description": "N/A",
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/framework": "*",
-        "magento/module-catalog": "*",
-        "magento/module-analytics": "*"
-    },
     "type": "magento2-module",
+    "description": "N/A",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "magento/framework": "*",
+        "magento/module-analytics": "*",
+        "magento/module-catalog": "*"
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\CatalogAnalytics\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

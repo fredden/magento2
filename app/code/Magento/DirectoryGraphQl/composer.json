@@ -1,24 +1,24 @@
 {
     "name": "magento/module-directory-graph-ql",
-    "description": "N/A",
     "type": "magento2-module",
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/module-directory": "*",
-        "magento/module-store": "*",
-        "magento/module-graph-ql": "*",
-        "magento/framework": "*"
-    },
+    "description": "N/A",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "magento/framework": "*",
+        "magento/module-directory": "*",
+        "magento/module-graph-ql": "*",
+        "magento/module-store": "*"
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\DirectoryGraphQl\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

@@ -1,8 +1,13 @@
 {
     "name": "magento/module-login-as-customer-quote",
+    "type": "magento2-module",
     "description": "",
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
     "require": {
-        "php": "~7.3.0||~7.4.0",
+        "php": "~7.3.0 || ~7.4.0",
         "magento/framework": "*",
         "magento/module-checkout": "*",
         "magento/module-customer": "*",
@@ -11,17 +16,12 @@
     "suggest": {
         "magento/module-login-as-customer-api": "*"
     },
-    "type": "magento2-module",
-    "license": [
-        "OSL-3.0",
-        "AFL-3.0"
-    ],
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\LoginAsCustomerQuote\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

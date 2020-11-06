@@ -1,11 +1,13 @@
 {
     "name": "magento/module-configurable-product",
+    "type": "magento2-module",
     "description": "N/A",
-    "config": {
-        "sort-packages": true
-    },
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
     "require": {
-        "php": "~7.3.0||~7.4.0",
+        "php": "~7.3.0 || ~7.4.0",
         "magento/framework": "*",
         "magento/module-backend": "*",
         "magento/module-catalog": "*",
@@ -19,26 +21,24 @@
         "magento/module-ui": "*"
     },
     "suggest": {
+        "magento/module-configurable-sample-data": "*",
         "magento/module-msrp": "*",
-        "magento/module-webapi": "*",
+        "magento/module-product-links-sample-data": "*",
+        "magento/module-product-video": "*",
         "magento/module-sales": "*",
         "magento/module-sales-rule": "*",
-        "magento/module-product-video": "*",
-        "magento/module-configurable-sample-data": "*",
-        "magento/module-product-links-sample-data": "*",
-        "magento/module-tax": "*"
+        "magento/module-tax": "*",
+        "magento/module-webapi": "*"
     },
-    "type": "magento2-module",
-    "license": [
-        "OSL-3.0",
-        "AFL-3.0"
-    ],
+    "config": {
+        "sort-packages": true
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\ConfigurableProduct\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }

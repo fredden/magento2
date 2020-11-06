@@ -1,23 +1,23 @@
 {
     "name": "magento/module-media-gallery",
-    "description": "Magento module responsible for media handling",
-    "require": {
-        "php": "~7.3.0||~7.4.0",
-        "magento/framework": "*",
-        "magento/module-media-gallery-api": "*",
-        "magento/module-cms": "*"
-    },
     "type": "magento2-module",
+    "description": "Magento module responsible for media handling",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
+    "require": {
+        "php": "~7.3.0 || ~7.4.0",
+        "magento/framework": "*",
+        "magento/module-cms": "*",
+        "magento/module-media-gallery-api": "*"
+    },
     "autoload": {
-        "files": [
-            "registration.php"
-        ],
         "psr-4": {
             "Magento\\MediaGallery\\": ""
-        }
+        },
+        "files": [
+            "registration.php"
+        ]
     }
 }
