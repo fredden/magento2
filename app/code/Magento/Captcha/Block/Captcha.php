@@ -3,6 +3,7 @@
  * Copyright 2012 Adobe
  * All Rights Reserved.
  */
+
 namespace Magento\Captcha\Block;
 
 /**
