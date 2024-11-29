@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
 
 /**
@@ -40,6 +40,7 @@ class Data extends \Magento\Captcha\Helper\Data
      * @param string $key The last part of XML_PATH_$area_CAPTCHA_ constant (case insensitive)
      * @param \Magento\Store\Model\Store $store
      * @return \Magento\Framework\App\Config\Element
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function getConfig($key, $store = null)
     {
@@ -51,6 +52,7 @@ class Data extends \Magento\Captcha\Helper\Data
      *
      * @param mixed $website
      * @return string
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function _getWebsiteCode($website = null)
     {
