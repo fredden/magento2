@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2011 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\Catalog\Model\Category\Attribute\Source;
 
@@ -21,6 +21,7 @@ class Layout extends \Magento\Eav\Model\Entity\Attribute\Source\AbstractSource
      * @inheritdoc
      * @var array
      * @deprecated 103.0.1 since the cache is now handled by Builder::$configFiles
+     * @see Builder::$configFiles
      */
     protected $_options = null;
 

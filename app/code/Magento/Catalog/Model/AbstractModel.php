@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2011 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\Catalog\Model;
 
@@ -217,6 +217,7 @@ abstract class AbstractModel extends \Magento\Framework\Model\AbstractExtensible
      *
      * @return \Magento\Catalog\Model\ResourceModel\Collection\AbstractCollection
      * @deprecated 102.0.0 because collections should be used directly via factory
+     * @see Nothing
      */
     public function getResourceCollection()
     {
@@ -280,6 +281,7 @@ abstract class AbstractModel extends \Magento\Framework\Model\AbstractExtensible
      * @return $this
      *
      * @deprecated 101.0.0
+     * @see Nothing
      */
     public function setAttributeDefaultValue($attributeCode, $value)
     {
@@ -293,6 +295,7 @@ abstract class AbstractModel extends \Magento\Framework\Model\AbstractExtensible
      * @return \Magento\Catalog\Model\Attribute\ScopeOverriddenValue
      *
      * @deprecated 101.0.0
+     * @see Nothing
      */
     private function getAttributeScopeOverriddenValue()
     {
@@ -310,6 +313,7 @@ abstract class AbstractModel extends \Magento\Framework\Model\AbstractExtensible
      * @return array|boolean
      *
      * @deprecated 101.0.0
+     * @see Nothing
      */
     public function getAttributeDefaultValue($attributeCode)
     {
@@ -331,6 +335,7 @@ abstract class AbstractModel extends \Magento\Framework\Model\AbstractExtensible
      * @return $this
      *
      * @deprecated 101.0.0
+     * @see Nothing
      */
     public function setExistsStoreValueFlag($attributeCode)
     {
@@ -346,6 +351,7 @@ abstract class AbstractModel extends \Magento\Framework\Model\AbstractExtensible
      * @SuppressWarnings(PHPMD.BooleanGetMethodName)
      *
      * @deprecated 101.0.0
+     * @see Nothing
      */
     public function getExistsStoreValueFlag($attributeCode)
     {
