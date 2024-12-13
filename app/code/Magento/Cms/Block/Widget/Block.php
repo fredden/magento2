@@ -78,10 +78,13 @@ class Block extends \Magento\Framework\View\Element\Template implements BlockInt
         $block = $this->getBlock();
 
         if ($block && $block->isActive()) {
-            $storeId = $this->getData('store_id') ?? $this->_storeManager->getStore()->getId();
-            $this->setText(
-                $this->_filterProvider->getBlockFilter()->setStoreId($storeId)->filter($block->getContent())
-            );
+            try {
+                $storeId = $this->getData('store_id') ?? $this->_storeManager->getStore()->getId();
+                $this->setText(
+                    $this->_filterProvider->getBlockFilter()->setStoreId($storeId)->filter($block->getContent())
+                );
+            } catch (NoSuchEntityException $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock.DetectedCatch
+            }
         }
 
         unset(self::$_widgetUsageMap[$blockHash]);
@@ -118,13 +121,16 @@ class Block extends \Magento\Framework\View\Element\Template implements BlockInt
         $blockId = $this->getData('block_id');
 
         if ($blockId) {
-            $storeId = $this->_storeManager->getStore()->getId();
-            /** @var \Magento\Cms\Model\Block $block */
-            $block = $this->_blockFactory->create();
-            $block->setStoreId($storeId)->load($blockId);
-            $this->block = $block;
+            try {
+                $storeId = $this->_storeManager->getStore()->getId();
+                /** @var \Magento\Cms\Model\Block $block */
+                $block = $this->_blockFactory->create();
+                $block->setStoreId($storeId)->load($blockId);
+                $this->block = $block;
 
-            return $block;
+                return $block;
+            } catch (NoSuchEntityException $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock.DetectedCatch
+            }
         }
 
         return null;
