@@ -32,8 +32,6 @@ class Price extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
     protected $_currencyFactory;
 
     /**
-     * Core config model
-     *
      * @var \Magento\Framework\App\Config\ScopeConfigInterface
      */
     protected $_config;
@@ -62,7 +60,7 @@ class Price extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
         \Magento\Catalog\Helper\Data $catalogData,
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
         \Magento\Framework\Locale\FormatInterface $localeFormat,
-        ScopeOverriddenValue $scopeOverriddenValue = null
+        ?ScopeOverriddenValue $scopeOverriddenValue = null
     ) {
         $this->_currencyFactory = $currencyFactory;
         $this->_storeManager = $storeManager;

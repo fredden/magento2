@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2011 Adobe
+ * Copyright 2013 Adobe
  * All Rights Reserved.
  */
 
@@ -111,7 +111,7 @@ class Options extends \Magento\Framework\View\Element\Template
      * @param Product $product
      * @return \Magento\Catalog\Block\Product\View\Options
      */
-    public function setProduct(Product $product = null)
+    public function setProduct(?Product $product = null)
     {
         $this->_product = $product;
         return $this;
