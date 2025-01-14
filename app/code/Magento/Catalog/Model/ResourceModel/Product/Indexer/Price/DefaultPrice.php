@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2011 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\Catalog\Model\ResourceModel\Product\Indexer\Price;
 
@@ -83,7 +83,7 @@ class DefaultPrice extends AbstractIndexer implements PriceInterface
         \Magento\Framework\Event\ManagerInterface $eventManager,
         \Magento\Framework\Module\Manager $moduleManager,
         $connectionName = null,
-        IndexTableStructureFactory $indexTableStructureFactory = null,
+        ?IndexTableStructureFactory $indexTableStructureFactory = null,
         array $priceModifiers = []
     ) {
         $this->_eventManager = $eventManager;

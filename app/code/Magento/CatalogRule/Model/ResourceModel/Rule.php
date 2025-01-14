@@ -114,7 +114,7 @@ class Rule extends \Magento\Rule\Model\ResourceModel\AbstractResource
         PriceCurrencyInterface $priceCurrency,
         $connectionName = null,
         ?EntityManager $entityManager = null,
-        \Magento\Framework\DataObject $associatedEntityMap = null
+        ?\Magento\Framework\DataObject $associatedEntityMap = null
     ) {
         $this->_storeManager = $storeManager;
         $this->_conditionFactory = $conditionFactory;
