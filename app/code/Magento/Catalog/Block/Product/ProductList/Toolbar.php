@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2011 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\Catalog\Block\Product\ProductList;
 
@@ -77,7 +77,7 @@ class Toolbar extends \Magento\Framework\View\Element\Template
     /**
      * @var bool $_paramsMemorizeAllowed
      * @deprecated 103.0.1
-     * @see nothing
+     * @see Updated deprecation doc annotations
      */
     protected $_paramsMemorizeAllowed = true;
 
@@ -94,7 +94,7 @@ class Toolbar extends \Magento\Framework\View\Element\Template
     /**
      * @var \Magento\Catalog\Model\Session
      * @deprecated 103.0.1
-     * @see nothing
+     * @see Updated deprecation doc annotations
      */
     protected $_catalogSession;
 
@@ -157,9 +157,9 @@ class Toolbar extends \Magento\Framework\View\Element\Template
         ProductList $productListHelper,
         \Magento\Framework\Data\Helper\PostHelper $postDataHelper,
         array $data = [],
-        ToolbarMemorizer $toolbarMemorizer = null,
-        \Magento\Framework\App\Http\Context $httpContext = null,
-        \Magento\Framework\Data\Form\FormKey $formKey = null
+        ?ToolbarMemorizer $toolbarMemorizer = null,
+        ?\Magento\Framework\App\Http\Context $httpContext = null,
+        ?\Magento\Framework\Data\Form\FormKey $formKey = null
     ) {
         $this->_catalogSession = $catalogSession;
         $this->_catalogConfig = $catalogConfig;
@@ -184,7 +184,7 @@ class Toolbar extends \Magento\Framework\View\Element\Template
      *
      * @return $this
      * @deprecated 103.0.1
-     * @see nothing
+     * @see Updated deprecation doc annotations
      */
     public function disableParamsMemorizing()
     {
@@ -199,7 +199,7 @@ class Toolbar extends \Magento\Framework\View\Element\Template
      * @param mixed $value parameter value
      * @return $this
      * @deprecated 103.0.1
-     * @see nothing
+     * @see Updated deprecation doc annotations
      */
     protected function _memorizeParam($param, $value)
     {
