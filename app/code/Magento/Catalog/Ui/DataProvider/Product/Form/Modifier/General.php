@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2016 Adobe
+ * All Rights Reserved.
  */
 
 namespace Magento\Catalog\Ui\DataProvider\Product\Form\Modifier;
@@ -45,7 +45,7 @@ class General extends AbstractModifier
     public function __construct(
         LocatorInterface $locator,
         ArrayManager $arrayManager,
-        AttributeRepositoryInterface $attributeRepository = null
+        ?AttributeRepositoryInterface $attributeRepository = null
     ) {
         $this->locator = $locator;
         $this->arrayManager = $arrayManager;
@@ -394,7 +394,7 @@ class General extends AbstractModifier
 
         $urlKeyConfig = [
             'tooltip' => [
-                'link' => 'https://docs.magento.com/user-guide/catalog/catalog-urls.html',
+                'link' => 'https://experienceleague.adobe.com/docs/commerce-admin/catalog/catalog/catalog-urls.html',
                 'description' => __(
                     'The URL key should consist of lowercase characters with hyphens to separate words.'
                 ),

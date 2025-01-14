@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2011 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\Catalog\Model\Product;
 
@@ -52,6 +52,7 @@ class Link extends \Magento\Framework\Model\AbstractModel
     /**
      * @var \Magento\CatalogInventory\Helper\Stock
      * @deprecated 101.0.0
+     * @see Updated deprecation doc annotations
      */
     protected $stockHelper;
 
@@ -71,8 +72,8 @@ class Link extends \Magento\Framework\Model\AbstractModel
         \Magento\Catalog\Model\ResourceModel\Product\Link\CollectionFactory $linkCollectionFactory,
         \Magento\Catalog\Model\ResourceModel\Product\Link\Product\CollectionFactory $productCollectionFactory,
         \Magento\CatalogInventory\Helper\Stock $stockHelper,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        ?\Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        ?\Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->_linkCollectionFactory = $linkCollectionFactory;
@@ -92,7 +93,7 @@ class Link extends \Magento\Framework\Model\AbstractModel
     }
 
     /**
-     * Set this link to use related links
+     * Method to set link type for the related product
      *
      * @return $this
      */
@@ -103,7 +104,7 @@ class Link extends \Magento\Framework\Model\AbstractModel
     }
 
     /**
-     * Set this link to use upsell links
+     * Method to set link type for upsell product
      *
      * @return $this
      */
@@ -114,7 +115,7 @@ class Link extends \Magento\Framework\Model\AbstractModel
     }
 
     /**
-     * Set this link to use cross-sell links
+     * Method to set link type for cross-sell products
      *
      * @return $this
      */
@@ -158,7 +159,7 @@ class Link extends \Magento\Framework\Model\AbstractModel
     }
 
     /**
-     * Return attributes
+     * Method to get Product attributes
      *
      * @param int $type
      * @return array
@@ -188,7 +189,7 @@ class Link extends \Magento\Framework\Model\AbstractModel
     }
 
     /**
-     * Return product link save handler
+     * Method to get Save Handler instance
      *
      * @return Link\SaveHandler
      */

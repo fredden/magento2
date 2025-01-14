@@ -14,7 +14,9 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderRepository;
+use Magento\Sales\Test\Fixture\Creditmemo as CreditmemoFixture;
 use Magento\Sales\Test\Fixture\Invoice as InvoiceFixture;
+use Magento\Sales\Test\Fixture\Shipment as ShipmentFixture;
 use Magento\Store\Test\Fixture\Store;
 use Magento\TestFramework\Fixture\DataFixtureStorageManager;
 use Magento\TestFramework\Fixture\DataFixture;
@@ -58,8 +60,7 @@ use Magento\Quote\Test\Fixture\AddProductToCart as AddProductToCartFixture;
     DataFixture(SetDeliveryMethodFixture::class, ['cart_id' => '$cart.id$']),
     DataFixture(SetPaymentMethodFixture::class, ['cart_id' => '$cart.id$']),
     DataFixture(PlaceOrderFixture::class, ['cart_id' => '$cart.id$'], 'order'),
-    DataFixture(InvoiceFixture::class, ['order_id' => '$order.id$'], 'invoice'),
-    Config('sales/cancellation/enabled', 1)
+    DataFixture(InvoiceFixture::class, ['order_id' => '$order.id$'], 'invoice')
 ]
 class CancelOrderTest extends GraphQlAbstract
 {
@@ -87,9 +88,12 @@ class CancelOrderTest extends GraphQlAbstract
      * @throws AuthenticationException
      * @throws LocalizedException
      */
+    #[
+        Config('sales/cancellation/enabled', 1)
+    ]
     public function testAttemptToCancelOrderWhenMissingReason()
     {
-        $query = <<<QUERY
+        $query = <<<MUTATION
         mutation {
             cancelOrder(
               input: {
@@ -102,7 +106,7 @@ class CancelOrderTest extends GraphQlAbstract
                 }
             }
           }
-QUERY;
+MUTATION;
         $customerToken = $this->getHeaders();
 
         $this->expectException(ResponseContainsErrorsException::class);
@@ -131,7 +135,7 @@ QUERY;
          */
         $order = DataFixtureStorageManager::getStorage()->get('order');
 
-        $query = <<<QUERY
+        $query = <<<MUTATION
         mutation {
             cancelOrder(
               input: {
@@ -139,19 +143,23 @@ QUERY;
                 reason: "Sample reason"
               }
             ){
-                error
+                errorV2 {
+                    message
+                }
                 order {
                     status
                 }
             }
           }
-QUERY;
+MUTATION;
         $customerToken = $this->getHeaders();
 
         $this->assertEquals(
             [
                 'cancelOrder' => [
-                    'error' => 'Order cancellation is not enabled for requested store.',
+                    'errorV2' => [
+                        'message' => 'Order cancellation is not enabled for requested store.'
+                    ],
                     'order' => null
                 ]
             ],
@@ -169,9 +177,12 @@ QUERY;
      * @throws AuthenticationException
      * @throws LocalizedException
      */
+    #[
+        Config('sales/cancellation/enabled', 1)
+    ]
     public function testAttemptToCancelOrderWhenMissingOrderId()
     {
-        $query = <<<QUERY
+        $query = <<<MUTATION
         mutation {
             cancelOrder(
               input: {
@@ -184,7 +195,7 @@ QUERY;
                 }
             }
           }
-QUERY;
+MUTATION;
         $customerToken = $this->getHeaders();
 
         $this->expectException(ResponseContainsErrorsException::class);
@@ -203,9 +214,12 @@ QUERY;
      * @throws AuthenticationException
      * @throws LocalizedException
      */
+    #[
+        Config('sales/cancellation/enabled', 1)
+    ]
     public function testAttemptToCancelNonExistingOrder()
     {
-        $query = <<<QUERY
+        $query = <<<MUTATION
         mutation {
             cancelOrder(
               input: {
@@ -218,8 +232,8 @@ QUERY;
                     status
                 }
             }
-          }
-QUERY;
+        }
+MUTATION;
         $customerToken = $this->getHeaders();
 
         $response = $this->graphQlMutation(
@@ -266,7 +280,8 @@ QUERY;
         DataFixture(SetDeliveryMethodFixture::class, ['cart_id' => '$cart.id$']),
         DataFixture(SetPaymentMethodFixture::class, ['cart_id' => '$cart.id$']),
         DataFixture(PlaceOrderFixture::class, ['cart_id' => '$cart.id$'], 'order'),
-        DataFixture(InvoiceFixture::class, ['order_id' => '$order.id$'], 'invoice')
+        DataFixture(InvoiceFixture::class, ['order_id' => '$order.id$'], 'invoice'),
+        Config('sales/cancellation/enabled', 1)
     ]
     public function testAttemptToCancelOrderFromAnotherCustomer()
     {
@@ -275,7 +290,7 @@ QUERY;
          */
         $order = DataFixtureStorageManager::getStorage()->get('order');
 
-        $query = <<<QUERY
+        $query = <<<MUTATION
         mutation {
             cancelOrder(
               input: {
@@ -288,8 +303,8 @@ QUERY;
                 status
               }
             }
-          }
-QUERY;
+        }
+MUTATION;
         $customerToken = $this->getHeaders();
 
         $response = $this->graphQlMutation(
@@ -314,6 +329,9 @@ QUERY;
     /**
      * @dataProvider orderStatusProvider
      */
+    #[
+        Config('sales/cancellation/enabled', 1)
+    ]
     public function testAttemptToCancelOrderWithSomeStatuses(string $status, string $expectedStatus)
     {
         /**
@@ -327,21 +345,7 @@ QUERY;
         $orderRepo = $this->objectManager->get(OrderRepository::class);
         $orderRepo->save($order);
 
-        $query = <<<QUERY
-        mutation {
-            cancelOrder(
-              input: {
-                order_id: "{$order->getEntityId()}"
-                reason: "Cancel sample reason"
-              }
-            ){
-                error
-                order {
-                    status
-                }
-            }
-          }
-QUERY;
+        $query = $this->getCancelOrderMutation((int)$order->getEntityId());
         $customerToken = $this->getHeaders();
 
         $response = $this->graphQlMutation(
@@ -355,9 +359,207 @@ QUERY;
             [
                 'cancelOrder' =>
                     [
-                        'error' => 'Order already closed, cancelled or on hold',
+                        'errorV2' => [
+                            'message' => 'Order already closed, complete, cancelled or on hold'
+                        ],
                         'order' => [
                             'status' => $expectedStatus
+                        ]
+                    ]
+            ],
+            $response
+        );
+    }
+
+    /**
+     * @return void
+     * @throws AuthenticationException
+     * @throws LocalizedException
+     */
+    #[
+        DataFixture(Store::class),
+        DataFixture(
+            Customer::class,
+            [
+                'email' => 'customer@example.com',
+                'password' => 'password'
+            ],
+            'customer'
+        ),
+        DataFixture(ProductFixture::class, as: 'product'),
+        DataFixture(CustomerCart::class, ['customer_id' => '$customer.id$'], as: 'cart'),
+        DataFixture(AddProductToCartFixture::class, ['cart_id' => '$cart.id$', 'product_id' => '$product.id$']),
+        DataFixture(SetBillingAddressFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetShippingAddressFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetDeliveryMethodFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetPaymentMethodFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(PlaceOrderFixture::class, ['cart_id' => '$cart.id$'], 'order'),
+        DataFixture(InvoiceFixture::class, ['order_id' => '$order.id$'], 'invoice'),
+        DataFixture(ShipmentFixture::class, ['order_id' => '$order.id$']),
+        Config('sales/cancellation/enabled', 1)
+    ]
+    public function testAttemptToCancelOrderWithOfflinePaymentFullyInvoicedFullyShipped()
+    {
+        /**
+         * @var $order OrderInterface
+         */
+        $order = DataFixtureStorageManager::getStorage()->get('order');
+        $query = $this->getCancelOrderMutation((int)$order->getEntityId());
+        $customerToken = $this->getHeaders();
+
+        $response = $this->graphQlMutation(
+            $query,
+            [],
+            '',
+            $customerToken
+        );
+
+        $this->assertEquals(
+            [
+                'cancelOrder' =>
+                    [
+                        'errorV2' => [
+                            'message' => 'Order already closed, complete, cancelled or on hold'
+                        ],
+                        'order' => [
+                            'status' => 'Complete'
+                        ]
+                    ]
+            ],
+            $response
+        );
+    }
+
+    /**
+     * @return void
+     * @throws AuthenticationException
+     * @throws LocalizedException
+     */
+    #[
+        DataFixture(Store::class),
+        DataFixture(
+            Customer::class,
+            [
+                'email' => 'customer@example.com',
+                'password' => 'password'
+            ],
+            'customer'
+        ),
+        DataFixture(ProductFixture::class, as: 'product'),
+        DataFixture(CustomerCart::class, ['customer_id' => '$customer.id$'], as: 'cart'),
+        DataFixture(
+            AddProductToCartFixture::class,
+            [
+                'cart_id' => '$cart.id$',
+                'product_id' => '$product.id$',
+                'qty' => 3
+            ]
+        ),
+        DataFixture(SetBillingAddressFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetShippingAddressFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetDeliveryMethodFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetPaymentMethodFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(PlaceOrderFixture::class, ['cart_id' => '$cart.id$'], 'order'),
+        DataFixture(InvoiceFixture::class, ['order_id' => '$order.id$'], 'invoice'),
+        DataFixture(
+            ShipmentFixture::class,
+            [
+                'order_id' => '$order.id$',
+                'items' => [['product_id' => '$product.id$', 'qty' => 1]]
+            ]
+        ),
+        Config('sales/cancellation/enabled', 1)
+    ]
+    public function testAttemptToCancelOrderWithOfflinePaymentFullyInvoicedPartiallyShipped()
+    {
+        /**
+         * @var $order OrderInterface
+         */
+        $order = DataFixtureStorageManager::getStorage()->get('order');
+        $query = $this->getCancelOrderMutation((int)$order->getEntityId());
+        $customerToken = $this->getHeaders();
+
+        $response = $this->graphQlMutation(
+            $query,
+            [],
+            '',
+            $customerToken
+        );
+
+        $this->assertEquals(
+            [
+                'cancelOrder' =>
+                    [
+                        'errorV2' => [
+                            'message' => 'Order with one or more items shipped cannot be cancelled'
+                        ],
+                        'order' => [
+                            'status' => 'Processing'
+                        ]
+                    ]
+            ],
+            $response
+        );
+    }
+
+    /**
+     * @return void
+     * @throws AuthenticationException
+     * @throws LocalizedException
+     */
+    #[
+        DataFixture(Store::class),
+        DataFixture(
+            Customer::class,
+            [
+                'email' => 'customer@example.com',
+                'password' => 'password'
+            ],
+            'customer'
+        ),
+        DataFixture(ProductFixture::class, as: 'product'),
+        DataFixture(CustomerCart::class, ['customer_id' => '$customer.id$'], as: 'cart'),
+        DataFixture(
+            AddProductToCartFixture::class,
+            [
+                'cart_id' => '$cart.id$',
+                'product_id' => '$product.id$'
+            ]
+        ),
+        DataFixture(SetBillingAddressFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetShippingAddressFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetDeliveryMethodFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetPaymentMethodFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(PlaceOrderFixture::class, ['cart_id' => '$cart.id$'], 'order'),
+        DataFixture(InvoiceFixture::class, ['order_id' => '$order.id$'], 'invoice'),
+        DataFixture(CreditmemoFixture::class, ['order_id' => '$order.id$'], 'creditmemo'),
+        Config('sales/cancellation/enabled', 1)
+    ]
+    public function testAttemptToCancelOrderWithOfflinePaymentFullyInvoicedFullyRefunded()
+    {
+        /**
+         * @var $order OrderInterface
+         */
+        $order = DataFixtureStorageManager::getStorage()->get('order');
+        $query = $this->getCancelOrderMutation((int)$order->getEntityId());
+        $customerToken = $this->getHeaders();
+
+        $response = $this->graphQlMutation(
+            $query,
+            [],
+            '',
+            $customerToken
+        );
+
+        $this->assertEquals(
+            [
+                'cancelOrder' =>
+                    [
+                        'errorV2' => [
+                            'message' => 'Order already closed, complete, cancelled or on hold'
+                        ],
+                        'order' => [
+                            'status' => 'Closed'
                         ]
                     ]
             ],
@@ -391,21 +593,7 @@ QUERY;
          * @var $order OrderInterface
          */
         $order = DataFixtureStorageManager::getStorage()->get('order');
-        $query = <<<QUERY
-        mutation {
-            cancelOrder(
-              input: {
-                order_id: "{$order->getEntityId()}"
-                reason: "Cancel sample reason"
-              }
-            ){
-                error
-                order {
-                    status
-                }
-            }
-          }
-QUERY;
+        $query = $this->getCancelOrderMutation((int)$order->getEntityId());
         $customerToken = $this->getHeaders();
 
         $response = $this->graphQlMutation(
@@ -419,7 +607,7 @@ QUERY;
             [
                 'cancelOrder' =>
                     [
-                        'error' => null,
+                        'errorV2' => null,
                         'order' => [
                             'status' => 'Canceled'
                         ]
@@ -446,27 +634,13 @@ QUERY;
     #[
         Config('sales/cancellation/enabled', 1)
     ]
-    public function testCancelOrderWithOfflinePayment()
+    public function testCancelOrderWithOfflinePaymentFullyInvoiced()
     {
         /**
          * @var $order OrderInterface
          */
         $order = DataFixtureStorageManager::getStorage()->get('order');
-        $query = <<<QUERY
-        mutation {
-            cancelOrder(
-              input: {
-                order_id: "{$order->getEntityId()}"
-                reason: "Cancel sample reason"
-              }
-            ){
-                error
-                order {
-                    status
-                }
-            }
-          }
-QUERY;
+        $query = $this->getCancelOrderMutation((int)$order->getEntityId());
         $customerToken = $this->getHeaders();
 
         $response = $this->graphQlMutation(
@@ -480,7 +654,7 @@ QUERY;
             [
                 'cancelOrder' =>
                     [
-                        'error' => null,
+                        'errorV2' => null,
                         'order' => [
                             'status' => 'Closed'
                         ]
@@ -508,29 +682,48 @@ QUERY;
      * @throws LocalizedException
      */
     #[
+        DataFixture(Store::class),
+        DataFixture(
+            Customer::class,
+            [
+                'email' => 'customer@example.com',
+                'password' => 'password'
+            ],
+            'customer'
+        ),
+        DataFixture(ProductFixture::class, as: 'product'),
+        DataFixture(CustomerCart::class, ['customer_id' => '$customer.id$'], as: 'cart'),
+        DataFixture(
+            AddProductToCartFixture::class,
+            [
+                'cart_id' => '$cart.id$',
+                'product_id' => '$product.id$',
+                'qty' => 3
+            ]
+        ),
+        DataFixture(SetBillingAddressFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetShippingAddressFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetDeliveryMethodFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetPaymentMethodFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(PlaceOrderFixture::class, ['cart_id' => '$cart.id$'], 'order'),
+        DataFixture(InvoiceFixture::class, ['order_id' => '$order.id$'], 'invoice'),
+        DataFixture(
+            CreditmemoFixture::class,
+            [
+                'order_id' => '$order.id$',
+                'items' => [['qty' => 1, 'product_id' => '$product.id$']]
+            ],
+            'creditmemo'
+        ),
         Config('sales/cancellation/enabled', 1)
     ]
-    public function testCancelOrderAttemptingXSSPassedThroughReasonField()
+    public function testCancelOrderWithOfflinePaymentFullyInvoicedPartiallyRefunded()
     {
         /**
          * @var $order OrderInterface
          */
         $order = DataFixtureStorageManager::getStorage()->get('order');
-        $query = <<<QUERY
-        mutation {
-            cancelOrder(
-              input: {
-                order_id: "{$order->getEntityId()}"
-                reason: "<script>while(true){alert(666);}</script>"
-              }
-            ){
-                error
-                order {
-                    status
-                }
-            }
-          }
-QUERY;
+        $query = $this->getCancelOrderMutation((int)$order->getEntityId());
         $customerToken = $this->getHeaders();
 
         $response = $this->graphQlMutation(
@@ -544,7 +737,76 @@ QUERY;
             [
                 'cancelOrder' =>
                     [
-                        'error' => null,
+                        'errorV2' => null,
+                        'order' => [
+                            'status' => 'Closed'
+                        ]
+                    ]
+            ],
+            $response
+        );
+
+        $comments = $order->getAllStatusHistory();
+
+        $comment = array_pop($comments);
+        $this->assertEquals("We refunded $25.00 offline.", $comment->getComment());
+
+        $comment = array_pop($comments);
+        $this->assertEquals("We refunded $20.00 offline.", $comment->getComment());
+
+        $comment = array_pop($comments);
+        $this->assertEquals("Order cancellation notification email was sent.", $comment->getComment());
+
+        $comment = array_pop($comments);
+        $this->assertEquals('Cancel sample reason', $comment->getComment());
+        $this->assertEquals('closed', $comment->getStatus());
+    }
+
+    /**
+     * @return void
+     * @throws AuthenticationException
+     * @throws LocalizedException
+     */
+    #[
+        Config('sales/cancellation/enabled', 1)
+    ]
+    public function testCancelOrderAttemptingXSSPassedThroughReasonField()
+    {
+        /**
+         * @var $order OrderInterface
+         */
+        $order = DataFixtureStorageManager::getStorage()->get('order');
+        $query = <<<MUTATION
+        mutation {
+            cancelOrder(
+              input: {
+                order_id: "{$order->getEntityId()}"
+                reason: "<script>while(true){alert(666);}</script>"
+              }
+            ){
+                errorV2 {
+                    message
+                }
+                order {
+                    status
+                }
+            }
+          }
+MUTATION;
+        $customerToken = $this->getHeaders();
+
+        $response = $this->graphQlMutation(
+            $query,
+            [],
+            '',
+            $customerToken
+        );
+
+        $this->assertEquals(
+            [
+                'cancelOrder' =>
+                    [
+                        'errorV2' => null,
                         'order' => [
                             'status' => 'Closed'
                         ]
@@ -559,6 +821,104 @@ QUERY;
         $this->assertEquals('closed', $comment->getStatus());
     }
 
+    #[
+        DataFixture(Store::class),
+        DataFixture(
+            Customer::class,
+            [
+                'email' => 'customer@example.com',
+                'password' => 'password'
+            ],
+            'customer'
+        ),
+        DataFixture(ProductFixture::class, as: 'product1'),
+        DataFixture(ProductFixture::class, as: 'product2'),
+        DataFixture(CustomerCart::class, ['customer_id' => '$customer.id$'], as: 'cart'),
+        DataFixture(AddProductToCartFixture::class, ['cart_id' => '$cart.id$', 'product_id' => '$product1.id$']),
+        DataFixture(AddProductToCartFixture::class, ['cart_id' => '$cart.id$', 'product_id' => '$product2.id$']),
+        DataFixture(SetBillingAddressFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetShippingAddressFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetDeliveryMethodFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(SetPaymentMethodFixture::class, ['cart_id' => '$cart.id$']),
+        DataFixture(PlaceOrderFixture::class, ['cart_id' => '$cart.id$'], 'order'),
+        DataFixture(
+            InvoiceFixture::class,
+            [
+                'order_id' => '$order.id$',
+                'items' => ['$product1.sku$']
+            ],
+            'invoice'
+        ),
+        Config('sales/cancellation/enabled', 1)
+    ]
+    public function testCancelPartiallyInvoicedOrder()
+    {
+        /**
+         * @var $order OrderInterface
+         */
+        $order = DataFixtureStorageManager::getStorage()->get('order');
+        $query = $this->getCancelOrderMutation((int)$order->getEntityId());
+        $customerToken = $this->getHeaders();
+
+        $response = $this->graphQlMutation(
+            $query,
+            [],
+            '',
+            $customerToken
+        );
+
+        $this->assertEquals(
+            [
+                'cancelOrder' =>
+                    [
+                        'errorV2' => null,
+                        'order' => [
+                            'status' => 'Canceled'
+                        ]
+                    ]
+            ],
+            $response
+        );
+
+        $comments = $order->getStatusHistories();
+
+        $comment = array_pop($comments);
+        $this->assertEquals("We refunded $20.00 offline.", $comment->getComment());
+
+        $comment = array_pop($comments);
+        $this->assertEquals("Order cancellation notification email was sent.", $comment->getComment());
+
+        $comment = array_pop($comments);
+        $this->assertEquals('Cancel sample reason', $comment->getComment());
+        $this->assertEquals('canceled', $comment->getStatus());
+    }
+
+    /**
+     * Get cancel order mutation
+     *
+     * @param int $orderId
+     * @return string
+     */
+    private function getCancelOrderMutation(int $orderId): string
+    {
+        return <<<MUTATION
+        mutation {
+            cancelOrder(
+              input: {
+                order_id: "{$orderId}"
+                reason: "Cancel sample reason"
+              }
+            ){
+                errorV2 {
+                    message
+                }
+                order {
+                    status
+                }
+            }
+        }
+MUTATION;
+    }
     /**
      * @return string[]
      * @throws AuthenticationException|LocalizedException
@@ -574,7 +934,7 @@ QUERY;
     /**
      * @return array[]
      */
-    public function orderStatusProvider(): array
+    public static function orderStatusProvider(): array
     {
         return [
             'On Hold status' => [
@@ -588,6 +948,10 @@ QUERY;
             'Closed status' => [
                 Order::STATE_CLOSED,
                 'Closed'
+            ],
+            'Complete status' => [
+                Order::STATE_COMPLETE,
+                'Complete'
             ]
         ];
     }

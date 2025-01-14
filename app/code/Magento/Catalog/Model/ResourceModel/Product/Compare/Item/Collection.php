@@ -1,9 +1,12 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2011 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\Catalog\Model\ResourceModel\Product\Compare\Item;
+
+use Magento\Customer\Model\Config\Share;
+use Magento\Framework\App\ObjectManager;
 
 /**
  * Catalog Product Compare Items Resource Collection
@@ -55,6 +58,11 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
     protected $_catalogProductCompareItem;
 
     /**
+     * @var Share
+     */
+    private $share;
+
+    /**
      * Collection constructor.
      * @param \Magento\Framework\Data\Collection\EntityFactory $entityFactory
      * @param \Psr\Log\LoggerInterface $logger
@@ -78,6 +86,7 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
      * @param \Magento\Catalog\Model\ResourceModel\Product\Compare\Item $catalogProductCompareItem
      * @param \Magento\Catalog\Helper\Product\Compare $catalogProductCompare
      * @param \Magento\Framework\DB\Adapter\AdapterInterface $connection
+     * @param Share|null $share
      *
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
@@ -103,10 +112,12 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
         \Magento\Customer\Api\GroupManagementInterface $groupManagement,
         \Magento\Catalog\Model\ResourceModel\Product\Compare\Item $catalogProductCompareItem,
         \Magento\Catalog\Helper\Product\Compare $catalogProductCompare,
-        \Magento\Framework\DB\Adapter\AdapterInterface $connection = null
+        ?\Magento\Framework\DB\Adapter\AdapterInterface $connection = null,
+        ?Share $share = null,
     ) {
         $this->_catalogProductCompareItem = $catalogProductCompareItem;
         $this->_catalogProductCompare = $catalogProductCompare;
+        $this->share = $share ?? ObjectManager::getInstance()->get(Share::class);
         parent::__construct(
             $entityFactory,
             $logger,
@@ -235,11 +246,15 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
     public function getConditionForJoin()
     {
         if ($this->getCustomerId()) {
-            return ['customer_id' => $this->getCustomerId()];
+            $conditions['customer_id'] = $this->getCustomerId();
+            if (!$this->share->isGlobalScope()) {
+                $conditions['store_id'] = $this->getStoreId();
+            }
+            return $conditions;
         }
 
         if ($this->getVisitorId()) {
-            return ['visitor_id' => $this->getVisitorId()];
+            return ['visitor_id' => $this->getVisitorId(), 'store_id' => $this->getStoreId()];
         }
 
         if ($this->getListId()) {

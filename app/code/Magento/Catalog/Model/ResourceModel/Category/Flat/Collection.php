@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2011 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\Catalog\Model\ResourceModel\Category\Flat;
 
@@ -69,8 +69,8 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
         ManagerInterface $eventManager,
         StoreManagerInterface $storeManager,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Framework\DB\Adapter\AdapterInterface $connection = null,
-        AbstractDb $resource = null
+        ?\Magento\Framework\DB\Adapter\AdapterInterface $connection = null,
+        ?AbstractDb $resource = null
     ) {
         $this->_storeManager = $storeManager;
         $this->scopeConfig = $scopeConfig;
@@ -91,7 +91,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     }
 
     /**
-     * Initialise the select
+     * Db query
      *
      * @return $this
      */
@@ -122,9 +122,11 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
             $condition = $categoryIds;
         } elseif (is_string($categoryIds)) {
             $ids = explode(',', $categoryIds);
-            $condition = ['in' => $ids];
-        } else {
-            return $this;
+            if (count($ids) === 0) {
+                $condition = $categoryIds;
+            } else {
+                $condition = ['in' => $ids];
+            }
         }
         $this->addFieldToFilter('main_table.entity_id', $condition);
         return $this;
@@ -219,7 +221,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     }
 
     /**
-     * Add a filter to only show active categories
+     * If filter active
      *
      * @return $this
      */
@@ -288,6 +290,8 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      * Retrieve resource instance
      *
      * @return \Magento\Catalog\Model\ResourceModel\Category\Flat
+     *
+     * phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod
      */
     public function getResource()
     {
@@ -327,7 +331,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     }
 
     /**
-     * Join the URL rewrite table to the result
+     * Adds URL rewrite data to the result set
      *
      * @return $this
      */
@@ -346,7 +350,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     }
 
     /**
-     * Add a paths filter
+     * Adding paths filter
      *
      * @param string|array $paths
      * @return $this
@@ -370,7 +374,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     }
 
     /**
-     * Add a level filter
+     * Adding level filter
      *
      * @param string $level
      * @return $this
@@ -382,7 +386,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     }
 
     /**
-     * Add an order field
+     * Adding order field
      *
      * @param string $field
      * @return $this

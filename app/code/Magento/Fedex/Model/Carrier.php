@@ -1,21 +1,7 @@
 <?php
-/************************************************************************
- *
- * ADOBE CONFIDENTIAL
- * ___________________
- *
- * Copyright 2014 Adobe
+/**
+ * Copyright 2023 Adobe
  * All Rights Reserved.
- *
- * NOTICE: All information contained herein is, and remains
- * the property of Adobe and its suppliers, if any. The intellectual
- * and technical concepts contained herein are proprietary to Adobe
- * and its suppliers and are protected by all applicable intellectual
- * property laws, including trade secret and copyright laws.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Adobe.
- * ************************************************************************
  */
 
 namespace Magento\Fedex\Model;
@@ -30,6 +16,7 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\Url\DecoderInterface;
 use Magento\Framework\Xml\Security;
 use Magento\Quote\Model\Quote\Address\RateRequest;
+use Magento\Sales\Model\Order;
 use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\AbstractCarrierOnline;
 use Magento\Shipping\Model\Rate\Result;
@@ -232,7 +219,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         CurlFactory $curlFactory,
         DecoderInterface $decoderInterface,
         array $data = [],
-        Json $serializer = null
+        ?Json $serializer = null
     ) {
         $this->_storeManager = $storeManager;
         $this->_productCollectionFactory = $productCollectionFactory;
@@ -430,7 +417,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
                         ]
                     ]
                 ],
-                'rateRequestType' => ['LIST']
+                'rateRequestType' => ['LIST', 'ACCOUNT']
             ]
         ];
 
@@ -947,6 +934,18 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         $apiKey = $this->getConfigData('api_key') ?? null;
         $secretKey = $this->getConfigData('secret_key') ?? null;
 
+        return $this->retrieveAccessToken($apiKey, $secretKey);
+    }
+
+    /**
+     * Make the call to get the access token
+     *
+     * @param string|null $apiKey
+     * @param string|null $secretKey
+     * @return string|null
+     */
+    private function retrieveAccessToken(?string $apiKey, ?string $secretKey): string|null
+    {
         if (!$apiKey || !$secretKey) {
             $this->_debug(__('Authentication keys are missing.'));
             return null;
@@ -968,7 +967,21 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         } elseif (!empty($response['access_token'])) {
             $accessToken = $response['access_token'];
         }
+
         return $accessToken;
+    }
+
+    /**
+     * Get Access Token for Tracking Rest API
+     *
+     * @return string|null
+     */
+    private function getTrackingApiAccessToken(): string|null
+    {
+        $trackingApiKey = $this->getConfigData('tracking_api_key') ?? null;
+        $trackingSecretKey = $this->getConfigData('tracking_api_secret_key') ?? null;
+
+        return $this->retrieveAccessToken($trackingApiKey, $trackingSecretKey);
     }
 
     /**
@@ -1020,7 +1033,12 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
      */
     protected function _getTrackingInformation($tracking): void
     {
-        $accessToken = $this->_getAccessToken();
+        if ($this->getConfigData('enabled_tracking_api')) {
+            $accessToken = $this->getTrackingApiAccessToken();
+        } else {
+            $accessToken = $this->_getAccessToken();
+        }
+
         if (!empty($accessToken)) {
 
             $trackRequest = [
@@ -1174,15 +1192,16 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
         $countriesOfManufacture = [];
         $productIds = [];
         $packageItems = $request->getPackageItems();
-        foreach ($packageItems as $itemShipment) {
-            $item = new \Magento\Framework\DataObject();
-            $item->setData($itemShipment);
+        /** @var Order $order */
+        $order = $request->getOrderShipment()->getOrder();
+        foreach ($packageItems as $orderItemId => $itemShipment) {
+            if ($item = $order->getItemById($orderItemId)) {
+                $unitPrice += $item->getPrice();
+                $itemsQty += $itemShipment['qty'];
 
-            $unitPrice += $item->getPrice();
-            $itemsQty += $item->getQty();
-
-            $itemsDesc[] = $item->getName();
-            $productIds[] = $item->getProductId();
+                $itemsDesc[] = $item->getName();
+                $productIds[] = $item->getProductId();
+            }
         }
 
         // get countries of manufacture
@@ -1343,7 +1362,6 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
     {
         $this->_prepareShipmentRequest($request);
         $result = new \Magento\Framework\DataObject();
-        $response = null;
         $accessToken = $this->_getAccessToken();
         if (empty($accessToken)) {
             return $result->setErrors(__('Authorization Error. No Access Token found with given credentials.'));
@@ -1380,7 +1398,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
                 $debugData['result']['error'] = $response['errors']['message'] . ' ';
             }
 
-            $result->setErrors($debugData['result']['error']);
+            $result->setErrors($debugData['result']['error'] . $debugData['result']['code']);
         }
 
         $this->_debug($debugData);
@@ -1449,7 +1467,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
      * @return array|bool
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    public function getContainerTypes(\Magento\Framework\DataObject $params = null)
+    public function getContainerTypes(?\Magento\Framework\DataObject $params = null)
     {
         if ($params == null) {
             return $this->_getAllowedContainers($params);
@@ -1517,7 +1535,7 @@ class Carrier extends AbstractCarrierOnline implements \Magento\Shipping\Model\C
      * @return array
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getDeliveryConfirmationTypes(\Magento\Framework\DataObject $params = null)
+    public function getDeliveryConfirmationTypes(?\Magento\Framework\DataObject $params = null)
     {
         return $this->getCode('delivery_confirmation_types');
     }

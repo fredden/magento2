@@ -175,8 +175,8 @@ class CommonTaxCollector extends AbstractTotal
         \Magento\Tax\Api\Data\TaxClassKeyInterfaceFactory $taxClassKeyDataObjectFactory,
         CustomerAddressFactory $customerAddressFactory,
         CustomerAddressRegionFactory $customerAddressRegionFactory,
-        TaxHelper $taxHelper = null,
-        QuoteDetailsItemExtensionInterfaceFactory $quoteDetailsItemExtensionInterfaceFactory = null,
+        ?TaxHelper $taxHelper = null,
+        ?QuoteDetailsItemExtensionInterfaceFactory $quoteDetailsItemExtensionInterfaceFactory = null,
         ?CustomerAccountManagement $customerAccountManagement = null
     ) {
         $this->taxCalculationService = $taxCalculationService;
@@ -191,6 +191,15 @@ class CommonTaxCollector extends AbstractTotal
             ObjectManager::getInstance()->get(QuoteDetailsItemExtensionInterfaceFactory::class);
         $this->customerAccountManagement = $customerAccountManagement ??
             ObjectManager::getInstance()->get(CustomerAccountManagement::class);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function _resetState(): void
+    {
+        parent::_resetState();
+        $this->counter = 0;
     }
 
     /**

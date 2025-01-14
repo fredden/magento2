@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2011 Adobe
+ * All Rights Reserved.
  */
 
 /**
@@ -35,8 +35,6 @@ class Category extends AbstractResource implements ResetAfterRequestInterface
     protected $_tree;
 
     /**
-     * Catalog products table name
-     *
      * @var string
      */
     protected $_categoryProductTable;
@@ -47,15 +45,11 @@ class Category extends AbstractResource implements ResetAfterRequestInterface
     private $entitiesWhereAttributesIs;
 
     /**
-     * Id of 'is_active' category attribute
-     *
      * @var int
      */
     protected $_isActiveAttributeId = null;
 
     /**
-     * Id of store
-     *
      * @var int
      */
     protected $_storeId = null;
@@ -125,10 +119,10 @@ class Category extends AbstractResource implements ResetAfterRequestInterface
         \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory $categoryCollectionFactory,
         Processor $indexerProcessor,
         $data = [],
-        \Magento\Framework\Serialize\Serializer\Json $serializer = null,
-        MetadataPool $metadataPool = null,
-        \Magento\Framework\EntityManager\EntityManager $entityManager = null,
-        \Magento\Catalog\Model\ResourceModel\Category\AggregateCount $aggregateCount = null
+        ?\Magento\Framework\Serialize\Serializer\Json $serializer = null,
+        ?MetadataPool $metadataPool = null,
+        ?\Magento\Framework\EntityManager\EntityManager $entityManager = null,
+        ?\Magento\Catalog\Model\ResourceModel\Category\AggregateCount $aggregateCount = null
     ) {
         parent::__construct(
             $context,
@@ -453,7 +447,7 @@ class Category extends AbstractResource implements ResetAfterRequestInterface
                     'position' => (int)$position,
                 ];
             }
-            $connection->insertMultiple($this->getCategoryProductTable(), $data);
+            $connection->insertOnDuplicate($this->getCategoryProductTable(), $data, ['position']);
         }
 
         /**
@@ -1053,7 +1047,7 @@ class Category extends AbstractResource implements ResetAfterRequestInterface
         if ($afterCategoryId) {
             $select = $connection->select()->from($table, 'position')->where('entity_id = :entity_id');
             $position = $connection->fetchOne($select, ['entity_id' => $afterCategoryId]);
-            $position++;
+            $position = (int)$position + 1;
         } else {
             $position = 1;
         }
