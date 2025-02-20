@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2014 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -24,7 +24,9 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\StateException;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
+use Magento\Framework\Lock\LockManagerInterface;
 use Magento\Framework\Model\AbstractExtensibleModel;
+use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
 use Magento\Framework\Validator\Exception as ValidatorException;
 use Magento\Payment\Model\Method\AbstractMethod;
 use Magento\Quote\Api\CartManagementInterface;
@@ -32,8 +34,8 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\Quote\Model\Quote\Address\ToOrder as ToOrderConverter;
 use Magento\Quote\Model\Quote\Address\ToOrderAddress as ToOrderAddressConverter;
-use Magento\Quote\Model\Quote as QuoteEntity;
 use Magento\Quote\Model\Quote\AddressFactory;
+use Magento\Quote\Model\Quote as QuoteEntity;
 use Magento\Quote\Model\Quote\Item\ToOrderItem as ToOrderItemConverter;
 use Magento\Quote\Model\Quote\Payment\ToOrderPayment as ToOrderPaymentConverter;
 use Magento\Quote\Model\ResourceModel\Quote\Item;
@@ -49,7 +51,7 @@ use Magento\Store\Model\StoreManagerInterface;
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @SuppressWarnings(PHPMD.TooManyFields)
  */
-class QuoteManagement implements CartManagementInterface
+class QuoteManagement implements CartManagementInterface, ResetAfterRequestInterface
 {
     /**
      * @var EventManager
@@ -177,6 +179,11 @@ class QuoteManagement implements CartManagementInterface
     private $remoteAddress;
 
     /**
+     * @var CartMutexInterface
+     */
+    private $cartMutex;
+
+    /**
      * @param EventManager $eventManager
      * @param SubmitQuoteValidator $submitQuoteValidator
      * @param OrderFactory $orderFactory
@@ -200,8 +207,11 @@ class QuoteManagement implements CartManagementInterface
      * @param QuoteIdMaskFactory|null $quoteIdMaskFactory
      * @param AddressRepositoryInterface|null $addressRepository
      * @param RequestInterface|null $request
-     * @param RemoteAddress $remoteAddress
+     * @param RemoteAddress|null $remoteAddress
+     * @param LockManagerInterface $lockManager
+     * @param CartMutexInterface|null $cartMutex
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function __construct(
         EventManager $eventManager,
@@ -224,10 +234,12 @@ class QuoteManagement implements CartManagementInterface
         CustomerSession $customerSession,
         AccountManagementInterface $accountManagement,
         QuoteFactory $quoteFactory,
-        QuoteIdMaskFactory $quoteIdMaskFactory = null,
-        AddressRepositoryInterface $addressRepository = null,
-        RequestInterface $request = null,
-        RemoteAddress $remoteAddress = null
+        ?QuoteIdMaskFactory $quoteIdMaskFactory = null,
+        ?AddressRepositoryInterface $addressRepository = null,
+        ?RequestInterface $request = null,
+        ?RemoteAddress $remoteAddress = null,
+        ?LockManagerInterface $lockManager = null,
+        ?CartMutexInterface $cartMutex = null
     ) {
         $this->eventManager = $eventManager;
         $this->submitQuoteValidator = $submitQuoteValidator;
@@ -257,6 +269,8 @@ class QuoteManagement implements CartManagementInterface
             ->get(RequestInterface::class);
         $this->remoteAddress = $remoteAddress ?: ObjectManager::getInstance()
             ->get(RemoteAddress::class);
+        $this->cartMutex = $cartMutex
+            ?? ObjectManager::getInstance()->get(CartMutexInterface::class);
     }
 
     /**
@@ -324,7 +338,7 @@ class QuoteManagement implements CartManagementInterface
             $customerActiveQuote->setIsActive(0);
             $this->quoteRepository->save($customerActiveQuote);
 
-        // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
+            // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
         } catch (NoSuchEntityException $e) {
         }
 
@@ -382,10 +396,28 @@ class QuoteManagement implements CartManagementInterface
 
     /**
      * @inheritdoc
+     */
+    public function placeOrder($cartId, ?PaymentInterface $paymentMethod = null)
+    {
+        return $this->cartMutex->execute(
+            (int)$cartId,
+            \Closure::fromCallable([$this, 'placeOrderRun']),
+            [$cartId, $paymentMethod]
+        );
+    }
+
+    /**
+     * Places an order for a specified cart.
+     *
+     * @param int $cartId The cart ID.
+     * @param PaymentInterface|null $paymentMethod
+     * @throws CouldNotSaveException
+     * @return int Order ID.
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.UnusedPrivateMethod)
      */
-    public function placeOrder($cartId, PaymentInterface $paymentMethod = null)
+    private function placeOrderRun($cartId, ?PaymentInterface $paymentMethod = null)
     {
         $quote = $this->quoteRepository->getActive($cartId);
         $customer = $quote->getCustomer();
@@ -421,7 +453,7 @@ class QuoteManagement implements CartManagementInterface
             ) {
                 $quote->setCustomerFirstname($billingAddress->getFirstname());
                 $quote->setCustomerLastname($billingAddress->getLastname());
-                if ($billingAddress->getMiddlename() === null) {
+                if ($billingAddress->getMiddlename() !== null) {
                     $quote->setCustomerMiddlename($billingAddress->getMiddlename());
                 }
             }
@@ -533,10 +565,10 @@ class QuoteManagement implements CartManagementInterface
         if (!$quote->getCustomerIsGuest()) {
             if ($quote->getCustomerId()) {
                 $this->_prepareCustomerQuote($quote);
-                $this->customerManagement->validateAddresses($quote);
             }
             $this->customerManagement->populateCustomerInfo($quote);
         }
+        $this->customerManagement->validateAddresses($quote);
         $addresses = [];
         $quote->reserveOrderId();
         if ($quote->isVirtual()) {
@@ -584,17 +616,13 @@ class QuoteManagement implements CartManagementInterface
         $order->setCustomerFirstname($quote->getCustomerFirstname());
         $order->setCustomerMiddlename($quote->getCustomerMiddlename());
         $order->setCustomerLastname($quote->getCustomerLastname());
-
         if ($quote->getOrigOrderId()) {
             $order->setEntityId($quote->getOrigOrderId());
         }
-
         if ($quote->getReservedOrderId()) {
             $order->setIncrementId($quote->getReservedOrderId());
         }
-
         $this->submitQuoteValidator->validateOrder($order);
-
         $this->eventManager->dispatch(
             'sales_model_service_quote_submit_before',
             [
@@ -602,6 +630,7 @@ class QuoteManagement implements CartManagementInterface
                 'quote' => $quote
             ]
         );
+
         try {
             $order = $this->orderManagement->place($order);
             $quote->setIsActive(false);
@@ -625,12 +654,13 @@ class QuoteManagement implements CartManagementInterface
      *
      * @param Quote $quote
      * @return void
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     protected function _prepareCustomerQuote($quote)
     {
-        /** @var Quote $quote */
         $billing = $quote->getBillingAddress();
         $shipping = $quote->isVirtual() ? null : $quote->getShippingAddress();
 
@@ -648,7 +678,7 @@ class QuoteManagement implements CartManagementInterface
                 if ($defaultShipping) {
                     try {
                         $shippingAddress = $this->addressRepository->getById($defaultShipping);
-                    // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
+                        // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
                     } catch (LocalizedException $e) {
                         // no address
                     }
@@ -664,12 +694,14 @@ class QuoteManagement implements CartManagementInterface
                         $hasDefaultBilling = true;
                     }
                 }
-                //save here new customer address
-                $shippingAddress->setCustomerId($quote->getCustomerId());
-                $this->addressRepository->save($shippingAddress);
-                $quote->addCustomerAddress($shippingAddress);
+                if (!$shippingAddress->getId()) {
+                    //save here new customer address
+                    $shippingAddress->setCustomerId($quote->getCustomerId());
+                    $this->addressRepository->save($shippingAddress);
+                    $quote->addCustomerAddress($shippingAddress);
+                    $this->addressesToSync[] = $shippingAddress->getId();
+                }
                 $shipping->setCustomerAddressData($shippingAddress);
-                $this->addressesToSync[] = $shippingAddress->getId();
                 $shipping->setCustomerAddressId($shippingAddress->getId());
             }
         }
@@ -682,7 +714,7 @@ class QuoteManagement implements CartManagementInterface
                 if ($defaultBilling) {
                     try {
                         $billingAddress = $this->addressRepository->getById($defaultBilling);
-                    // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
+                        // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
                     } catch (LocalizedException $e) {
                         // no address
                     }
@@ -697,12 +729,21 @@ class QuoteManagement implements CartManagementInterface
                     }
                     $billingAddress->setIsDefaultBilling(true);
                 }
-                $billingAddress->setCustomerId($quote->getCustomerId());
-                $this->addressRepository->save($billingAddress);
-                $quote->addCustomerAddress($billingAddress);
+                if (!$billingAddress->getId()) {
+                    $billingAddress->setCustomerId($quote->getCustomerId());
+                    $this->addressRepository->save($billingAddress);
+                    $quote->addCustomerAddress($billingAddress);
+                    $this->addressesToSync[] = $billingAddress->getId();
+                }
                 $billing->setCustomerAddressData($billingAddress);
-                $this->addressesToSync[] = $billingAddress->getId();
                 $billing->setCustomerAddressId($billingAddress->getId());
+
+                // Admin order: `Same As Billing Address`- when new billing address saved in address book
+                if ($shipping !== null
+                    && !$shipping->getCustomerAddressId()
+                    && $shipping->getSameAsBilling()) {
+                    $shipping->setCustomerAddressId($billingAddress->getId());
+                }
             }
         }
         if ($shipping && !$shipping->getCustomerId() && !$hasDefaultBilling) {
@@ -745,5 +786,13 @@ class QuoteManagement implements CartManagementInterface
             // phpcs:ignore Magento2.Exceptions.DirectThrow
             throw new \Exception($message, 0, $e);
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function _resetState(): void
+    {
+        $this->addressesToSync = [];
     }
 }

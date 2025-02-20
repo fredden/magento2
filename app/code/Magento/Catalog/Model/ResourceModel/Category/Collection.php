@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2011 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\Catalog\Model\ResourceModel\Category;
 
@@ -16,14 +16,13 @@ use Magento\Store\Model\ScopeInterface;
  * Category resource collection
  *
  * @api
- * @author      Magento Core Team <core@magentocommerce.com>
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @since 100.0.2
  */
 class Collection extends \Magento\Catalog\Model\ResourceModel\Collection\AbstractCollection
 {
     /**
-     * Event prefix
+     * Event prefix name
      *
      * @var string
      */
@@ -104,9 +103,9 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Collection\Abstrac
         \Magento\Eav\Model\ResourceModel\Helper $resourceHelper,
         \Magento\Framework\Validator\UniversalFactory $universalFactory,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Framework\DB\Adapter\AdapterInterface $connection = null,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig = null,
-        Visibility $catalogProductVisibility = null
+        ?\Magento\Framework\DB\Adapter\AdapterInterface $connection = null,
+        ?\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig = null,
+        ?Visibility $catalogProductVisibility = null
     ) {
         parent::__construct(
             $entityFactory,
@@ -138,6 +137,18 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Collection\Abstrac
     }
 
     /**
+     * @inheritDoc
+     */
+    public function _resetState(): void
+    {
+        parent::_resetState();
+        $this->_productTable = null;
+        $this->_productStoreId = null;
+        $this->_productWebsiteTable = null;
+        $this->_loadWithProductCount = false;
+    }
+
+    /**
      * Add Id filter
      *
      * @param array $categoryIds
@@ -155,7 +166,7 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Collection\Abstrac
             $condition = $categoryIds;
         } elseif (is_string($categoryIds)) {
             $ids = explode(',', $categoryIds);
-            if (empty($ids)) {
+            if (count($ids) == 0) {
                 $condition = $categoryIds;
             } else {
                 $condition = ['in' => $ids];
@@ -327,7 +338,7 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Collection\Abstrac
             $countSelect = $this->getProductsCountQuery($categoryIds, (bool)$websiteId);
             $categoryProductsCount = $this->_conn->fetchPairs($countSelect);
             foreach ($anchor as $item) {
-                $productsCount = isset($categoriesProductsCount[$item->getId()])
+                $productsCount = isset($categoryProductsCount[$item->getId()])
                     ? (int)$categoryProductsCount[$item->getId()]
                     : $this->getProductsCountFromCategoryTable($item, $websiteId);
                 $item->setProductCount($productsCount);
@@ -556,7 +567,7 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Collection\Abstrac
      */
     private function getProductsCountQuery(array $categoryIds, $addVisibilityFilter = true): Select
     {
-        $categoryTable = $this->getTable('catalog_category_product_index');
+        $categoryTable = $this->_resource->getTableName('catalog_category_product_index');
         $select = $this->_conn->select()
             ->from(
                 ['cat_index' => $categoryTable],
