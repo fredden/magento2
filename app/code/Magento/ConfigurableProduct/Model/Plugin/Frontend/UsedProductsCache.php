@@ -90,6 +90,7 @@ class UsedProductsCache
      * @param callable $proceed
      * @param Product $product
      * @param array|null $requiredAttributeIds
+     * @param bool $includeOutOfStockProducts
      * @return ProductInterface[]
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
@@ -97,12 +98,13 @@ class UsedProductsCache
         Configurable $subject,
         callable $proceed,
         $product,
-        $requiredAttributeIds = null
+        $requiredAttributeIds = null,
+        bool $includeOutOfStockProducts = false
     ) {
         $cacheKey = $this->getCacheKey($product, $requiredAttributeIds);
         $usedProducts = $this->readUsedProductsCacheData($cacheKey);
         if ($usedProducts === null) {
-            $usedProducts = $proceed($product, $requiredAttributeIds);
+            $usedProducts = $proceed($product, $requiredAttributeIds, $includeOutOfStockProducts);
             $this->saveUsedProductsCacheData($product, $usedProducts, $cacheKey);
         }
 
