@@ -1,22 +1,20 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
  */
+
 namespace Magento\Backend\Cron;
 
 use Magento\Framework\App\Cache\TypeListInterface;
 
 class RefreshInvalidatedCaches
 {
-    /** @var TypeListInterface */
-    private TypeListInterface $typeList;
-
     /**
      * @param TypeListInterface $typeList
      */
     public function __construct(
-        TypeListInterface $typeList
+        private readonly TypeListInterface $typeList,
     ) {
         $this->typeList = $typeList;
     }
