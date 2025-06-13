@@ -1,12 +1,13 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2019 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
 namespace Magento\Catalog\Model\Product\Attribute\Save;
 
+use Magento\Catalog\Api\Data\ProductAttributeInterface;
 use Magento\Eav\Model\Entity\Attribute\Exception;
 
 /**
@@ -49,6 +50,18 @@ class AttributePriceTest extends AbstractAttributeTest
     public function testDefaultValue(string $productSku): void
     {
         // product price attribute does not support default value
+    }
+
+    /**
+     * @magentoDataFixture Magento/Catalog/_files/product_decimal_attribute.php
+     * @magentoConfigFixture current_store catalog/price/scope 1
+     */
+    public function testScopePriceAttribute()
+    {
+        $this->assertEquals(
+            $this->getAttribute()->getIsGlobal(),
+            ProductAttributeInterface::SCOPE_WEBSITE_TEXT
+        );
     }
 
     /**
