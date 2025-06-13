@@ -30,7 +30,7 @@ class ChangePriceAttributeScopeOnCreate implements ObserverInterface
     /**
      * Change scope for price attribute when create
      *
-     * @param   \EventObserver $observer
+     * @param   EventObserver $observer
      * @return  $this
      */
     public function execute(EventObserver $observer)
