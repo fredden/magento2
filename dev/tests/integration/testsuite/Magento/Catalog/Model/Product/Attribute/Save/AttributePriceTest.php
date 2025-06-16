@@ -58,10 +58,7 @@ class AttributePriceTest extends AbstractAttributeTest
      */
     public function testScopePriceAttribute()
     {
-        $this->assertEquals(
-            $this->getAttribute()->getIsGlobal(),
-            ProductAttributeInterface::SCOPE_WEBSITE_TEXT
-        );
+        $this->assertTrue($this->getAttribute()->isScopeWebsite());
     }
 
     /**
