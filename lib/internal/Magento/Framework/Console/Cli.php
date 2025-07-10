@@ -63,6 +63,13 @@ class Cli extends Console\Application
     private $initException;
 
     /**
+     * GetCommands exception.
+     * 
+     * @var \Exception
+     */
+    private $getCommandsException;
+
+    /**
      * @var ObjectManagerInterface
      */
     private $objectManager;
@@ -111,7 +118,7 @@ class Cli extends Console\Application
         $this->setCommandLoader($this->getCommandLoader());
     }
 
-    /**
+  /**
      * @inheritdoc
      *
      * @throws \Exception The exception in case of unexpected error
@@ -123,8 +130,28 @@ class Cli extends Console\Application
             $exitCode = parent::doRun($input, $output);
         } catch (\Exception $e) {
             $errorMessage = $e->getMessage() . PHP_EOL . $e->getTraceAsString();
-            $this->logger->error($errorMessage);
-            $this->initException = $e;
+            
+            if ($this->getCommandsException) {
+                // No need to concatenate the exception message because it's already included in the $e->previous
+                // Example of the final exception :
+                // Exception during console commands initialization: Class "Vendor\Migration\Console\Command\ImportOrdersCommand" does not exist
+                // code: 0
+                // file: "./vendor/magento/framework/Console/Cli.php"
+                // line: 131
+                // -previous: Symfony\Component\Console\Exception\NamespaceNotFoundException^ {#3199
+                // #message: """
+                //   There are no commands defined in the "c" namespace.\n
+                //   \n
+                //   Did you mean one of these?\n
+
+                $combinedErrorMessage = "Exception during console commands initialization: " . 
+                    $this->getCommandsException->getMessage() . PHP_EOL; 
+                $this->initException = new \Exception($combinedErrorMessage, $e->getCode(), $e);
+                $this->logger->error($combinedErrorMessage);
+            } else {
+                $this->initException = $e;
+                $this->logger->error($errorMessage);
+            }
         }
 
         if ($this->initException) {
@@ -151,6 +178,11 @@ class Cli extends Console\Application
     {
         $commands = [];
         try {
+            if (class_exists(\Magento\Setup\Console\CommandList::class)) {
+                $setupCommandList = new \Magento\Setup\Console\CommandList($this->serviceManager);
+                $commands = array_merge($commands, $setupCommandList->getCommands());
+            }
+
             if ($this->objectManager->get(DeploymentConfig::class)->isAvailable()) {
                 /** @var CommandListInterface */
                 $commandList = $this->objectManager->create(CommandListInterface::class);
@@ -162,6 +194,7 @@ class Cli extends Console\Application
                 $this->getVendorCommands($this->objectManager)
             );
         } catch (\Exception $e) {
+            $this->getCommandsException = $e;
             $this->initException = $e;
         }
 
