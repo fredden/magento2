@@ -69,7 +69,7 @@ class Mysql extends \Zend_Db_Statement_Pdo
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.UnusedLocalVariable)
      */
-    public function _execute(array $params = null)
+    public function _execute(?array $params = null)
     {
         $specialExecute = false;
         if ($params) {
