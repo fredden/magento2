@@ -1,20 +1,32 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2017 Adobe
+ * All Rights Reserved.
  */
 
 namespace Magento\CatalogWidget\Block\Product;
 
+use Magento\Bundle\Test\Fixture\Option as BundleOptionFixture;
+use Magento\Bundle\Test\Fixture\Product as BundleProductFixture;
+use Magento\Catalog\Test\Fixture\MultiselectAttribute as MultiselectAttributeFixture;
+use Magento\Catalog\Test\Fixture\Category as CategoryFixture;
+use Magento\Catalog\Test\Fixture\Product as ProductFixture;
 use Magento\Catalog\Model\Indexer\Product\Eav\Processor;
 use Magento\Catalog\Model\ResourceModel\Category\Collection as CategoryCollection;
 use Magento\Catalog\Model\ResourceModel\Eav\Attribute;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\TestFramework\Fixture\DataFixture;
+use Magento\TestFramework\Fixture\DataFixtureStorage;
+use Magento\TestFramework\Fixture\DataFixtureStorageManager;
+use Magento\TestFramework\Fixture\DbIsolation;
 use Magento\TestFramework\Helper\Bootstrap;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Tests for @see \Magento\CatalogWidget\Block\Product\ProductsList
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class ProductListTest extends TestCase
 {
@@ -34,11 +46,17 @@ class ProductListTest extends TestCase
      */
     protected $objectManager;
 
+    /**
+     * @var DataFixtureStorage
+     */
+    private $fixtures;
+
     protected function setUp(): void
     {
         $this->objectManager = Bootstrap::getObjectManager();
         $this->block = $this->objectManager->create(ProductsList::class);
         $this->categoryCollection = $this->objectManager->create(CategoryCollection::class);
+        $this->fixtures = Bootstrap::getObjectManager()->get(DataFixtureStorageManager::class)->getStorage();
     }
 
     /**
@@ -173,7 +191,7 @@ class ProductListTest extends TestCase
     /**
      * @return array
      */
-    public function createCollectionForSkuDataProvider()
+    public static function createCollectionForSkuDataProvider()
     {
         return [
             'contains' => ['^[`1`:^[`type`:`Magento||CatalogWidget||Model||Rule||Condition||Combine`,'
@@ -257,6 +275,29 @@ class ProductListTest extends TestCase
         );
     }
 
+    #[
+        DbIsolation(false),
+        DataFixture(ProductFixture::class, ['price' => 10], 'p1'),
+        DataFixture(ProductFixture::class, ['price' => 20], 'p2'),
+        DataFixture(BundleOptionFixture::class, ['product_links' => ['$p1$', '$p2$']], 'opt1'),
+        DataFixture(BundleProductFixture::class, ['_options' => ['$opt1$']], 'bundle1'),
+    ]
+    public function testBundleProductList()
+    {
+        $postParams = $this->block->getAddToCartPostParams($this->fixtures->get('bundle1'));
+
+        $this->assertArrayHasKey(
+            'product',
+            $postParams['data'],
+            'Bundle product options is missing from POST params.'
+        );
+        $this->assertArrayHasKey(
+            'options',
+            $postParams['data'],
+            'Bundle product options is missing from POST params.'
+        );
+    }
+
     /**
      * Test that price rule condition works correctly
      *
@@ -289,7 +330,7 @@ class ProductListTest extends TestCase
         $this->assertEmpty(array_diff($matches, $skus));
     }
 
-    public function priceFilterDataProvider(): array
+    public static function priceFilterDataProvider(): array
     {
         return [
             [
@@ -330,6 +371,167 @@ class ProductListTest extends TestCase
                     'configurable',
                 ]
             ],
+        ];
+    }
+
+    #[
+        DbIsolation(false),
+        DataProvider('collectionResultWithMultiselectAttributeDataProvider'),
+        DataFixture(
+            MultiselectAttributeFixture::class,
+            [
+                'scope' => 'global',
+                'options' => ['option_1', 'option_2']
+            ],
+            'gl_multiselect'
+        ),
+        DataFixture(CategoryFixture::class, as: 'category'),
+        DataFixture(
+            ProductFixture::class,
+            [
+                'category_ids' => ['$category.id$']
+            ],
+            as: 'product1'
+        ),
+        DataFixture(
+            ProductFixture::class,
+            [
+                'custom_attributes' => [
+                    ['attribute_code' => '$gl_multiselect.attribute_code$', 'value' => '$gl_multiselect.option_1$']
+                ]
+            ],
+            as: 'product2'
+        ),
+        DataFixture(
+            ProductFixture::class,
+            [
+                'custom_attributes' => [
+                    ['attribute_code' => '$gl_multiselect.attribute_code$', 'value' => '$gl_multiselect.option_2$']
+                ]
+            ],
+            as: 'product3'
+        ),
+        DataFixture(
+            ProductFixture::class,
+            [
+                'category_ids' => ['$category.id$'],
+                'custom_attributes' => [
+                    ['attribute_code' => '$gl_multiselect.attribute_code$', 'value' => '$gl_multiselect.option_1$']
+                ]
+            ],
+            as: 'product4'
+        ),
+        DataFixture(
+            ProductFixture::class,
+            [
+                'category_ids' => ['$category.id$'],
+                'custom_attributes' => [
+                    ['attribute_code' => '$gl_multiselect.attribute_code$', 'value' => '$gl_multiselect.option_2$']
+                ]
+            ],
+            as: 'product5'
+        )
+    ]
+    public function testCollectionResultWithMultiselectAttribute(
+        array $conditions,
+        array $products
+    ): void {
+        $fixtures = DataFixtureStorageManager::getStorage();
+        $conditions = array_map(
+            function ($condition) use ($fixtures) {
+                if (isset($condition['value']) && is_callable($condition['value'])) {
+                    $condition['value'] = $condition['value']($fixtures);
+                }
+                if (isset($condition['attribute']) && $fixtures->get($condition['attribute'])) {
+                    $condition['attribute'] = $fixtures->get($condition['attribute'])->getAttributeCode();
+                }
+                return $condition;
+            },
+            $conditions
+        );
+        $products = array_map(
+            function ($product) use ($fixtures) {
+                return $fixtures->get($product)->getSku();
+            },
+            $products
+        );
+
+        $this->block->setConditions($conditions);
+        $collection = $this->block->createCollection();
+        $collection->load();
+
+        $this->assertEqualsCanonicalizing(
+            $products,
+            $collection->getColumnValues('sku')
+        );
+    }
+
+    public static function collectionResultWithMultiselectAttributeDataProvider(): array
+    {
+        return [
+            'global multiselect with match ANY' => [
+                [
+                    '1' => [
+                        'type' => \Magento\CatalogWidget\Model\Rule\Condition\Combine::class,
+                        'aggregator' => 'any',
+                        'value' => '1',
+                        'new_child' => '',
+                    ],
+                    '1--1' => [
+                        'type' => \Magento\CatalogWidget\Model\Rule\Condition\Product::class,
+                        'attribute' => 'category_ids',
+                        'operator' => '==',
+                        'value' => fn ($fixtures) => $fixtures->get('category')->getId(),
+                    ],
+                    '1--2' => [
+                        'type' => \Magento\CatalogWidget\Model\Rule\Condition\Product::class,
+                        'attribute' => 'gl_multiselect',
+                        'operator' => '()',
+                        'value' => fn ($fixtures) => $fixtures->get('gl_multiselect')->getData('option_1'),
+                    ],
+                ],
+                ['product1', 'product2', 'product4', 'product5']
+            ],
+            'global multiselect with match AND' => [
+                [
+                    '1' => [
+                        'type' => \Magento\CatalogWidget\Model\Rule\Condition\Combine::class,
+                        'aggregator' => 'all',
+                        'value' => '1',
+                        'new_child' => '',
+                    ],
+                    '1--1' => [
+                        'type' => \Magento\CatalogWidget\Model\Rule\Condition\Product::class,
+                        'attribute' => 'category_ids',
+                        'operator' => '==',
+                        'value' => fn ($fixtures) => $fixtures->get('category')->getId(),
+                    ],
+                    '1--2' => [
+                        'type' => \Magento\CatalogWidget\Model\Rule\Condition\Product::class,
+                        'attribute' => 'gl_multiselect',
+                        'operator' => '()',
+                        'value' => fn ($fixtures) => $fixtures->get('gl_multiselect')->getData('option_1'),
+                    ],
+                ],
+                ['product4']
+            ],
+            'global multiselect with single value' => [
+                [
+                    '1' => [
+                        'type' => \Magento\CatalogWidget\Model\Rule\Condition\Combine::class,
+                        'aggregator' => 'all',
+                        'value' => '1',
+                        'new_child' => '',
+                    ],
+                    '1--1' => [
+                        'type' => \Magento\CatalogWidget\Model\Rule\Condition\Product::class,
+                        'attribute' => 'gl_multiselect',
+                        'operator' => '()',
+                        'value' => fn ($fixtures) => $fixtures->get('gl_multiselect')->getData('option_2'),
+                    ],
+                ],
+                ['product3', 'product5']
+            ]
         ];
     }
 }
