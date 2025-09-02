@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fc713685ade6309bb576551ed5114f82",
+    "content-hash": "a4e42b7c8b4fb89860b9e7e72b85fce9",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -3769,16 +3769,16 @@
         },
         {
             "name": "laminas/laminas-validator",
-            "version": "2.64.2",
+            "version": "2.64.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laminas/laminas-validator.git",
-                "reference": "771e504760448ac7af660710237ceb93be602e08"
+                "reference": "e2e6631f599a9b0db1e23adb633c09a2f0c68bed"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laminas/laminas-validator/zipball/771e504760448ac7af660710237ceb93be602e08",
-                "reference": "771e504760448ac7af660710237ceb93be602e08",
+                "url": "https://api.github.com/repos/laminas/laminas-validator/zipball/e2e6631f599a9b0db1e23adb633c09a2f0c68bed",
+                "reference": "e2e6631f599a9b0db1e23adb633c09a2f0c68bed",
                 "shasum": ""
             },
             "require": {
@@ -3849,7 +3849,7 @@
                     "type": "community_bridge"
                 }
             ],
-            "time": "2024-11-26T21:29:17+00:00"
+            "time": "2025-06-16T14:38:00+00:00"
         },
         {
             "name": "laminas/laminas-view",
@@ -7093,6 +7093,79 @@
             "time": "2025-01-03T09:35:48+00:00"
         },
         {
+            "name": "stomp-php/stomp-php",
+            "version": "5.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/stomp-php/stomp-php.git",
+                "reference": "85e7ad490aeda7d23f8dd7c570aab08e096e40b6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/stomp-php/stomp-php/zipball/85e7ad490aeda7d23f8dd7c570aab08e096e40b6",
+                "reference": "85e7ad490aeda7d23f8dd7c570aab08e096e40b6",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.3|^8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Stomp\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Dejan Bosnanac",
+                    "email": "dejan@nighttale.net",
+                    "homepage": "http://www.nighttale.net"
+                },
+                {
+                    "name": "Sören Rohweder",
+                    "email": "s.rohweder@blage.net",
+                    "homepage": "http://www.monofone.de"
+                },
+                {
+                    "name": "Jens Radtke",
+                    "email": "swefl@fin-sn.de",
+                    "homepage": "http://www.fin-sn.de"
+                }
+            ],
+            "description": "stomp support for PHP",
+            "homepage": "http://github.com/stomp-php/stomp-php",
+            "keywords": [
+                "activeMQ",
+                "apollomq",
+                "jms",
+                "messaging",
+                "rabbitmq",
+                "stomp"
+            ],
+            "support": {
+                "issues": "https://github.com/stomp-php/stomp-php/issues",
+                "source": "https://github.com/stomp-php/stomp-php/tree/5.1.2"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/jmglsn",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/staabm",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-02-03T12:32:51+00:00"
+        },
+        {
             "name": "symfony/config",
             "version": "v7.2.3",
             "source": {
@@ -9695,16 +9768,16 @@
         },
         {
             "name": "tedivm/jshrink",
-            "version": "v1.7.0",
+            "version": "v1.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tedious/JShrink.git",
-                "reference": "7a35f5a4651ca2ce77295eb8a3b4e133ba47e19e"
+                "reference": "29ee510d684c22060040f4260a527206eb8199f1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tedious/JShrink/zipball/7a35f5a4651ca2ce77295eb8a3b4e133ba47e19e",
-                "reference": "7a35f5a4651ca2ce77295eb8a3b4e133ba47e19e",
+                "url": "https://api.github.com/repos/tedious/JShrink/zipball/29ee510d684c22060040f4260a527206eb8199f1",
+                "reference": "29ee510d684c22060040f4260a527206eb8199f1",
                 "shasum": ""
             },
             "require": {
@@ -9739,7 +9812,7 @@
             ],
             "support": {
                 "issues": "https://github.com/tedious/JShrink/issues",
-                "source": "https://github.com/tedious/JShrink/tree/v1.7.0"
+                "source": "https://github.com/tedious/JShrink/tree/v1.8.0"
             },
             "funding": [
                 {
@@ -9751,7 +9824,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-10-04T17:23:23+00:00"
+            "time": "2025-07-28T17:09:23+00:00"
         },
         {
             "name": "tubalmartin/cssmin",
@@ -10327,6 +10400,83 @@
             "time": "2023-05-30T10:55:43+00:00"
         },
         {
+            "name": "allure-framework/allure-phpunit",
+            "version": "v3.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/allure-framework/allure-phpunit.git",
+                "reference": "be8b5efbea8f82a2439d9bb6eacdef8736180b60"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/allure-framework/allure-phpunit/zipball/be8b5efbea8f82a2439d9bb6eacdef8736180b60",
+                "reference": "be8b5efbea8f82a2439d9bb6eacdef8736180b60",
+                "shasum": ""
+            },
+            "require": {
+                "allure-framework/allure-php-commons": "^2.0",
+                "php": "~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0",
+                "phpunit/phpunit": "^10.0.5 || ^11 || ^12.0.1"
+            },
+            "conflict": {
+                "amphp/byte-stream": "<1.5.1",
+                "amphp/cache": "<2.0.1",
+                "amphp/dns": "<2.2.0",
+                "amphp/parser": "<1.1.1",
+                "amphp/process": "<2.0.3",
+                "amphp/socket": "<2.3.1",
+                "brianium/paratest": "<7.0.3",
+                "daverandom/libdns": "<2.1.0",
+                "ramsey/uuid": "<4.3.0",
+                "spatie/array-to-xml": "<3.3.0"
+            },
+            "require-dev": {
+                "brianium/paratest": "^7",
+                "psalm/plugin-phpunit": "^0.19.5",
+                "squizlabs/php_codesniffer": "^3.7.2",
+                "vimeo/psalm": "^6.10"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Qameta\\Allure\\PHPUnit\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Ivan Krutov",
+                    "email": "vania-pooh@yandex-team.ru",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Edward Surov",
+                    "email": "zoohie@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Allure PHPUnit integration",
+            "homepage": "https://allurereport.org/",
+            "keywords": [
+                "allure",
+                "attachments",
+                "cases",
+                "phpunit",
+                "report",
+                "steps",
+                "testing"
+            ],
+            "support": {
+                "email": "allure@qameta.io",
+                "issues": "https://github.com/allure-framework/allure-phpunit/issues",
+                "source": "https://github.com/allure-framework/allure-phpunit"
+            },
+            "time": "2025-04-17T19:41:49+00:00"
+        },
+        {
             "name": "behat/gherkin",
             "version": "v4.12.0",
             "source": {
@@ -10394,77 +10544,6 @@
                 "source": "https://github.com/Behat/Gherkin/tree/v4.12.0"
             },
             "time": "2025-02-26T14:28:23+00:00"
-        },
-        {
-            "name": "carlos-mg89/oauth",
-            "version": "0.8.17",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/carlos-mg89/PHPoAuthLib.git",
-                "reference": "7003d50bbb90383408abc1450d943657d087fc70"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/carlos-mg89/PHPoAuthLib/zipball/7003d50bbb90383408abc1450d943657d087fc70",
-                "reference": "7003d50bbb90383408abc1450d943657d087fc70",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.2 || ^8.0"
-            },
-            "replace": {
-                "lusitanian/oauth": "~0.3"
-            },
-            "require-dev": {
-                "ext-curl": "*",
-                "ext-dom": "*",
-                "ext-json": "*",
-                "friendsofphp/php-cs-fixer": "^3.0",
-                "phpunit/phpunit": "^8.5",
-                "predis/predis": "0.8.*@dev",
-                "squizlabs/php_codesniffer": "^3.5",
-                "symfony/finder": "^5.1",
-                "symfony/http-foundation": "~2.1",
-                "symfony/var-dumper": "^5.1"
-            },
-            "suggest": {
-                "ext-openssl": "Allows for usage of secure connections with the stream-based HTTP client.",
-                "predis/predis": "Allows using the Redis storage backend.",
-                "symfony/http-foundation": "Allows using the Symfony Session storage backend."
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "0.1-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "OAuth\\": "src/OAuth"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Carlos Martínez Gadea",
-                    "email": "carlosmartinezgadea@gmail.com"
-                }
-            ],
-            "description": "PHP 7.2 oAuth 1/2 Library",
-            "keywords": [
-                "Authentication",
-                "authorization",
-                "oauth",
-                "security"
-            ],
-            "support": {
-                "issues": "https://github.com/carlos-mg89/PHPoAuthLib/issues",
-                "source": "https://github.com/carlos-mg89/PHPoAuthLib/tree/0.8.17"
-            },
-            "time": "2025-02-08T12:14:07+00:00"
         },
         {
             "name": "clue/ndjson-react",
@@ -11487,88 +11566,17 @@
             "time": "2024-10-14T11:59:49+00:00"
         },
         {
-            "name": "magento/magento-allure-phpunit",
-            "version": "3.0.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/magento/magento-allure-phpunit.git",
-                "reference": "5b98b1165f7c8a50e3118a2094ea171ba2039054"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/magento/magento-allure-phpunit/zipball/5b98b1165f7c8a50e3118a2094ea171ba2039054",
-                "reference": "5b98b1165f7c8a50e3118a2094ea171ba2039054",
-                "shasum": ""
-            },
-            "require": {
-                "allure-framework/allure-php-commons": "^2",
-                "php": "~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0",
-                "phpunit/phpunit": "^10"
-            },
-            "conflict": {
-                "amphp/byte-stream": "<1.5.1",
-                "brianium/paratest": "<7.0.3"
-            },
-            "replace": {
-                "allure-framework/allure-phpunit": "^3.0"
-            },
-            "require-dev": {
-                "brianium/paratest": "^7",
-                "psalm/plugin-phpunit": "^0.18.4",
-                "squizlabs/php_codesniffer": "^3.7.2",
-                "vimeo/psalm": "^5.15"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Qameta\\Allure\\PHPUnit\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "Ivan Krutov",
-                    "email": "vania-pooh@yandex-team.ru",
-                    "role": "Developer"
-                },
-                {
-                    "name": "Edward Surov",
-                    "email": "zoohie@gmail.com",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Allure PHPUnit integration",
-            "homepage": "https://allurereport.org/",
-            "keywords": [
-                "allure",
-                "attachments",
-                "cases",
-                "phpunit",
-                "report",
-                "steps",
-                "testing"
-            ],
-            "support": {
-                "email": "allure@qameta.io",
-                "source": "https://github.com/allure-framework/allure-phpunit"
-            },
-            "time": "2025-02-26T05:42:29+00:00"
-        },
-        {
             "name": "magento/magento-coding-standard",
-            "version": "36",
+            "version": "38",
             "source": {
                 "type": "git",
                 "url": "https://github.com/magento/magento-coding-standard.git",
-                "reference": "d7ece6da506db4fadaa63c7ae31d15f1d9ff1443"
+                "reference": "159cb6b966e7a464a41973e4a2daec2374bf4a02"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/magento/magento-coding-standard/zipball/d7ece6da506db4fadaa63c7ae31d15f1d9ff1443",
-                "reference": "d7ece6da506db4fadaa63c7ae31d15f1d9ff1443",
+                "url": "https://api.github.com/repos/magento/magento-coding-standard/zipball/159cb6b966e7a464a41973e4a2daec2374bf4a02",
+                "reference": "159cb6b966e7a464a41973e4a2daec2374bf4a02",
                 "shasum": ""
             },
             "require": {
@@ -11603,22 +11611,22 @@
             "description": "A set of Magento specific PHP CodeSniffer rules.",
             "support": {
                 "issues": "https://github.com/magento/magento-coding-standard/issues",
-                "source": "https://github.com/magento/magento-coding-standard/tree/36"
+                "source": "https://github.com/magento/magento-coding-standard/tree/v38"
             },
-            "time": "2024-12-19T10:09:28+00:00"
+            "time": "2025-06-09T14:09:34+00:00"
         },
         {
             "name": "magento/magento2-functional-testing-framework",
-            "version": "5.0.3",
+            "version": "5.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/magento/magento2-functional-testing-framework.git",
-                "reference": "4a353df8982190bcd54869dc7900098a49f1fbe2"
+                "reference": "7670d653f726a0a122fa6a0d3fc4639825c65c83"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/magento/magento2-functional-testing-framework/zipball/4a353df8982190bcd54869dc7900098a49f1fbe2",
-                "reference": "4a353df8982190bcd54869dc7900098a49f1fbe2",
+                "url": "https://api.github.com/repos/magento/magento2-functional-testing-framework/zipball/7670d653f726a0a122fa6a0d3fc4639825c65c83",
+                "reference": "7670d653f726a0a122fa6a0d3fc4639825c65c83",
                 "shasum": ""
             },
             "require": {
@@ -11692,9 +11700,9 @@
             ],
             "support": {
                 "issues": "https://github.com/magento/magento2-functional-testing-framework/issues",
-                "source": "https://github.com/magento/magento2-functional-testing-framework/tree/5.0.3"
+                "source": "https://github.com/magento/magento2-functional-testing-framework/tree/5.0.5"
             },
-            "time": "2025-02-27T04:12:59+00:00"
+            "time": "2025-06-19T01:37:42+00:00"
         },
         {
             "name": "magento/php-compatibility-fork",
@@ -11902,7 +11910,7 @@
                 "easy-doc/easy-doc": "0.0.0 || ^1.2.3",
                 "friendsofphp/php-cs-fixer": "^3.57",
                 "gregwar/rst": "^1.0.6",
-                "phpstan/phpstan": "~1.12.0",
+                "phpstan/phpstan": "~2.1.0",
                 "phpunit/phpunit": "^10.5.20,<10.5.32",
                 "squizlabs/php_codesniffer": "^3.8.0"
             },
@@ -12243,7 +12251,7 @@
                 "friendsofphp/php-cs-fixer": "^3.57",
                 "gregwar/rst": "^1.0",
                 "mikey179/vfsstream": "^1.6.8",
-                "phpstan/phpstan": "~1.12.0",
+                "phpstan/phpstan": "~2.1.0",
                 "phpunit/phpunit": "^10.5.20,<10.5.32",
                 "squizlabs/php_codesniffer": "^3.8.0"
             },
@@ -14751,7 +14759,7 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "beta",
+    "minimum-stability": "stable",
     "stability-flags": {
         "magento/composer": 10,
         "pdepend/pdepend": 20,
