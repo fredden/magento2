@@ -261,7 +261,7 @@ class Collection extends \Magento\Catalog\Model\ResourceModel\Product\Collection
             return ['list_id' => $this->getListId()];
         }
 
-        return ['customer_id' => ['null' => true], 'visitor_id' => '0'];
+        return ['customer_id' => ['null' => true], 'visitor_id' => '0', 'list_id' => ['null' => true]];
     }
 
     /**
