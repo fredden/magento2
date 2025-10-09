@@ -412,7 +412,6 @@ class Factory
 
         // Generate cache ID prefix (namespace)
         $idPrefix = $options['id_prefix'] ?? $options['prefix'] ?? '';
-        
         if (empty($idPrefix)) {
             $configDirPath = $this->_filesystem->getDirectoryRead(DirectoryList::CONFIG)->getAbsolutePath();
             // md5() here is not for cryptographic use.
