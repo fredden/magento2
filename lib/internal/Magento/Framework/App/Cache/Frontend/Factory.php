@@ -414,6 +414,8 @@ class Factory
         $idPrefix = $options['id_prefix'] ?? $options['prefix'] ?? '';
         if (empty($idPrefix)) {
             $configDirPath = $this->_filesystem->getDirectoryRead(DirectoryList::CONFIG)->getAbsolutePath();
+            // md5() here is not for cryptographic use.
+            // phpcs:ignore Magento2.Security.InsecureFunction
             $idPrefix = substr(md5($configDirPath), 0, 3) . '_';
         }
 
