@@ -8,12 +8,12 @@ declare(strict_types=1);
 namespace Magento\Framework\Currency\Data;
 
 use Locale;
+use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\Currency\Exception\CurrencyException;
+use Magento\Framework\CurrencyInterface;
 use Magento\Framework\NumberFormatter;
 use Symfony\Component\Intl\Countries;
 use Symfony\Component\Intl\Currencies;
-use Zend_Cache_Core;
-use Magento\Framework\CurrencyInterface;
 
 /**
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
@@ -407,7 +407,7 @@ class Currency
     /**
      * Returns the set cache.
      *
-     * @return Zend_Cache_Core
+     * @return FrontendInterface|null
      */
     public static function getCache()
     {
@@ -417,10 +417,10 @@ class Currency
     /**
      * Sets a cache for Currency
      *
-     * @param Zend_Cache_Core $cache
+     * @param FrontendInterface $cache
      * @return void
      */
-    public static function setCache(Zend_Cache_Core $cache)
+    public static function setCache(FrontendInterface $cache)
     {
         self::$cache = $cache;
     }
@@ -450,7 +450,6 @@ class Currency
      *
      * @param string|null $tag
      * @return void
-     * @throws \Zend_Cache_Exception
      */
     public static function clearCache($tag = null): void
     {

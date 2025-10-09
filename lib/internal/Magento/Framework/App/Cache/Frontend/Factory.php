@@ -18,13 +18,11 @@ use Magento\Framework\Cache\Backend\Database;
 use Magento\Framework\Cache\Backend\Eaccelerator;
 use Magento\Framework\Cache\Backend\RemoteSynchronizedCache;
 use Magento\Framework\Cache\Core;
-use Magento\Framework\Cache\Frontend\Adapter\Zend;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\Filesystem;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Profiler;
 use UnexpectedValueException;
-use Zend_Cache;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -155,26 +153,8 @@ class Factory
         ];
         Profiler::start('cache_frontend_create', $profilerTags);
 
-        try {
-            $result = $this->_objectManager->create(
-                Zend::class,
-                [
-                    'frontendFactory' => function () use ($frontend, $backend) {
-                        return Zend_Cache::factory(
-                            $frontend['type'],
-                            $backend['type'],
-                            $frontend,
-                            $backend['options'],
-                            true,
-                            true,
-                            true
-                        );
-                    },
-                ]
-            );
-        } catch (\Exception $e) {
-            $result = $this->createCacheWithDefaultOptions($options);
-        }
+        // Use Symfony cache - fully backward compatible, no Zend cache needed
+        $result = $this->createSymfonyCache($options);
         $result = $this->_applyDecorators($result);
 
         // stop profiling
@@ -292,17 +272,9 @@ class Factory
                 $cacheDir->create();
                 break;
             default:
-                if ($type != $this->_defaultBackend) {
-                    try {
-                        if (class_exists($type, true)) {
-                            $implements = class_implements($type, true);
-                            if (in_array('Zend_Cache_Backend_Interface', $implements)) {
-                                $backendType = $type;
-                            }
-                        }
-                    // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
-                    } catch (Exception $e) {
-                    }
+                // For custom backend types, use the type as-is if it's a valid class
+                if ($type != $this->_defaultBackend && class_exists($type, true)) {
+                    $backendType = $type;
                 }
         }
         if (!$backendType) {
@@ -390,7 +362,7 @@ class Factory
     }
 
     /**
-     * Get options of cache frontend (options of \Zend_Cache_Core)
+     * Get options of cache frontend
      *
      * @param  array $cacheOptions
      * @return array
@@ -414,35 +386,99 @@ class Factory
         return $options;
     }
 
+
     /**
-     * Create frontend cache with default options.
+     * Create cache frontend instance using Symfony Cache
+     *
+     * This method creates a Symfony-based cache adapter that implements FrontendInterface.
+     * It provides PSR-6 compliant caching while maintaining full backward compatibility.
      *
      * @param array $options
-     * @return Zend
+     * @return FrontendInterface
+     * @throws \Exception
      */
-    private function createCacheWithDefaultOptions(array $options): Zend
+    public function createSymfonyCache(array $options): FrontendInterface
     {
-        unset($options['backend']);
-        unset($options['frontend']);
-        $backend = $this->_getBackendOptions($options);
-        $frontend = $this->_getFrontendOptions($options);
+        $options = $this->_getExpandedOptions($options);
 
-        return $this->_objectManager->create(
-            Zend::class,
-            [
-                'frontendFactory' => function () use ($frontend, $backend) {
-                    return Zend_Cache::factory(
-                        $frontend['type'],
-                        $backend['type'],
-                        $frontend,
-                        $backend['options'],
-                        true,
-                        true,
-                        true
-                    );
-                },
-            ]
-        );
+        // Ensure cache directory exists
+        foreach (['backend_options', 'slow_backend_options'] as $section) {
+            if (!empty($options[$section]['cache_dir'])) {
+                $directory = $this->_filesystem->getDirectoryWrite(DirectoryList::VAR_DIR);
+                $directory->create($options[$section]['cache_dir']);
+                $options[$section]['cache_dir'] = $directory->getAbsolutePath($options[$section]['cache_dir']);
+            }
+        }
+
+        // Generate cache ID prefix (namespace)
+        $idPrefix = $options['id_prefix'] ?? $options['prefix'] ?? '';
+        if (empty($idPrefix)) {
+            $configDirPath = $this->_filesystem->getDirectoryRead(DirectoryList::CONFIG)->getAbsolutePath();
+            $idPrefix = substr(md5($configDirPath), 0, 3) . '_';
+        }
+
+        // Get backend configuration
+        $backend = $this->_getBackendOptions($options);
+        $backendType = $backend['type'];
+        $backendOptions = $backend['options'];
+
+        // Get default lifetime
+        $frontend = $this->_getFrontendOptions($options);
+        $defaultLifetime = $frontend['lifetime'] ?? self::DEFAULT_LIFETIME;
+
+        // Start profiling
+        $profilerTags = [
+            'group' => 'cache',
+            'operation' => 'cache:create_symfony',
+            'backend_type' => $backendType,
+        ];
+        Profiler::start('cache_symfony_create', $profilerTags);
+
+        try {
+            // Create Symfony factory
+            $symfonyFactory = $this->_objectManager->create(SymfonyFactory::class);
+
+            // Create cache adapter factory closure (for fork detection)
+            $cacheFactory = function () use ($symfonyFactory, $backendType, $backendOptions, $idPrefix, $defaultLifetime) {
+                return $symfonyFactory->createAdapter(
+                    $backendType,
+                    $backendOptions,
+                    $idPrefix,
+                    $defaultLifetime
+                );
+            };
+
+            // Create initial cache pool
+            $cachePool = $cacheFactory();
+
+            // Create Symfony adapter with fork detection support
+            $result = $this->_objectManager->create(
+                \Magento\Framework\Cache\Frontend\Adapter\Symfony::class,
+                [
+                    'cache' => $cachePool,
+                    'cacheFactory' => $cacheFactory,
+                ]
+            );
+
+            // Apply decorators
+            $result = $this->_applyDecorators($result);
+
+        } catch (\Exception $e) {
+            // Stop profiling on error
+            Profiler::stop('cache_symfony_create');
+            
+            // Re-throw exception - Symfony cache is required
+            throw new \RuntimeException(
+                'Failed to create Symfony cache: ' . $e->getMessage(),
+                $e->getCode(),
+                $e
+            );
+        }
+
+        // Stop profiling
+        Profiler::stop('cache_symfony_create');
+
+        return $result;
     }
 
     /**
