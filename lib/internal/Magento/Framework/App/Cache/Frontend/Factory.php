@@ -412,6 +412,7 @@ class Factory
 
         // Generate cache ID prefix (namespace)
         $idPrefix = $options['id_prefix'] ?? $options['prefix'] ?? '';
+        
         if (empty($idPrefix)) {
             $configDirPath = $this->_filesystem->getDirectoryRead(DirectoryList::CONFIG)->getAbsolutePath();
             // md5() here is not for cryptographic use.
@@ -468,7 +469,7 @@ class Factory
         } catch (\Exception $e) {
             // Stop profiling on error
             Profiler::stop('cache_symfony_create');
-            
+
             // Re-throw exception - Symfony cache is required
             throw new \RuntimeException(
                 'Failed to create Symfony cache: ' . $e->getMessage(),
