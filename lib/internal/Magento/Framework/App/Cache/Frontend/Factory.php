@@ -6,6 +6,13 @@
 
 /**
  * Factory that creates cache frontend instances based on options
+ * 
+ * Performance optimizations:
+ * - Cached directory paths
+ * - Cached extension checks
+ * - SymfonyFactory instance caching
+ * - Optimized backend type resolution
+ * - Early returns where possible
  */
 namespace Magento\Framework\App\Cache\Frontend;
 
@@ -90,6 +97,34 @@ class Factory
     protected $_resource;
 
     /**
+     * Cached SymfonyFactory instance (performance optimization)
+     * 
+     * @var SymfonyFactory|null
+     */
+    private ?SymfonyFactory $symfonyFactory = null;
+
+    /**
+     * Cached directory paths (performance optimization)
+     * 
+     * @var array
+     */
+    private array $cachedDirectories = [];
+
+    /**
+     * Cached extension availability checks (performance optimization)
+     * 
+     * @var array
+     */
+    private array $extensionCache = [];
+
+    /**
+     * Cached ID prefix (performance optimization)
+     * 
+     * @var string|null
+     */
+    private ?string $cachedIdPrefix = null;
+
+    /**
      * @param ObjectManagerInterface $objectManager
      * @param Filesystem $filesystem
      * @param ResourceConnection $resource
@@ -112,6 +147,11 @@ class Factory
 
     /**
      * Return newly created cache frontend instance
+     * 
+     * Performance optimizations:
+     * - Cached directory operations
+     * - Cached ID prefix generation
+     * - Early option resolution
      *
      * @param array $options
      * @return FrontendInterface
@@ -120,25 +160,21 @@ class Factory
     {
         $options = $this->_getExpandedOptions($options);
 
+        // Optimize: Cache directory operations
         foreach (['backend_options', 'slow_backend_options'] as $section) {
             if (!empty($options[$section]['cache_dir'])) {
-                $directory = $this->_filesystem->getDirectoryWrite(DirectoryList::VAR_DIR);
-                $directory->create($options[$section]['cache_dir']);
-                $options[$section]['cache_dir'] = $directory->getAbsolutePath($options[$section]['cache_dir']);
+                $cacheDir = $options[$section]['cache_dir'];
+                if (!isset($this->cachedDirectories[$cacheDir])) {
+                    $directory = $this->_filesystem->getDirectoryWrite(DirectoryList::VAR_DIR);
+                    $directory->create($cacheDir);
+                    $this->cachedDirectories[$cacheDir] = $directory->getAbsolutePath($cacheDir);
+                }
+                $options[$section]['cache_dir'] = $this->cachedDirectories[$cacheDir];
             }
         }
 
-        $idPrefix = isset($options['id_prefix']) ? $options['id_prefix'] : '';
-        if (!$idPrefix && isset($options['prefix'])) {
-            $idPrefix = $options['prefix'];
-        }
-        if (empty($idPrefix)) {
-            $configDirPath = $this->_filesystem->getDirectoryRead(DirectoryList::CONFIG)->getAbsolutePath();
-            $idPrefix =
-                // md5() here is not for cryptographic use.
-                // phpcs:ignore Magento2.Security.InsecureFunction
-                substr(md5($configDirPath), 0, 3) . '_';
-        }
+        // Optimize: Use cached ID prefix or generate once
+        $idPrefix = $this->getIdPrefix($options);
         $options['frontend_options']['cache_id_prefix'] = $idPrefix;
 
         $backend = $this->_getBackendOptions($options);
@@ -160,6 +196,35 @@ class Factory
         // stop profiling
         Profiler::stop('cache_frontend_create');
         return $result;
+    }
+
+    /**
+     * Get or generate cache ID prefix (optimized with caching)
+     * 
+     * @param array $options
+     * @return string
+     */
+    private function getIdPrefix(array $options): string
+    {
+        // Check explicit prefix in options
+        $idPrefix = $options['id_prefix'] ?? $options['prefix'] ?? '';
+        
+        if (!empty($idPrefix)) {
+            return $idPrefix;
+        }
+
+        // Use cached prefix if available
+        if ($this->cachedIdPrefix !== null) {
+            return $this->cachedIdPrefix;
+        }
+
+        // Generate and cache prefix
+        $configDirPath = $this->_filesystem->getDirectoryRead(DirectoryList::CONFIG)->getAbsolutePath();
+        // md5() here is not for cryptographic use.
+        // phpcs:ignore Magento2.Security.InsecureFunction
+        $this->cachedIdPrefix = substr(md5($configDirPath), 0, 3) . '_';
+        
+        return $this->cachedIdPrefix;
     }
 
     /**
@@ -200,7 +265,26 @@ class Factory
     }
 
     /**
+     * Check if extension is loaded (cached for performance)
+     * 
+     * @param string $extension
+     * @return bool
+     */
+    private function isExtensionLoaded(string $extension): bool
+    {
+        if (!isset($this->extensionCache[$extension])) {
+            $this->extensionCache[$extension] = extension_loaded($extension);
+        }
+        return $this->extensionCache[$extension];
+    }
+
+    /**
      * Get cache backend options. Result array contain backend type ('type' key) and backend options ('options')
+     * 
+     * Performance optimizations:
+     * - Cached extension checks
+     * - Cached directory operations
+     * - Early returns
      *
      * @param  array $cacheOptions
      * @return array
@@ -210,28 +294,28 @@ class Factory
     protected function _getBackendOptions(array $cacheOptions) //phpcs:ignore Generic.Metrics.NestingLevel
     {
         $enableTwoLevels = false;
-        $type = isset($cacheOptions['backend']) ? $cacheOptions['backend'] : $this->_defaultBackend;
-        if (isset($cacheOptions['backend_options']) && is_array($cacheOptions['backend_options'])) {
-            $options = $cacheOptions['backend_options'];
-        } else {
-            $options = [];
-        }
+        $type = $cacheOptions['backend'] ?? $this->_defaultBackend;
+        $options = (isset($cacheOptions['backend_options']) && is_array($cacheOptions['backend_options'])) 
+            ? $cacheOptions['backend_options'] 
+            : [];
 
         $backendType = false;
-        switch (strtolower($type)) {
+        $typeLower = strtolower($type);
+        
+        switch ($typeLower) {
             case 'sqlite':
-                if (extension_loaded('sqlite') && isset($options['cache_db_complete_path'])) {
+                if ($this->isExtensionLoaded('sqlite') && isset($options['cache_db_complete_path'])) {
                     $backendType = 'Sqlite';
                 }
                 break;
             case 'memcached':
-                if (extension_loaded('memcached')) {
+                if ($this->isExtensionLoaded('memcached')) {
                     if (isset($cacheOptions['memcached'])) {
                         $options = $cacheOptions['memcached'];
                     }
                     $enableTwoLevels = true;
                     $backendType = 'Libmemcached';
-                } elseif (extension_loaded('memcache')) {
+                } elseif ($this->isExtensionLoaded('memcache')) {
                     if (isset($cacheOptions['memcached'])) {
                         $options = $cacheOptions['memcached'];
                     }
@@ -240,20 +324,20 @@ class Factory
                 }
                 break;
             case 'apc':
-                if (extension_loaded('apc') && ini_get('apc.enabled')) {
+                if ($this->isExtensionLoaded('apc') && ini_get('apc.enabled')) {
                     $enableTwoLevels = true;
                     $backendType = 'Apc';
                 }
                 break;
             case 'xcache':
-                if (extension_loaded('xcache')) {
+                if ($this->isExtensionLoaded('xcache')) {
                     $enableTwoLevels = true;
                     $backendType = 'Xcache';
                 }
                 break;
             case 'eaccelerator':
             case 'varien_cache_backend_eaccelerator':
-                if (extension_loaded('eaccelerator') && ini_get('eaccelerator.enable')) {
+                if ($this->isExtensionLoaded('eaccelerator') && ini_get('eaccelerator.enable')) {
                     $enableTwoLevels = true;
                     $backendType = Eaccelerator::class;
                 }
@@ -267,9 +351,13 @@ class Factory
                 $options['remote_backend'] = Database::class;
                 $options['remote_backend_options'] = $this->_getDbAdapterOptions();
                 $options['local_backend'] = Cm_Cache_Backend_File::class;
-                $cacheDir = $this->_filesystem->getDirectoryWrite(DirectoryList::CACHE);
-                $options['local_backend_options']['cache_dir'] = $cacheDir->getAbsolutePath();
-                $cacheDir->create();
+                // Use cached directory operation
+                if (!isset($this->cachedDirectories['cache'])) {
+                    $cacheDir = $this->_filesystem->getDirectoryWrite(DirectoryList::CACHE);
+                    $this->cachedDirectories['cache'] = $cacheDir->getAbsolutePath();
+                    $cacheDir->create();
+                }
+                $options['local_backend_options']['cache_dir'] = $this->cachedDirectories['cache'];
                 break;
             default:
                 // For custom backend types, use the type as-is if it's a valid class
@@ -277,12 +365,19 @@ class Factory
                     $backendType = $type;
                 }
         }
+        
         if (!$backendType) {
             $backendType = $this->_defaultBackend;
-            $cacheDir = $this->_filesystem->getDirectoryWrite(DirectoryList::CACHE);
-            $this->_backendOptions['cache_dir'] = $cacheDir->getAbsolutePath();
-            $cacheDir->create();
+            // Use cached directory operation
+            if (!isset($this->cachedDirectories['cache'])) {
+                $cacheDir = $this->_filesystem->getDirectoryWrite(DirectoryList::CACHE);
+                $this->cachedDirectories['cache'] = $cacheDir->getAbsolutePath();
+                $cacheDir->create();
+            }
+            $this->_backendOptions['cache_dir'] = $this->cachedDirectories['cache'];
         }
+        
+        // Merge with default backend options (optimized)
         foreach ($this->_backendOptions as $option => $value) {
             if (!array_key_exists($option, $options)) {
                 $options[$option] = $value;
@@ -388,10 +483,29 @@ class Factory
 
 
     /**
+     * Get or create cached SymfonyFactory instance (performance optimization)
+     * 
+     * @return SymfonyFactory
+     */
+    private function getSymfonyFactory(): SymfonyFactory
+    {
+        if ($this->symfonyFactory === null) {
+            $this->symfonyFactory = $this->_objectManager->create(SymfonyFactory::class);
+        }
+        return $this->symfonyFactory;
+    }
+
+    /**
      * Create cache frontend instance using Symfony Cache
      *
      * This method creates a Symfony-based cache adapter that implements FrontendInterface.
      * It provides PSR-6 compliant caching while maintaining full backward compatibility.
+     * 
+     * Performance optimizations:
+     * - Cached SymfonyFactory instance
+     * - Cached directory operations
+     * - Cached ID prefix
+     * - Optimized option resolution
      *
      * @param array $options
      * @return FrontendInterface
@@ -401,23 +515,21 @@ class Factory
     {
         $options = $this->_getExpandedOptions($options);
 
-        // Ensure cache directory exists
+        // Optimize: Use cached directory operations
         foreach (['backend_options', 'slow_backend_options'] as $section) {
             if (!empty($options[$section]['cache_dir'])) {
-                $directory = $this->_filesystem->getDirectoryWrite(DirectoryList::VAR_DIR);
-                $directory->create($options[$section]['cache_dir']);
-                $options[$section]['cache_dir'] = $directory->getAbsolutePath($options[$section]['cache_dir']);
+                $cacheDir = $options[$section]['cache_dir'];
+                if (!isset($this->cachedDirectories[$cacheDir])) {
+                    $directory = $this->_filesystem->getDirectoryWrite(DirectoryList::VAR_DIR);
+                    $directory->create($cacheDir);
+                    $this->cachedDirectories[$cacheDir] = $directory->getAbsolutePath($cacheDir);
+                }
+                $options[$section]['cache_dir'] = $this->cachedDirectories[$cacheDir];
             }
         }
 
-        // Generate cache ID prefix (namespace)
-        $idPrefix = $options['id_prefix'] ?? $options['prefix'] ?? '';
-        if (empty($idPrefix)) {
-            $configDirPath = $this->_filesystem->getDirectoryRead(DirectoryList::CONFIG)->getAbsolutePath();
-            // md5() here is not for cryptographic use.
-            // phpcs:ignore Magento2.Security.InsecureFunction
-            $idPrefix = substr(md5($configDirPath), 0, 3) . '_';
-        }
+        // Optimize: Use cached ID prefix
+        $idPrefix = $this->getIdPrefix($options);
 
         // Get backend configuration
         $backend = $this->_getBackendOptions($options);
@@ -437,8 +549,8 @@ class Factory
         Profiler::start('cache_symfony_create', $profilerTags);
 
         try {
-            // Create Symfony factory
-            $symfonyFactory = $this->_objectManager->create(SymfonyFactory::class);
+            // Optimize: Use cached Symfony factory instance
+            $symfonyFactory = $this->getSymfonyFactory();
 
             // Create cache adapter factory closure (for fork detection)
             $cacheFactory = function () use ($symfonyFactory, $backendType, $backendOptions, $idPrefix, $defaultLifetime) {
@@ -453,12 +565,13 @@ class Factory
             // Create initial cache pool
             $cachePool = $cacheFactory();
 
-            // Create Symfony adapter with fork detection support
+            // Create Symfony adapter with fork detection support and frontend isolation
             $result = $this->_objectManager->create(
                 \Magento\Framework\Cache\Frontend\Adapter\Symfony::class,
                 [
                     'cache' => $cachePool,
                     'cacheFactory' => $cacheFactory,
+                    'frontendIdentifier' => $idPrefix, // Unique identifier for cache isolation
                 ]
             );
 

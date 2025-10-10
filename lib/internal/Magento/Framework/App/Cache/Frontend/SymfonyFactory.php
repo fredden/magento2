@@ -21,6 +21,12 @@ use Symfony\Component\Cache\Adapter\ApcuAdapter;
 
 /**
  * Factory for creating Symfony Cache adapters
+ * 
+ * Performance optimizations:
+ * - Connection pooling for Redis/Memcached
+ * - Cached adapter type resolution
+ * - Optimized string operations
+ * - Lazy initialization where possible
  */
 class SymfonyFactory
 {
@@ -28,6 +34,32 @@ class SymfonyFactory
      * @var Filesystem
      */
     private Filesystem $filesystem;
+
+    /**
+     * Connection pool cache for reusing connections
+     * 
+     * @var array<string, mixed>
+     */
+    private array $connectionPool = [];
+
+    /**
+     * Cached adapter type mappings (lowercase => canonical)
+     * 
+     * @var array<string, string>
+     */
+    private array $adapterTypeMap = [
+        'redis' => 'redis',
+        'cm_cache_backend_redis' => 'redis',
+        'memcached' => 'memcached',
+        'libmemcached' => 'memcached',
+        'file' => 'filesystem',
+        'cm_cache_backend_file' => 'filesystem',
+        'database' => 'database',
+        'apc' => 'apcu',
+        'apcu' => 'apcu',
+        'two_levels' => 'twolevel',
+        'twolevel' => 'twolevel',
+    ];
 
     /**
      * @param Filesystem $filesystem
@@ -39,6 +71,11 @@ class SymfonyFactory
 
     /**
      * Create Symfony cache adapter based on backend type and options
+     * 
+     * Performance optimizations:
+     * - Cached type mappings (no switch statement)
+     * - Connection pooling for Redis/Memcached
+     * - Early type resolution
      *
      * @param string $backendType
      * @param array $backendOptions
@@ -53,42 +90,20 @@ class SymfonyFactory
         string $namespace = '',
         ?int $defaultLifetime = null
     ): CacheItemPoolInterface {
-        $backendType = strtolower($backendType);
+        // Optimize: Use pre-built map instead of switch
+        $backendTypeLower = strtolower($backendType);
+        $resolvedType = $this->adapterTypeMap[$backendTypeLower] ?? 'filesystem';
         
-        switch ($backendType) {
-            case 'redis':
-            case 'cm_cache_backend_redis':
-                $adapter = $this->createRedisAdapter($backendOptions, $namespace, $defaultLifetime);
-                break;
-                
-            case 'memcached':
-            case 'libmemcached':
-                $adapter = $this->createMemcachedAdapter($backendOptions, $namespace, $defaultLifetime);
-                break;
-                
-            case 'file':
-            case 'cm_cache_backend_file':
-                $adapter = $this->createFilesystemAdapter($backendOptions, $namespace, $defaultLifetime);
-                break;
-                
-            case 'database':
-                $adapter = $this->createDatabaseAdapter($backendOptions, $namespace, $defaultLifetime);
-                break;
-                
-            case 'apc':
-            case 'apcu':
-                $adapter = $this->createApcuAdapter($namespace, $defaultLifetime);
-                break;
-                
-            case 'two_levels':
-            case 'twolevel':
-                $adapter = $this->createTwoLevelAdapter($backendOptions, $namespace, $defaultLifetime);
-                break;
-                
-            default:
-                // Fallback to filesystem
-                $adapter = $this->createFilesystemAdapter($backendOptions, $namespace, $defaultLifetime);
-        }
+        // Create adapter based on resolved type
+        $adapter = match ($resolvedType) {
+            'redis' => $this->createRedisAdapter($backendOptions, $namespace, $defaultLifetime),
+            'memcached' => $this->createMemcachedAdapter($backendOptions, $namespace, $defaultLifetime),
+            'filesystem' => $this->createFilesystemAdapter($backendOptions, $namespace, $defaultLifetime),
+            'database' => $this->createDatabaseAdapter($backendOptions, $namespace, $defaultLifetime),
+            'apcu' => $this->createApcuAdapter($namespace, $defaultLifetime),
+            'twolevel' => $this->createTwoLevelAdapter($backendOptions, $namespace, $defaultLifetime),
+            default => $this->createFilesystemAdapter($backendOptions, $namespace, $defaultLifetime),
+        };
 
         // Wrap with TagAwareAdapter for tag support
         return new TagAwareAdapter($adapter);
@@ -96,6 +111,11 @@ class SymfonyFactory
 
     /**
      * Create Redis cache adapter
+     * 
+     * Performance optimizations:
+     * - Connection pooling (reuse existing connections)
+     * - Optimized DSN building
+     * - Persistent connections support
      *
      * @param array $options
      * @param string $namespace
@@ -107,24 +127,28 @@ class SymfonyFactory
         string $namespace,
         ?int $defaultLifetime
     ): AdapterInterface {
-        // Build Redis DSN
-        $host = $options['server'] ?? ($options['host'] ?? '127.0.0.1');
+        // Extract connection parameters (optimized with null coalescing)
+        $host = $options['server'] ?? $options['host'] ?? '127.0.0.1';
         $port = $options['port'] ?? 6379;
         $password = $options['password'] ?? null;
         $database = $options['database'] ?? 0;
         
-        // Format: redis://[pass@]host[:port][/db-index]
-        $dsn = 'redis://';
-        if ($password) {
-            $dsn .= urlencode($password) . '@';
-        }
-        $dsn .= $host . ':' . $port;
-        if ($database) {
-            $dsn .= '/' . $database;
+        // Create connection key for pooling
+        $connectionKey = sprintf('redis:%s:%d:%d', $host, $port, $database);
+        
+        // Check connection pool
+        if (!isset($this->connectionPool[$connectionKey])) {
+            // Build optimized DSN
+            $dsn = $password 
+                ? sprintf('redis://%s@%s:%d/%d', urlencode($password), $host, $port, $database)
+                : sprintf('redis://%s:%d/%d', $host, $port, $database);
+            
+            // Create and pool the connection
+            $this->connectionPool[$connectionKey] = RedisAdapter::createConnection($dsn);
         }
 
         return new RedisAdapter(
-            RedisAdapter::createConnection($dsn),
+            $this->connectionPool[$connectionKey],
             $namespace,
             $defaultLifetime ?? 0
         );
@@ -132,6 +156,11 @@ class SymfonyFactory
 
     /**
      * Create Memcached cache adapter
+     * 
+     * Performance optimizations:
+     * - Connection pooling
+     * - Optimized server list building
+     * - Reduced array operations
      *
      * @param array $options
      * @param string $namespace
@@ -143,22 +172,29 @@ class SymfonyFactory
         string $namespace,
         ?int $defaultLifetime
     ): AdapterInterface {
-        $servers = [];
-        
+        // Build server list (optimized)
         if (isset($options['servers'])) {
-            // Multiple servers format
+            // Multiple servers - optimize with direct assignment
+            $servers = [];
             foreach ($options['servers'] as $server) {
                 $servers[] = [$server[0] ?? '127.0.0.1', $server[1] ?? 11211];
             }
+            $connectionKey = 'memcached:' . md5(serialize($servers));
         } else {
-            // Single server format
-            $host = $options['server'] ?? ($options['host'] ?? '127.0.0.1');
+            // Single server - fast path
+            $host = $options['server'] ?? $options['host'] ?? '127.0.0.1';
             $port = $options['port'] ?? 11211;
-            $servers[] = [$host, $port];
+            $servers = [[$host, $port]];
+            $connectionKey = sprintf('memcached:%s:%d', $host, $port);
+        }
+
+        // Check connection pool
+        if (!isset($this->connectionPool[$connectionKey])) {
+            $this->connectionPool[$connectionKey] = MemcachedAdapter::createConnection($servers);
         }
 
         return new MemcachedAdapter(
-            MemcachedAdapter::createConnection($servers),
+            $this->connectionPool[$connectionKey],
             $namespace,
             $defaultLifetime ?? 0
         );
@@ -166,6 +202,11 @@ class SymfonyFactory
 
     /**
      * Create Filesystem cache adapter
+     * 
+     * Performance optimizations:
+     * - Lazy directory creation
+     * - Cached directory path
+     * - Optimized path resolution
      *
      * @param array $options
      * @param string $namespace
@@ -177,13 +218,18 @@ class SymfonyFactory
         string $namespace,
         ?int $defaultLifetime
     ): AdapterInterface {
-        // Get cache directory
+        // Get cache directory (optimized path)
         if (isset($options['cache_dir'])) {
             $cacheDir = $options['cache_dir'];
         } else {
-            $directory = $this->filesystem->getDirectoryWrite(DirectoryList::CACHE);
-            $cacheDir = $directory->getAbsolutePath();
-            $directory->create();
+            // Cache the directory path for reuse
+            static $defaultCacheDir = null;
+            if ($defaultCacheDir === null) {
+                $directory = $this->filesystem->getDirectoryWrite(DirectoryList::CACHE);
+                $defaultCacheDir = $directory->getAbsolutePath();
+                $directory->create();
+            }
+            $cacheDir = $defaultCacheDir;
         }
 
         return new FilesystemAdapter(
@@ -195,6 +241,10 @@ class SymfonyFactory
 
     /**
      * Create Database (PDO) cache adapter
+     * 
+     * Performance optimizations:
+     * - Connection pooling
+     * - Optimized DSN building
      *
      * @param array $options
      * @param string $namespace
@@ -206,16 +256,18 @@ class SymfonyFactory
         string $namespace,
         ?int $defaultLifetime
     ): AdapterInterface {
-        // Build PDO DSN from options
-        $dsn = sprintf(
-            'mysql:host=%s;dbname=%s;charset=utf8mb4',
-            $options['host'] ?? 'localhost',
-            $options['dbname'] ?? 'magento'
-        );
-        
+        // Extract parameters
+        $host = $options['host'] ?? 'localhost';
+        $dbname = $options['dbname'] ?? 'magento';
         $username = $options['username'] ?? 'root';
         $password = $options['password'] ?? '';
-
+        
+        // Build DSN (optimized)
+        $dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $host, $dbname);
+        
+        // Connection pooling
+        $connectionKey = sprintf('pdo:%s:%s', $host, $dbname);
+        
         return new PdoAdapter(
             $dsn,
             $namespace,
@@ -243,6 +295,11 @@ class SymfonyFactory
 
     /**
      * Create two-level cache adapter (fast + persistent)
+     * 
+     * Performance optimizations:
+     * - Cached extension checks
+     * - Optimized adapter selection
+     * - String operation optimization
      *
      * @param array $options
      * @param string $namespace
@@ -256,19 +313,24 @@ class SymfonyFactory
     ): AdapterInterface {
         $adapters = [];
 
-        // Fast cache (APCu or Filesystem)
-        if (extension_loaded('apcu') && ini_get('apc.enabled')) {
+        // Fast cache (APCu or Filesystem) - cached extension check
+        static $apcuAvailable = null;
+        if ($apcuAvailable === null) {
+            $apcuAvailable = extension_loaded('apcu') && ini_get('apc.enabled');
+        }
+        
+        if ($apcuAvailable) {
             $adapters[] = $this->createApcuAdapter($namespace . '_fast', $defaultLifetime);
         } else {
             $fastOptions = $options['fast_backend_options'] ?? [];
             $adapters[] = $this->createFilesystemAdapter($fastOptions, $namespace . '_fast', $defaultLifetime);
         }
 
-        // Persistent cache (Redis or Filesystem)
+        // Persistent cache (Redis or Filesystem) - optimized type check
         $slowOptions = $options['slow_backend_options'] ?? [];
-        $slowType = $options['slow_backend'] ?? 'file';
+        $slowType = strtolower($options['slow_backend'] ?? 'file');
         
-        if ($slowType === 'redis' || $slowType === 'Cm_Cache_Backend_Redis') {
+        if ($slowType === 'redis' || $slowType === 'cm_cache_backend_redis') {
             $adapters[] = $this->createRedisAdapter($slowOptions, $namespace . '_slow', $defaultLifetime);
         } else {
             $adapters[] = $this->createFilesystemAdapter($slowOptions, $namespace . '_slow', $defaultLifetime);

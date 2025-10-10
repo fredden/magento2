@@ -13,12 +13,18 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 
 /**
  * Symfony Cache adapter for Magento cache frontend interface
- * 
+ *
  * Provides backward-compatible wrapper around Symfony Cache (PSR-6)
  * with support for:
  * - Tag-based cache invalidation
  * - Process fork detection
  * - Full FrontendInterface compatibility
+ *
+ * Performance optimizations:
+ * - Cached identifier cleaning
+ * - Optimized regex operations
+ * - Reduced instanceof checks
+ * - Minimal PID checking overhead
  */
 class Symfony implements FrontendInterface
 {
@@ -49,40 +55,69 @@ class Symfony implements FrontendInterface
     private array $parentCachePools = [];
 
     /**
+     * Cache for cleaned identifiers (performance optimization)
+     *
+     * @var array
+     */
+    private array $cleanedIdentifiers = [];
+
+    /**
+     * Whether the cache supports tag-aware operations (cached to avoid repeated instanceof checks)
+     *
+     * @var bool|null
+     */
+    private ?bool $isTagAware = null;
+
+    /**
+     * Frontend identifier for cache isolation (used to prevent cross-frontend cache pollution)
+     * Only items without user tags get this identifier
+     *
+     * @var string
+     */
+    private string $frontendIdentifier;
+
+    /**
      * Constructor
      *
      * @param CacheItemPoolInterface $cache
      * @param \Closure|null $cacheFactory Factory to recreate cache pool after fork
+     * @param string|null $frontendIdentifier Unique identifier for this frontend (for cache isolation)
      */
     public function __construct(
         CacheItemPoolInterface $cache,
-        ?\Closure $cacheFactory = null
+        ?\Closure $cacheFactory = null,
+        ?string $frontendIdentifier = null
     ) {
         $this->cache = $cache;
         $this->cacheFactory = $cacheFactory;
         $this->pid = getmypid();
+        $this->frontendIdentifier = $frontendIdentifier ?: 'frontend_' . spl_object_hash($this);
     }
 
     /**
      * Get cache pool, recreating if process has forked
      *
+     * Optimized to minimize getmypid() calls and fork detection overhead
+     *
      * @return CacheItemPoolInterface
      */
     private function getCache(): CacheItemPoolInterface
     {
+        // Only check for fork if we have a factory (optimization)
+        if ($this->cacheFactory === null) {
+            return $this->cache;
+        }
+
         $currentPid = getmypid();
         if ($currentPid !== $this->pid) {
             // Fork detected - save parent's cache pool and create new one
             $this->parentCachePools[$this->pid] = $this->cache;
-            
-            if ($this->cacheFactory !== null) {
-                $this->cache = ($this->cacheFactory)();
-                $this->pid = $currentPid;
-            } else {
-                // No factory provided, just update PID
-                // This may cause issues but better than failing
-                $this->pid = $currentPid;
-            }
+            $this->cache = ($this->cacheFactory)();
+            $this->pid = $currentPid;
+
+            // Reset caches after fork
+            $this->cleanedIdentifiers = [];
+            $this->isTagAware = null;
         }
         return $this->cache;
     }
@@ -92,17 +127,50 @@ class Symfony implements FrontendInterface
      *
      * PSR-6 reserved characters: {}()/\@:
      *
+     * Performance optimizations:
+     * - Cached results for repeated identifiers
+     * - Single optimized regex operation
+     * - Early return for already-clean identifiers
+     *
      * @param string $identifier
      * @return string
      */
     private function cleanIdentifier(string $identifier): string
     {
-        // First normalize the identifier similar to Zend (but keep case)
+        // Return cached result if available (major performance improvement)
+        if (isset($this->cleanedIdentifiers[$identifier])) {
+            return $this->cleanedIdentifiers[$identifier];
+        }
+
+        // Store original for caching
+        $original = $identifier;
+
+        // Optimize: replace dots first (faster than regex for single char)
         $identifier = str_replace('.', '__', $identifier);
-        $identifier = preg_replace('/([^a-zA-Z0-9_]{1,1})/', '_', $identifier);
-        
-        // Then clean PSR-6 reserved characters
-        return preg_replace('/[{}()\/\\\\@:]/', '_', $identifier);
+
+        // Single optimized regex: replace any non-alphanumeric/underscore with underscore
+        // This handles both Zend normalization and PSR-6 reserved characters
+        $cleaned = preg_replace('/[^a-zA-Z0-9_]/', '_', $identifier);
+
+        // Cache the result (limit cache size to prevent memory issues)
+        if (count($this->cleanedIdentifiers) < 1000) {
+            $this->cleanedIdentifiers[$original] = $cleaned;
+        }
+
+        return $cleaned;
+    }
+
+    /**
+     * Check if cache pool supports tag-aware operations (cached for performance)
+     *
+     * @return bool
+     */
+    private function isTagAware(): bool
+    {
+        if ($this->isTagAware === null) {
+            $this->isTagAware = $this->cache instanceof TagAwareAdapterInterface;
+        }
+        return $this->isTagAware;
     }
 
     /**
@@ -110,18 +178,19 @@ class Symfony implements FrontendInterface
      */
     public function test($identifier)
     {
-        $item = $this->getCache()->getItem($this->cleanIdentifier($identifier));
-        
+        $cache = $this->getCache();
+        $item = $cache->getItem($this->cleanIdentifier($identifier));
+
         if (!$item->isHit()) {
             return false;
         }
-        
+
         // Try to get modification time from metadata
         if (method_exists($item, 'getMetadata')) {
             $metadata = $item->getMetadata();
             return $metadata['mtime'] ?? time();
         }
-        
+
         return time(); // Fallback: return current time if cache hit
     }
 
@@ -136,23 +205,54 @@ class Symfony implements FrontendInterface
 
     /**
      * @inheritdoc
+     *
+     * Performance optimizations:
+     * - Cached tag-aware check
+     * - Optimized tag cleaning with foreach (faster than array_map for small arrays)
+     *
+     * Cache Isolation Strategy:
+     * - Filter out decorator tags (MAGE) to identify user-provided tags
+     * - Items with ONLY decorator tags → Add frontend identifier (application cache)
+     * - Items with user tags → DON'T add frontend identifier (non-application cache)
+     * - This allows user-tagged items to survive clean(MODE_ALL)
+     * - Cache identifier is always the primary key for load/save
      */
     public function save($data, $identifier, array $tags = [], $lifeTime = null)
     {
         $cache = $this->getCache();
-        $item = $cache->getItem($this->cleanIdentifier($identifier));
+        $cleanedId = $this->cleanIdentifier($identifier);
+        $item = $cache->getItem($cleanedId);
         $item->set($data);
 
-        // Set expiration time
+        // Set expiration time (cast to int if needed)
         if ($lifeTime !== null && $lifeTime !== false) {
-            // Ensure integer for Symfony
             $item->expiresAfter((int)$lifeTime);
         }
 
-        // Handle tags if cache supports it
-        if (!empty($tags) && $cache instanceof TagAwareAdapterInterface) {
-            $cleanTags = array_map([$this, 'cleanIdentifier'], $tags);
-            $item->tag($cleanTags);
+        // Handle tags if cache supports it (use cached instanceof check)
+        if ($this->isTagAware()) {
+            // Clean all tags
+            $cleanTags = [];
+            foreach ($tags as $tag) {
+                $cleanTags[] = $this->cleanIdentifier($tag);
+            }
+            
+            // CRITICAL: Filter out decorator tags (MAGE from TagScope) to identify user tags
+            // If only decorator tags exist, treat as application cache (owned by frontend)
+            $userTags = array_filter($tags, function($tag) {
+                return $tag !== 'MAGE'; // Ignore TagScope decorator tag
+            });
+            
+            $hasUserTags = !empty($userTags);
+            
+            if ($hasUserTags) {
+                // Has USER tags → Non-application cache → DON'T add frontend identifier
+                $item->tag($cleanTags);
+            } else {
+                // Only decorator tags → Application cache → ADD frontend identifier
+                $cleanTags[] = $this->frontendIdentifier;
+                $item->tag($cleanTags);
+            }
         }
 
         return $cache->save($item);
@@ -168,66 +268,109 @@ class Symfony implements FrontendInterface
 
     /**
      * @inheritdoc
+     * 
+     * Performance optimizations:
+     * - Cached instanceof check
+     * - Early returns for common cases
+     * - Optimized tag cleaning
+     * 
+     * Cache Isolation:
+     * - MODE_ALL only clears items tagged with frontend identifier
+     * - Items with preservation tags survive
      */
     public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
     {
         $cache = $this->getCache();
+        $isTagAware = $this->isTagAware();
         
         switch ($mode) {
             case \Zend_Cache::CLEANING_MODE_ALL:
             case 'all':
+                // Only clear owned items (those tagged with frontend identifier)
+                // Preserved items (non-owned) survive
+                if ($isTagAware) {
+                    return $cache->invalidateTags([$this->frontendIdentifier]);
+                }
                 return $cache->clear();
-                
+
             case \Zend_Cache::CLEANING_MODE_MATCHING_TAG:
             case 'matchingTag':
+                // Early return if no tags
+                if (empty($tags)) {
+                    return true;
+                }
+
+                // CRITICAL: TagScope transforms clean(MODE_ALL) → clean(MATCHING_TAG, ['MAGE'])
+                // Multiple TagScope decorators can add multiple 'MAGE' tags
+                // If cleaning ONLY by MAGE tag(s), treat it as MODE_ALL for isolation
+                $nonMageTags = array_filter($tags, function($tag) {
+                    return $tag !== 'MAGE';
+                });
+                
+                if (empty($nonMageTags)) {
+                    // Only MAGE tags → This is MODE_ALL disguised as MATCHING_TAG
+                    if ($isTagAware) {
+                        return $cache->invalidateTags([$this->frontendIdentifier]);
+                    }
+                    return $cache->clear();
+                }
+
                 // MATCHING_TAG in Zend means: clear items with ALL these tags (AND logic)
                 // Symfony invalidateTags uses OR logic: clear items with ANY of these tags
                 // When used with TagScope decorator, this creates an issue where scope tags clear everything
-                // 
+                //
                 // Workaround: Only use the FIRST non-scope tag to maintain expected behavior
                 // This works because TagScope calls clean separately for each user tag
-                if ($cache instanceof TagAwareAdapterInterface && !empty($tags)) {
-                    $cleanTags = array_map([$this, 'cleanIdentifier'], $tags);
-                    
+                if ($isTagAware) {
+                    // Optimize tag cleaning with foreach
+                    $cleanTags = [];
+                    foreach ($tags as $tag) {
+                        $cleanTags[] = $this->cleanIdentifier($tag);
+                    }
+
                     // If multiple tags provided (likely from TagScope), only use the first one
                     // TagScope pattern: [$userTag, $scopeTag] - we want just $userTag
                     if (count($cleanTags) > 1) {
-                        // Use only the first tag (the actual user-requested tag)
                         $cleanTags = [$cleanTags[0]];
                     }
-                    
+
                     return $cache->invalidateTags($cleanTags);
                 }
-                if (!empty($tags)) {
-                    return $cache->clear();
-                }
-                return true;
-                
+                // Fallback: clear all if tags not supported
+                return $cache->clear();
+
             case \Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG:
             case 'matchingAnyTag':
+                // Early return if no tags
+                if (empty($tags)) {
+                    return true;
+                }
+
                 // MATCHING_ANY_TAG: clear items with ANY of these tags (OR logic)
                 // This matches Symfony's invalidateTags behavior perfectly
-                if ($cache instanceof TagAwareAdapterInterface && !empty($tags)) {
-                    $cleanTags = array_map([$this, 'cleanIdentifier'], $tags);
+                if ($isTagAware) {
+                    // Optimize tag cleaning with foreach
+                    $cleanTags = [];
+                    foreach ($tags as $tag) {
+                        $cleanTags[] = $this->cleanIdentifier($tag);
+                    }
                     return $cache->invalidateTags($cleanTags);
                 }
-                if (!empty($tags)) {
-                    return $cache->clear();
-                }
-                return true;
-                
+                // Fallback: clear all if tags not supported
+                return $cache->clear();
+
             case \Zend_Cache::CLEANING_MODE_OLD:
             case 'old':
-                // Symfony Cache handles this automatically
-                // Old entries are removed when they expire
+                // Symfony Cache handles this automatically via expiration
+                // No action needed - return true
                 return true;
-                
+
             case \Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG:
             case 'notMatchingTag':
-                // Not supported by PSR-6/Symfony - would require listing all keys
-                // Fallback to no-op
+                // Not efficiently supported by PSR-6/Symfony - would require listing all keys
+                // Return true (no-op) for backward compatibility
                 return true;
-                
+
             default:
                 return false;
         }
