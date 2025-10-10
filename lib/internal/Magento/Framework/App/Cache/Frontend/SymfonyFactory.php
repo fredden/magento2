@@ -179,6 +179,7 @@ class SymfonyFactory
             foreach ($options['servers'] as $server) {
                 $servers[] = [$server[0] ?? '127.0.0.1', $server[1] ?? 11211];
             }
+            // phpcs:ignore Magento2.Security.InsecureFunction,Magento2.Functions.DiscouragedFunction
             $connectionKey = 'memcached:' . md5(serialize($servers));
         } else {
             // Single server - fast path
