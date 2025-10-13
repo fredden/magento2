@@ -77,6 +77,19 @@ class Symfony implements FrontendInterface
     private string $frontendIdentifier;
 
     /**
+     * Known Magento cache system tags
+     * Items with only these tags (+ MAGE) are considered system cache and get frontend identifier
+     *
+     * @var array
+     */
+    private array $systemCacheTags = [
+        'EAV', 'EAV_ATTRIBUTE', 'CONFIG', 'COMPILED_CONFIG', 'TRANSLATE',
+        'DB_PDO_MYSQL_DDL', 'DB_DDL', 'BLOCK_HTML', 'LAYOUT_GENERAL_CACHE_TAG',
+        'FPC', 'COLLECTION_DATA', 'REFLECTION', 'DB', 'STORE', 'CONFIG_SCOPES',
+        'MAGE' // TagScope decorator tag
+    ];
+
+    /**
      * Constructor
      *
      * @param CacheItemPoolInterface $cache
@@ -237,22 +250,22 @@ class Symfony implements FrontendInterface
                 $cleanTags[] = $this->cleanIdentifier($tag);
             }
             
-            // CRITICAL: Filter out decorator tags (MAGE from TagScope) to identify user tags
-            // If only decorator tags exist, treat as application cache (owned by frontend)
-            $userTags = array_filter($tags, function($tag) {
-                return $tag !== 'MAGE'; // Ignore TagScope decorator tag
-            });
-            
-            $hasUserTags = !empty($userTags);
-            
-            if ($hasUserTags) {
-                // Has USER tags → Non-application cache → DON'T add frontend identifier
-                $item->tag($cleanTags);
-            } else {
-                // Only decorator tags → Application cache → ADD frontend identifier
-                $cleanTags[] = $this->frontendIdentifier;
-                $item->tag($cleanTags);
+            // Check if item has any NON-system tags (user tags)
+            $hasUserTags = false;
+            foreach ($tags as $tag) {
+                if (!in_array($tag, $this->systemCacheTags, true)) {
+                    $hasUserTags = true;
+                    break;
+                }
             }
+            
+            // Add frontend identifier only to system cache items
+            // User-tagged items (non-application cache) don't get it and survive clean()
+            if (!$hasUserTags) {
+                $cleanTags[] = $this->frontendIdentifier;
+            }
+            
+            $item->tag($cleanTags);
         }
 
         return $cache->save($item);
