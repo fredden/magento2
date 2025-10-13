@@ -9,16 +9,18 @@ namespace Magento\Framework\Cache\Frontend\Adapter;
 
 use Magento\Framework\Cache\FrontendInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 
 /**
  * Symfony Cache adapter for Magento cache frontend interface
  *
- * Provides backward-compatible wrapper around Symfony Cache (PSR-6)
- * with support for:
- * - Tag-based cache invalidation
- * - Process fork detection
- * - Full FrontendInterface compatibility
+ * Namespace Strategy for AND Logic:
+ * - Creates composite "namespace" tags that represent tag combinations
+ * - For tags ['A', 'B', 'C'], creates composite tag: 'NS:A:B:C' (sorted)
+ * - MATCHING_TAG with ['A', 'B'] searches for items with namespace containing both
+ * - Uses Symfony's native invalidateTags() with smart composite tags
+ * - Achieves TRUE AND logic without custom tag-to-ID mappings
  *
  * Performance optimizations:
  * - Cached identifier cleaning
@@ -28,6 +30,16 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
  */
 class Symfony implements FrontendInterface
 {
+    /**
+     * Namespace prefix for composite tags
+     */
+    public const NAMESPACE_PREFIX = 'NS_';
+
+    /**
+     * Separator for namespace tag combinations
+     * Note: Cannot use ":" as it's reserved by Symfony Cache
+     */
+    public const NAMESPACE_SEPARATOR = '|';
     /**
      * @var CacheItemPoolInterface
      */
@@ -77,21 +89,29 @@ class Symfony implements FrontendInterface
     private string $frontendIdentifier;
 
     /**
+     * @var LoggerInterface|null
+     */
+    private ?LoggerInterface $logger;
+
+    /**
      * Constructor
      *
      * @param CacheItemPoolInterface $cache
      * @param \Closure|null $cacheFactory Factory to recreate cache pool after fork
      * @param string|null $frontendIdentifier Unique identifier for this frontend (for cache isolation)
+     * @param LoggerInterface|null $logger PSR logger for debugging
      */
     public function __construct(
         CacheItemPoolInterface $cache,
         ?\Closure $cacheFactory = null,
-        ?string $frontendIdentifier = null
+        ?string $frontendIdentifier = null,
+        ?LoggerInterface $logger = null
     ) {
         $this->cache = $cache;
         $this->cacheFactory = $cacheFactory;
         $this->pid = getmypid();
         $this->frontendIdentifier = $frontendIdentifier ?: 'frontend_' . spl_object_hash($this);
+        $this->logger = $logger;
     }
 
     /**
@@ -206,10 +226,11 @@ class Symfony implements FrontendInterface
 
     /**
      * @inheritdoc
-     * 
-     * Mimics Zend Cache Core::save() behavior:
-     * - Prefixes ALL tags with frontendIdentifier (like Zend's cache_id_prefix)
-     * - No special tag name checking
+     *
+     * Namespace strategy:
+     * - Creates individual tags for OR matching
+     * - Creates composite namespace tags for AND matching
+     * - Generates all tag combinations (up to reasonable limit)
      */
     public function save($data, $identifier, array $tags = [], $lifeTime = null)
     {
@@ -225,46 +246,123 @@ class Symfony implements FrontendInterface
 
         // Handle tags if cache supports it
         if ($this->isTagAware() && !empty($tags)) {
-            // Prefix ALL tags with frontendIdentifier (exactly like Zend's _tags())
-            // In Zend: tags get cache_id_prefix: 'TAG' -> '69d_TAG'
-            // In Symfony: tags get frontendIdentifier: 'TAG' -> 'prefix_TAG'
-            $cleanTags = [];
-            foreach ($tags as $tag) {
+            // Deduplicate and sort tags
+            $uniqueTags = array_values(array_unique($tags));
+            sort($uniqueTags); // Sort for consistent namespace generation
+
+            // Prefix individual tags with frontendIdentifier
+            $allTags = [];
+            foreach ($uniqueTags as $tag) {
                 $cleanedTag = $this->cleanIdentifier($tag);
-                $cleanTags[] = $this->frontendIdentifier . '_' . $cleanedTag;
+                $allTags[] = $this->frontendIdentifier . '_' . $cleanedTag;
             }
-            
-            $item->tag($cleanTags);
+
+            // Create namespace tags for all combinations (for AND matching)
+            // For tags ['A', 'B', 'C'], create: NS:A, NS:B, NS:C, NS:A:B, NS:A:C, NS:B:C, NS:A:B:C
+            // This allows MATCHING_TAG with any subset to find matching items
+            $namespaceTags = $this->generateNamespaceTags($uniqueTags);
+            foreach ($namespaceTags as $nsTag) {
+                $allTags[] = $this->frontendIdentifier . '_' . $nsTag;
+            }
+
+            // Use Symfony's native tagging with both individual and namespace tags
+            $item->tag(array_unique($allTags));
         }
 
         return $cache->save($item);
     }
 
     /**
+     * Generate all possible namespace tag combinations
+     *
+     * For tags ['A', 'B', 'C'], generates:
+     * - Single: NS:A, NS:B, NS:C
+     * - Pairs: NS:A:B, NS:A:C, NS:B:C
+     * - Triple: NS:A:B:C
+     *
+     * @param array $tags Sorted array of tag names
+     * @return array Array of namespace tags
+     */
+    private function generateNamespaceTags(array $tags): array
+    {
+        $count = count($tags);
+
+        // Limit to prevent combinatorial explosion (max 10 tags = 1023 combinations)
+        if ($count > 10) {
+            $this->logger->warning('Too many tags for namespace generation', [
+                'count' => $count,
+                'tags' => $tags
+            ]);
+            // Fallback: just create the full namespace tag
+            return [self::NAMESPACE_PREFIX . implode(self::NAMESPACE_SEPARATOR, $tags)];
+        }
+
+        $namespaceTags = [];
+
+        // Generate all non-empty subsets using bit manipulation
+        // For n tags, we have 2^n - 1 non-empty subsets
+        $totalCombinations = (1 << $count) - 1;
+
+        for ($i = 1; $i <= $totalCombinations; $i++) {
+            $combination = [];
+            for ($j = 0; $j < $count; $j++) {
+                // Check if j-th bit is set
+                if ($i & (1 << $j)) {
+                    $combination[] = $tags[$j];
+                }
+            }
+
+            // Create namespace tag (already sorted because tags are sorted)
+            $namespaceTags[] = self::NAMESPACE_PREFIX . implode(self::NAMESPACE_SEPARATOR, $combination);
+        }
+
+        return $namespaceTags;
+    }
+
+    /**
+     * Public wrapper for namespace tag generation (used by backend wrapper)
+     *
+     * @param array $tags Sorted array of tag names
+     * @return array Array of namespace tags
+     */
+    public function generateNamespaceTagsPublic(array $tags): array
+    {
+        return $this->generateNamespaceTags($tags);
+    }
+
+
+    /**
      * @inheritdoc
      */
     public function remove($identifier)
     {
-        return $this->getCache()->deleteItem($this->cleanIdentifier($identifier));
+        $cleanedId = $this->cleanIdentifier($identifier);
+
+        // Note: We don't clean up tag indices here because:
+        // 1. We don't know which tags the item had
+        // 2. Tag indices are cleaned up during invalidateTags()
+        // 3. Stale entries in tag indices are harmless (ID won't exist)
+
+        return $this->getCache()->deleteItem($cleanedId);
     }
 
     /**
      * @inheritdoc
-     * 
-     * Mimics Zend Cache Core::clean() behavior:
-     * - Prefixes ALL tags with frontendIdentifier (like Zend's cache_id_prefix)
-     * - No special tag name checking
-     * - MODE_ALL clears everything (no isolation like Zend)
+     *
+     * Pure Symfony approach:
+     * - Uses native PSR-6 invalidateTags()
+     * - Filters decorator tags same as save()
+     * - Simple and fast
      */
     public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
     {
         $cache = $this->getCache();
         $isTagAware = $this->isTagAware();
-        
+
         switch ($mode) {
             case \Zend_Cache::CLEANING_MODE_ALL:
             case 'all':
-                // Clear all cache (exactly like Zend)
+                // Clear all cache
                 return $cache->clear();
 
             case \Zend_Cache::CLEANING_MODE_MATCHING_TAG:
@@ -274,18 +372,22 @@ class Symfony implements FrontendInterface
                     return true;
                 }
 
-                // Prefix ALL tags with frontendIdentifier (exactly like Zend's _tags())
-                // In Zend: clean(['TAG']) becomes clean(['69d_TAG'])
-                // In Symfony: clean(['TAG']) becomes clean(['prefix_TAG'])
-                if ($isTagAware) {
-                    $cleanTags = [];
-                    foreach ($tags as $tag) {
-                        $cleanedTag = $this->cleanIdentifier($tag);
-                        $cleanTags[] = $this->frontendIdentifier . '_' . $cleanedTag;
-                    }
-                    return $cache->invalidateTags($cleanTags);
+                if (!$isTagAware) {
+                    return true;
                 }
-                return true;
+
+                // Deduplicate and sort tags (same as save())
+                $uniqueTags = array_values(array_unique($tags));
+                sort($uniqueTags);
+
+                // NAMESPACE STRATEGY: Create the namespace tag for this exact combination
+                // For tags ['A', 'B'], create 'NS_A|B'
+                // This will match items saved with those tags (or superset) due to our save() logic
+                $namespaceTag = self::NAMESPACE_PREFIX . implode(self::NAMESPACE_SEPARATOR, $uniqueTags);
+                $prefixedNamespaceTag = $this->frontendIdentifier . '_' . $namespaceTag;
+
+                // Invalidate using the namespace tag - achieves TRUE AND logic!
+                return $cache->invalidateTags([$prefixedNamespaceTag]);
 
             case \Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG:
             case 'matchingAnyTag':
@@ -294,16 +396,21 @@ class Symfony implements FrontendInterface
                     return true;
                 }
 
-                // Prefix ALL tags with frontendIdentifier (exactly like Zend's _tags())
-                if ($isTagAware) {
-                    $cleanTags = [];
-                    foreach ($tags as $tag) {
-                        $cleanedTag = $this->cleanIdentifier($tag);
-                        $cleanTags[] = $this->frontendIdentifier . '_' . $cleanedTag;
-                    }
-                    return $cache->invalidateTags($cleanTags);
+                if (!$isTagAware) {
+                    return true;
                 }
-                return true;
+
+                // Deduplicate and prefix tags (same as save())
+                $uniqueTags = array_values(array_unique($tags));
+
+                $cleanTags = [];
+                foreach ($uniqueTags as $tag) {
+                    $cleanedTag = $this->cleanIdentifier($tag);
+                    $cleanTags[] = $this->frontendIdentifier . '_' . $cleanedTag;
+                }
+
+                // Both MATCHING_TAG and MATCHING_ANY_TAG use OR logic in Symfony
+                return $cache->invalidateTags($cleanTags);
 
             case \Zend_Cache::CLEANING_MODE_OLD:
             case 'old':
@@ -322,27 +429,27 @@ class Symfony implements FrontendInterface
 
     /**
      * Get backend that bypasses frontend logic (mimics Zend's getBackend())
-     * 
+     *
      * In Zend Cache, getBackend() returns the backend which bypasses:
      * - Frontend decorators (TagScope, Logger, etc.)
      * - cache_id_prefix on tags
-     * 
+     *
      * This wrapper provides the same behavior for Symfony Cache.
-     * 
+     *
      * @return object
      */
     public function getBackend()
     {
         $adapter = $this;
-        
+
         return new class($adapter) {
             private $adapter;
-            
+
             public function __construct($adapter)
             {
                 $this->adapter = $adapter;
             }
-            
+
             /**
              * Get current cache instance (handles fork detection)
              */
@@ -350,9 +457,10 @@ class Symfony implements FrontendInterface
             {
                 return $this->adapter->getCache();
             }
-            
+
             /**
              * Save without prefixing tags (backend-level save)
+             * Uses namespace strategy for AND matching
              */
             public function save($data, $id, $tags = [], $specificLifetime = null)
             {
@@ -360,23 +468,34 @@ class Symfony implements FrontendInterface
                 $cleanedId = $this->adapter->cleanIdentifier($id);
                 $item = $cache->getItem($cleanedId);
                 $item->set($data);
-                
+
                 if ($specificLifetime !== null && $specificLifetime !== false) {
                     $item->expiresAfter((int)$specificLifetime);
                 }
-                
-                // NO prefix on tags (backend bypass)
+
+                // Use namespace strategy (same as frontend, but without prefix)
                 if ($cache instanceof \Symfony\Component\Cache\Adapter\TagAwareAdapterInterface && !empty($tags)) {
-                    $cleanTags = [];
-                    foreach ($tags as $tag) {
-                        $cleanTags[] = $this->adapter->cleanIdentifier($tag);
+                    $uniqueTags = array_values(array_unique($tags));
+                    sort($uniqueTags);
+
+                    // Individual tags
+                    $allTags = [];
+                    foreach ($uniqueTags as $tag) {
+                        $allTags[] = $this->adapter->cleanIdentifier($tag);
                     }
-                    $item->tag($cleanTags);
+
+                    // Namespace tags for AND matching (no prefix on backend)
+                    $namespaceTags = $this->adapter->generateNamespaceTagsPublic($uniqueTags);
+                    foreach ($namespaceTags as $nsTag) {
+                        $allTags[] = $nsTag;
+                    }
+
+                    $item->tag(array_unique($allTags));
                 }
-                
+
                 return $cache->save($item);
             }
-            
+
             /**
              * Load directly by ID
              */
@@ -384,46 +503,47 @@ class Symfony implements FrontendInterface
             {
                 return $this->adapter->load($id);
             }
-            
+
             /**
              * Clean without prefixing tags (backend-level clean)
+             * Uses namespace strategy for AND matching
              */
             public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
             {
                 $cache = $this->getCache();
-                
+
                 switch ($mode) {
                     case \Zend_Cache::CLEANING_MODE_ALL:
                     case 'all':
                         return $cache->clear();
-                        
+
                     case \Zend_Cache::CLEANING_MODE_OLD:
                     case 'old':
                         return true;
-                        
+
                     case \Zend_Cache::CLEANING_MODE_MATCHING_TAG:
                     case 'matchingTag':
                         if (empty($tags) || !($cache instanceof \Symfony\Component\Cache\Adapter\TagAwareAdapterInterface)) {
                             return true;
                         }
-                        // NO prefix on tags (backend bypass)
-                        $cleanTags = [];
-                        foreach ($tags as $tag) {
-                            $cleanTags[] = $this->adapter->cleanIdentifier($tag);
-                        }
-                        return $cache->invalidateTags($cleanTags);
-                        
+                        // Use namespace strategy (same as frontend, without prefix)
+                        $uniqueTags = array_values(array_unique($tags));
+                        sort($uniqueTags);
+
+                        $namespaceTag = Symfony::NAMESPACE_PREFIX . implode(Symfony::NAMESPACE_SEPARATOR, $uniqueTags);
+                        return $cache->invalidateTags([$namespaceTag]);
+
                     case \Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG:
                     case 'notMatchingTag':
                     case \Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG:
                     case 'matchingAnyTag':
                         return true;
-                        
+
                     default:
                         return false;
                 }
             }
-            
+
             /**
              * Clear entire backend
              */
@@ -431,7 +551,7 @@ class Symfony implements FrontendInterface
             {
                 return $this->getCache()->clear();
             }
-            
+
             /**
              * Forward other method calls
              */
