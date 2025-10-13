@@ -69,25 +69,12 @@ class Symfony implements FrontendInterface
     private ?bool $isTagAware = null;
 
     /**
-     * Frontend identifier for cache isolation (used to prevent cross-frontend cache pollution)
-     * Only items without user tags get this identifier
+     * Frontend identifier for cache isolation
+     * Mimics Zend's cache_id_prefix - used to prefix all tags
      *
      * @var string
      */
     private string $frontendIdentifier;
-
-    /**
-     * Known Magento cache system tags
-     * Items with only these tags (+ MAGE) are considered system cache and get frontend identifier
-     *
-     * @var array
-     */
-    private array $systemCacheTags = [
-        'EAV', 'EAV_ATTRIBUTE', 'CONFIG', 'COMPILED_CONFIG', 'TRANSLATE',
-        'DB_PDO_MYSQL_DDL', 'DB_DDL', 'BLOCK_HTML', 'LAYOUT_GENERAL_CACHE_TAG',
-        'FPC', 'COLLECTION_DATA', 'REFLECTION', 'DB', 'STORE', 'CONFIG_SCOPES',
-        'MAGE' // TagScope decorator tag
-    ];
 
     /**
      * Constructor
@@ -111,10 +98,11 @@ class Symfony implements FrontendInterface
      * Get cache pool, recreating if process has forked
      *
      * Optimized to minimize getmypid() calls and fork detection overhead
+     * Public to allow backend wrapper access for fork detection
      *
      * @return CacheItemPoolInterface
      */
-    private function getCache(): CacheItemPoolInterface
+    public function getCache(): CacheItemPoolInterface
     {
         // Only check for fork if we have a factory (optimization)
         if ($this->cacheFactory === null) {
@@ -148,7 +136,7 @@ class Symfony implements FrontendInterface
      * @param string $identifier
      * @return string
      */
-    private function cleanIdentifier(string $identifier): string
+    public function cleanIdentifier(string $identifier): string
     {
         // Return cached result if available (major performance improvement)
         if (isset($this->cleanedIdentifiers[$identifier])) {
@@ -218,17 +206,10 @@ class Symfony implements FrontendInterface
 
     /**
      * @inheritdoc
-     *
-     * Performance optimizations:
-     * - Cached tag-aware check
-     * - Optimized tag cleaning with foreach (faster than array_map for small arrays)
-     *
-     * Cache Isolation Strategy:
-     * - Filter out decorator tags (MAGE) to identify user-provided tags
-     * - Items with ONLY decorator tags → Add frontend identifier (application cache)
-     * - Items with user tags → DON'T add frontend identifier (non-application cache)
-     * - This allows user-tagged items to survive clean(MODE_ALL)
-     * - Cache identifier is always the primary key for load/save
+     * 
+     * Mimics Zend Cache Core::save() behavior:
+     * - Prefixes ALL tags with frontendIdentifier (like Zend's cache_id_prefix)
+     * - No special tag name checking
      */
     public function save($data, $identifier, array $tags = [], $lifeTime = null)
     {
@@ -242,27 +223,15 @@ class Symfony implements FrontendInterface
             $item->expiresAfter((int)$lifeTime);
         }
 
-        // Handle tags if cache supports it (use cached instanceof check)
-        if ($this->isTagAware()) {
-            // Clean all tags
+        // Handle tags if cache supports it
+        if ($this->isTagAware() && !empty($tags)) {
+            // Prefix ALL tags with frontendIdentifier (exactly like Zend's _tags())
+            // In Zend: tags get cache_id_prefix: 'TAG' -> '69d_TAG'
+            // In Symfony: tags get frontendIdentifier: 'TAG' -> 'prefix_TAG'
             $cleanTags = [];
             foreach ($tags as $tag) {
-                $cleanTags[] = $this->cleanIdentifier($tag);
-            }
-            
-            // Check if item has any NON-system tags (user tags)
-            $hasUserTags = false;
-            foreach ($tags as $tag) {
-                if (!in_array($tag, $this->systemCacheTags, true)) {
-                    $hasUserTags = true;
-                    break;
-                }
-            }
-            
-            // Add frontend identifier only to system cache items
-            // User-tagged items (non-application cache) don't get it and survive clean()
-            if (!$hasUserTags) {
-                $cleanTags[] = $this->frontendIdentifier;
+                $cleanedTag = $this->cleanIdentifier($tag);
+                $cleanTags[] = $this->frontendIdentifier . '_' . $cleanedTag;
             }
             
             $item->tag($cleanTags);
@@ -282,14 +251,10 @@ class Symfony implements FrontendInterface
     /**
      * @inheritdoc
      * 
-     * Performance optimizations:
-     * - Cached instanceof check
-     * - Early returns for common cases
-     * - Optimized tag cleaning
-     * 
-     * Cache Isolation:
-     * - MODE_ALL only clears items tagged with frontend identifier
-     * - Items with preservation tags survive
+     * Mimics Zend Cache Core::clean() behavior:
+     * - Prefixes ALL tags with frontendIdentifier (like Zend's cache_id_prefix)
+     * - No special tag name checking
+     * - MODE_ALL clears everything (no isolation like Zend)
      */
     public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
     {
@@ -299,11 +264,7 @@ class Symfony implements FrontendInterface
         switch ($mode) {
             case \Zend_Cache::CLEANING_MODE_ALL:
             case 'all':
-                // Only clear owned items (those tagged with frontend identifier)
-                // Preserved items (non-owned) survive
-                if ($isTagAware) {
-                    return $cache->invalidateTags([$this->frontendIdentifier]);
-                }
+                // Clear all cache (exactly like Zend)
                 return $cache->clear();
 
             case \Zend_Cache::CLEANING_MODE_MATCHING_TAG:
@@ -313,44 +274,18 @@ class Symfony implements FrontendInterface
                     return true;
                 }
 
-                // CRITICAL: TagScope transforms clean(MODE_ALL) → clean(MATCHING_TAG, ['MAGE'])
-                // Multiple TagScope decorators can add multiple 'MAGE' tags
-                // If cleaning ONLY by MAGE tag(s), treat it as MODE_ALL for isolation
-                $nonMageTags = array_filter($tags, function($tag) {
-                    return $tag !== 'MAGE';
-                });
-                
-                if (empty($nonMageTags)) {
-                    // Only MAGE tags → This is MODE_ALL disguised as MATCHING_TAG
-                    if ($isTagAware) {
-                        return $cache->invalidateTags([$this->frontendIdentifier]);
-                    }
-                    return $cache->clear();
-                }
-
-                // MATCHING_TAG in Zend means: clear items with ALL these tags (AND logic)
-                // Symfony invalidateTags uses OR logic: clear items with ANY of these tags
-                // When used with TagScope decorator, this creates an issue where scope tags clear everything
-                //
-                // Workaround: Only use the FIRST non-scope tag to maintain expected behavior
-                // This works because TagScope calls clean separately for each user tag
+                // Prefix ALL tags with frontendIdentifier (exactly like Zend's _tags())
+                // In Zend: clean(['TAG']) becomes clean(['69d_TAG'])
+                // In Symfony: clean(['TAG']) becomes clean(['prefix_TAG'])
                 if ($isTagAware) {
-                    // Optimize tag cleaning with foreach
                     $cleanTags = [];
                     foreach ($tags as $tag) {
-                        $cleanTags[] = $this->cleanIdentifier($tag);
+                        $cleanedTag = $this->cleanIdentifier($tag);
+                        $cleanTags[] = $this->frontendIdentifier . '_' . $cleanedTag;
                     }
-
-                    // If multiple tags provided (likely from TagScope), only use the first one
-                    // TagScope pattern: [$userTag, $scopeTag] - we want just $userTag
-                    if (count($cleanTags) > 1) {
-                        $cleanTags = [$cleanTags[0]];
-                    }
-
                     return $cache->invalidateTags($cleanTags);
                 }
-                // Fallback: clear all if tags not supported
-                return $cache->clear();
+                return true;
 
             case \Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG:
             case 'matchingAnyTag':
@@ -359,29 +294,25 @@ class Symfony implements FrontendInterface
                     return true;
                 }
 
-                // MATCHING_ANY_TAG: clear items with ANY of these tags (OR logic)
-                // This matches Symfony's invalidateTags behavior perfectly
+                // Prefix ALL tags with frontendIdentifier (exactly like Zend's _tags())
                 if ($isTagAware) {
-                    // Optimize tag cleaning with foreach
                     $cleanTags = [];
                     foreach ($tags as $tag) {
-                        $cleanTags[] = $this->cleanIdentifier($tag);
+                        $cleanedTag = $this->cleanIdentifier($tag);
+                        $cleanTags[] = $this->frontendIdentifier . '_' . $cleanedTag;
                     }
                     return $cache->invalidateTags($cleanTags);
                 }
-                // Fallback: clear all if tags not supported
-                return $cache->clear();
+                return true;
 
             case \Zend_Cache::CLEANING_MODE_OLD:
             case 'old':
                 // Symfony Cache handles this automatically via expiration
-                // No action needed - return true
                 return true;
 
             case \Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG:
             case 'notMatchingTag':
-                // Not efficiently supported by PSR-6/Symfony - would require listing all keys
-                // Return true (no-op) for backward compatibility
+                // Not efficiently supported by PSR-6/Symfony
                 return true;
 
             default:
@@ -390,11 +321,125 @@ class Symfony implements FrontendInterface
     }
 
     /**
-     * @inheritdoc
+     * Get backend that bypasses frontend logic (mimics Zend's getBackend())
+     * 
+     * In Zend Cache, getBackend() returns the backend which bypasses:
+     * - Frontend decorators (TagScope, Logger, etc.)
+     * - cache_id_prefix on tags
+     * 
+     * This wrapper provides the same behavior for Symfony Cache.
+     * 
+     * @return object
      */
     public function getBackend()
     {
-        return $this->getCache();
+        $adapter = $this;
+        
+        return new class($adapter) {
+            private $adapter;
+            
+            public function __construct($adapter)
+            {
+                $this->adapter = $adapter;
+            }
+            
+            /**
+             * Get current cache instance (handles fork detection)
+             */
+            private function getCache()
+            {
+                return $this->adapter->getCache();
+            }
+            
+            /**
+             * Save without prefixing tags (backend-level save)
+             */
+            public function save($data, $id, $tags = [], $specificLifetime = null)
+            {
+                $cache = $this->getCache();
+                $cleanedId = $this->adapter->cleanIdentifier($id);
+                $item = $cache->getItem($cleanedId);
+                $item->set($data);
+                
+                if ($specificLifetime !== null && $specificLifetime !== false) {
+                    $item->expiresAfter((int)$specificLifetime);
+                }
+                
+                // NO prefix on tags (backend bypass)
+                if ($cache instanceof \Symfony\Component\Cache\Adapter\TagAwareAdapterInterface && !empty($tags)) {
+                    $cleanTags = [];
+                    foreach ($tags as $tag) {
+                        $cleanTags[] = $this->adapter->cleanIdentifier($tag);
+                    }
+                    $item->tag($cleanTags);
+                }
+                
+                return $cache->save($item);
+            }
+            
+            /**
+             * Load directly by ID
+             */
+            public function load($id)
+            {
+                return $this->adapter->load($id);
+            }
+            
+            /**
+             * Clean without prefixing tags (backend-level clean)
+             */
+            public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
+            {
+                $cache = $this->getCache();
+                
+                switch ($mode) {
+                    case \Zend_Cache::CLEANING_MODE_ALL:
+                    case 'all':
+                        return $cache->clear();
+                        
+                    case \Zend_Cache::CLEANING_MODE_OLD:
+                    case 'old':
+                        return true;
+                        
+                    case \Zend_Cache::CLEANING_MODE_MATCHING_TAG:
+                    case 'matchingTag':
+                        if (empty($tags) || !($cache instanceof \Symfony\Component\Cache\Adapter\TagAwareAdapterInterface)) {
+                            return true;
+                        }
+                        // NO prefix on tags (backend bypass)
+                        $cleanTags = [];
+                        foreach ($tags as $tag) {
+                            $cleanTags[] = $this->adapter->cleanIdentifier($tag);
+                        }
+                        return $cache->invalidateTags($cleanTags);
+                        
+                    case \Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG:
+                    case 'notMatchingTag':
+                    case \Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG:
+                    case 'matchingAnyTag':
+                        return true;
+                        
+                    default:
+                        return false;
+                }
+            }
+            
+            /**
+             * Clear entire backend
+             */
+            public function clear()
+            {
+                return $this->getCache()->clear();
+            }
+            
+            /**
+             * Forward other method calls
+             */
+            public function __call($method, $args)
+            {
+                return call_user_func_array([$this->getCache(), $method], $args);
+            }
+        };
     }
 
     /**
