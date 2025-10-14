@@ -540,6 +540,10 @@ class Factory
         $frontend = $this->_getFrontendOptions($options);
         $defaultLifetime = $frontend['lifetime'] ?? self::DEFAULT_LIFETIME;
 
+        // Detect if this is page cache
+        $frontendId = $options['frontend_id'] ?? null;
+        $isPageCache = in_array($frontendId, ['page_cache', 'full_page'], true);
+
         // Start profiling
         $profilerTags = [
             'group' => 'cache',
@@ -565,13 +569,15 @@ class Factory
             // Create initial cache pool
             $cachePool = $cacheFactory();
 
-            // Create Symfony adapter with fork detection support and frontend isolation
+            // Create adapter helper for backend-specific operations
+            $helper = $symfonyFactory->createHelper($backendType, $cachePool, $idPrefix, $isPageCache);
+
+            // Create Symfony adapter with fork detection support and backend helper
             $result = $this->_objectManager->create(
                 \Magento\Framework\Cache\Frontend\Adapter\Symfony::class,
                 [
-                    'cache' => $cachePool,
                     'cacheFactory' => $cacheFactory,
-                    'frontendIdentifier' => $idPrefix, // Unique identifier for cache isolation
+                    'helper' => $helper,
                 ]
             );
 

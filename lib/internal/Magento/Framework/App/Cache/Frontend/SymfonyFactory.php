@@ -110,6 +110,44 @@ class SymfonyFactory
     }
 
     /**
+     * Create appropriate AdapterHelper based on backend type
+     * 
+     * @param string $backendType
+     * @param CacheItemPoolInterface $cachePool
+     * @param string $namespace
+     * @param bool $isPageCache
+     * @return \Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface
+     */
+    public function createHelper(
+        string $backendType,
+        CacheItemPoolInterface $cachePool,
+        string $namespace = '',
+        bool $isPageCache = false
+    ): \Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface {
+        // Resolve backend type
+        $backendTypeLower = strtolower($backendType);
+        $resolvedType = $this->adapterTypeMap[$backendTypeLower] ?? 'filesystem';
+        
+        // Create appropriate helper
+        return match ($resolvedType) {
+            'redis' => new \Magento\Framework\Cache\Frontend\Adapter\Helper\RedisAdapterHelper($cachePool, $namespace),
+            'filesystem' => new \Magento\Framework\Cache\Frontend\Adapter\Helper\FilesystemAdapterHelper($cachePool, $this->getCacheDirectory()),
+            default => new \Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper($cachePool, $isPageCache),
+        };
+    }
+
+    /**
+     * Get cache directory for filesystem operations
+     * 
+     * @return string
+     */
+    private function getCacheDirectory(): string
+    {
+        // Use Magento's var/cache directory
+        return BP . '/var/cache/symfony';
+    }
+
+    /**
      * Create Redis cache adapter
      * 
      * Performance optimizations:
