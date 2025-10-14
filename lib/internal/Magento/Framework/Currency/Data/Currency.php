@@ -29,7 +29,7 @@ class Currency
     public const LEFT = 32;
 
     /**
-     * @var Zend_Cache_Core
+     * @var FrontendInterface|null
      */
     private static $cache = null;
 
