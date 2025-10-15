@@ -532,8 +532,9 @@ class Factory
         $idPrefix = $this->getIdPrefix($options);
 
         // Get backend configuration
+        // For Symfony cache, use the original backend string from config, not the resolved Zend class
+        $originalBackendType = $options['backend'] ?? $this->_defaultBackend;
         $backend = $this->_getBackendOptions($options);
-        $backendType = $backend['type'];
         $backendOptions = $backend['options'];
 
         // Get default lifetime
@@ -548,7 +549,7 @@ class Factory
         $profilerTags = [
             'group' => 'cache',
             'operation' => 'cache:create_symfony',
-            'backend_type' => $backendType,
+            'backend_type' => $originalBackendType,
         ];
         Profiler::start('cache_symfony_create', $profilerTags);
 
@@ -557,9 +558,10 @@ class Factory
             $symfonyFactory = $this->getSymfonyFactory();
 
             // Create cache adapter factory closure (for fork detection)
-            $cacheFactory = function () use ($symfonyFactory, $backendType, $backendOptions, $idPrefix, $defaultLifetime) {
+            // Use originalBackendType so SymfonyFactory can map it correctly (e.g., cm_cache_backend_redis -> redis)
+            $cacheFactory = function () use ($symfonyFactory, $originalBackendType, $backendOptions, $idPrefix, $defaultLifetime) {
                 return $symfonyFactory->createAdapter(
-                    $backendType,
+                    $originalBackendType,
                     $backendOptions,
                     $idPrefix,
                     $defaultLifetime
@@ -570,7 +572,7 @@ class Factory
             $cachePool = $cacheFactory();
 
             // Create adapter helper for backend-specific operations
-            $helper = $symfonyFactory->createHelper($backendType, $cachePool, $idPrefix, $isPageCache);
+            $helper = $symfonyFactory->createHelper($originalBackendType, $cachePool, $idPrefix, $isPageCache);
 
             // Create Symfony adapter with fork detection support and backend helper
             $result = $this->_objectManager->create(

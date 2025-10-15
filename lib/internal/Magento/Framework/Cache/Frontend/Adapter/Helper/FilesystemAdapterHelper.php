@@ -50,9 +50,13 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
         $this->cachePool = $cachePool;
         $this->tagDirectory = rtrim($tagDirectory, '/') . '/tags/';
         
-        // Ensure tag directory exists
+        // Ensure tag directory exists with proper error handling
         if (!is_dir($this->tagDirectory)) {
-            mkdir($this->tagDirectory, 0770, true);
+            if (!@mkdir($this->tagDirectory, 0770, true) && !is_dir($this->tagDirectory)) {
+                throw new \RuntimeException(
+                    sprintf('Failed to create tag directory: %s', $this->tagDirectory)
+                );
+            }
         }
     }
 
@@ -108,9 +112,18 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
             return;
         }
 
+        // Ensure directory exists before writing (defensive check)
+        if (!is_dir($this->tagDirectory)) {
+            @mkdir($this->tagDirectory, 0770, true);
+        }
+
         // Write IDs, one per line, with trailing newline
         $content = implode("\n", $ids) . "\n";
-        file_put_contents($file, $content, LOCK_EX);
+        if (@file_put_contents($file, $content, LOCK_EX) === false) {
+            throw new \RuntimeException(
+                sprintf('Failed to write tag file: %s', $file)
+            );
+        }
     }
 
     /**
