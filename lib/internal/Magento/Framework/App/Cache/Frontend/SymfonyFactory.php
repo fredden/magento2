@@ -21,7 +21,7 @@ use Symfony\Component\Cache\Adapter\ApcuAdapter;
 
 /**
  * Factory for creating Symfony Cache adapters
- * 
+ *
  * Performance optimizations:
  * - Connection pooling for Redis/Memcached
  * - Cached adapter type resolution
@@ -37,26 +37,38 @@ class SymfonyFactory
 
     /**
      * Connection pool cache for reusing connections
-     * 
+     *
      * @var array<string, mixed>
      */
     private array $connectionPool = [];
 
     /**
      * Cached adapter type mappings (lowercase => canonical)
-     * 
+     *
      * @var array<string, string>
      */
     private array $adapterTypeMap = [
+        // Redis backends
         'redis' => 'redis',
         'cm_cache_backend_redis' => 'redis',
+        'magento\\framework\\cache\\backend\\redis' => 'redis',
+
+        // Memcached backends
         'memcached' => 'memcached',
         'libmemcached' => 'memcached',
+
+        // File backends
         'file' => 'filesystem',
         'cm_cache_backend_file' => 'filesystem',
+
+        // Database backend
         'database' => 'database',
+
+        // APCu backends
         'apc' => 'apcu',
         'apcu' => 'apcu',
+
+        // Two-level cache
         'two_levels' => 'twolevel',
         'twolevel' => 'twolevel',
     ];
@@ -71,7 +83,7 @@ class SymfonyFactory
 
     /**
      * Create Symfony cache adapter based on backend type and options
-     * 
+     *
      * Performance optimizations:
      * - Cached type mappings (no switch statement)
      * - Connection pooling for Redis/Memcached
@@ -93,7 +105,7 @@ class SymfonyFactory
         // Optimize: Use pre-built map instead of switch
         $backendTypeLower = strtolower($backendType);
         $resolvedType = $this->adapterTypeMap[$backendTypeLower] ?? 'filesystem';
-        
+
         // Create adapter based on resolved type
         $adapter = match ($resolvedType) {
             'redis' => $this->createRedisAdapter($backendOptions, $namespace, $defaultLifetime),
@@ -111,7 +123,7 @@ class SymfonyFactory
 
     /**
      * Create appropriate AdapterHelper based on backend type
-     * 
+     *
      * @param string $backendType
      * @param CacheItemPoolInterface $cachePool
      * @param string $namespace
@@ -127,7 +139,7 @@ class SymfonyFactory
         // Resolve backend type
         $backendTypeLower = strtolower($backendType);
         $resolvedType = $this->adapterTypeMap[$backendTypeLower] ?? 'filesystem';
-        
+
         // Create appropriate helper
         return match ($resolvedType) {
             'redis' => new \Magento\Framework\Cache\Frontend\Adapter\Helper\RedisAdapterHelper($cachePool, $namespace),
@@ -138,7 +150,7 @@ class SymfonyFactory
 
     /**
      * Get cache directory for filesystem operations
-     * 
+     *
      * @return string
      */
     private function getCacheDirectory(): string
@@ -149,7 +161,7 @@ class SymfonyFactory
 
     /**
      * Create Redis cache adapter
-     * 
+     *
      * Performance optimizations:
      * - Connection pooling (reuse existing connections)
      * - Optimized DSN building
@@ -170,17 +182,17 @@ class SymfonyFactory
         $port = $options['port'] ?? 6379;
         $password = $options['password'] ?? null;
         $database = $options['database'] ?? 0;
-        
+
         // Create connection key for pooling
         $connectionKey = sprintf('redis:%s:%d:%d', $host, $port, $database);
-        
+
         // Check connection pool
         if (!isset($this->connectionPool[$connectionKey])) {
             // Build optimized DSN
-            $dsn = $password 
+            $dsn = $password
                 ? sprintf('redis://%s@%s:%d/%d', urlencode($password), $host, $port, $database)
                 : sprintf('redis://%s:%d/%d', $host, $port, $database);
-            
+
             // Create and pool the connection
             $this->connectionPool[$connectionKey] = RedisAdapter::createConnection($dsn);
         }
@@ -194,7 +206,7 @@ class SymfonyFactory
 
     /**
      * Create Memcached cache adapter
-     * 
+     *
      * Performance optimizations:
      * - Connection pooling
      * - Optimized server list building
@@ -241,7 +253,7 @@ class SymfonyFactory
 
     /**
      * Create Filesystem cache adapter
-     * 
+     *
      * Performance optimizations:
      * - Lazy directory creation
      * - Cached directory path
@@ -280,7 +292,7 @@ class SymfonyFactory
 
     /**
      * Create Database (PDO) cache adapter
-     * 
+     *
      * Performance optimizations:
      * - Connection pooling
      * - Optimized DSN building
@@ -300,13 +312,13 @@ class SymfonyFactory
         $dbname = $options['dbname'] ?? 'magento';
         $username = $options['username'] ?? 'root';
         $password = $options['password'] ?? '';
-        
+
         // Build DSN (optimized)
         $dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $host, $dbname);
-        
+
         // Connection pooling
         $connectionKey = sprintf('pdo:%s:%s', $host, $dbname);
-        
+
         return new PdoAdapter(
             $dsn,
             $namespace,
@@ -334,7 +346,7 @@ class SymfonyFactory
 
     /**
      * Create two-level cache adapter (fast + persistent)
-     * 
+     *
      * Performance optimizations:
      * - Cached extension checks
      * - Optimized adapter selection
@@ -357,7 +369,7 @@ class SymfonyFactory
         if ($apcuAvailable === null) {
             $apcuAvailable = extension_loaded('apcu') && ini_get('apc.enabled');
         }
-        
+
         if ($apcuAvailable) {
             $adapters[] = $this->createApcuAdapter($namespace . '_fast', $defaultLifetime);
         } else {
@@ -368,7 +380,7 @@ class SymfonyFactory
         // Persistent cache (Redis or Filesystem) - optimized type check
         $slowOptions = $options['slow_backend_options'] ?? [];
         $slowType = strtolower($options['slow_backend'] ?? 'file');
-        
+
         if ($slowType === 'redis' || $slowType === 'cm_cache_backend_redis') {
             $adapters[] = $this->createRedisAdapter($slowOptions, $namespace . '_slow', $defaultLifetime);
         } else {

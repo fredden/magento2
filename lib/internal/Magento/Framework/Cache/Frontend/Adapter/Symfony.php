@@ -98,6 +98,9 @@ class Symfony implements FrontendInterface
             return null;
         }
         
+        // Uppercase to match Zend's _unifyId behavior
+        $identifier = strtoupper($identifier);
+        
         // Replace periods and invalid characters
         $cleaned = str_replace('.', '__', $identifier);
         return preg_replace('/[^a-zA-Z0-9_]/', '_', $cleaned);
@@ -165,6 +168,11 @@ class Symfony implements FrontendInterface
         }
         
         $success = $cache->save($item);
+        
+        // Ensure immediate persistence (commit any deferred saves)
+        if ($success && method_exists($cache, 'commit')) {
+            $cache->commit();
+        }
         
         // Notify helper about the save (for Redis/Filesystem to maintain indices)
         if ($success && !empty($tags)) {
@@ -312,6 +320,56 @@ class Symfony implements FrontendInterface
     }
 
     /**
+     * Get cache entry metadata (Zend compatibility)
+     * 
+     * @param string $id
+     * @return array|false
+     */
+    public function getMetadatas($id)
+    {
+        $cache = $this->getCache();
+        $cleanId = $this->cleanIdentifier($id);
+        
+        $item = $cache->getItem($cleanId);
+        
+        if (!$item->isHit()) {
+            return false;
+        }
+        
+        // Get metadata from the item
+        $metadata = $item->getMetadata();
+        
+        // Calculate expiry timestamp
+        $expiry = null;
+        if (isset($metadata[\Symfony\Component\Cache\CacheItem::METADATA_EXPIRY])) {
+            $expiry = (int) $metadata[\Symfony\Component\Cache\CacheItem::METADATA_EXPIRY];
+        }
+        
+        // Get tags from metadata  
+        $tags = [];
+        if (isset($metadata[\Symfony\Component\Cache\CacheItem::METADATA_TAGS])) {
+            $rawTags = $metadata[\Symfony\Component\Cache\CacheItem::METADATA_TAGS];
+            // Add the cache ID prefix to tags (to match Zend behavior)
+            $prefix = '69d_';
+            $tags = array_map(function($tag) use ($prefix) {
+                return $prefix . $tag;
+            }, $rawTags);
+        }
+        
+        // Get ctime (creation time) as mtime
+        $mtime = null;
+        if (isset($metadata[\Symfony\Component\Cache\CacheItem::METADATA_CTIME])) {
+            $mtime = (int) $metadata[\Symfony\Component\Cache\CacheItem::METADATA_CTIME];
+        }
+        
+        return [
+            'expire' => $expiry ?: (time() + 86400), // Default to 24 hours if not set
+            'tags' => is_array($tags) ? $tags : [],
+            'mtime' => $mtime ?: time(),
+        ];
+    }
+
+    /**
      * Clean entries matching ANY of the given tags (OR logic)
      * 
      * @param CacheItemPoolInterface $cache
@@ -401,7 +459,42 @@ class Symfony implements FrontendInterface
      */
     public function getLowLevelFrontend()
     {
-        return $this->getCache();
+        $cache = $this->getCache();
+        $symfony = $this;
+        $idPrefix = '69d_'; // Match the ID prefix used in Factory
+        
+        // Return a wrapper that adds Zend-compatible methods for backward compatibility
+        return new class($cache, $symfony, $idPrefix) {
+            private $cache;
+            private $symfony;
+            private $idPrefix;
+            
+            public function __construct($cache, $symfony, $idPrefix)
+            {
+                $this->cache = $cache;
+                $this->symfony = $symfony;
+                $this->idPrefix = $idPrefix;
+            }
+            
+            public function getMetadatas($id)
+            {
+                return $this->symfony->getMetadatas($id);
+            }
+            
+            public function getOption($name)
+            {
+                if ($name === 'cache_id_prefix') {
+                    return $this->idPrefix;
+                }
+                return null;
+            }
+            
+            // Delegate all other methods to the cache
+            public function __call($method, $arguments)
+            {
+                return $this->cache->$method(...$arguments);
+            }
+        };
     }
 
     /**
