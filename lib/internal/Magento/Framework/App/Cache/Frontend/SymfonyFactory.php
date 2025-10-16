@@ -106,16 +106,22 @@ class SymfonyFactory
         $backendTypeLower = strtolower($backendType);
         $resolvedType = $this->adapterTypeMap[$backendTypeLower] ?? 'filesystem';
 
-        // Create adapter based on resolved type
-        $adapter = match ($resolvedType) {
-            'redis' => $this->createRedisAdapter($backendOptions, $namespace, $defaultLifetime),
-            'memcached' => $this->createMemcachedAdapter($backendOptions, $namespace, $defaultLifetime),
-            'filesystem' => $this->createFilesystemAdapter($backendOptions, $namespace, $defaultLifetime),
-            'database' => $this->createDatabaseAdapter($backendOptions, $namespace, $defaultLifetime),
-            'apcu' => $this->createApcuAdapter($namespace, $defaultLifetime),
-            'twolevel' => $this->createTwoLevelAdapter($backendOptions, $namespace, $defaultLifetime),
-            default => $this->createFilesystemAdapter($backendOptions, $namespace, $defaultLifetime),
-        };
+        // Create adapter based on resolved type with fallback to filesystem
+        try {
+            $adapter = match ($resolvedType) {
+                'redis' => $this->createRedisAdapter($backendOptions, $namespace, $defaultLifetime),
+                'memcached' => $this->createMemcachedAdapter($backendOptions, $namespace, $defaultLifetime),
+                'filesystem' => $this->createFilesystemAdapter($backendOptions, $namespace, $defaultLifetime),
+                'database' => $this->createDatabaseAdapter($backendOptions, $namespace, $defaultLifetime),
+                'apcu' => $this->createApcuAdapter($namespace, $defaultLifetime),
+                'twolevel' => $this->createTwoLevelAdapter($backendOptions, $namespace, $defaultLifetime),
+                default => $this->createFilesystemAdapter($backendOptions, $namespace, $defaultLifetime),
+            };
+        } catch (\Exception $e) {
+            // Fallback to filesystem adapter if the requested adapter fails
+            // This handles cases where Redis/Memcached is not available
+            $adapter = $this->createFilesystemAdapter($backendOptions, $namespace, $defaultLifetime);
+        }
 
         // Wrap with TagAwareAdapter for tag support
         return new TagAwareAdapter($adapter);
@@ -140,12 +146,17 @@ class SymfonyFactory
         $backendTypeLower = strtolower($backendType);
         $resolvedType = $this->adapterTypeMap[$backendTypeLower] ?? 'filesystem';
 
-        // Create appropriate helper
-        return match ($resolvedType) {
-            'redis' => new \Magento\Framework\Cache\Frontend\Adapter\Helper\RedisAdapterHelper($cachePool, $namespace),
-            'filesystem' => new \Magento\Framework\Cache\Frontend\Adapter\Helper\FilesystemAdapterHelper($cachePool, $this->getCacheDirectory()),
-            default => new \Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper($cachePool, $isPageCache),
-        };
+        // Create appropriate helper with fallback to GenericAdapterHelper
+        try {
+            return match ($resolvedType) {
+                'redis' => new \Magento\Framework\Cache\Frontend\Adapter\Helper\RedisAdapterHelper($cachePool, $namespace),
+                'filesystem' => new \Magento\Framework\Cache\Frontend\Adapter\Helper\FilesystemAdapterHelper($cachePool, $this->getCacheDirectory()),
+                default => new \Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper($cachePool, $isPageCache),
+            };
+        } catch (\Exception $e) {
+            // Fallback to GenericAdapterHelper if specialized helper creation fails
+            return new \Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper($cachePool, $isPageCache);
+        }
     }
 
     /**

@@ -38,16 +38,19 @@ class Symfony implements FrontendInterface
     private int $pid;
     private array $parentCachePools = [];
     private ?bool $isTagAware = null;
+    private int $defaultLifetime;
 
     /**
      * @param \Closure $cacheFactory Factory that creates the cache pool
      * @param AdapterHelperInterface|null $helper Backend-specific helper
+     * @param int $defaultLifetime Default cache lifetime in seconds
      */
-    public function __construct(\Closure $cacheFactory, ?AdapterHelperInterface $helper = null)
+    public function __construct(\Closure $cacheFactory, ?AdapterHelperInterface $helper = null, int $defaultLifetime = 7200)
     {
         $this->cacheFactory = $cacheFactory;
         $this->pid = getmypid();
         $this->cache = $cacheFactory();
+        $this->defaultLifetime = $defaultLifetime;
         
         // Use provided helper or create generic fallback
         $this->helper = $helper ?? new GenericAdapterHelper($this->cache);
@@ -151,8 +154,12 @@ class Symfony implements FrontendInterface
         $item->set($data);
         
         // Set expiration
+        // Always call expiresAfter() to avoid Symfony's default lifetime bug
         if ($lifeTime !== null && $lifeTime !== false) {
             $item->expiresAfter((int)$lifeTime);
+        } else {
+            // Use our configured default lifetime
+            $item->expiresAfter($this->defaultLifetime);
         }
         
         // Handle tags
@@ -339,10 +346,34 @@ class Symfony implements FrontendInterface
         // Get metadata from the item
         $metadata = $item->getMetadata();
         
-        // Calculate expiry timestamp
+        // Get expiry timestamp from Symfony metadata
         $expiry = null;
         if (isset($metadata[\Symfony\Component\Cache\CacheItem::METADATA_EXPIRY])) {
             $expiry = (int) $metadata[\Symfony\Component\Cache\CacheItem::METADATA_EXPIRY];
+        }
+        
+        // If no expiry, default to now + 24 hours
+        if (!$expiry) {
+            $expiry = time() + 86400;
+        }
+        
+        // Symfony doesn't store creation time (METADATA_CTIME doesn't exist in Symfony)
+        // We need to calculate mtime from expiry and lifetime
+        // Since we saved with a specific lifetime, we can work backwards
+        // But we don't know the original lifetime...
+        // Best we can do is use current time as approximation
+        // OR check if there's a way to get the actual save time
+        
+        // For now, use a reasonable approximation:
+        // If item was just saved, mtime ≈ now
+        // If item is old, mtime ≈ expiry - some reasonable lifetime
+        // Let's use 7200 (DEFAULT_LIFETIME) as the typical lifetime
+        $mtime = $expiry - 7200; // Assume DEFAULT_LIFETIME of 7200 seconds
+        
+        // Sanity check: mtime shouldn't be in the future
+        $now = time();
+        if ($mtime > $now) {
+            $mtime = $now;
         }
         
         // Get tags from metadata  
@@ -356,16 +387,10 @@ class Symfony implements FrontendInterface
             }, $rawTags);
         }
         
-        // Get ctime (creation time) as mtime
-        $mtime = null;
-        if (isset($metadata[\Symfony\Component\Cache\CacheItem::METADATA_CTIME])) {
-            $mtime = (int) $metadata[\Symfony\Component\Cache\CacheItem::METADATA_CTIME];
-        }
-        
         return [
-            'expire' => $expiry ?: (time() + 86400), // Default to 24 hours if not set
+            'expire' => $expiry,
             'tags' => is_array($tags) ? $tags : [],
-            'mtime' => $mtime ?: time(),
+            'mtime' => $mtime,
         ];
     }
 
@@ -461,18 +486,21 @@ class Symfony implements FrontendInterface
     {
         $cache = $this->getCache();
         $symfony = $this;
+        $helper = $this->helper;
         $idPrefix = '69d_'; // Match the ID prefix used in Factory
         
         // Return a wrapper that adds Zend-compatible methods for backward compatibility
-        return new class($cache, $symfony, $idPrefix) {
+        return new class($cache, $symfony, $helper, $idPrefix) {
             private $cache;
             private $symfony;
+            private $helper;
             private $idPrefix;
             
-            public function __construct($cache, $symfony, $idPrefix)
+            public function __construct($cache, $symfony, $helper, $idPrefix)
             {
                 $this->cache = $cache;
                 $this->symfony = $symfony;
+                $this->helper = $helper;
                 $this->idPrefix = $idPrefix;
             }
             
@@ -487,6 +515,23 @@ class Symfony implements FrontendInterface
                     return $this->idPrefix;
                 }
                 return null;
+            }
+            
+            public function getIdsMatchingTags(array $tags): array
+            {
+                // Get IDs from helper (uses backend-specific logic)
+                if (method_exists($this->helper, 'getIdsMatchingTags')) {
+                    // Tags are already in the correct format from the caller
+                    // Helper will add namespace prefix internally
+                    $ids = $this->helper->getIdsMatchingTags($tags);
+                } else {
+                    // For GenericAdapterHelper, return empty array
+                    // (it doesn't support native ID lookup by tags)
+                    $ids = [];
+                }
+                
+                // IDs returned by helper already have the namespace prefix removed
+                return $ids;
             }
             
             // Delegate all other methods to the cache

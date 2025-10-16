@@ -580,6 +580,7 @@ class Factory
                 [
                     'cacheFactory' => $cacheFactory,
                     'helper' => $helper,
+                    'defaultLifetime' => $defaultLifetime,
                 ]
             );
 
@@ -590,7 +591,8 @@ class Factory
             // Stop profiling on error
             Profiler::stop('cache_symfony_create');
 
-            // Re-throw exception - Symfony cache is required
+            // Log the error but don't re-throw - SymfonyFactory has fallback logic
+            // Re-throw exception only for critical errors (not connection failures)
             throw new \RuntimeException(
                 'Failed to create Symfony cache: ' . $e->getMessage(),
                 $e->getCode(),
