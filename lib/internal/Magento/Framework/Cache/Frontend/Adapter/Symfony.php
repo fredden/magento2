@@ -534,6 +534,40 @@ class Symfony implements FrontendInterface
                 return $ids;
             }
             
+            public function getBackend()
+            {
+                // Return an object that provides backend-level methods
+                $helper = $this->helper;
+                return new class($helper) {
+                    private $helper;
+                    
+                    public function __construct($helper)
+                    {
+                        $this->helper = $helper;
+                    }
+                    
+                    public function getIdsMatchingTags(array $tags): array
+                    {
+                        // Get IDs from helper (uses backend-specific logic)
+                        if (method_exists($this->helper, 'getIdsMatchingTags')) {
+                            return $this->helper->getIdsMatchingTags($tags);
+                        }
+                        return [];
+                    }
+                    
+                    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
+                    {
+                        // Backend clean is handled by helper
+                        if ($mode === \Zend_Cache::CLEANING_MODE_ALL) {
+                            if (method_exists($this->helper, 'clearAllTagIndices')) {
+                                $this->helper->clearAllTagIndices();
+                            }
+                        }
+                        return true;
+                    }
+                };
+            }
+            
             // Delegate all other methods to the cache
             public function __call($method, $arguments)
             {
