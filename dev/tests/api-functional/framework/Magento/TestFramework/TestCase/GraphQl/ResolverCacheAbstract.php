@@ -223,7 +223,8 @@ class ResolverCacheAbstract extends GraphQlAbstract
         // IMPROVED: Direct cache clean is more reliable and faster than exec()
         // Also ensures proper test isolation with Symfony cache's unique namespaces
         try {
-            $cachePool = $this->objectManager->get(\Magento\Framework\App\Cache\Frontend\Pool::class);
+            // Get a fresh Pool instance without affecting shared instances
+            $cachePool = $this->objectManager->create(\Magento\Framework\App\Cache\Frontend\Pool::class);
             $cache = $cachePool->get($cacheType);
             
             // Clean all cache entries for this type
@@ -235,13 +236,11 @@ class ResolverCacheAbstract extends GraphQlAbstract
                 if (method_exists($backend, 'clean')) {
                     $backend->clean(\Zend_Cache::CLEANING_MODE_ALL);
                 }
+                
+                // CRITICAL: Only reset GraphQL resolver cache instance for graphql_query_resolver_result
+                // This ensures fresh cache instance in next test without corrupting deployment config
+                $this->objectManager->removeSharedInstance(\Magento\GraphQlResolverCache\Model\Resolver\Result\Type::class);
             }
-            
-            // CRITICAL: Reset the Pool and GraphQL resolver cache to ensure fresh instances in next test
-            // This is REQUIRED (not optional) because Pool::get() creates unique instances per cache type
-            // and those instances are cached in ObjectManager, which causes test pollution in test suites
-            $this->objectManager->removeSharedInstance(\Magento\Framework\App\Cache\Frontend\Pool::class);
-            $this->objectManager->removeSharedInstance(\Magento\GraphQlResolverCache\Model\Resolver\Result\Type::class);
         } catch (\Exception $e) {
             // Fallback to original exec() method if direct clean fails
             $appDir = dirname(Bootstrap::getInstance()->getAppTempDir());
