@@ -220,10 +220,34 @@ class ResolverCacheAbstract extends GraphQlAbstract
      */
     private function cleanCacheType(string $cacheType): void
     {
-        $appDir = dirname(Bootstrap::getInstance()->getAppTempDir());
-        $out = '';
-
-        // phpcs:ignore Magento2.Security.InsecureFunction
-        exec("php -f {$appDir}/bin/magento cache:clean $cacheType", $out);
+        // IMPROVED: Direct cache clean is more reliable and faster than exec()
+        // Also ensures proper test isolation with Symfony cache's unique namespaces
+        try {
+            $cachePool = $this->objectManager->get(\Magento\Framework\App\Cache\Frontend\Pool::class);
+            $cache = $cachePool->get($cacheType);
+            
+            // Clean all cache entries for this type
+            $cache->clean(\Zend_Cache::CLEANING_MODE_ALL);
+            
+            // Also try to clear the backend completely for graphql_query_resolver_result
+            if ($cacheType === GraphQlResolverCache::TYPE_IDENTIFIER) {
+                $backend = $cache->getBackend();
+                if (method_exists($backend, 'clean')) {
+                    $backend->clean(\Zend_Cache::CLEANING_MODE_ALL);
+                }
+            }
+            
+            // CRITICAL: Reset the Pool and GraphQL resolver cache to ensure fresh instances in next test
+            // This is REQUIRED (not optional) because Pool::get() creates unique instances per cache type
+            // and those instances are cached in ObjectManager, which causes test pollution in test suites
+            $this->objectManager->removeSharedInstance(\Magento\Framework\App\Cache\Frontend\Pool::class);
+            $this->objectManager->removeSharedInstance(\Magento\GraphQlResolverCache\Model\Resolver\Result\Type::class);
+        } catch (\Exception $e) {
+            // Fallback to original exec() method if direct clean fails
+            $appDir = dirname(Bootstrap::getInstance()->getAppTempDir());
+            $out = '';
+            // phpcs:ignore Magento2.Security.InsecureFunction
+            exec("php -f {$appDir}/bin/magento cache:clean $cacheType", $out);
+        }
     }
 }
