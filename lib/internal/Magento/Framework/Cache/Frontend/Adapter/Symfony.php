@@ -382,9 +382,9 @@ class Symfony implements FrontendInterface
             $rawTags = $metadata[\Symfony\Component\Cache\CacheItem::METADATA_TAGS];
             // Add the cache ID prefix to tags (to match Zend behavior)
             $prefix = '69d_';
-            $tags = array_map(function($tag) use ($prefix) {
+            $tags = array_values(array_map(function($tag) use ($prefix) {
                 return $prefix . $tag;
-            }, $rawTags);
+            }, $rawTags));
         }
         
         return [
