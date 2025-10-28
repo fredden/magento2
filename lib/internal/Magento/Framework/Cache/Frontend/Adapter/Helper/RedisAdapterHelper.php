@@ -175,12 +175,11 @@ class RedisAdapterHelper implements AdapterHelperInterface
         // Delete cache items
         $success = $this->cachePool->deleteItems($ids);
 
-        // Remove IDs from all_ids set
+        // Remove IDs from all_ids set - batch operation for better performance
         if (!empty($ids)) {
-            // PHP 8+ compatibility: call sRem for each ID individually to avoid spread operator issues
-            foreach ($ids as $id) {
-                $this->redis->sRem(self::ALL_IDS_SET, $id);
-            }
+            // Use array_unshift to prepend the set key, then call_user_func_array for batch operation
+            array_unshift($ids, self::ALL_IDS_SET);
+            call_user_func_array([$this->redis, 'sRem'], $ids);
         }
 
         return $success;

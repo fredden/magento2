@@ -7,11 +7,15 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Frontend\Adapter;
 
+use Closure;
+use InvalidArgumentException;
 use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
 use Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper;
 use Magento\Framework\Cache\FrontendInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
+use Symfony\Component\Cache\CacheItem;
+use Zend_Cache;
 
 /**
  * Symfony Cache adapter for Magento - FRESH IMPLEMENTATION
@@ -29,23 +33,48 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
  * - RedisAdapterHelper: Uses Redis SINTER for true AND logic
  * - FilesystemAdapterHelper: Uses file indices with array_intersect for AND logic
  * - GenericAdapterHelper: Fallback using namespace tags for other adapters
+ * 
+ * @see Symfony\BackendWrapper
+ * @see Symfony\LowLevelFrontend
+ * @see Symfony\LowLevelBackend
  */
 class Symfony implements FrontendInterface
 {
+    /**
+     * Default cache ID prefix (must match Factory configuration)
+     */
+    public const DEFAULT_CACHE_PREFIX = '69d_';
+    
+    /**
+     * Default cache lifetime in seconds (2 hours)
+     */
+    public const DEFAULT_LIFETIME = 7200;
+    
+    /**
+     * Fallback expiry for items without explicit lifetime (24 hours)
+     */
+    public const FALLBACK_EXPIRY = 86400;
+    
+    /**
+     * Assumed lifetime for mtime calculation (2 hours)
+     * Used when calculating modification time from expiry timestamp
+     */
+    public const ASSUMED_LIFETIME = 7200;
+
     private CacheItemPoolInterface $cache;
     private AdapterHelperInterface $helper;
-    private ?\Closure $cacheFactory;
+    private ?Closure $cacheFactory;
     private int $pid;
     private array $parentCachePools = [];
     private ?bool $isTagAware = null;
     private int $defaultLifetime;
 
     /**
-     * @param \Closure $cacheFactory Factory that creates the cache pool
+     * @param Closure $cacheFactory Factory that creates the cache pool
      * @param AdapterHelperInterface|null $helper Backend-specific helper
      * @param int $defaultLifetime Default cache lifetime in seconds
      */
-    public function __construct(\Closure $cacheFactory, ?AdapterHelperInterface $helper = null, int $defaultLifetime = 7200)
+    public function __construct(Closure $cacheFactory, ?AdapterHelperInterface $helper = null, int $defaultLifetime = self::DEFAULT_LIFETIME)
     {
         $this->cacheFactory = $cacheFactory;
         $this->pid = getmypid();
@@ -162,16 +191,19 @@ class Symfony implements FrontendInterface
             $item->expiresAfter($this->defaultLifetime);
         }
         
+        // Clean tags once for reuse
+        $cleanTags = !empty($tags) ? $this->cleanIdentifiers($tags) : [];
+        
         // Handle tags
-        if ($this->isTagAware() && !empty($tags)) {
-            $cleanTags = $this->cleanIdentifiers($tags);
+        if ($this->isTagAware() && !empty($cleanTags)) {
+            $tagsToSet = $cleanTags;
             
             // For GenericHelper, get enhanced tags (including namespace tags if applicable)
             if ($this->helper instanceof GenericAdapterHelper) {
-                $cleanTags = $this->helper->getTagsForSave($cleanTags);
+                $tagsToSet = $this->helper->getTagsForSave($cleanTags);
             }
             
-            $item->tag($cleanTags);
+            $item->tag($tagsToSet);
         }
         
         $success = $cache->save($item);
@@ -182,8 +214,7 @@ class Symfony implements FrontendInterface
         }
         
         // Notify helper about the save (for Redis/Filesystem to maintain indices)
-        if ($success && !empty($tags)) {
-            $cleanTags = $this->cleanIdentifiers($tags);
+        if ($success && !empty($cleanTags)) {
             $this->helper->onSave($cleanId, $cleanTags);
             
             // For Redis, also store reverse index
@@ -212,19 +243,19 @@ class Symfony implements FrontendInterface
     /**
      * {@inheritdoc}
      */
-    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
+    public function clean($mode = Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
     {
         // Validate cleaning mode
         $validModes = [
-            \Zend_Cache::CLEANING_MODE_ALL,
-            \Zend_Cache::CLEANING_MODE_OLD,
-            \Zend_Cache::CLEANING_MODE_MATCHING_TAG,
-            \Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG,
-            \Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG
+            Zend_Cache::CLEANING_MODE_ALL,
+            Zend_Cache::CLEANING_MODE_OLD,
+            Zend_Cache::CLEANING_MODE_MATCHING_TAG,
+            Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG,
+            Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG
         ];
         
         if (!in_array($mode, $validModes, true)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "Invalid cleaning mode '{$mode}'. Supported modes: ALL, OLD, MATCHING_TAG, NOT_MATCHING_TAG, MATCHING_ANY_TAG"
             );
         }
@@ -232,12 +263,12 @@ class Symfony implements FrontendInterface
         $cache = $this->getCache();
         
         return match ($mode) {
-            \Zend_Cache::CLEANING_MODE_ALL, 'all' => $this->cleanAll($cache),
-            \Zend_Cache::CLEANING_MODE_OLD, 'old' => $this->cleanOld($cache),
-            \Zend_Cache::CLEANING_MODE_MATCHING_TAG, 'matchingTag' => $this->cleanMatchingTag($cache, $tags),
-            \Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG, 'notMatchingTag' => $this->cleanNotMatchingTag($cache, $tags),
-            \Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, 'matchingAnyTag' => $this->cleanMatchingAnyTag($cache, $tags),
-            default => throw new \InvalidArgumentException("Unsupported cleaning mode: {$mode}")
+            Zend_Cache::CLEANING_MODE_ALL, 'all' => $this->cleanAll($cache),
+            Zend_Cache::CLEANING_MODE_OLD, 'old' => $this->cleanOld($cache),
+            Zend_Cache::CLEANING_MODE_MATCHING_TAG, 'matchingTag' => $this->cleanMatchingTag($cache, $tags),
+            Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG, 'notMatchingTag' => $this->cleanNotMatchingTag($cache, $tags),
+            Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, 'matchingAnyTag' => $this->cleanMatchingAnyTag($cache, $tags),
+            default => throw new InvalidArgumentException("Unsupported cleaning mode: {$mode}")
         };
     }
 
@@ -348,48 +379,37 @@ class Symfony implements FrontendInterface
         
         // Get expiry timestamp from Symfony metadata
         $expiry = null;
-        if (isset($metadata[\Symfony\Component\Cache\CacheItem::METADATA_EXPIRY])) {
-            $expiry = (int) $metadata[\Symfony\Component\Cache\CacheItem::METADATA_EXPIRY];
+        if (isset($metadata[CacheItem::METADATA_EXPIRY])) {
+            $expiry = (int) $metadata[CacheItem::METADATA_EXPIRY];
         }
         
         // If no expiry, default to now + 24 hours
         if (!$expiry) {
-            $expiry = time() + 86400;
+            $expiry = time() + self::FALLBACK_EXPIRY;
         }
         
-        // Symfony doesn't store creation time (METADATA_CTIME doesn't exist in Symfony)
-        // We need to calculate mtime from expiry and lifetime
-        // Since we saved with a specific lifetime, we can work backwards
-        // But we don't know the original lifetime...
-        // Best we can do is use current time as approximation
-        // OR check if there's a way to get the actual save time
+        // Calculate mtime from expiry (Symfony doesn't store creation time)
+        // Use ASSUMED_LIFETIME for approximation: mtime ≈ expiry - lifetime
+        $mtime = $expiry - self::ASSUMED_LIFETIME;
         
-        // For now, use a reasonable approximation:
-        // If item was just saved, mtime ≈ now
-        // If item is old, mtime ≈ expiry - some reasonable lifetime
-        // Let's use 7200 (DEFAULT_LIFETIME) as the typical lifetime
-        $mtime = $expiry - 7200; // Assume DEFAULT_LIFETIME of 7200 seconds
-        
-        // Sanity check: mtime shouldn't be in the future
+        // Ensure mtime is not in the future
         $now = time();
         if ($mtime > $now) {
             $mtime = $now;
         }
         
-        // Get tags from metadata  
+        // Get tags from metadata and add cache ID prefix  
         $tags = [];
-        if (isset($metadata[\Symfony\Component\Cache\CacheItem::METADATA_TAGS])) {
-            $rawTags = $metadata[\Symfony\Component\Cache\CacheItem::METADATA_TAGS];
-            // Add the cache ID prefix to tags (to match Zend behavior)
-            $prefix = '69d_';
-            $tags = array_values(array_map(function($tag) use ($prefix) {
-                return $prefix . $tag;
+        if (isset($metadata[CacheItem::METADATA_TAGS])) {
+            $rawTags = $metadata[CacheItem::METADATA_TAGS];
+            $tags = array_values(array_map(function($tag) {
+                return self::DEFAULT_CACHE_PREFIX . $tag;
             }, $rawTags));
         }
         
         return [
             'expire' => $expiry,
-            'tags' => is_array($tags) ? $tags : [],
+            'tags' => $tags,
             'mtime' => $mtime,
         ];
     }
@@ -429,54 +449,7 @@ class Symfony implements FrontendInterface
      */
     public function getBackend()
     {
-        $symfony = $this;
-        
-        // Return backend wrapper for backward compatibility
-        return new class($this->getCache(), $this->helper, $symfony) {
-            private CacheItemPoolInterface $cache;
-            private AdapterHelperInterface $helper;
-            private FrontendInterface $symfony;
-
-            public function __construct(CacheItemPoolInterface $cache, AdapterHelperInterface $helper, FrontendInterface $symfony)
-            {
-                $this->cache = $cache;
-                $this->helper = $helper;
-                $this->symfony = $symfony;
-            }
-
-            public function save($data, $id, array $tags = [], $specificLifetime = false)
-            {
-                // Delegate to frontend for full save logic
-                return $this->symfony->save($data, $id, $tags, $specificLifetime);
-            }
-
-            public function load($id)
-            {
-                // Delegate to frontend
-                return $this->symfony->load($id);
-            }
-
-            public function remove($id)
-            {
-                // Delegate to frontend
-                return $this->symfony->remove($id);
-            }
-
-            public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
-            {
-                return match ($mode) {
-                    \Zend_Cache::CLEANING_MODE_ALL, 'all' => $this->clear(),
-                    \Zend_Cache::CLEANING_MODE_OLD, 'old' => true,
-                    default => throw new \InvalidArgumentException("Backend clean only supports ALL and OLD modes")
-                };
-            }
-
-            public function clear()
-            {
-                $this->helper->clearAllIndices();
-                return $this->cache->clear();
-            }
-        };
+        return new Symfony\BackendWrapper($this->getCache(), $this->helper, $this);
     }
 
     /**
@@ -484,96 +457,12 @@ class Symfony implements FrontendInterface
      */
     public function getLowLevelFrontend()
     {
-        $cache = $this->getCache();
-        $symfony = $this;
-        $helper = $this->helper;
-        $idPrefix = '69d_'; // Match the ID prefix used in Factory
-        
-        // Return a wrapper that adds Zend-compatible methods for backward compatibility
-        return new class($cache, $symfony, $helper, $idPrefix) {
-            private $cache;
-            private $symfony;
-            private $helper;
-            private $idPrefix;
-            
-            public function __construct($cache, $symfony, $helper, $idPrefix)
-            {
-                $this->cache = $cache;
-                $this->symfony = $symfony;
-                $this->helper = $helper;
-                $this->idPrefix = $idPrefix;
-            }
-            
-            public function getMetadatas($id)
-            {
-                return $this->symfony->getMetadatas($id);
-            }
-            
-            public function getOption($name)
-            {
-                if ($name === 'cache_id_prefix') {
-                    return $this->idPrefix;
-                }
-                return null;
-            }
-            
-            public function getIdsMatchingTags(array $tags): array
-            {
-                // Get IDs from helper (uses backend-specific logic)
-                if (method_exists($this->helper, 'getIdsMatchingTags')) {
-                    // Tags are already in the correct format from the caller
-                    // Helper will add namespace prefix internally
-                    $ids = $this->helper->getIdsMatchingTags($tags);
-                } else {
-                    // For GenericAdapterHelper, return empty array
-                    // (it doesn't support native ID lookup by tags)
-                    $ids = [];
-                }
-                
-                // IDs returned by helper already have the namespace prefix removed
-                return $ids;
-            }
-            
-            public function getBackend()
-            {
-                // Return an object that provides backend-level methods
-                $helper = $this->helper;
-                return new class($helper) {
-                    private $helper;
-                    
-                    public function __construct($helper)
-                    {
-                        $this->helper = $helper;
-                    }
-                    
-                    public function getIdsMatchingTags(array $tags): array
-                    {
-                        // Get IDs from helper (uses backend-specific logic)
-                        if (method_exists($this->helper, 'getIdsMatchingTags')) {
-                            return $this->helper->getIdsMatchingTags($tags);
-                        }
-                        return [];
-                    }
-                    
-                    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
-                    {
-                        // Backend clean is handled by helper
-                        if ($mode === \Zend_Cache::CLEANING_MODE_ALL) {
-                            if (method_exists($this->helper, 'clearAllTagIndices')) {
-                                $this->helper->clearAllTagIndices();
-                            }
-                        }
-                        return true;
-                    }
-                };
-            }
-            
-            // Delegate all other methods to the cache
-            public function __call($method, $arguments)
-            {
-                return $this->cache->$method(...$arguments);
-            }
-        };
+        return new Symfony\LowLevelFrontend(
+            $this->getCache(),
+            $this,
+            $this->helper,
+            self::DEFAULT_CACHE_PREFIX
+        );
     }
 
     /**
