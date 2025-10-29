@@ -25,7 +25,7 @@ interface AdapterHelperInterface
     /**
      * Get cache IDs that match ALL given tags (AND logic)
      * 
-     * This is used for Zend_Cache::CLEANING_MODE_MATCHING_TAG
+     * This is used for CacheConstants::CLEANING_MODE_MATCHING_TAG
      * 
      * @param array $tags Array of tags (must match ALL)
      * @return array Array of cache IDs
@@ -35,7 +35,7 @@ interface AdapterHelperInterface
     /**
      * Get cache IDs that match ANY of the given tags (OR logic)
      * 
-     * This is used for Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG
+     * This is used for CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG
      * 
      * @param array $tags Array of tags (match ANY)
      * @return array Array of cache IDs
@@ -45,7 +45,7 @@ interface AdapterHelperInterface
     /**
      * Get cache IDs that do NOT match any of the given tags
      * 
-     * This is used for Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG
+     * This is used for CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG
      * 
      * @param array $tags Array of tags to exclude
      * @return array Array of cache IDs

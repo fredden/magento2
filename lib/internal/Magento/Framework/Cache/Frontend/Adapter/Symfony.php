@@ -9,13 +9,13 @@ namespace Magento\Framework\Cache\Frontend\Adapter;
 
 use Closure;
 use InvalidArgumentException;
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
 use Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper;
 use Magento\Framework\Cache\FrontendInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 use Symfony\Component\Cache\CacheItem;
-use Zend_Cache;
 
 /**
  * Symfony Cache adapter for Magento - FRESH IMPLEMENTATION
@@ -157,7 +157,19 @@ class Symfony implements FrontendInterface
         $cache = $this->getCache();
         $item = $cache->getItem($this->cleanIdentifier($identifier));
         
-        return $item->isHit() ? (int)time() : false;
+        if (!$item->isHit()) {
+            return false;
+        }
+        
+        $wrappedData = $item->get();
+        
+        // Return stored mtime from wrapper for consistent timestamps
+        if (is_array($wrappedData) && isset($wrappedData['mtime'])) {
+            return (int)$wrappedData['mtime'];
+        }
+        
+        // Fallback to current time if not wrapped (shouldn't happen)
+        return time();
     }
 
     /**
@@ -168,7 +180,21 @@ class Symfony implements FrontendInterface
         $cache = $this->getCache();
         $item = $cache->getItem($this->cleanIdentifier($identifier));
         
-        return $item->isHit() ? $item->get() : false;
+        if (!$item->isHit()) {
+            return false;
+        }
+        
+        $wrappedData = $item->get();
+        
+        // Unwrap data from metadata wrapper
+        // CRITICAL: Use array_key_exists instead of isset for 'data' key
+        // because isset returns false when value is null!
+        if (is_array($wrappedData) && array_key_exists('data', $wrappedData)) {
+            return $wrappedData['data'];
+        }
+        
+        // Fallback for non-wrapped data (shouldn't happen)
+        return $wrappedData;
     }
 
     /**
@@ -180,29 +206,52 @@ class Symfony implements FrontendInterface
         $cleanId = $this->cleanIdentifier($identifier);
         $item = $cache->getItem($cleanId);
         
-        $item->set($data);
+        // CRITICAL: Calculate timestamps at save time for consistent expiry tracking
+        $now = time();
         
-        // Set expiration
-        // Always call expiresAfter() to avoid Symfony's default lifetime bug
-        if ($lifeTime !== null && $lifeTime !== false) {
-            $item->expiresAfter((int)$lifeTime);
-        } else {
-            // Use our configured default lifetime
-            $item->expiresAfter($this->defaultLifetime);
+        // Calculate actual lifetime to use
+        $actualLifetime = null;
+        if ($lifeTime !== null && $lifeTime !== false && $lifeTime !== 0) {
+            $actualLifetime = (int)$lifeTime;
+        } elseif ($lifeTime === 0 || $lifeTime === false) {
+            // 0 or false means use default in Zend behavior
+            $actualLifetime = $this->defaultLifetime;
+        } elseif ($this->defaultLifetime !== null) {
+            $actualLifetime = $this->defaultLifetime;
         }
         
         // Clean tags once for reuse
         $cleanTags = !empty($tags) ? $this->cleanIdentifiers($tags) : [];
         
+        // Get enhanced tags (including namespace tags if applicable)
+        $tagsToSet = $cleanTags;
+        if ($this->helper instanceof GenericAdapterHelper && !empty($cleanTags)) {
+            $tagsToSet = $this->helper->getTagsForSave($cleanTags);
+        }
+        
+        // Calculate expiry timestamp (for Zend compatibility)
+        $expiry = $actualLifetime !== null ? ($now + $actualLifetime) : null;
+        
+        // Wrap data with metadata for consistent timestamps
+        // IMPORTANT: Store enhanced tags (with namespace) to match Zend behavior
+        // CRITICAL: Deduplicate tags (TagScope decorators can add duplicates)
+        $wrappedData = [
+            'data' => $data,
+            'mtime' => $now,
+            'expire' => $expiry,
+            'tags' => array_values(array_unique($tagsToSet))
+        ];
+        
+        $item->set($wrappedData);
+        
+        // Set expiration on Symfony item
+        // Always call expiresAfter() to avoid Symfony's default lifetime bug
+        if ($actualLifetime !== null) {
+            $item->expiresAfter($actualLifetime);
+        }
+        
         // Handle tags
-        if ($this->isTagAware() && !empty($cleanTags)) {
-            $tagsToSet = $cleanTags;
-            
-            // For GenericHelper, get enhanced tags (including namespace tags if applicable)
-            if ($this->helper instanceof GenericAdapterHelper) {
-                $tagsToSet = $this->helper->getTagsForSave($cleanTags);
-            }
-            
+        if ($this->isTagAware() && !empty($tagsToSet)) {
             $item->tag($tagsToSet);
         }
         
@@ -214,6 +263,7 @@ class Symfony implements FrontendInterface
         }
         
         // Notify helper about the save (for Redis/Filesystem to maintain indices)
+        // Use clean tags (not enhanced) for helper indices
         if ($success && !empty($cleanTags)) {
             $this->helper->onSave($cleanId, $cleanTags);
             
@@ -243,15 +293,15 @@ class Symfony implements FrontendInterface
     /**
      * {@inheritdoc}
      */
-    public function clean($mode = Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = [])
     {
         // Validate cleaning mode
         $validModes = [
-            Zend_Cache::CLEANING_MODE_ALL,
-            Zend_Cache::CLEANING_MODE_OLD,
-            Zend_Cache::CLEANING_MODE_MATCHING_TAG,
-            Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG,
-            Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG
+            CacheConstants::CLEANING_MODE_ALL,
+            CacheConstants::CLEANING_MODE_OLD,
+            CacheConstants::CLEANING_MODE_MATCHING_TAG,
+            CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG,
+            CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG
         ];
         
         if (!in_array($mode, $validModes, true)) {
@@ -263,11 +313,11 @@ class Symfony implements FrontendInterface
         $cache = $this->getCache();
         
         return match ($mode) {
-            Zend_Cache::CLEANING_MODE_ALL, 'all' => $this->cleanAll($cache),
-            Zend_Cache::CLEANING_MODE_OLD, 'old' => $this->cleanOld($cache),
-            Zend_Cache::CLEANING_MODE_MATCHING_TAG, 'matchingTag' => $this->cleanMatchingTag($cache, $tags),
-            Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG, 'notMatchingTag' => $this->cleanNotMatchingTag($cache, $tags),
-            Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, 'matchingAnyTag' => $this->cleanMatchingAnyTag($cache, $tags),
+            CacheConstants::CLEANING_MODE_ALL, 'all' => $this->cleanAll($cache),
+            CacheConstants::CLEANING_MODE_OLD, 'old' => $this->cleanOld($cache),
+            CacheConstants::CLEANING_MODE_MATCHING_TAG, 'matchingTag' => $this->cleanMatchingTag($cache, $tags),
+            CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG, 'notMatchingTag' => $this->cleanNotMatchingTag($cache, $tags),
+            CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, 'matchingAnyTag' => $this->cleanMatchingAnyTag($cache, $tags),
             default => throw new InvalidArgumentException("Unsupported cleaning mode: {$mode}")
         };
     }
@@ -374,7 +424,25 @@ class Symfony implements FrontendInterface
             return false;
         }
         
-        // Get metadata from the item
+        $wrappedData = $item->get();
+        
+        // Return stored metadata from wrapper
+        if (is_array($wrappedData) && isset($wrappedData['mtime'])) {
+            // Add cache ID prefix to tags (to match Zend behavior)
+            $storedTags = $wrappedData['tags'] ?? [];
+            $tags = array_values(array_map(function($tag) {
+                return self::DEFAULT_CACHE_PREFIX . $tag;
+            }, $storedTags));
+            
+            return [
+                'expire' => $wrappedData['expire'] ?? null,
+                'tags' => $tags,
+                'mtime' => $wrappedData['mtime'],
+            ];
+        }
+        
+        // Fallback for non-wrapped data (shouldn't happen)
+        // Calculate metadata from Symfony metadata
         $metadata = $item->getMetadata();
         
         // Get expiry timestamp from Symfony metadata

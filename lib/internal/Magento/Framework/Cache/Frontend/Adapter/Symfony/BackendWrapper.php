@@ -8,10 +8,10 @@ declare(strict_types=1);
 namespace Magento\Framework\Cache\Frontend\Adapter\Symfony;
 
 use InvalidArgumentException;
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
 use Magento\Framework\Cache\FrontendInterface;
 use Psr\Cache\CacheItemPoolInterface;
-use Zend_Cache;
 
 /**
  * Backend wrapper for Symfony cache adapter
@@ -96,11 +96,11 @@ class BackendWrapper
      * @param array $tags
      * @return bool
      */
-    public function clean($mode = Zend_Cache::CLEANING_MODE_ALL, array $tags = []): bool
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = []): bool
     {
         return match ($mode) {
-            Zend_Cache::CLEANING_MODE_ALL, 'all' => $this->clear(),
-            Zend_Cache::CLEANING_MODE_OLD, 'old' => true,
+            CacheConstants::CLEANING_MODE_ALL, 'all' => $this->clear(),
+            CacheConstants::CLEANING_MODE_OLD, 'old' => true,
             default => throw new InvalidArgumentException("Backend clean only supports ALL and OLD modes")
         };
     }

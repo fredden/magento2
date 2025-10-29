@@ -5,6 +5,8 @@
  */
 namespace Magento\Framework\Cache;
 
+use Magento\Framework\Cache\CacheConstants;
+
 /**
  * Interface of a cache frontend - an ultimate publicly available interface to an actual cache storage
  *
@@ -55,7 +57,7 @@ interface FrontendInterface
      * @param array $tags
      * @return bool
      */
-    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = []);
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = []);
 
     /**
      * Retrieve backend instance

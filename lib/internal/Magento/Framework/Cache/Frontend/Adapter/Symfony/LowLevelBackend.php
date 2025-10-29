@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Frontend\Adapter\Symfony;
 
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
-use Zend_Cache;
 
 /**
  * Low-level backend wrapper for Symfony cache adapter
@@ -53,10 +53,10 @@ class LowLevelBackend
      * @param array $tags
      * @return bool
      */
-    public function clean($mode = Zend_Cache::CLEANING_MODE_ALL, array $tags = []): bool
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = []): bool
     {
         // Backend clean is handled by helper
-        if ($mode === Zend_Cache::CLEANING_MODE_ALL) {
+        if ($mode === CacheConstants::CLEANING_MODE_ALL) {
             if (method_exists($this->helper, 'clearAllTagIndices')) {
                 $this->helper->clearAllTagIndices();
             }
