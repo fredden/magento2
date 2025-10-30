@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -9,10 +9,10 @@ namespace Magento\Framework\Cache;
 
 /**
  * Cache cleaning mode constants
- * 
+ *
  * These constants define the available cache cleaning modes.
  * Replaces Zend_Cache constants to eliminate dependency on Zend Cache library.
- * 
+ *
  * @api
  */
 class CacheConstants
@@ -42,4 +42,3 @@ class CacheConstants
      */
     public const CLEANING_MODE_MATCHING_ANY_TAG = 'matchingAnyTag';
 }
-

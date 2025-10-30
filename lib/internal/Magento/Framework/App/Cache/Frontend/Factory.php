@@ -6,7 +6,7 @@
 
 /**
  * Factory that creates cache frontend instances based on options
- * 
+ *
  * Performance optimizations:
  * - Cached directory paths
  * - Cached extension checks
@@ -98,28 +98,28 @@ class Factory
 
     /**
      * Cached SymfonyFactory instance (performance optimization)
-     * 
+     *
      * @var SymfonyFactory|null
      */
     private ?SymfonyFactory $symfonyFactory = null;
 
     /**
      * Cached directory paths (performance optimization)
-     * 
+     *
      * @var array
      */
     private array $cachedDirectories = [];
 
     /**
      * Cached extension availability checks (performance optimization)
-     * 
+     *
      * @var array
      */
     private array $extensionCache = [];
 
     /**
      * Cached ID prefix (performance optimization)
-     * 
+     *
      * @var string|null
      */
     private ?string $cachedIdPrefix = null;
@@ -147,7 +147,7 @@ class Factory
 
     /**
      * Return newly created cache frontend instance
-     * 
+     *
      * Performance optimizations:
      * - Cached directory operations
      * - Cached ID prefix generation
@@ -200,7 +200,7 @@ class Factory
 
     /**
      * Get or generate cache ID prefix (optimized with caching)
-     * 
+     *
      * @param array $options
      * @return string
      */
@@ -266,7 +266,7 @@ class Factory
 
     /**
      * Check if extension is loaded (cached for performance)
-     * 
+     *
      * @param string $extension
      * @return bool
      */
@@ -280,7 +280,7 @@ class Factory
 
     /**
      * Get cache backend options. Result array contain backend type ('type' key) and backend options ('options')
-     * 
+     *
      * Performance optimizations:
      * - Cached extension checks
      * - Cached directory operations
@@ -295,8 +295,8 @@ class Factory
     {
         $enableTwoLevels = false;
         $type = $cacheOptions['backend'] ?? $this->_defaultBackend;
-        $options = (isset($cacheOptions['backend_options']) && is_array($cacheOptions['backend_options'])) 
-            ? $cacheOptions['backend_options'] 
+        $options = (isset($cacheOptions['backend_options']) && is_array($cacheOptions['backend_options']))
+            ? $cacheOptions['backend_options']
             : [];
 
         $backendType = false;
@@ -481,10 +481,9 @@ class Factory
         return $options;
     }
 
-
     /**
      * Get or create cached SymfonyFactory instance (performance optimization)
-     * 
+     *
      * @return SymfonyFactory
      */
     private function getSymfonyFactory(): SymfonyFactory
@@ -500,7 +499,7 @@ class Factory
      *
      * This method creates a Symfony-based cache adapter that implements FrontendInterface.
      * It provides PSR-6 compliant caching while maintaining full backward compatibility.
-     * 
+     *
      * Performance optimizations:
      * - Cached SymfonyFactory instance
      * - Cached directory operations
@@ -558,8 +557,15 @@ class Factory
             $symfonyFactory = $this->getSymfonyFactory();
 
             // Create cache adapter factory closure (for fork detection)
-            // Use originalBackendType so SymfonyFactory can map it correctly (e.g., cm_cache_backend_redis -> redis)
-            $cacheFactory = function () use ($symfonyFactory, $originalBackendType, $backendOptions, $idPrefix, $defaultLifetime) {
+            // Use originalBackendType so SymfonyFactory can map it correctly
+            // (e.g., cm_cache_backend_redis -> redis)
+            $cacheFactory = function () use (
+                $symfonyFactory,
+                $originalBackendType,
+                $backendOptions,
+                $idPrefix,
+                $defaultLifetime
+            ) {
                 return $symfonyFactory->createAdapter(
                     $originalBackendType,
                     $backendOptions,
@@ -581,6 +587,7 @@ class Factory
                     'cacheFactory' => $cacheFactory,
                     'helper' => $helper,
                     'defaultLifetime' => $defaultLifetime,
+                    'idPrefix' => $idPrefix,
                 ]
             );
 

@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -11,15 +11,15 @@ use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Filesystem-specific adapter helper
- * 
+ *
  * Implements tag-to-ID index management using filesystem, similar to Colin Mollenhour's
  * Cm_Cache_Backend_File implementation. This enables true AND logic for MATCHING_TAG mode
  * using PHP array_intersect operation.
- * 
+ *
  * Storage structure:
  * - Cache items: var/cache/symfony/items/id
  * - Tag indices: var/cache/symfony/tags/tagname (one ID per line)
- * 
+ *
  * Example:
  * - Item 'config_1' with tags ['config', 'eav']
  * - Files:
@@ -30,7 +30,7 @@ use Psr\Cache\CacheItemPoolInterface;
  *   - var/cache/symfony/tags/eav:
  *       config_1
  *       eav_1
- * 
+ *
  * MATCHING_TAG(['config', 'eav']):
  * - Read var/cache/symfony/tags/config => ['config_1', 'config_2']
  * - Read var/cache/symfony/tags/eav => ['config_1', 'eav_1']
@@ -38,7 +38,14 @@ use Psr\Cache\CacheItemPoolInterface;
  */
 class FilesystemAdapterHelper implements AdapterHelperInterface
 {
+    /**
+     * @var CacheItemPoolInterface
+     */
     private CacheItemPoolInterface $cachePool;
+
+    /**
+     * @var string
+     */
     private string $tagDirectory;
 
     /**
@@ -62,7 +69,7 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
 
     /**
      * Get tag file path
-     * 
+     *
      * @param string $tag
      * @return string
      */
@@ -73,7 +80,7 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
 
     /**
      * Read IDs from a tag file
-     * 
+     *
      * @param string $tag
      * @return array
      */
@@ -97,7 +104,7 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
 
     /**
      * Write IDs to a tag file
-     * 
+     *
      * @param string $tag
      * @param array $ids
      * @return void
@@ -128,7 +135,7 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
 
     /**
      * Add ID to a tag file
-     * 
+     *
      * @param string $tag
      * @param string $id
      * @return void
@@ -144,7 +151,7 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
 
     /**
      * Remove ID from a tag file
-     * 
+     *
      * @param string $tag
      * @param string $id
      * @return void
@@ -161,8 +168,8 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
-     * 
+     * @inheritDoc
+     *
      * Uses array_intersect for true AND logic (similar to Colin Mollenhour's File backend)
      */
     public function getIdsMatchingTags(array $tags): array
@@ -187,8 +194,8 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
-     * 
+     * @inheritDoc
+     *
      * Uses array_merge for OR logic
      */
     public function getIdsMatchingAnyTags(array $tags): array
@@ -199,6 +206,7 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
 
         $ids = [];
         foreach ($tags as $tag) {
+            // phpcs:ignore Magento2.Performance.ForeachArrayMerge
             $ids = array_merge($ids, $this->getTagIds($tag));
         }
 
@@ -206,8 +214,8 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
-     * 
+     * @inheritDoc
+     *
      * Gets all IDs and removes those matching any of the given tags
      */
     public function getIdsNotMatchingTags(array $tags): array
@@ -229,7 +237,7 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
 
     /**
      * Get all cache IDs from all tag files
-     * 
+     *
      * @return array
      */
     private function getAllIds(): array
@@ -245,6 +253,7 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
             if (is_file($file)) {
                 $tag = basename($file);
                 $ids = $this->getTagIds($tag);
+                // phpcs:ignore Magento2.Performance.ForeachArrayMerge
                 $allIds = array_merge($allIds, $ids);
             }
         }
@@ -253,7 +262,7 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function deleteByIds(array $ids): bool
     {
@@ -265,8 +274,8 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
-     * 
+     * @inheritDoc
+     *
      * Maintains tag-to-ID indices in filesystem
      */
     public function onSave(string $id, array $tags): void
@@ -282,8 +291,8 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
-     * 
+     * @inheritDoc
+     *
      * Removes ID from all tag files
      */
     public function onRemove(string $id): void
@@ -304,7 +313,7 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function clearAllIndices(): void
     {
@@ -322,4 +331,3 @@ class FilesystemAdapterHelper implements AdapterHelperInterface
         }
     }
 }
-

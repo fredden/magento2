@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2023 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -237,9 +237,12 @@ class ResolverCacheAbstract extends GraphQlAbstract
                     $backend->clean(\Zend_Cache::CLEANING_MODE_ALL);
                 }
                 
-                // CRITICAL: Only reset GraphQL resolver cache instance for graphql_query_resolver_result
-                // This ensures fresh cache instance in next test without corrupting deployment config
-                $this->objectManager->removeSharedInstance(\Magento\GraphQlResolverCache\Model\Resolver\Result\Type::class);
+                // CRITICAL: Only reset GraphQL resolver cache instance
+                // for graphql_query_resolver_result. This ensures fresh cache instance
+                // in next test without corrupting deployment config
+                $this->objectManager->removeSharedInstance(
+                    \Magento\GraphQlResolverCache\Model\Resolver\Result\Type::class
+                );
             }
         } catch (\Exception $e) {
             // Fallback to original exec() method if direct clean fails

@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -12,15 +12,15 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 
 /**
  * Generic adapter helper for backends that don't support native tag-to-ID indices
- * 
+ *
  * This is a fallback implementation for adapters like Memcached, APCu, Database, etc.
  * that don't have efficient tag-to-ID index capabilities like Redis or Filesystem.
- * 
+ *
  * Uses namespace tag strategy for MATCHING_TAG mode:
  * - Generates composite tags for tag combinations
  * - Example: tags ['config', 'eav'] → saves with ['config', 'eav', 'NS_config|eav']
  * - MATCHING_TAG(['config', 'eav']) → invalidate 'NS_config|eav'
- * 
+ *
  * Limitations:
  * - MATCHING_TAG only works if items were saved with those exact tags
  * - NOT_MATCHING_TAG is not efficiently supported (falls back to invalidating nothing)
@@ -31,7 +31,14 @@ class GenericAdapterHelper implements AdapterHelperInterface
     private const NAMESPACE_SEPARATOR = '|';
     private const MAX_TAGS_FOR_NAMESPACE = 4; // Prevent combinatorial explosion
 
+    /**
+     * @var CacheItemPoolInterface
+     */
     private CacheItemPoolInterface $cachePool;
+
+    /**
+     * @var bool
+     */
     private bool $isPageCache;
 
     /**
@@ -46,7 +53,7 @@ class GenericAdapterHelper implements AdapterHelperInterface
 
     /**
      * Generate namespace tag for a combination of tags
-     * 
+     *
      * @param array $tags
      * @return string
      */
@@ -59,7 +66,7 @@ class GenericAdapterHelper implements AdapterHelperInterface
 
     /**
      * Check if we should use namespace tags for this combination
-     * 
+     *
      * @param array $tags
      * @return bool
      */
@@ -77,8 +84,8 @@ class GenericAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
-     * 
+     * @inheritDoc
+     *
      * Uses namespace tags for FPC, falls back to invalidating individual tags for application cache
      */
     public function getIdsMatchingTags(array $tags): array
@@ -92,7 +99,7 @@ class GenericAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function getIdsMatchingAnyTags(array $tags): array
     {
@@ -102,7 +109,7 @@ class GenericAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function getIdsNotMatchingTags(array $tags): array
     {
@@ -111,7 +118,7 @@ class GenericAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function deleteByIds(array $ids): bool
     {
@@ -123,35 +130,38 @@ class GenericAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
-     * 
+     * @inheritDoc
+     *
      * For generic adapters, we don't maintain separate indices
      * Tags are stored directly with cache items by Symfony
      */
     public function onSave(string $id, array $tags): void
     {
+        // phpcs:ignore Squiz.WhiteSpace.ScopeClosingBrace.ContentBefore
         // No-op: Tags are handled by Symfony's TagAwareAdapter
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function onRemove(string $id): void
     {
+        // phpcs:ignore Squiz.WhiteSpace.ScopeClosingBrace.ContentBefore
         // No-op: No separate indices to update
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function clearAllIndices(): void
     {
+        // phpcs:ignore Squiz.WhiteSpace.ScopeClosingBrace.ContentBefore
         // No-op: No separate indices exist
     }
 
     /**
      * Get tags to save with cache item (including namespace tags if applicable)
-     * 
+     *
      * @param array $tags Original tags
      * @return array Tags including namespace tags if applicable
      */
@@ -174,7 +184,7 @@ class GenericAdapterHelper implements AdapterHelperInterface
 
     /**
      * Get tags to invalidate for MATCHING_TAG mode
-     * 
+     *
      * @param array $tags
      * @return array
      */
@@ -199,7 +209,7 @@ class GenericAdapterHelper implements AdapterHelperInterface
 
     /**
      * Check if this adapter should use namespace tags for MATCHING_TAG
-     * 
+     *
      * @return bool
      */
     public function usesNamespaceTags(): bool
@@ -207,4 +217,3 @@ class GenericAdapterHelper implements AdapterHelperInterface
         return $this->isPageCache;
     }
 }
-

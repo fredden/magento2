@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -13,22 +13,22 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 
 /**
  * Redis-specific adapter helper
- * 
+ *
  * Implements tag-to-ID index management using Redis SETs, similar to Colin Mollenhour's
  * Cm_Cache_Backend_Redis implementation. This enables true AND logic for MATCHING_TAG mode
  * using Redis SINTER (set intersection) operation.
- * 
+ *
  * Storage structure:
  * - Cache items: cache:namespace:id => {data, metadata}
  * - Tag indices: cache:tags:tagname => SET{id1, id2, id3}
- * 
+ *
  * Example:
  * - Item 'config_1' with tags ['config', 'eav']
  * - Redis stores:
  *   - cache:69d_config_1 => {data}
  *   - cache:tags:69d_config => SET{config_1, config_2}
  *   - cache:tags:69d_eav => SET{config_1, eav_1}
- * 
+ *
  * MATCHING_TAG(['config', 'eav']):
  * - SINTER cache:tags:69d_config cache:tags:69d_eav
  * - Returns: {config_1}  ← Only IDs in BOTH sets (true AND logic)
@@ -38,8 +38,19 @@ class RedisAdapterHelper implements AdapterHelperInterface
     private const TAG_INDEX_PREFIX = 'cache:tags:';
     private const ALL_IDS_SET = 'cache:all_ids';
 
+    /**
+     * @var \Redis
+     */
     private \Redis $redis;
+
+    /**
+     * @var string
+     */
     private string $namespace;
+
+    /**
+     * @var CacheItemPoolInterface
+     */
     private CacheItemPoolInterface $cachePool;
 
     /**
@@ -55,7 +66,7 @@ class RedisAdapterHelper implements AdapterHelperInterface
 
     /**
      * Extract Redis client from Symfony cache adapter
-     * 
+     *
      * @param CacheItemPoolInterface $cachePool
      * @return \Redis
      * @throws \RuntimeException If Redis client cannot be extracted
@@ -88,7 +99,7 @@ class RedisAdapterHelper implements AdapterHelperInterface
 
     /**
      * Get prefixed tag name for Redis SET key
-     * 
+     *
      * @param string $tag
      * @return string
      */
@@ -98,8 +109,8 @@ class RedisAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
-     * 
+     * @inheritDoc
+     *
      * Uses Redis SINTER for efficient set intersection (true AND logic)
      */
     public function getIdsMatchingTags(array $tags): array
@@ -118,8 +129,8 @@ class RedisAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
-     * 
+     * @inheritDoc
+     *
      * Uses Redis SUNION for efficient set union (OR logic)
      */
     public function getIdsMatchingAnyTags(array $tags): array
@@ -138,8 +149,8 @@ class RedisAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
-     * 
+     * @inheritDoc
+     *
      * Gets all IDs and removes those matching any of the given tags
      */
     public function getIdsNotMatchingTags(array $tags): array
@@ -164,7 +175,8 @@ class RedisAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
+     *
      * OPTIMIZED: Uses Redis pipeline for large batches
      */
     public function deleteByIds(array $ids): bool
@@ -197,8 +209,8 @@ class RedisAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
-     * 
+     * @inheritDoc
+     *
      * Maintains tag-to-ID indices in Redis SETs
      * OPTIMIZED: Uses Redis pipeline for batch operations
      */
@@ -226,8 +238,8 @@ class RedisAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
-     * 
+     * @inheritDoc
+     *
      * Removes ID from all tag indices
      * OPTIMIZED: Uses Redis pipeline for batch operations
      */
@@ -265,7 +277,7 @@ class RedisAdapterHelper implements AdapterHelperInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function clearAllIndices(): void
     {
@@ -294,7 +306,7 @@ class RedisAdapterHelper implements AdapterHelperInterface
      * Store reverse index for efficient onRemove
      * This should be called after onSave
      * OPTIMIZED: Uses Redis pipeline for batch operations
-     * 
+     *
      * @param string $id
      * @param array $tags
      * @return void
@@ -323,4 +335,3 @@ class RedisAdapterHelper implements AdapterHelperInterface
         $pipeline->exec();
     }
 }
-

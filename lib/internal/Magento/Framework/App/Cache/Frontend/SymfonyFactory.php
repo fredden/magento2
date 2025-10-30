@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -27,6 +27,8 @@ use Symfony\Component\Cache\Adapter\ApcuAdapter;
  * - Cached adapter type resolution
  * - Optimized string operations
  * - Lazy initialization where possible
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class SymfonyFactory
 {
@@ -149,9 +151,18 @@ class SymfonyFactory
         // Create appropriate helper with fallback to GenericAdapterHelper
         try {
             return match ($resolvedType) {
-                'redis' => new \Magento\Framework\Cache\Frontend\Adapter\Helper\RedisAdapterHelper($cachePool, $namespace),
-                'filesystem' => new \Magento\Framework\Cache\Frontend\Adapter\Helper\FilesystemAdapterHelper($cachePool, $this->getCacheDirectory()),
-                default => new \Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper($cachePool, $isPageCache),
+                'redis' => new \Magento\Framework\Cache\Frontend\Adapter\Helper\RedisAdapterHelper(
+                    $cachePool,
+                    $namespace
+                ),
+                'filesystem' => new \Magento\Framework\Cache\Frontend\Adapter\Helper\FilesystemAdapterHelper(
+                    $cachePool,
+                    $this->getCacheDirectory()
+                ),
+                default => new \Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper(
+                    $cachePool,
+                    $isPageCache
+                ),
             };
         } catch (\Exception $e) {
             // Fallback to GenericAdapterHelper if specialized helper creation fails
@@ -166,8 +177,9 @@ class SymfonyFactory
      */
     private function getCacheDirectory(): string
     {
-        // Use Magento's var/cache directory
-        return BP . '/var/cache/symfony';
+        // Use Magento's var/cache directory via Filesystem
+        $cacheDir = $this->filesystem->getDirectoryRead(DirectoryList::CACHE);
+        return $cacheDir->getAbsolutePath() . 'symfony';
     }
 
     /**
@@ -327,16 +339,17 @@ class SymfonyFactory
         // Build DSN (optimized)
         $dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $host, $dbname);
 
-        // Connection pooling
-        $connectionKey = sprintf('pdo:%s:%s', $host, $dbname);
+        // PDO options include username/password
+        $pdoOptions = [
+            'db_username' => $username,
+            'db_password' => $password
+        ];
 
         return new PdoAdapter(
             $dsn,
             $namespace,
             $defaultLifetime ?? 0,
-            [],
-            $username,
-            $password
+            $pdoOptions
         );
     }
 
@@ -401,4 +414,3 @@ class SymfonyFactory
         return new ChainAdapter($adapters, $defaultLifetime ?? 0);
     }
 }
-

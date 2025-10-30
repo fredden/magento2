@@ -117,13 +117,23 @@ class ManagerTest extends TestCase
             ['bar', $frontendBar],
             ['baz', $frontendBaz],
         ]);
-        $backendOne = $this->getMockForAbstractClass(\Zend_Cache_Backend_Interface::class);
-        $backendTwo = $this->getMockForAbstractClass(\Zend_Cache_Backend_Interface::class);
+        
+        // Create mock backend objects for deduplication check
+        // Manager uses getBackend() to determine if multiple frontends share same backend
+        $backendOne = new \stdClass(); // Use simple objects for identity comparison
+        $backendTwo = new \stdClass();
+        
         $frontendFoo->expects($this->once())->method('getBackend')->willReturn($backendOne);
         $frontendBar->expects($this->once())->method('getBackend')->willReturn($backendOne);
         $frontendBaz->expects($this->once())->method('getBackend')->willReturn($backendTwo);
-        $backendOne->expects($this->once())->method('clean');
-        $backendTwo->expects($this->once())->method('clean');
+        
+        // With Symfony cache, Manager calls clean() on frontend (not backend)
+        // Since frontendFoo and frontendBar share backendOne, only frontendFoo should be cleaned
+        // frontendBaz has different backend, so it should also be cleaned
+        $frontendFoo->expects($this->once())->method('clean');
+        $frontendBar->expects($this->never())->method('clean'); // Skipped due to shared backend
+        $frontendBaz->expects($this->once())->method('clean');
+        
         $this->model->flush($cacheTypes);
     }
 

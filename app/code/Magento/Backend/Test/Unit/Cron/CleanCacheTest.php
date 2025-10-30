@@ -17,26 +17,18 @@ class CleanCacheTest extends TestCase
 {
     public function testCleanCache()
     {
-        $cacheBackendMock = $this->getMockForAbstractClass(\Zend_Cache_Backend_Interface::class);
         $cacheFrontendMock = $this->getMockForAbstractClass(FrontendInterface::class);
         $frontendPoolMock = $this->createMock(Pool::class);
 
-        $cacheBackendMock->expects(
+        // Expect clean to be called on the frontend with CLEANING_MODE_OLD
+        $cacheFrontendMock->expects(
             $this->once()
         )->method(
             'clean'
         )->with(
             \Zend_Cache::CLEANING_MODE_OLD,
             []
-        );
-
-        $cacheFrontendMock->expects(
-            $this->once()
-        )->method(
-            'getBackend'
-        )->willReturn(
-            $cacheBackendMock
-        );
+        )->willReturn(true);
 
         $frontendPoolMock->expects(
             $this->any()

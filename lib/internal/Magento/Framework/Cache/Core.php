@@ -11,12 +11,12 @@ use Zend_Cache_Exception;
 
 /**
  * Legacy cache core for backward compatibility
- * 
+ *
  * Performance optimizations:
  * - Cached ID cleaning
  * - Cached backend type check
  * - Optimized regex operations
- * 
+ *
  * Note: New code should use Symfony cache adapter
  */
 class Core extends \Zend_Cache_Core
@@ -34,14 +34,14 @@ class Core extends \Zend_Cache_Core
 
     /**
      * Cache for cleaned IDs (performance optimization)
-     * 
+     *
      * @var array
      */
     private array $cleanedIds = [];
 
     /**
      * Cached check if backend is Redis
-     * 
+     *
      * @var bool|null
      */
     private ?bool $isRedisBackend = null;
@@ -50,7 +50,7 @@ class Core extends \Zend_Cache_Core
      * Make and return a cache id
      *
      * Checks 'cache_id_prefix' and returns new id with prefix or simply the id if null
-     * 
+     *
      * Performance optimizations:
      * - Cached ID cleaning results
      * - Optimized regex (single operation)
@@ -173,7 +173,7 @@ class Core extends \Zend_Cache_Core
      * Validate a cache id or a tag (security, reliable filenames, reserved prefixes...)
      *
      * Throw an exception if a problem is found
-     * 
+     *
      * Performance optimization:
      * - Cached backend type check (instanceof is expensive)
      *

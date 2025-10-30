@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -12,7 +12,7 @@ use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
 
 /**
  * Low-level backend wrapper for Symfony cache adapter
- * 
+ *
  * Provides backend-level methods for tag operations and cache cleaning
  * Used by tests and utilities that need direct backend access
  */
@@ -52,6 +52,7 @@ class LowLevelBackend
      * @param string $mode
      * @param array $tags
      * @return bool
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = []): bool
     {
@@ -64,4 +65,3 @@ class LowLevelBackend
         return true;
     }
 }
-

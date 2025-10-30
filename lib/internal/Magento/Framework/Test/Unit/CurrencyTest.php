@@ -21,17 +21,18 @@ class CurrencyTest extends TestCase
     public function testConstruct()
     {
         $frontendCache = $this->getMockForAbstractClass(FrontendInterface::class);
-        $lowLevelFrontend = $this->createMock(\Zend_Cache_Core::class);
         /** @var CacheInterface|MockObject $appCache */
         $appCache = $this->getMockForAbstractClass(CacheInterface::class);
-        $frontendCache->expects($this->once())->method('getLowLevelFrontend')->willReturn($lowLevelFrontend);
         $appCache->expects($this->once())
             ->method('getFrontend')
             ->willReturn($frontendCache);
 
         // Create new currency object
         $currency = new Currency($appCache, null, 'en_US');
-        $this->assertEquals($lowLevelFrontend, $currency->getCache());
+        
+        // Currency now stores the FrontendInterface directly, not the low-level frontend
+        // This is correct for Symfony cache architecture
+        $this->assertEquals($frontendCache, $currency->getCache());
         $this->assertEquals('USD', $currency->getShortName());
     }
 }

@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -13,7 +13,7 @@ use Magento\Framework\Cache\FrontendInterface;
 
 /**
  * Low-level frontend wrapper for Symfony cache adapter
- * 
+ *
  * Provides Zend_Cache_Core compatible interface for backward compatibility
  * Used by legacy code that needs direct access to cache internals
  */
@@ -40,6 +40,11 @@ class LowLevelFrontend
     private string $idPrefix;
 
     /**
+     * @var int
+     */
+    private int $lifetime;
+
+    /**
      * @var LowLevelBackend|null
      */
     private ?LowLevelBackend $backend = null;
@@ -49,17 +54,20 @@ class LowLevelFrontend
      * @param FrontendInterface $symfony
      * @param AdapterHelperInterface $helper
      * @param string $idPrefix
+     * @param int $lifetime
      */
     public function __construct(
         CacheItemPoolInterface $cache,
         FrontendInterface $symfony,
         AdapterHelperInterface $helper,
-        string $idPrefix
+        string $idPrefix,
+        int $lifetime = 7200
     ) {
         $this->cache = $cache;
         $this->symfony = $symfony;
         $this->helper = $helper;
         $this->idPrefix = $idPrefix;
+        $this->lifetime = $lifetime;
     }
 
     /**
@@ -83,6 +91,9 @@ class LowLevelFrontend
     {
         if ($name === 'cache_id_prefix') {
             return $this->idPrefix;
+        }
+        if ($name === 'lifetime') {
+            return $this->lifetime;
         }
         return null;
     }
@@ -132,4 +143,3 @@ class LowLevelFrontend
         return $this->cache->$method(...$arguments);
     }
 }
-

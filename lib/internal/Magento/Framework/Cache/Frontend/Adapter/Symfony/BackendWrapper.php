@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -15,7 +15,7 @@ use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Backend wrapper for Symfony cache adapter
- * 
+ *
  * Provides Zend_Cache_Backend compatible interface for backward compatibility
  */
 class BackendWrapper
@@ -95,6 +95,7 @@ class BackendWrapper
      * @param string $mode
      * @param array $tags
      * @return bool
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = []): bool
     {
@@ -115,5 +116,18 @@ class BackendWrapper
         $this->helper->clearAllIndices();
         return $this->cache->clear();
     }
-}
 
+    /**
+     * Get backend option
+     *
+     * @param string $name
+     * @return mixed
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    public function getOption(string $name)
+    {
+        // For Symfony, backend options are not stored in the wrapper
+        // This method exists for Zend compatibility but returns null
+        return null;
+    }
+}

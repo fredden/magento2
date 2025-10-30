@@ -1,0 +1,77 @@
+<?php
+// Temporary debug version - save() method only
+public function save($data, $identifier, array $tags = [], $lifeTime = null)
+{
+    $pool = $this->getFrontEnd();
+    $cleanId = $this->_unifyId($identifier);
+    $cleanTags = $this->_unifyIds($tags);
+    
+    // DEBUG: Only log GraphQL saves
+    if (strpos($identifier, 'GRAPHQL_QUERY_RESOLVER_RESULT') !== false) {
+        $caller = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3)[1] ?? [];
+        $callerStr = ($caller['class'] ?? 'unknown') . '::' . ($caller['function'] ?? 'unknown');
+        error_log(sprintf(
+            "[SYMFONY SAVE] ID: %s | Caller: %s | Pool ID: %s",
+            substr($identifier, 0, 50),
+            $callerStr,
+            spl_object_id($pool)
+        ));
+    }
+    
+    $item = $pool->getItem($cleanId);
+    $item->set($data);
+    
+    if ($lifeTime !== null) {
+        $item->expiresAfter((int)$lifeTime);
+    } elseif ($this->defaultLifetime !== null) {
+        $item->expiresAfter($this->defaultLifetime);
+    }
+    
+    if ($this->isTagAwareAdapter() && !empty($cleanTags)) {
+        $item->tag($cleanTags);
+    }
+    
+    $result = $pool->save($item);
+    
+    // DEBUG: Verify save worked
+    if (strpos($identifier, 'GRAPHQL_QUERY_RESOLVER_RESULT') !== false) {
+        $testItem = $pool->getItem($cleanId);
+        $isHit = $testItem->isHit();
+        error_log(sprintf(
+            "[SYMFONY SAVE VERIFY] ID: %s | save() returned: %s | Immediate getItem()->isHit(): %s",
+            substr($identifier, 0, 50),
+            $result ? 'true' : 'false',
+            $isHit ? 'true' : 'false'
+        ));
+    }
+    
+    if ($result && !empty($cleanTags)) {
+        $this->helper->onSave($cleanId, $cleanTags);
+    }
+    
+    return $result;
+}
+
+// load() method
+public function load($identifier)
+{
+    $pool = $this->getFrontEnd();
+    $cleanId = $this->_unifyId($identifier);
+    
+    $item = $pool->getItem($cleanId);
+    $result = $item->isHit() ? $item->get() : false;
+    
+    // DEBUG: Only log GraphQL loads
+    if (strpos($identifier, 'GRAPHQL_QUERY_RESOLVER_RESULT') !== false) {
+        error_log(sprintf(
+            "[SYMFONY LOAD] ID: %s | Hit: %s | Pool ID: %s",
+            substr($identifier, 0, 50),
+            $item->isHit() ? 'YES' : 'NO',
+            spl_object_id($pool)
+        ));
+    }
+    
+    return $result;
+}
+
+
