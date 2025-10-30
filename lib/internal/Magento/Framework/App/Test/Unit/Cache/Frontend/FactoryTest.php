@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -22,6 +22,8 @@ use PHPUnit\Framework\TestCase;
 /**
  * Unit tests for Cache Frontend Factory
  * Updated to support both Zend and Symfony cache implementations
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class FactoryTest extends TestCase
 {
@@ -43,7 +45,7 @@ class FactoryTest extends TestCase
         
         $lowLevelFrontend = $result->getLowLevelFrontend();
         $this->assertTrue(
-            $lowLevelFrontend instanceof Core || 
+            $lowLevelFrontend instanceof Core ||
             $lowLevelFrontend instanceof \Magento\Framework\Cache\Frontend\Adapter\Symfony\LowLevelFrontend,
             'Created object must have valid low-level frontend (Core for Zend or LowLevelFrontend for Symfony)'
         );

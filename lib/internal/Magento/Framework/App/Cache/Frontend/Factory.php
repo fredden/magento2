@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
 
 /**
@@ -495,6 +495,27 @@ class Factory
     }
 
     /**
+     * Prepare and cache directory paths for cache storage
+     *
+     * @param array $options
+     * @return void
+     */
+    private function prepareCacheDirectories(array &$options): void
+    {
+        foreach (['backend_options', 'slow_backend_options'] as $section) {
+            if (!empty($options[$section]['cache_dir'])) {
+                $cacheDir = $options[$section]['cache_dir'];
+                if (!isset($this->cachedDirectories[$cacheDir])) {
+                    $directory = $this->_filesystem->getDirectoryWrite(DirectoryList::VAR_DIR);
+                    $directory->create($cacheDir);
+                    $this->cachedDirectories[$cacheDir] = $directory->getAbsolutePath($cacheDir);
+                }
+                $options[$section]['cache_dir'] = $this->cachedDirectories[$cacheDir];
+            }
+        }
+    }
+
+    /**
      * Create cache frontend instance using Symfony Cache
      *
      * This method creates a Symfony-based cache adapter that implements FrontendInterface.
@@ -514,18 +535,8 @@ class Factory
     {
         $options = $this->_getExpandedOptions($options);
 
-        // Optimize: Use cached directory operations
-        foreach (['backend_options', 'slow_backend_options'] as $section) {
-            if (!empty($options[$section]['cache_dir'])) {
-                $cacheDir = $options[$section]['cache_dir'];
-                if (!isset($this->cachedDirectories[$cacheDir])) {
-                    $directory = $this->_filesystem->getDirectoryWrite(DirectoryList::VAR_DIR);
-                    $directory->create($cacheDir);
-                    $this->cachedDirectories[$cacheDir] = $directory->getAbsolutePath($cacheDir);
-                }
-                $options[$section]['cache_dir'] = $this->cachedDirectories[$cacheDir];
-            }
-        }
+        // Prepare cache directories
+        $this->prepareCacheDirectories($options);
 
         // Optimize: Use cached ID prefix
         $idPrefix = $this->getIdPrefix($options);

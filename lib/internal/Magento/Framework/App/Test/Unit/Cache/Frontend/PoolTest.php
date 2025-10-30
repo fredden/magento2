@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -142,7 +142,11 @@ class PoolTest extends TestCase
             'deployment config, default settings' => [
                 ['frontend' => [Pool::DEFAULT_FRONTEND_ID => ['configured_option' => 'configured_value']]],
                 [Pool::DEFAULT_FRONTEND_ID => ['default_option' => 'default_value']],
-                ['configured_option' => 'configured_value', 'default_option' => 'default_value', 'frontend_id' => Pool::DEFAULT_FRONTEND_ID]
+                [
+                    'configured_option' => 'configured_value',
+                    'default_option' => 'default_value',
+                    'frontend_id' => Pool::DEFAULT_FRONTEND_ID
+                ]
             ],
             'deployment config, overridden settings' => [
                 ['frontend' => [Pool::DEFAULT_FRONTEND_ID => ['configured_option' => 'configured_value']]],
@@ -155,17 +159,29 @@ class PoolTest extends TestCase
                     'configured_option' => 'default_value',
                     'default_setting' => 'default_value'
                 ]],
-                ['configured_option' => 'configured_value', 'default_setting' => 'default_value', 'frontend_id' => Pool::DEFAULT_FRONTEND_ID],
+                [
+                    'configured_option' => 'configured_value',
+                    'default_setting' => 'default_value',
+                    'frontend_id' => Pool::DEFAULT_FRONTEND_ID
+                ],
             ],
             'custom deployent config, default settings' => [
                 ['frontend' => ['custom' => ['configured_option' => 'configured_value']]],
                 ['custom' => ['default_option' => 'default_value']],
-                ['configured_option' => 'configured_value', 'default_option' => 'default_value', 'frontend_id' => 'custom']
+                [
+                    'configured_option' => 'configured_value',
+                    'default_option' => 'default_value',
+                    'frontend_id' => 'custom'
+                ]
             ],
             'custom deployent config, default settings, overridden settings' => [
                 ['frontend' => ['custom' => ['configured_option' => 'configured_value']]],
                 ['custom' => ['default_option' => 'default_value', 'configured_option' => 'default_value']],
-                ['configured_option' => 'configured_value', 'default_option' => 'default_value', 'frontend_id' => 'custom']
+                [
+                    'configured_option' => 'configured_value',
+                    'default_option' => 'default_value',
+                    'frontend_id' => 'custom'
+                ]
             ]
         ];
     }

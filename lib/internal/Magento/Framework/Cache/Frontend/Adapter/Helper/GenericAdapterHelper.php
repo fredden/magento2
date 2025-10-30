@@ -134,30 +134,37 @@ class GenericAdapterHelper implements AdapterHelperInterface
      *
      * For generic adapters, we don't maintain separate indices
      * Tags are stored directly with cache items by Symfony
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
+    // phpcs:disable Magento2.CodeAnalysis.EmptyBlock
     public function onSave(string $id, array $tags): void
     {
-        // phpcs:ignore Squiz.WhiteSpace.ScopeClosingBrace.ContentBefore
-        // No-op: Tags are handled by Symfony's TagAwareAdapter
+        // Intentional no-op: Tags are handled by Symfony's TagAwareAdapter
     }
+    // phpcs:enable Magento2.CodeAnalysis.EmptyBlock
 
     /**
      * @inheritDoc
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
+    // phpcs:disable Magento2.CodeAnalysis.EmptyBlock
     public function onRemove(string $id): void
     {
-        // phpcs:ignore Squiz.WhiteSpace.ScopeClosingBrace.ContentBefore
-        // No-op: No separate indices to update
+        // Intentional no-op: No separate indices to update
     }
+    // phpcs:enable Magento2.CodeAnalysis.EmptyBlock
 
     /**
      * @inheritDoc
      */
+    // phpcs:disable Magento2.CodeAnalysis.EmptyBlock
     public function clearAllIndices(): void
     {
-        // phpcs:ignore Squiz.WhiteSpace.ScopeClosingBrace.ContentBefore
-        // No-op: No separate indices exist
+        // Intentional no-op: No separate indices exist
     }
+    // phpcs:enable Magento2.CodeAnalysis.EmptyBlock
 
     /**
      * Get tags to save with cache item (including namespace tags if applicable)
