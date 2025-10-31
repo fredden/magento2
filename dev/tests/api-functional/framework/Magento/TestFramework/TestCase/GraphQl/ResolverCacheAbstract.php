@@ -11,6 +11,7 @@ use Magento\Authorization\Model\UserContextInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\ObjectManager\ConfigLoader;
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\GraphQl\Model\Query\ContextFactory;
 use Magento\GraphQlResolverCache\Model\Resolver\Result\Type as GraphQlResolverCache;
@@ -228,13 +229,13 @@ class ResolverCacheAbstract extends GraphQlAbstract
             $cache = $cachePool->get($cacheType);
             
             // Clean all cache entries for this type
-            $cache->clean(\Zend_Cache::CLEANING_MODE_ALL);
+            $cache->clean(CacheConstants::CLEANING_MODE_ALL);
             
             // Also try to clear the backend completely for graphql_query_resolver_result
             if ($cacheType === GraphQlResolverCache::TYPE_IDENTIFIER) {
                 $backend = $cache->getBackend();
                 if (method_exists($backend, 'clean')) {
-                    $backend->clean(\Zend_Cache::CLEANING_MODE_ALL);
+                    $backend->clean(CacheConstants::CLEANING_MODE_ALL);
                 }
                 
                 // CRITICAL: Only reset GraphQL resolver cache instance

@@ -10,8 +10,6 @@ namespace Magento\Framework\App\Test\Unit\Cache\Frontend;
 use Magento\Framework\App\Cache\Frontend\Factory;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\App\Test\Unit\Cache\Frontend\FactoryTest\CacheDecoratorDummy;
-use Magento\Framework\Cache\Core;
-use Magento\Framework\Cache\Frontend\Adapter\Zend;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\Directory\ReadInterface;
@@ -21,7 +19,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests for Cache Frontend Factory
- * Updated to support both Zend and Symfony cache implementations
+ * Tests Symfony cache implementation
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -35,7 +33,7 @@ class FactoryTest extends TestCase
     public function testCreate()
     {
         $model = $this->_buildModelForCreate();
-        $result = $model->create(['backend' => 'Zend_Cache_Backend_BlackHole']);
+        $result = $model->create(['backend' => 'redis']);
 
         $this->assertInstanceOf(
             FrontendInterface::class,
@@ -44,18 +42,17 @@ class FactoryTest extends TestCase
         );
         
         $lowLevelFrontend = $result->getLowLevelFrontend();
-        $this->assertTrue(
-            $lowLevelFrontend instanceof Core ||
-            $lowLevelFrontend instanceof \Magento\Framework\Cache\Frontend\Adapter\Symfony\LowLevelFrontend,
-            'Created object must have valid low-level frontend (Core for Zend or LowLevelFrontend for Symfony)'
+        $this->assertInstanceOf(
+            \Magento\Framework\Cache\Frontend\Adapter\Symfony\LowLevelFrontend::class,
+            $lowLevelFrontend,
+            'Created object must have Symfony LowLevelFrontend'
         );
         
         $backend = $result->getBackend();
         $this->assertTrue(
-            $backend instanceof \Zend_Cache_Backend_BlackHole ||
             $backend instanceof \Magento\Framework\Cache\Frontend\Adapter\Symfony\BackendWrapper ||
             $backend instanceof \Magento\Framework\Cache\Frontend\Adapter\Symfony\LowLevelBackend,
-            'Created object must have valid backend wrapper'
+            'Created object must have valid Symfony backend wrapper'
         );
     }
 
@@ -64,7 +61,7 @@ class FactoryTest extends TestCase
         $model = $this->_buildModelForCreate();
         $result = $model->create(
             [
-                'backend' => 'Zend_Cache_Backend_Static',
+                'backend' => 'redis',
                 'frontend_options' => ['lifetime' => 2601],
                 'backend_options' => ['file_extension' => '.wtf'],
             ]
@@ -76,28 +73,25 @@ class FactoryTest extends TestCase
         $this->assertEquals(2601, $frontend->getOption('lifetime'));
         
         // For Symfony, backend options are not stored in the wrapper (returns null)
-        // For Zend, backend options are stored and accessible
         $fileExtension = $backend->getOption('file_extension');
-        $this->assertTrue(
-            $fileExtension === '.wtf' || $fileExtension === null,
-            'Backend file_extension option must be either .wtf (Zend) or null (Symfony)'
+        $this->assertNull(
+            $fileExtension,
+            'Backend options are not stored in Symfony wrapper, should return null'
         );
     }
 
     public function testCreateEnforcedOptions()
     {
-        $model = $this->_buildModelForCreate(['backend' => 'Zend_Cache_Backend_Static']);
-        $result = $model->create(['backend' => 'Zend_Cache_Backend_BlackHole']);
+        $model = $this->_buildModelForCreate(['backend' => 'redis']);
+        $result = $model->create(['backend' => 'file']);
 
-        // For Symfony, the backend is always a wrapper (not the actual backend type)
         // The enforced option test verifies that enforced options override regular options
-        // Since Symfony uses wrappers, we just verify the backend exists and has the correct interface
+        // Since Symfony uses wrappers, we verify the backend has the correct interface
         $backend = $result->getBackend();
         $this->assertTrue(
-            $backend instanceof \Zend_Cache_Backend_Static ||
             $backend instanceof \Magento\Framework\Cache\Frontend\Adapter\Symfony\BackendWrapper ||
             $backend instanceof \Magento\Framework\Cache\Frontend\Adapter\Symfony\LowLevelBackend,
-            'Backend must be valid (Zend backend or Symfony wrapper)'
+            'Backend must be valid Symfony wrapper'
         );
     }
 
@@ -108,7 +102,7 @@ class FactoryTest extends TestCase
      */
     public function testIdPrefix($options, $expectedPrefix)
     {
-        $model = $this->_buildModelForCreate(['backend' => 'Zend_Cache_Backend_Static']);
+        $model = $this->_buildModelForCreate(['backend' => 'redis']);
         $result = $model->create($options);
 
         $frontend = $result->getLowLevelFrontend();
@@ -122,13 +116,13 @@ class FactoryTest extends TestCase
     {
         return [
             // start of md5('DIR')
-            'default id prefix' => [['backend' => 'Zend_Cache_Backend_BlackHole'], 'c15_'],
+            'default id prefix' => [['backend' => 'redis'], 'c15_'],
             'id prefix in "id_prefix" option' => [
-                ['backend' => 'Zend_Cache_Backend_BlackHole', 'id_prefix' => 'id_prefix_value'],
+                ['backend' => 'redis', 'id_prefix' => 'id_prefix_value'],
                 'id_prefix_value',
             ],
             'id prefix in "prefix" option' => [
-                ['backend' => 'Zend_Cache_Backend_BlackHole', 'prefix' => 'prefix_value'],
+                ['backend' => 'redis', 'prefix' => 'prefix_value'],
                 'prefix_value',
             ]
         ];
@@ -145,7 +139,7 @@ class FactoryTest extends TestCase
                 ]
             ]
         );
-        $result = $model->create(['backend' => 'Zend_Cache_Backend_BlackHole']);
+        $result = $model->create(['backend' => 'redis']);
 
         $this->assertInstanceOf(
             CacheDecoratorDummy::class,
@@ -196,8 +190,6 @@ class FactoryTest extends TestCase
         
         $processFrontendFunc = function ($class, $params) use ($filesystem, $cacheFactory, $helperMock) {
             switch ($class) {
-                case Zend::class:
-                    return new $class($params['frontendFactory']);
                 case CacheDecoratorDummy::class:
                     $frontend = $params['frontend'];
                     unset($params['frontend']);

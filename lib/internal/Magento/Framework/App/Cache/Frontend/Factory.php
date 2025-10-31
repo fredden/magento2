@@ -24,7 +24,7 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Cache\Backend\Database;
 use Magento\Framework\Cache\Backend\Eaccelerator;
 use Magento\Framework\Cache\Backend\RemoteSynchronizedCache;
-use Magento\Framework\Cache\Core;
+use Magento\Framework\Cache\Frontend\Adapter\Symfony;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\Filesystem;
 use Magento\Framework\ObjectManagerInterface;
@@ -477,7 +477,7 @@ class Factory
         if (!array_key_exists('automatic_cleaning_factor', $options)) {
             $options['automatic_cleaning_factor'] = 0;
         }
-        $options['type'] = isset($cacheOptions['frontend']) ? $cacheOptions['frontend'] : Core::class;
+        $options['type'] = isset($cacheOptions['frontend']) ? $cacheOptions['frontend'] : Symfony::class;
         return $options;
     }
 

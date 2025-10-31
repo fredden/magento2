@@ -9,6 +9,7 @@ namespace Magento\Backend\Test\Unit\Cron;
 
 use Magento\Backend\Cron\CleanCache;
 use Magento\Framework\App\Cache\Frontend\Pool;
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\TestCase;
@@ -26,7 +27,7 @@ class CleanCacheTest extends TestCase
         )->method(
             'clean'
         )->with(
-            \Zend_Cache::CLEANING_MODE_OLD,
+            CacheConstants::CLEANING_MODE_OLD,
             []
         )->willReturn(true);
 

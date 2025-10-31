@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Magento\Framework\Currency\Data;
 
 use Locale;
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\Currency\Exception\CurrencyException;
 use Magento\Framework\CurrencyInterface;
@@ -454,9 +455,9 @@ class Currency
     public static function clearCache($tag = null): void
     {
         if ($tag) {
-            self::$cache->clean(\Zend_Cache::CLEANING_MODE_MATCHING_TAG, $tag);
+            self::$cache->clean(CacheConstants::CLEANING_MODE_MATCHING_TAG, $tag);
         } else {
-            self::$cache->clean(\Zend_Cache::CLEANING_MODE_ALL);
+            self::$cache->clean(CacheConstants::CLEANING_MODE_ALL);
         }
     }
 
