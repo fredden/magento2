@@ -71,6 +71,16 @@ class ProductStockTest extends TestCase
     private $stockStatusMock;
 
     /**
+     * @var ProductInterface|MockObject
+     */
+    private $optionProductMock;
+
+    /**
+     * @var Option|MockObject
+     */
+    private $qtyOptionMock;
+
+    /**
      * Set up mocks and initialize the ProductStock class
      */
     protected function setUp(): void
@@ -85,17 +95,29 @@ class ProductStockTest extends TestCase
             $this->scopeConfigMock,
             $this->stockRegistryMock
         );
-        $this->stockStatusMock = $this->getMockBuilder(StockStatusInterface::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getHasError'])
-            ->getMockForAbstractClass();
-        $this->cartItemMock = $this->getMockBuilder(Item::class)
-            ->addMethods(['getQtyToAdd', 'getPreviousQty'])
-            ->onlyMethods(['getStore', 'getProductType', 'getProduct', 'getChildren', 'getQtyOptions'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->productMock = $this->createMock(ProductInterface::class);
+        $this->stockStatusMock = $this->createMock(StockStatusInterface::class);
+        $this->cartItemMock = $this->createPartialMock(
+            \Magento\Quote\Test\Unit\Helper\QuoteItemUpdaterTestHelper::class,
+            [
+                'getStore',
+                'getProductType',
+                'getProduct',
+                'getChildren',
+                'getQtyOptions',
+                'getQtyToAdd',
+                'getPreviousQty'
+            ]
+        );
+        $this->productMock = $this->createPartialMock(
+            \Magento\Catalog\Test\Unit\Helper\ProductTestHelper::class,
+            ['getId', 'getStore']
+        );
+        $this->optionProductMock = $this->createPartialMock(
+            \Magento\Catalog\Test\Unit\Helper\ProductTestHelper::class,
+            ['getId', 'getStore']
+        );
         $this->storeMock = $this->createMock(StoreInterface::class);
+        $this->qtyOptionMock = $this->createMock(Option::class);
     }
 
     /**
@@ -121,15 +143,24 @@ class ProductStockTest extends TestCase
         $this->storeMock->expects($this->once())
             ->method('getId')
             ->willReturn(1);
-        $this->productMock->expects($this->once())
+        $this->productMock->expects($this->exactly(3))
             ->method('getId')
             ->willReturn(123);
+        $this->productMock->expects($this->exactly(2))
+            ->method('getStore')
+            ->willReturn($this->storeMock);
         $this->stockStatusMock->expects($this->once())
-            ->method('getHasError')
-            ->willReturn(false);
+            ->method('getStockStatus')
+            ->willReturn(true);
+        $this->stockStatusMock->expects($this->once())
+            ->method('getQty')
+            ->willReturn(10);
         $this->stockStateMock->expects($this->once())
             ->method('checkQuoteItemQty')
             ->with(123, 2.0, 3.0, 1.0, 1)
+            ->willReturn($this->stockStatusMock);
+        $this->stockRegistryMock->expects($this->exactly(2))
+            ->method('getStockStatus')
             ->willReturn($this->stockStatusMock);
         $this->cartItemMock->expects($this->never())->method('getChildren');
         $result = $this->productStock->isProductAvailable($this->cartItemMock);
@@ -159,16 +190,22 @@ class ProductStockTest extends TestCase
         $this->storeMock->expects($this->once())
             ->method('getId')
             ->willReturn(1);
-        $this->productMock->expects($this->once())
+        $this->productMock->expects($this->exactly(2))
             ->method('getId')
             ->willReturn(123);
+        $this->productMock->expects($this->once())
+            ->method('getStore')
+            ->willReturn($this->storeMock);
         $this->stockStateMock->expects($this->once())
             ->method('checkQuoteItemQty')
             ->with(123, 2.0, 3.0, 1.0, 1)
             ->willReturn($this->stockStatusMock);
         $this->stockStatusMock->expects($this->once())
-            ->method('getHasError')
-            ->willReturn(true);
+            ->method('getStockStatus')
+            ->willReturn(false);
+        $this->stockRegistryMock->expects($this->once())
+            ->method('getStockStatus')
+            ->willReturn($this->stockStatusMock);
         $this->cartItemMock->expects($this->never())->method('getChildren');
         $result = $this->productStock->isProductAvailable($this->cartItemMock);
         $this->assertFalse($result);
@@ -179,33 +216,40 @@ class ProductStockTest extends TestCase
      */
     public function testIsStockAvailableBundleStockAvailable()
     {
-        $qtyOptionMock = $this->createMock(Option::class);
-        $qtyOptionMock->expects($this->once())
+        $this->qtyOptionMock->expects($this->once())
             ->method('getValue')
-            ->willReturn(2.0);
-        $optionProductMock = $this->createMock(ProductInterface::class);
-        $qtyOptionMock->expects($this->once())
+            ->willReturn(1.0);
+        $this->qtyOptionMock->expects($this->once())
             ->method('getProduct')
-            ->willReturn($optionProductMock);
+            ->willReturn($this->optionProductMock);
         $this->cartItemMock->expects($this->once())
             ->method('getQtyOptions')
-            ->willReturn([$qtyOptionMock]);
+            ->willReturn([$this->qtyOptionMock]);
         $this->cartItemMock->expects($this->once())
             ->method('getStore')
             ->willReturn($this->storeMock);
         $this->storeMock->expects($this->once())
             ->method('getId')
             ->willReturn(1);
-        $optionProductMock->expects($this->once())
+        $this->optionProductMock->expects($this->exactly(3))
             ->method('getId')
             ->willReturn(789);
-        $this->stockStatusMock->expects($this->once())
-            ->method('getHasError')
-            ->willReturn(false);
+        $this->optionProductMock->expects($this->exactly(2))
+            ->method('getStore')
+            ->willReturn($this->storeMock);
         $this->stockStateMock->expects($this->once())
             ->method('checkQuoteItemQty')
-            ->with(789, 2.0, 6.0, 1.0, 1)
+            ->with(789, 2.0, 3.0, 1.0, 1)
             ->willReturn($this->stockStatusMock);
+        $this->stockStatusMock->expects($this->once())
+            ->method('getStockStatus')
+            ->willReturn(true);
+        $this->stockRegistryMock->expects($this->exactly(2))
+            ->method('getStockStatus')
+            ->willReturn($this->stockStatusMock);
+        $this->stockStatusMock->expects($this->once())
+            ->method('getQty')
+            ->willReturn(10);
         $result = $this->productStock->isStockAvailableBundle($this->cartItemMock, 1, 2.0);
         $this->assertTrue($result);
     }
@@ -215,32 +259,36 @@ class ProductStockTest extends TestCase
      */
     public function testIsStockAvailableBundleStockNotAvailable()
     {
-        $qtyOptionMock = $this->createMock(\Magento\Quote\Model\Quote\Item\Option::class);
-        $qtyOptionMock->expects($this->once())
+        $this->qtyOptionMock->expects($this->once())
             ->method('getValue')
             ->willReturn(2.0);
-        $optionProductMock = $this->createMock(ProductInterface::class);
-        $qtyOptionMock->expects($this->once())
+        $this->qtyOptionMock->expects($this->once())
             ->method('getProduct')
-            ->willReturn($optionProductMock);
+            ->willReturn($this->optionProductMock);
         $this->cartItemMock->expects($this->once())
             ->method('getQtyOptions')
-            ->willReturn([$qtyOptionMock]);
+            ->willReturn([$this->qtyOptionMock]);
         $this->cartItemMock->expects($this->once())
             ->method('getStore')
             ->willReturn($this->storeMock);
         $this->storeMock->expects($this->once())
             ->method('getId')
             ->willReturn(1);
-        $this->stockStatusMock->expects($this->once())
-            ->method('getHasError')
-            ->willReturn(true);
-        $optionProductMock->expects($this->once())
+        $this->optionProductMock->expects($this->exactly(2))
             ->method('getId')
             ->willReturn(789);
+        $this->optionProductMock->expects($this->once())
+            ->method('getStore')
+            ->willReturn($this->storeMock);
         $this->stockStateMock->expects($this->once())
             ->method('checkQuoteItemQty')
             ->with(789, 2.0, 6.0, 1.0, 1)
+            ->willReturn($this->stockStatusMock);
+        $this->stockStatusMock->expects($this->once())
+            ->method('getStockStatus')
+            ->willReturn(false);
+        $this->stockRegistryMock->expects($this->once())
+            ->method('getStockStatus')
             ->willReturn($this->stockStatusMock);
         $result = $this->productStock->isStockAvailableBundle($this->cartItemMock, 1, 2.0);
         $this->assertFalse($result);
