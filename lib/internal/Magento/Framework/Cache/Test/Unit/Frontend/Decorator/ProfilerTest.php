@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Test\Unit\Frontend\Decorator;
 
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\Frontend\Adapter\Zend;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\Profiler;
@@ -143,7 +144,7 @@ class ProfilerTest extends TestCase
             ],
             [
                 'clean',
-                [\Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, ['tag']],
+                [CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, ['tag']],
                 $backend,
                 $lowLevelFrontend,
                 'cache_clean',

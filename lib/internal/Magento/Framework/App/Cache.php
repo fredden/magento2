@@ -6,6 +6,8 @@
 
 namespace Magento\Framework\App;
 
+use Magento\Framework\Cache\CacheConstants;
+
 /**
  * System cache model support id and tags prefix support.
  */
@@ -93,7 +95,7 @@ class Cache implements CacheInterface
     public function clean($tags = [])
     {
         if ($tags) {
-            $result = $this->_frontend->clean(\Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, (array)$tags);
+            $result = $this->_frontend->clean(CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, (array)$tags);
         } else {
             /** @deprecated special case of cleaning by empty tags is deprecated after 2.0.0.0-dev42 */
             $result = false;

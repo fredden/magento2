@@ -6,6 +6,8 @@
 
 namespace Magento\Framework\Cache\Frontend\Decorator;
 
+use Magento\Framework\Cache\CacheConstants;
+
 /**
  * Cache frontend decorator that performs profiling of cache operations
  */
@@ -110,7 +112,7 @@ class Profiler extends \Magento\Framework\Cache\Frontend\Decorator\Bare
     /**
      * {@inheritdoc}
      */
-    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = [])
     {
         \Magento\Framework\Profiler::start('cache_clean', $this->_getProfilerTags('clean'));
         $result = parent::clean($mode, $tags);

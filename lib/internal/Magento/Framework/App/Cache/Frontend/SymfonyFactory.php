@@ -8,16 +8,20 @@ declare(strict_types=1);
 namespace Magento\Framework\App\Cache\Frontend;
 
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
+use Magento\Framework\Cache\Frontend\Adapter\Helper\FilesystemAdapterHelper;
+use Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper;
+use Magento\Framework\Cache\Frontend\Adapter\Helper\RedisAdapterHelper;
 use Magento\Framework\Filesystem;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Symfony\Component\Cache\Adapter\ApcuAdapter;
+use Symfony\Component\Cache\Adapter\ChainAdapter;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\Adapter\MemcachedAdapter;
 use Symfony\Component\Cache\Adapter\PdoAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
-use Symfony\Component\Cache\Adapter\ChainAdapter;
-use Symfony\Component\Cache\Adapter\ApcuAdapter;
 
 /**
  * Factory for creating Symfony Cache adapters
@@ -53,7 +57,7 @@ class SymfonyFactory
         // Redis backends
         'redis' => 'redis',
         'cm_cache_backend_redis' => 'redis',
-        'magento\\framework\\cache\\backend\\redis' => 'redis',
+        'Magento\\Framework\\Cache\\Backend\\Redis' => 'redis',
 
         // Memcached backends
         'memcached' => 'memcached',
@@ -136,14 +140,14 @@ class SymfonyFactory
      * @param CacheItemPoolInterface $cachePool
      * @param string $namespace
      * @param bool $isPageCache
-     * @return \Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface
+     * @return AdapterHelperInterface
      */
     public function createHelper(
         string $backendType,
         CacheItemPoolInterface $cachePool,
         string $namespace = '',
         bool $isPageCache = false
-    ): \Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface {
+    ): AdapterHelperInterface {
         // Resolve backend type
         $backendTypeLower = strtolower($backendType);
         $resolvedType = $this->adapterTypeMap[$backendTypeLower] ?? 'filesystem';
@@ -151,22 +155,22 @@ class SymfonyFactory
         // Create appropriate helper with fallback to GenericAdapterHelper
         try {
             return match ($resolvedType) {
-                'redis' => new \Magento\Framework\Cache\Frontend\Adapter\Helper\RedisAdapterHelper(
+                'redis' => new RedisAdapterHelper(
                     $cachePool,
                     $namespace
                 ),
-                'filesystem' => new \Magento\Framework\Cache\Frontend\Adapter\Helper\FilesystemAdapterHelper(
+                'filesystem' => new FilesystemAdapterHelper(
                     $cachePool,
                     $this->getCacheDirectory()
                 ),
-                default => new \Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper(
+                default => new GenericAdapterHelper(
                     $cachePool,
                     $isPageCache
                 ),
             };
         } catch (\Exception $e) {
             // Fallback to GenericAdapterHelper if specialized helper creation fails
-            return new \Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper($cachePool, $isPageCache);
+            return new GenericAdapterHelper($cachePool, $isPageCache);
         }
     }
 

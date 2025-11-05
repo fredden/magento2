@@ -10,6 +10,8 @@
  */
 namespace Magento\Framework\Cache\Frontend\Decorator;
 
+use Magento\Framework\Cache\CacheConstants;
+
 class Bare implements \Magento\Framework\Cache\FrontendInterface
 {
     /**
@@ -84,7 +86,7 @@ class Bare implements \Magento\Framework\Cache\FrontendInterface
     /**
      * @inheritdoc
      */
-    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = [])
     {
         return $this->_getFrontend()->clean($mode, $tags);
     }

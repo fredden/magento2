@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Frontend\Adapter;
 
+use Magento\Framework\Cache\CacheConstants;
+
 /**
  * Adapter for Magento -> Zend cache frontend interfaces
  *
@@ -93,15 +95,15 @@ class Zend implements \Magento\Framework\Cache\FrontendInterface
      * @throws \InvalidArgumentException Exception is thrown when non-supported cleaning mode is specified
      * @throws \Zend_Cache_Exception
      */
-    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = [])
     {
         // Cleaning modes 'old' and 'notMatchingTag' are prohibited as a trade off for decoration reliability
         if (!in_array(
             $mode,
             [
-                \Zend_Cache::CLEANING_MODE_ALL,
-                \Zend_Cache::CLEANING_MODE_MATCHING_TAG,
-                \Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG
+                CacheConstants::CLEANING_MODE_ALL,
+                CacheConstants::CLEANING_MODE_MATCHING_TAG,
+                CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG
             ]
         )
         ) {

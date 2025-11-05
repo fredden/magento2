@@ -6,6 +6,7 @@
 namespace Magento\Authorization\Model\ResourceModel;
 
 use Magento\Authorization\Model\Acl\Role\User as RoleUser;
+use Magento\Framework\Cache\CacheConstants;
 
 /**
  * Admin role resource model
@@ -101,7 +102,7 @@ class Role extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      */
     protected function _afterSave(\Magento\Framework\Model\AbstractModel $role)
     {
-        $this->_cache->clean(\Zend_Cache::CLEANING_MODE_MATCHING_TAG, [\Magento\Backend\Block\Menu::CACHE_TAGS]);
+        $this->_cache->clean(CacheConstants::CLEANING_MODE_MATCHING_TAG, [\Magento\Backend\Block\Menu::CACHE_TAGS]);
         return $this;
     }
 
@@ -119,7 +120,7 @@ class Role extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 
         $connection->delete($this->_ruleTable, ['role_id = ?' => (int)$role->getId()]);
 
-        $this->_cache->clean(\Zend_Cache::CLEANING_MODE_MATCHING_TAG, [\Magento\Backend\Block\Menu::CACHE_TAGS]);
+        $this->_cache->clean(CacheConstants::CLEANING_MODE_MATCHING_TAG, [\Magento\Backend\Block\Menu::CACHE_TAGS]);
 
         return $this;
     }

@@ -208,7 +208,7 @@ class Factory
     {
         // Check explicit prefix in options
         $idPrefix = $options['id_prefix'] ?? $options['prefix'] ?? '';
-        
+
         if (!empty($idPrefix)) {
             return $idPrefix;
         }
@@ -223,7 +223,7 @@ class Factory
         // md5() here is not for cryptographic use.
         // phpcs:ignore Magento2.Security.InsecureFunction
         $this->cachedIdPrefix = substr(md5($configDirPath), 0, 3) . '_';
-        
+
         return $this->cachedIdPrefix;
     }
 
@@ -301,7 +301,7 @@ class Factory
 
         $backendType = false;
         $typeLower = strtolower($type);
-        
+
         switch ($typeLower) {
             case 'sqlite':
                 if ($this->isExtensionLoaded('sqlite') && isset($options['cache_db_complete_path'])) {
@@ -365,7 +365,7 @@ class Factory
                     $backendType = $type;
                 }
         }
-        
+
         if (!$backendType) {
             $backendType = $this->_defaultBackend;
             // Use cached directory operation
@@ -376,7 +376,7 @@ class Factory
             }
             $this->_backendOptions['cache_dir'] = $this->cachedDirectories['cache'];
         }
-        
+
         // Merge with default backend options (optimized)
         foreach ($this->_backendOptions as $option => $value) {
             if (!array_key_exists($option, $options)) {
@@ -531,7 +531,7 @@ class Factory
      * @return FrontendInterface
      * @throws \Exception
      */
-    public function createSymfonyCache(array $options): FrontendInterface
+    private function createSymfonyCache(array $options): FrontendInterface
     {
         $options = $this->_getExpandedOptions($options);
 

@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Magento\Framework\Cache\Test\Unit\Backend;
 
 use Magento\Framework\Cache\Backend\Database;
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\DB\Adapter\Pdo\Mysql;
 use Magento\Framework\DB\Select;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
@@ -388,39 +389,39 @@ class DatabaseTest extends TestCase
         return [
             'mode_all_with_store_data' => [
                 'options' => static fn (self $testCase) => $testCase->getOptionsWithStoreData($connectionMock),
-                'mode' => \Zend_Cache::CLEANING_MODE_ALL,
+                'mode' => CacheConstants::CLEANING_MODE_ALL,
                 'expected' => false
 
             ],
             'mode_all_without_store_data' => [
                 'options' => static fn (self $testCase) => $testCase->getOptionsWithoutStoreData($connectionMock),
-                'mode' => \Zend_Cache::CLEANING_MODE_ALL,
+                'mode' => CacheConstants::CLEANING_MODE_ALL,
                 'expected' => false
             ],
             'mode_old_with_store_data' => [
                 'options' => static fn (self $testCase) => $testCase->getOptionsWithStoreData($connectionMock),
-                'mode' => \Zend_Cache::CLEANING_MODE_OLD,
+                'mode' => CacheConstants::CLEANING_MODE_OLD,
                 'expected' => true
 
             ],
             'mode_old_without_store_data' => [
                 'options' => static fn (self $testCase) => $testCase->getOptionsWithoutStoreData($connectionMock),
-                'mode' => \Zend_Cache::CLEANING_MODE_OLD,
+                'mode' => CacheConstants::CLEANING_MODE_OLD,
                 'expected' => true
             ],
             'mode_matching_tag_without_store_data' => [
                 'options' => static fn (self $testCase) => $testCase->getOptionsWithoutStoreData($connectionMock),
-                'mode' => \Zend_Cache::CLEANING_MODE_MATCHING_TAG,
+                'mode' => CacheConstants::CLEANING_MODE_MATCHING_TAG,
                 'expected' => true
             ],
             'mode_not_matching_tag_without_store_data' => [
                 'options' => static fn (self $testCase) => $testCase->getOptionsWithoutStoreData($connectionMock),
-                'mode' => \Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG,
+                'mode' => CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG,
                 'expected' => true
             ],
             'mode_matching_any_tag_without_store_data' => [
                 'options' => static fn (self $testCase) => $testCase->getOptionsWithoutStoreData($connectionMock),
-                'mode' => \Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG,
+                'mode' => CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG,
                 'expected' => true
             ]
         ];

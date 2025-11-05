@@ -6,6 +6,8 @@
 
 namespace Magento\PageCache\Model\Cache;
 
+use Magento\Framework\Cache\CacheConstants;
+
 /**
  * System / Cache Management / Cache type "Full Page Cache"
  *
@@ -46,7 +48,7 @@ class Type extends \Magento\Framework\Cache\Frontend\Decorator\TagScope
      * @param array $tags
      * @return bool
      */
-    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = [])
     {
         $this->eventManager->dispatch('adminhtml_cache_refresh_type');
         return parent::clean($mode, $tags);

@@ -6,6 +6,8 @@
 
 namespace Magento\Framework\Cache\Frontend\Decorator;
 
+use Magento\Framework\Cache\CacheConstants;
+
 /**
  * Cache frontend decorator that limits the cleaning scope within a tag
  *
@@ -57,18 +59,18 @@ class TagScope extends \Magento\Framework\Cache\Frontend\Decorator\Bare
      *
      * {@inheritdoc}
      */
-    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = [])
     {
-        if ($mode == \Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG) {
+        if ($mode == CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG) {
             $result = false;
             foreach ($tags as $tag) {
-                if (parent::clean(\Zend_Cache::CLEANING_MODE_MATCHING_TAG, [$tag, $this->getTag()])) {
+                if (parent::clean(CacheConstants::CLEANING_MODE_MATCHING_TAG, [$tag, $this->getTag()])) {
                     $result = true;
                 }
             }
         } else {
-            if ($mode == \Zend_Cache::CLEANING_MODE_ALL) {
-                $mode = \Zend_Cache::CLEANING_MODE_MATCHING_TAG;
+            if ($mode == CacheConstants::CLEANING_MODE_ALL) {
+                $mode = CacheConstants::CLEANING_MODE_MATCHING_TAG;
                 $tags = [$this->getTag()];
             } else {
                 $tags[] = $this->getTag();

@@ -6,6 +6,7 @@
 
 namespace Magento\Framework\Cache\Frontend\Decorator;
 
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\Cache\InvalidateLogger as LoggerHandler;
 
@@ -42,7 +43,7 @@ class Logger extends Bare
     /**
      * @inheritdoc
      */
-    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = [])
     {
         $result = parent::clean($mode, $tags);
         $this->log(compact('tags', 'mode'));

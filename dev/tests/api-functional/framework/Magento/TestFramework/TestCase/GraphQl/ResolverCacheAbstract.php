@@ -10,6 +10,7 @@ namespace Magento\TestFramework\TestCase\GraphQl;
 use Magento\Authorization\Model\UserContextInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\App\Area;
+use Magento\Framework\App\Cache\Frontend\Pool;
 use Magento\Framework\App\ObjectManager\ConfigLoader;
 use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\ObjectManagerInterface;
@@ -225,7 +226,7 @@ class ResolverCacheAbstract extends GraphQlAbstract
         // Also ensures proper test isolation with Symfony cache's unique namespaces
         try {
             // Get a fresh Pool instance without affecting shared instances
-            $cachePool = $this->objectManager->create(\Magento\Framework\App\Cache\Frontend\Pool::class);
+            $cachePool = $this->objectManager->create(Pool::class);
             $cache = $cachePool->get($cacheType);
             
             // Clean all cache entries for this type
@@ -242,7 +243,7 @@ class ResolverCacheAbstract extends GraphQlAbstract
                 // for graphql_query_resolver_result. This ensures fresh cache instance
                 // in next test without corrupting deployment config
                 $this->objectManager->removeSharedInstance(
-                    \Magento\GraphQlResolverCache\Model\Resolver\Result\Type::class
+                    GraphQlResolverCache::class
                 );
             }
         } catch (\Exception $e) {
