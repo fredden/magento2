@@ -16,9 +16,13 @@ use Magento\Framework\Cache\Exception\CacheException;
 /**
  * Abstract decorator class for cache backends
  *
+ * Extends Zend_Cache_Backend for backward compatibility with deprecated Core class
+ * Note: Does not implement ExtendedBackendInterface to avoid method signature conflicts
+ * between Zend (no type hints) and modern PHP (strict type hints)
+ *
  * @api
  */
-abstract class AbstractDecorator extends AbstractBackend implements ExtendedBackendInterface
+abstract class AbstractDecorator extends \Zend_Cache_Backend
 {
     /**
      * Concrete Cache Backend class that is being decorated
@@ -41,13 +45,14 @@ abstract class AbstractDecorator extends AbstractBackend implements ExtendedBack
         if (array_key_exists(
             'concrete_backend',
             $options
-        ) && $options['concrete_backend'] instanceof BackendInterface
+        ) && ($options['concrete_backend'] instanceof BackendInterface
+            || $options['concrete_backend'] instanceof \Zend_Cache_Backend)
         ) {
             $this->_backend = $options['concrete_backend'];
             unset($options['concrete_backend']);
         } else {
             throw new CacheException(
-                __("'concrete_backend' is not specified or it does not implement 'BackendInterface' interface")
+                __("'concrete_backend' is not specified or it does not implement 'BackendInterface' interface or extend 'Zend_Cache_Backend'")
             );
         }
         foreach ($options as $optionName => $optionValue) {
@@ -63,7 +68,7 @@ abstract class AbstractDecorator extends AbstractBackend implements ExtendedBack
      * @param array $directives assoc of directives
      * @return void
      */
-    public function setDirectives(array $directives): void
+    public function setDirectives($directives)
     {
         $this->_backend->setDirectives($directives);
     }
@@ -77,7 +82,7 @@ abstract class AbstractDecorator extends AbstractBackend implements ExtendedBack
      * @param  boolean $noTestCacheValidity If set to true, the cache validity won't be tested
      * @return string|false cached datas
      */
-    public function load(string $cacheId, bool $noTestCacheValidity = false)
+    public function load($cacheId, $noTestCacheValidity = false)
     {
         return $this->_backend->load($cacheId, $noTestCacheValidity);
     }
@@ -88,7 +93,7 @@ abstract class AbstractDecorator extends AbstractBackend implements ExtendedBack
      * @param  string $cacheId cache id
      * @return mixed|false (a cache is not available) or "last modified" timestamp (int) of the available cache record
      */
-    public function test(string $cacheId)
+    public function test($cacheId)
     {
         return $this->_backend->test($cacheId);
     }
@@ -108,7 +113,7 @@ abstract class AbstractDecorator extends AbstractBackend implements ExtendedBack
      *                                  some particular backends
      * @return bool true if no problem
      */
-    public function save($data, string $cacheId, array $tags = [], ?int $specificLifetime = null): bool
+    public function save($data, $cacheId, $tags = [], $specificLifetime = null)
     {
         return $this->_backend->save($data, $cacheId, $tags, $specificLifetime);
     }
@@ -119,7 +124,7 @@ abstract class AbstractDecorator extends AbstractBackend implements ExtendedBack
      * @param string $cacheId Cache id
      * @return bool true if no problem
      */
-    public function remove(string $cacheId): bool
+    public function remove($cacheId)
     {
         return $this->_backend->remove($cacheId);
     }
@@ -141,7 +146,7 @@ abstract class AbstractDecorator extends AbstractBackend implements ExtendedBack
      * @param  string[] $tags Array of tags
      * @return bool true if no problem
      */
-    public function clean(string $mode = CacheConstants::CLEANING_MODE_ALL, array $tags = []): bool
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, $tags = [])
     {
         return $this->_backend->clean($mode, $tags);
     }
@@ -270,7 +275,7 @@ abstract class AbstractDecorator extends AbstractBackend implements ExtendedBack
      * @throws CacheException
      * @return void
      */
-    public function setOption(string $name, $value): void
+    public function setOption($name, $value)
     {
         $this->_backend->setOption($name, $value);
     }
@@ -284,7 +289,7 @@ abstract class AbstractDecorator extends AbstractBackend implements ExtendedBack
      * @param  int|null $specificLifetime
      * @return int Cache life time
      */
-    public function getLifetime(?int $specificLifetime = null): int
+    public function getLifetime($specificLifetime = null)
     {
         return $this->_backend->getLifetime($specificLifetime);
     }

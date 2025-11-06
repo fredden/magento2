@@ -1,8 +1,9 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2011 Adobe
+ * All Rights Reserved.
  */
+declare(strict_types=1);
 
 /**
  * Tables declaration:
@@ -74,9 +75,9 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
         parent::__construct($options);
         if (empty($this->_options['adapter_callback'])) {
             if (!$this->_options['adapter'] instanceof \Magento\Framework\DB\Adapter\AdapterInterface) {
-            throw new CacheException(
-                __('Option "adapter" should be declared and extend \Magento\Framework\DB\Adapter\AdapterInterface!')
-            );
+                throw new CacheException(
+                    __('Option "adapter" should be declared and extend \Magento\Framework\DB\Adapter\AdapterInterface!')
+                );
             }
         }
         if (empty($this->_options['data_table']) && empty($this->_options['data_table_callback'])) {
@@ -290,6 +291,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      */
     public function clean(string $mode = CacheConstants::CLEANING_MODE_ALL, array $tags = []): bool
     {
+        $result = false;
         if (!$this->_options['infinite_loop_flag']) {
             $this->_options['infinite_loop_flag'] = true;
             $connection = $this->_getConnection();
@@ -307,7 +309,6 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
                     break;
                 default:
                     throw new CacheException(__('Invalid mode for clean() method'));
-                    break;
             }
             $this->_options['infinite_loop_flag'] = false;
         }
@@ -556,7 +557,6 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
                     break;
                 default:
                     throw new CacheException(__('Invalid mode for _cleanByTags() method'));
-                    break;
             }
 
             $result = true;

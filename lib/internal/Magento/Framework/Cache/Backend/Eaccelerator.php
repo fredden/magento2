@@ -1,8 +1,9 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2011 Adobe
+ * All Rights Reserved.
  */
+declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Backend;
 
@@ -94,7 +95,7 @@ class Eaccelerator extends AbstractBackend implements ExtendedBackendInterface
         $lifetime = $this->getLifetime($specificLifetime);
         $result = eaccelerator_put($id, [$data, time(), $lifetime], $lifetime);
         if (count($tags) > 0) {
-            $this->_log(self::TAGS_UNSUPPORTED_BY_SAVE_OF_EACCELERATOR_BACKEND);
+            $this->log(self::TAGS_UNSUPPORTED_BY_SAVE_OF_EACCELERATOR_BACKEND);
         }
         return $result;
     }
@@ -180,7 +181,7 @@ class Eaccelerator extends AbstractBackend implements ExtendedBackendInterface
      */
     public function getTags(): array
     {
-        $this->_log(self::TAGS_UNSUPPORTED_BY_SAVE_OF_EACCELERATOR_BACKEND);
+        $this->log(self::TAGS_UNSUPPORTED_BY_SAVE_OF_EACCELERATOR_BACKEND);
         return [];
     }
 
@@ -195,7 +196,7 @@ class Eaccelerator extends AbstractBackend implements ExtendedBackendInterface
      */
     public function getIdsMatchingTags(array $tags = []): array
     {
-        $this->_log(self::TAGS_UNSUPPORTED_BY_SAVE_OF_EACCELERATOR_BACKEND);
+        $this->log(self::TAGS_UNSUPPORTED_BY_SAVE_OF_EACCELERATOR_BACKEND);
         return [];
     }
 
@@ -210,7 +211,7 @@ class Eaccelerator extends AbstractBackend implements ExtendedBackendInterface
      */
     public function getIdsNotMatchingTags(array $tags = []): array
     {
-        $this->_log(self::TAGS_UNSUPPORTED_BY_SAVE_OF_EACCELERATOR_BACKEND);
+        $this->log(self::TAGS_UNSUPPORTED_BY_SAVE_OF_EACCELERATOR_BACKEND);
         return [];
     }
 
@@ -225,7 +226,7 @@ class Eaccelerator extends AbstractBackend implements ExtendedBackendInterface
      */
     public function getIdsMatchingAnyTags(array $tags = []): array
     {
-        $this->_log(self::TAGS_UNSUPPORTED_BY_SAVE_OF_EACCELERATOR_BACKEND);
+        $this->log(self::TAGS_UNSUPPORTED_BY_SAVE_OF_EACCELERATOR_BACKEND);
         return [];
     }
 

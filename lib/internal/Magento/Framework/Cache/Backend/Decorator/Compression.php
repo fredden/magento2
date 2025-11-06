@@ -58,7 +58,7 @@ class Compression extends AbstractDecorator
      * (null => infinite lifetime)
      * @return bool true if no problem
      */
-    public function save($data, string $cacheId, array $tags = [], ?int $specificLifetime = null): bool
+    public function save($data, $cacheId, $tags = [], $specificLifetime = null)
     {
         if ($data !== null && $this->_isCompressionNeeded($data)) {
             $data = self::_compressData($data);

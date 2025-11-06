@@ -90,4 +90,3 @@ interface BackendInterface
      */
     public function getOption(string $name);
 }
-

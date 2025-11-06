@@ -105,4 +105,3 @@ interface ExtendedBackendInterface extends BackendInterface
      */
     public function getCapabilities(): array;
 }
-

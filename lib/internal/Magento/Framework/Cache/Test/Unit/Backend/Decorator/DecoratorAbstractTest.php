@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -66,7 +66,7 @@ class DecoratorAbstractTest extends TestCase
     public function testConstructorException($options)
     {
         if (!empty($options)) {
-           $options['concrete_backend'] = $options['concrete_backend']($this);
+            $options['concrete_backend'] = $options['concrete_backend']($this);
         }
 
         $this->expectException(CacheException::class);
