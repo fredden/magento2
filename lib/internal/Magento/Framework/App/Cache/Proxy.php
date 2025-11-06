@@ -49,7 +49,7 @@ class Proxy implements
     /**
      * Get cache frontend API object
      *
-     * @return \Zend_Cache_Core
+     * @return mixed
      */
     public function getFrontend()
     {

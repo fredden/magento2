@@ -52,11 +52,12 @@ class BareTest extends TestCase
 
     public function createZendCacheBackendMock()
     {
-        return $this->createMock(\Zend_Cache_Backend::class);
+        return $this->createMock(\Magento\Framework\Cache\Backend\BackendInterface::class);
     }
 
     public function createZendCacheCoreMock()
     {
-        return $this->createMock(\Zend_Cache_Core::class);
+        // Return a simple mock object (no specific Zend class needed)
+        return $this->createMock(\stdClass::class);
     }
 }

@@ -148,7 +148,11 @@ class ObjectManagerFactory
             $cacheFactoryArguments = $diConfig->getArguments(\Magento\Framework\App\Cache\Frontend\Factory::class);
             $cacheFactoryArguments['decorators'][] = [
                 'class' => \Magento\Framework\Cache\Frontend\Decorator\Profiler::class,
-                'parameters' => ['backendPrefixes' => ['Zend_Cache_Backend_', 'Cm_Cache_Backend_']],
+                'parameters' => ['backendPrefixes' => [
+                    'Magento\Framework\Cache\Backend\\',
+                    'Magento\Framework\Cache\Frontend\Adapter\Symfony\\',
+                    'Cm_Cache_Backend_'
+                ]],
             ];
             $cacheFactoryConfig = [
                 \Magento\Framework\App\Cache\Frontend\Factory::class => ['arguments' => $cacheFactoryArguments]

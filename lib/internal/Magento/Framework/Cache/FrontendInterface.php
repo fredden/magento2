@@ -5,6 +5,7 @@
  */
 namespace Magento\Framework\Cache;
 
+use Magento\Framework\Cache\Backend\BackendInterface;
 use Magento\Framework\Cache\CacheConstants;
 
 /**
@@ -62,14 +63,22 @@ interface FrontendInterface
     /**
      * Retrieve backend instance
      *
-     * @return \Zend_Cache_Backend_Interface
+     * Returns a backend adapter compatible with Magento's cache operations.
+     * For Symfony cache, returns a BackendWrapper that delegates to PSR-6 cache.
+     * For legacy Zend cache, returns the actual Zend backend.
+     *
+     * @return BackendInterface|object Backend instance
      */
     public function getBackend();
 
     /**
-     * Retrieve frontend instance compatible with Zend Locale Data setCache() to be used as a workaround
+     * Retrieve low-level frontend instance for compatibility
      *
-     * @return \Zend_Cache_Core
+     * Returns a low-level cache frontend for backward compatibility.
+     * This is primarily used for legacy integrations and should be avoided in new code.
+     *
+     * @return object Low-level frontend instance
+     * @deprecated Use high-level FrontendInterface methods instead
      */
     public function getLowLevelFrontend();
 }

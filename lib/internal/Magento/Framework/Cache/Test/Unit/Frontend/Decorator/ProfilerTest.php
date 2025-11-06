@@ -30,7 +30,7 @@ class ProfilerTest extends TestCase
     /**
      * @param string $method
      * @param array $params
-     * @param \Zend_Cache_Backend $cacheBackend
+     * @param mixed $cacheBackend
      * @param \Closure $cacheFrontend
      * @param string $expectedProfileId
      * @param array $expectedProfilerTags
@@ -61,7 +61,7 @@ class ProfilerTest extends TestCase
         Profiler::add($driver);
 
         // Test
-        $object = new \Magento\Framework\Cache\Frontend\Decorator\Profiler($frontendMock, ['Zend_Cache_Backend_']);
+        $object = new \Magento\Framework\Cache\Frontend\Decorator\Profiler($frontendMock, []);
         $helper = new ProxyTesting();
         $result = $helper->invokeWithExpectations($object, $frontendMock, $method, $params, $expectedResult);
         $this->assertSame($expectedResult, $result);
@@ -69,7 +69,8 @@ class ProfilerTest extends TestCase
 
     protected function getMockForZendCache()
     {
-        $adaptee = $this->createMock(\Zend_Cache_Core::class);
+        // Create a simple mock object for low-level frontend
+        $adaptee = $this->createMock(\stdClass::class);
         $frontendFactory = function () use ($adaptee) {
             return $adaptee;
         };
@@ -82,7 +83,8 @@ class ProfilerTest extends TestCase
      */
     public static function proxyMethodDataProvider()
     {
-        $backend = new \Zend_Cache_Backend_BlackHole();
+        // Use a simple mock object for backend (like BlackHole - does nothing)
+        $backend = new \stdClass();
         $lowLevelFrontend = static fn (self $testCase) => $testCase->getMockForZendCache();
 
         return [
@@ -96,7 +98,7 @@ class ProfilerTest extends TestCase
                     'group' => 'cache',
                     'operation' => 'cache:test',
                     'frontend_type' => Zend::class,
-                    'backend_type' => 'BlackHole'
+                    'backend_type' => 'stdClass'
                 ],
                 111,
             ],
@@ -110,7 +112,7 @@ class ProfilerTest extends TestCase
                     'group' => 'cache',
                     'operation' => 'cache:load',
                     'frontend_type' => Zend::class,
-                    'backend_type' => 'BlackHole'
+                    'backend_type' => 'stdClass'
                 ],
                 '111'
             ],
@@ -124,7 +126,7 @@ class ProfilerTest extends TestCase
                     'group' => 'cache',
                     'operation' => 'cache:save',
                     'frontend_type' => Zend::class,
-                    'backend_type' => 'BlackHole'
+                    'backend_type' => 'stdClass'
                 ],
                 true
             ],
@@ -138,7 +140,7 @@ class ProfilerTest extends TestCase
                     'group' => 'cache',
                     'operation' => 'cache:remove',
                     'frontend_type' => Zend::class,
-                    'backend_type' => 'BlackHole'
+                    'backend_type' => 'stdClass'
                 ],
                 true
             ],
@@ -152,7 +154,7 @@ class ProfilerTest extends TestCase
                     'group' => 'cache',
                     'operation' => 'cache:clean',
                     'frontend_type' => Zend::class,
-                    'backend_type' => 'BlackHole'
+                    'backend_type' => 'stdClass'
                 ],
                 true
             ]

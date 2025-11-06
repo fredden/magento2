@@ -1,36 +1,40 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2018 Adobe
+ * All Rights Reserved.
  */
+declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Backend;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Cache\CompositeStaleCacheNotifier;
+use Magento\Framework\Cache\Exception\CacheException;
 use Magento\Framework\Cache\StaleCacheNotifierInterface;
 
 /**
  * Remote synchronized cache
  *
- * This class created for correct work witch local caches and multiple web nodes,
+ * This class created for correct work with local caches and multiple web nodes,
  * in order to be sure that we always have up to date local version of cache.
- * This class will be check cache version from remote cache and in case it newer
- * than local one, it will update local one from remote cache a.k.a two level cache.
+ * This class will check cache version from remote cache and in case it's newer
+ * than local one, it will update local one from remote cache (two-level cache).
+ *
+ * @api
  */
-class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache_Backend_ExtendedInterface
+class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackendInterface
 {
     /**
      * Local backend cache adapter
      *
-     * @var \Zend_Cache_Backend_ExtendedInterface
+     * @var ExtendedBackendInterface
      */
     private $local;
 
     /**
      * Remote backend cache adapter
      *
-     * @var \Zend_Cache_Backend_ExtendedInterface
+     * @var ExtendedBackendInterface
      */
     private $remote;
 
@@ -82,58 +86,48 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     private $notifier;
 
     /**
+     * Constructor
+     *
      * @param array $options
-     * @throws \Zend_Cache_Exception
+     * @throws CacheException
      */
     public function __construct(array $options = [])
     {
         parent::__construct($options);
 
-        $universalOptions = array_diff_key($options, $this->_options);
-
+        // Validate and set remote backend
         if ($this->_options['remote_backend'] === null) {
-            \Zend_Cache::throwException('remote_backend option must be set');
-        } elseif ($this->_options['remote_backend'] instanceof \Zend_Cache_Backend_ExtendedInterface) {
-            $this->remote = $this->_options['remote_backend'];
-        } else {
-            $this->remote = \Zend_Cache::_makeBackend(
-                $this->_options['remote_backend'],
-                array_merge($universalOptions, $this->_options['remote_backend_options']),
-                $this->_options['remote_backend_custom_naming'],
-                $this->_options['remote_backend_autoload']
-            );
-            if (!($this->remote instanceof \Zend_Cache_Backend_ExtendedInterface)) {
-                \Zend_Cache::throwException(
-                    'remote_backend must implement the Zend_Cache_Backend_ExtendedInterface interface'
-                );
-            }
+            throw new CacheException(__('remote_backend option must be set'));
         }
+        
+        if (!($this->_options['remote_backend'] instanceof ExtendedBackendInterface)) {
+            throw new CacheException(
+                __('remote_backend must implement ExtendedBackendInterface')
+            );
+        }
+        
+        $this->remote = $this->_options['remote_backend'];
 
+        // Validate and set local backend
         if ($this->_options['local_backend'] === null) {
-            \Zend_Cache::throwException('local_backend option must be set');
-        } elseif ($this->_options['local_backend'] instanceof \Zend_Cache_Backend_ExtendedInterface) {
-            $this->local = $this->_options['local_backend'];
-        } else {
-            $this->local = \Zend_Cache::_makeBackend(
-                $this->_options['local_backend'],
-                array_merge($universalOptions, $this->_options['local_backend_options']),
-                $this->_options['local_backend_custom_naming'],
-                $this->_options['local_backend_autoload']
-            );
-            if (!($this->local instanceof \Zend_Cache_Backend_ExtendedInterface)) {
-                \Zend_Cache::throwException(
-                    'local_backend must implement the Zend_Cache_Backend_ExtendedInterface interface'
-                );
-            }
+            throw new CacheException(__('local_backend option must be set'));
         }
+        
+        if (!($this->_options['local_backend'] instanceof ExtendedBackendInterface)) {
+            throw new CacheException(
+                __('local_backend must implement ExtendedBackendInterface')
+            );
+        }
+        
+        $this->local = $this->_options['local_backend'];
 
         $this->lockSign = $this->generateLockSign();
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function setDirectives($directives)
+    public function setDirectives(array $directives): void
     {
         $this->remote->setDirectives($directives);
         $this->local->setDirectives($directives);
@@ -191,7 +185,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * @inheritdoc
      */
-    public function load($id, $doNotTestCacheValidity = false)
+    public function load(string $id, bool $doNotTestCacheValidity = false)
     {
         $localData = $this->local->load($id);
 
@@ -221,7 +215,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * @inheritdoc
      */
-    public function test($id)
+    public function test(string $id)
     {
         return $this->_options['use_stale_cache'] ?
             ($this->local->test($id) ?? $this->remote->test($id))
@@ -231,7 +225,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * @inheritdoc
      */
-    public function save($data, $id, $tags = [], $specificLifetime = false)
+    public function save($data, string $id, array $tags = [], ?int $specificLifetime = null): bool
     {
         $dataToSave = $data;
         $remHash = $this->loadRemoteDataVersion($id);
@@ -276,7 +270,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * @inheritdoc
      */
-    public function remove($id)
+    public function remove(string $id): bool
     {
         $result = $this->removeRemoteDataVersion($id) && $this->remote->remove($id);
         if ($result && !$this->_options['use_stale_cache']) {
@@ -288,7 +282,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * @inheritdoc
      */
-    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, $tags = [])
+    public function clean(string $mode = 'all', array $tags = []): bool
     {
         return $this->remote->clean($mode, $tags) &&
             $this->local->clean($mode);
@@ -297,7 +291,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * @inheritdoc
      */
-    public function getIds()
+    public function getIds(): array
     {
         return $this->remote->getIds();
     }
@@ -305,7 +299,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * @inheritdoc
      */
-    public function getTags()
+    public function getTags(): array
     {
         return $this->remote->getTags();
     }
@@ -313,7 +307,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * @inheritdoc
      */
-    public function getIdsMatchingTags($tags = [])
+    public function getIdsMatchingTags(array $tags = []): array
     {
         return $this->remote->getIdsMatchingTags($tags);
     }
@@ -321,7 +315,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * @inheritdoc
      */
-    public function getIdsNotMatchingTags($tags = [])
+    public function getIdsNotMatchingTags(array $tags = []): array
     {
         return $this->remote->getIdsNotMatchingTags($tags);
     }
@@ -329,7 +323,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * @inheritdoc
      */
-    public function getIdsMatchingAnyTags($tags = [])
+    public function getIdsMatchingAnyTags(array $tags = []): array
     {
         return $this->remote->getIdsMatchingAnyTags($tags);
     }
@@ -337,7 +331,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * @inheritdoc
      */
-    public function getFillingPercentage()
+    public function getFillingPercentage(): int
     {
         return $this->remote->getFillingPercentage();
     }
@@ -345,7 +339,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * @inheritdoc
      */
-    public function getMetadatas($id)
+    public function getMetadatas(string $id)
     {
         return $this->remote->getMetadatas($id);
     }
@@ -353,7 +347,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * @inheritdoc
      */
-    public function touch($id, $extraLifetime)
+    public function touch(string $id, int $extraLifetime): bool
     {
         return $this->remote->touch($id, $extraLifetime);
     }
@@ -361,7 +355,7 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * @inheritdoc
      */
-    public function getCapabilities()
+    public function getCapabilities(): array
     {
         return $this->remote->getCapabilities();
     }
@@ -396,11 +390,12 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
     /**
      * Release a lock.
      *
-     * @param string $id
+     * @param string|int $id
      * @return bool
      */
-    private function unlock(string $id): bool
+    private function unlock(string|int $id): bool
     {
+        $id = (string)$id;
         if (isset($this->lockList[$id])) {
             unset($this->lockList[$id]);
         }
@@ -435,9 +430,9 @@ class RemoteSynchronizedCache extends \Zend_Cache_Backend implements \Zend_Cache
      *
      * @return void
      */
-    private function unlockAll()
+    private function unlockAll(): void
     {
-        foreach ($this->lockList as $id) {
+        foreach (array_keys($this->lockList) as $id) {
             $this->unlock($id);
         }
     }

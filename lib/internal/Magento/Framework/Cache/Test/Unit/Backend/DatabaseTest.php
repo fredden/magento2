@@ -9,6 +9,7 @@ namespace Magento\Framework\Cache\Test\Unit\Backend;
 
 use Magento\Framework\Cache\Backend\Database;
 use Magento\Framework\Cache\CacheConstants;
+use Magento\Framework\Cache\Exception\CacheException;
 use Magento\Framework\DB\Adapter\Pdo\Mysql;
 use Magento\Framework\DB\Select;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
@@ -41,7 +42,7 @@ class DatabaseTest extends TestCase
         if ($options['adapter']!='' && is_callable($options['adapter'])) {
             $options['adapter'] = $options['adapter']($this);
         }
-        $this->expectException('Zend_Cache_Exception');
+        $this->expectException(CacheException::class);
         $this->objectManager->getObject(
             Database::class,
             ['options' => $options]
@@ -103,8 +104,8 @@ class DatabaseTest extends TestCase
             ['options' => $options]
         );
 
-        $this->assertEquals($expected, $database->load(5));
-        $this->assertEquals($expected, $database->load(5, true));
+        $this->assertEquals($expected, $database->load('5'));
+        $this->assertEquals($expected, $database->load('5', true));
     }
 
     protected function getMockForMysqlClass()
@@ -215,8 +216,8 @@ class DatabaseTest extends TestCase
             ['options' => $options]
         );
 
-        $this->assertEquals($expected, $database->load(5));
-        $this->assertEquals($expected, $database->load(5, true));
+        $this->assertEquals($expected, $database->load('5'));
+        $this->assertEquals($expected, $database->load('5', true));
     }
 
     /**
@@ -235,7 +236,7 @@ class DatabaseTest extends TestCase
             ['options' => $options]
         );
 
-        $this->assertEquals($expected, $database->save('data', 4));
+        $this->assertEquals($expected, $database->save('data', '4'));
     }
 
     /**
@@ -306,7 +307,7 @@ class DatabaseTest extends TestCase
             ['options' => $options]
         );
 
-        $this->assertEquals($expected, $database->remove(3));
+        $this->assertEquals($expected, $database->remove('3'));
     }
 
     protected function getMockForMysqlClassTwo()
@@ -432,7 +433,7 @@ class DatabaseTest extends TestCase
      */
     public function testCleanException(): void
     {
-        $this->expectException('Zend_Cache_Exception');
+        $this->expectException(CacheException::class);
         /** @var Database $database */
         $database = $this->objectManager->getObject(
             Database::class,
@@ -707,7 +708,7 @@ class DatabaseTest extends TestCase
                 'mtime' => 2,
                 'tags' => ['some_value_one', 'some_value_two']
             ],
-            $database->getMetadatas(5)
+            $database->getMetadatas('5')
         );
     }
 
@@ -727,7 +728,7 @@ class DatabaseTest extends TestCase
             ['options' => $options]
         );
 
-        $this->assertEquals($expected, $database->touch(2, 100));
+        $this->assertEquals($expected, $database->touch('2', 100));
     }
 
     protected function getMockForMysqlClassFive()

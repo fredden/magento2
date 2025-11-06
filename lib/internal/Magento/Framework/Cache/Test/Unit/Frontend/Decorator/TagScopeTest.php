@@ -103,7 +103,7 @@ class TagScopeTest extends TestCase
                 ['test_tag_one', 'test_tag_two', 'enforced_tag']
             )->willReturn($expectedResult);
         $actualResult = $this->_object->clean(
-            \Zend_Cache::CLEANING_MODE_MATCHING_TAG,
+            CacheConstants::CLEANING_MODE_MATCHING_TAG,
             ['test_tag_one', 'test_tag_two']
         );
         $this->assertSame($expectedResult, $actualResult);
@@ -126,7 +126,7 @@ class TagScopeTest extends TestCase
                     if ($arg1 == CacheConstants::CLEANING_MODE_MATCHING_TAG &&
                         $arg2 == ['test_tag_one', 'enforced_tag']) {
                         return $fixtureResultOne;
-                    } elseif ($arg1 == \Zend_Cache::CLEANING_MODE_MATCHING_TAG &&
+                    } elseif ($arg1 == CacheConstants::CLEANING_MODE_MATCHING_TAG &&
                         $arg2 == ['test_tag_two', 'enforced_tag']) {
                         return $fixtureResultTwo;
                     }

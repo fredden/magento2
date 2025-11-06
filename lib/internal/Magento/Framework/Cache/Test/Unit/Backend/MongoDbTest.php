@@ -9,6 +9,7 @@ namespace Magento\Framework\Cache\Test\Unit\Backend;
 
 use Magento\Framework\Cache\Backend\MongoDb;
 use Magento\Framework\Cache\CacheConstants;
+use Magento\Framework\Cache\Exception\CacheException;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -202,7 +203,7 @@ class MongoDbTest extends TestCase
             ],
             'non-existing record' => ['test_id', ['_id' => 'test_id'], null, false],
             'non-string id' => [
-                10,
+                '10',
                 ['_id' => '10'],
                 ['_id' => 'test_id', 'data' => 'data', 'tags' => [], 'expire' => $time, 'mtime' => $time],
                 ['_id' => 'test_id', 'data' => 'data', 'tags' => [], 'expire' => $time, 'mtime' => $time],
@@ -354,7 +355,7 @@ class MongoDbTest extends TestCase
             'clean expired' => [CacheConstants::CLEANING_MODE_OLD, [], self::arrayHasKey('expire')],
             'clean cache matching all tags (string)' => [
                 CacheConstants::CLEANING_MODE_MATCHING_TAG,
-                'tag1',
+                ['tag1'],
                 ['$and' => [['tags' => 'tag1']]],
             ],
             'clean cache matching all tags (one tag)' => [
@@ -369,7 +370,7 @@ class MongoDbTest extends TestCase
             ],
             'clean cache not matching tags (string)' => [
                 CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG,
-                'tag1',
+                ['tag1'],
                 ['$nor' => [['tags' => 'tag1']]],
             ],
             'clean cache not matching tags (one tag)' => [
@@ -384,7 +385,7 @@ class MongoDbTest extends TestCase
             ],
             'clean cache matching any tags (string)' => [
                 CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG,
-                'tag1',
+                ['tag1'],
                 ['$or' => [['tags' => 'tag1']]],
             ],
             'clean cache matching any tags (one tag)' => [
@@ -421,7 +422,7 @@ class MongoDbTest extends TestCase
 
     public function testCleanInvalidMode()
     {
-        $this->expectException('Zend_Cache_Exception');
+        $this->expectException(CacheException::class);
         $this->expectExceptionMessage('Unsupported cleaning mode: invalid_mode');
         $this->_model->clean('invalid_mode');
     }

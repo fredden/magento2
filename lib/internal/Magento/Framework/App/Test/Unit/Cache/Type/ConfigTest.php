@@ -78,12 +78,12 @@ class ConfigTest extends TestCase
 
     public function createZendCacheBackendMock()
     {
-        return $this->createMock(\Zend_Cache_Backend::class);
+        return $this->createMock(\stdClass::class);
     }
 
     public function createZendCacheCoreMock()
     {
-        return $this->createMock(\Zend_Cache_Core::class);
+        return $this->createMock(\stdClass::class);
     }
 
     public function testSave(): void

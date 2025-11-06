@@ -6,7 +6,17 @@
 
 namespace Magento\Framework\Cache\Backend;
 
-class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_ExtendedInterface
+use Magento\Framework\Cache\CacheConstants;
+use Magento\Framework\Cache\Exception\CacheException;
+
+/**
+ * eAccelerator cache backend
+ *
+ * @deprecated eAccelerator extension is no longer maintained (last update 2012).
+ *             Use Symfony Cache with Redis or File adapters instead.
+ * @see \Magento\Framework\Cache\Frontend\Adapter\Symfony
+ */
+class Eaccelerator extends AbstractBackend implements ExtendedBackendInterface
 {
     /**
      * Log message
@@ -20,13 +30,15 @@ class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_Ex
     /**
      * Constructor
      *
-     * @param  array $options associative array of options
-     * @throws \Zend_Cache_Exception
+     * @param array $options associative array of options
+     * @throws CacheException
      */
     public function __construct(array $options = [])
     {
         if (!extension_loaded('eaccelerator')) {
-            \Zend_Cache::throwException('The eaccelerator extension must be loaded for using this backend !');
+            throw new CacheException(
+                __('The eaccelerator extension must be loaded for using this backend!')
+            );
         }
         parent::__construct($options);
     }
@@ -41,7 +53,7 @@ class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_Ex
      * @return string cached datas (or false)
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function load($id, $doNotTestCacheValidity = false)
+    public function load(string $id, bool $doNotTestCacheValidity = false)
     {
         $tmp = eaccelerator_get($id);
         if (is_array($tmp)) {
@@ -56,7 +68,7 @@ class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_Ex
      * @param  string $id cache id
      * @return mixed false (a cache is not available) or "last modified" timestamp (int) of the available cache record
      */
-    public function test($id)
+    public function test(string $id)
     {
         $tmp = eaccelerator_get($id);
         if (is_array($tmp)) {
@@ -77,7 +89,7 @@ class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_Ex
      * @param int|bool $specificLifetime Integer to set a specific lifetime or null for infinite lifetime
      * @return bool true if no problem
      */
-    public function save($data, $id, $tags = [], $specificLifetime = false)
+    public function save($data, string $id, array $tags = [], ?int $specificLifetime = null): bool
     {
         $lifetime = $this->getLifetime($specificLifetime);
         $result = eaccelerator_put($id, [$data, time(), $lifetime], $lifetime);
@@ -93,7 +105,7 @@ class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_Ex
      * @param  string $id cache id
      * @return bool true if no problem
      */
-    public function remove($id)
+    public function remove(string $id): bool
     {
         return eaccelerator_rm($id);
     }
@@ -109,48 +121,51 @@ class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_Ex
      * 'matchingAnyTag' => unsupported
      *
      * @param string $mode clean mode
-     * @param string[] $tags array of tags
-     * @throws \Zend_Cache_Exception
-     * @return bool|void true if no problem
+     * @param array $tags array of tags
+     * @throws CacheException
+     * @return bool true if no problem
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, $tags = [])
+    public function clean(string $mode = CacheConstants::CLEANING_MODE_ALL, array $tags = []): bool
     {
         switch ($mode) {
-            case \Zend_Cache::CLEANING_MODE_ALL:
+            case CacheConstants::CLEANING_MODE_ALL:
+            case 'all':
                 return eaccelerator_clean();
-                break;
-            case \Zend_Cache::CLEANING_MODE_OLD:
-                $this->_log(
+            case CacheConstants::CLEANING_MODE_OLD:
+            case 'old':
+                $this->log(
                     "Magento\Framework\Cache\Backend\Eaccelerator::clean() : ".
                     "CLEANING_MODE_OLD is unsupported by the Eaccelerator backend"
                 );
-                break;
-            case \Zend_Cache::CLEANING_MODE_MATCHING_TAG:
-            case \Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG:
-            case \Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG:
-                $this->_log(self::TAGS_UNSUPPORTED_BY_CLEAN_OF_EACCELERATOR_BACKEND);
-                break;
+                return false;
+            case CacheConstants::CLEANING_MODE_MATCHING_TAG:
+            case CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG:
+            case CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG:
+            case 'matchingTag':
+            case 'notMatchingTag':
+            case 'matchingAnyTag':
+                $this->log(self::TAGS_UNSUPPORTED_BY_CLEAN_OF_EACCELERATOR_BACKEND);
+                return false;
             default:
-                \Zend_Cache::throwException('Invalid mode for clean() method');
-                break;
+                throw new CacheException(__('Invalid mode for clean() method'));
         }
     }
 
     /**
      * Return the filling percentage of the backend storage
      *
-     * @throws \Zend_Cache_Exception
+     * @throws CacheException
      * @return int integer between 0 and 100
      */
-    public function getFillingPercentage()
+    public function getFillingPercentage(): int
     {
         $mem = eaccelerator_info();
         $memSize = $mem['memorySize'];
         $memAvailable = $mem['memoryAvailable'];
         $memUsed = $memSize - $memAvailable;
         if ($memSize == 0) {
-            \Zend_Cache::throwException('can\'t get eaccelerator memory size');
+            throw new CacheException(__('Cannot get eaccelerator memory size'));
         }
         if ($memUsed > $memSize) {
             return 100;
@@ -163,7 +178,7 @@ class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_Ex
      *
      * @return string[] array of stored tags (string)
      */
-    public function getTags()
+    public function getTags(): array
     {
         $this->_log(self::TAGS_UNSUPPORTED_BY_SAVE_OF_EACCELERATOR_BACKEND);
         return [];
@@ -178,7 +193,7 @@ class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_Ex
      * @return string[] array of matching cache ids (string)
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getIdsMatchingTags($tags = [])
+    public function getIdsMatchingTags(array $tags = []): array
     {
         $this->_log(self::TAGS_UNSUPPORTED_BY_SAVE_OF_EACCELERATOR_BACKEND);
         return [];
@@ -193,7 +208,7 @@ class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_Ex
      * @return string[] array of not matching cache ids (string)
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getIdsNotMatchingTags($tags = [])
+    public function getIdsNotMatchingTags(array $tags = []): array
     {
         $this->_log(self::TAGS_UNSUPPORTED_BY_SAVE_OF_EACCELERATOR_BACKEND);
         return [];
@@ -208,7 +223,7 @@ class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_Ex
      * @return string[] array of any matching cache ids (string)
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getIdsMatchingAnyTags($tags = [])
+    public function getIdsMatchingAnyTags(array $tags = []): array
     {
         $this->_log(self::TAGS_UNSUPPORTED_BY_SAVE_OF_EACCELERATOR_BACKEND);
         return [];
@@ -220,7 +235,7 @@ class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_Ex
      * @return string[] array of stored cache ids (string)
      * @SuppressWarnings(PHPMD.UnusedLocalVariable)
      */
-    public function getIds()
+    public function getIds(): array
     {
         $res = [];
         $array = eaccelerator_list_keys();
@@ -242,7 +257,7 @@ class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_Ex
      * @return array|false array of metadatas (false if the cache id is not found)
      * @SuppressWarnings(PHPMD.UnusedLocalVariable)
      */
-    public function getMetadatas($id)
+    public function getMetadatas(string $id)
     {
         $tmp = eaccelerator_get($id);
         if (is_array($tmp)) {
@@ -266,7 +281,7 @@ class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_Ex
      * @param int $extraLifetime
      * @return bool true if ok
      */
-    public function touch($id, $extraLifetime)
+    public function touch(string $id, int $extraLifetime): bool
     {
         $tmp = eaccelerator_get($id);
         if (is_array($tmp)) {
@@ -302,7 +317,7 @@ class Eaccelerator extends \Zend_Cache_Backend implements \Zend_Cache_Backend_Ex
      *
      * @return array associative of with capabilities
      */
-    public function getCapabilities()
+    public function getCapabilities(): array
     {
         return [
             'automatic_cleaning' => false,
