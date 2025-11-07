@@ -20,5 +20,9 @@ var config = {
         'Magento_Checkout/js/model/totals' : {
             deps: ['Magento_Customer/js/customer-data']
         }
-    }
+    },
+    deps: [
+        'mage/requirejs/baseUrlResolver',
+        'mage/requirejs/mixins'
+    ]
 };
