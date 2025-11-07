@@ -20,7 +20,6 @@ use Magento\Framework\Phrase;
  *
  * @deprecated Use Symfony Cache with MemcachedAdapter for better performance and PSR-6 compliance.
  * @see \Symfony\Component\Cache\Adapter\MemcachedAdapter
- * @api
  */
 class Memcached extends AbstractBackend implements ExtendedBackendInterface
 {
@@ -118,7 +117,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      * @param bool $doNotTestCacheValidity If set to true, the cache validity won't be tested
      * @return string|false Cached data or false
      */
-    public function load(string $id, bool $doNotTestCacheValidity = false)
+    public function load($id, $doNotTestCacheValidity = false)
     {
         $data = $this->loadDirect($id, $doNotTestCacheValidity);
 
@@ -155,7 +154,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      * @param string $id Cache id
      * @return int|false "last modified" timestamp (int) or false if not available
      */
-    public function test(string $id)
+    public function test($id)
     {
         $result = $this->memcached->get($this->prefix . $id);
         if ($result === false) {
@@ -174,7 +173,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      * @param int|null $specificLifetime If not null, set a specific lifetime for this cache record
      * @return bool True if no problem
      */
-    public function save($data, string $id, array $tags = [], ?int $specificLifetime = null): bool
+    public function save($data, $id, $tags = [], $specificLifetime = null)
     {
         // Handle chunking for large data
         if (is_string($data) && strlen($data) > $this->_options['slab_size']) {
@@ -201,7 +200,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      * @param string $id Cache id
      * @return bool True if no problem
      */
-    public function remove(string $id): bool
+    public function remove($id)
     {
         return $this->memcached->delete($this->prefix . $id);
     }
@@ -220,8 +219,9 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      * @param array $tags Array of tags
      * @return bool True if no problem
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
-    public function clean(string $mode = CacheConstants::CLEANING_MODE_ALL, array $tags = []): bool
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, $tags = [])
     {
         switch ($mode) {
             case CacheConstants::CLEANING_MODE_ALL:
@@ -250,7 +250,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      *
      * @return array Array of stored cache ids (string)
      */
-    public function getIds(): array
+    public function getIds()
     {
         // Memcached doesn't support listing all keys
         $this->log('Memcached backend does not support listing all keys');
@@ -262,7 +262,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      *
      * @return array Array of stored tags (string)
      */
-    public function getTags(): array
+    public function getTags()
     {
         // Memcached doesn't support tags natively
         return [];
@@ -275,7 +275,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      * @return array Array of matching cache ids (string)
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getIdsMatchingTags(array $tags = []): array
+    public function getIdsMatchingTags($tags = [])
     {
         // Memcached doesn't support tags natively
         return [];
@@ -288,7 +288,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      * @return array Array of not matching cache ids (string)
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getIdsNotMatchingTags(array $tags = []): array
+    public function getIdsNotMatchingTags($tags = [])
     {
         // Memcached doesn't support tags natively
         return [];
@@ -301,7 +301,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      * @return array Array of any matching cache ids (string)
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getIdsMatchingAnyTags(array $tags = []): array
+    public function getIdsMatchingAnyTags($tags = [])
     {
         // Memcached doesn't support tags natively
         return [];
@@ -312,7 +312,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      *
      * @return int Integer between 0 and 100
      */
-    public function getFillingPercentage(): int
+    public function getFillingPercentage()
     {
         $stats = $this->memcached->getStats();
         if (empty($stats)) {
@@ -322,7 +322,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
         $total = 0;
         $used = 0;
 
-        foreach ($stats as $server => $stat) {
+        foreach ($stats as $stat) {
             if (isset($stat['limit_maxbytes']) && isset($stat['bytes'])) {
                 $total += $stat['limit_maxbytes'];
                 $used += $stat['bytes'];
@@ -342,7 +342,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      * @param string $id Cache id
      * @return array|false Array of metadatas or false if not found
      */
-    public function getMetadatas(string $id)
+    public function getMetadatas($id)
     {
         $result = $this->memcached->get($this->prefix . $id);
         if ($result === false) {
@@ -364,7 +364,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      * @param int $extraLifetime Extra lifetime in seconds
      * @return bool True if ok
      */
-    public function touch(string $id, int $extraLifetime): bool
+    public function touch($id, $extraLifetime)
     {
         $data = $this->memcached->get($this->prefix . $id);
         if ($data === false) {
@@ -380,7 +380,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      *
      * @return array Associative array of capabilities
      */
-    public function getCapabilities(): array
+    public function getCapabilities()
     {
         return [
             'automatic_cleaning' => true,
@@ -456,6 +456,7 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
      * @param string $message
      * @param int $priority
      * @return void
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function log(string $message, int $priority = 4): void
     {

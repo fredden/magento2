@@ -12,8 +12,6 @@ namespace Magento\Framework\Cache\Backend;
  *
  * Modern replacement for \Zend_Cache_Backend_ExtendedInterface
  * Adds advanced cache operations like querying IDs and tags.
- *
- * @api
  */
 interface ExtendedBackendInterface extends BackendInterface
 {
@@ -22,14 +20,14 @@ interface ExtendedBackendInterface extends BackendInterface
      *
      * @return array Array of stored cache ids (string)
      */
-    public function getIds(): array;
+    public function getIds();
 
     /**
      * Return an array of stored tags
      *
      * @return array Array of stored tags (string)
      */
-    public function getTags(): array;
+    public function getTags();
 
     /**
      * Return an array of stored cache ids which match given tags
@@ -39,7 +37,7 @@ interface ExtendedBackendInterface extends BackendInterface
      * @param array $tags Array of tags
      * @return array Array of matching cache ids (string)
      */
-    public function getIdsMatchingTags(array $tags = []): array;
+    public function getIdsMatchingTags($tags = []);
 
     /**
      * Return an array of stored cache ids which don't match given tags
@@ -49,7 +47,7 @@ interface ExtendedBackendInterface extends BackendInterface
      * @param array $tags Array of tags
      * @return array Array of not matching cache ids (string)
      */
-    public function getIdsNotMatchingTags(array $tags = []): array;
+    public function getIdsNotMatchingTags($tags = []);
 
     /**
      * Return an array of stored cache ids which match any given tags
@@ -59,14 +57,14 @@ interface ExtendedBackendInterface extends BackendInterface
      * @param array $tags Array of tags
      * @return array Array of matching cache ids (string)
      */
-    public function getIdsMatchingAnyTags(array $tags = []): array;
+    public function getIdsMatchingAnyTags($tags = []);
 
     /**
      * Return the filling percentage of the backend storage
      *
      * @return int An integer between 0 and 100
      */
-    public function getFillingPercentage(): int;
+    public function getFillingPercentage();
 
     /**
      * Return an associative array of metadatas for the given cache id
@@ -79,7 +77,7 @@ interface ExtendedBackendInterface extends BackendInterface
      * @param string $id Cache id
      * @return array|false Associative array of metadatas or false if cache doesn't exist
      */
-    public function getMetadatas(string $id);
+    public function getMetadatas($id);
 
     /**
      * Give (if possible) an extra lifetime to the given cache id
@@ -88,7 +86,7 @@ interface ExtendedBackendInterface extends BackendInterface
      * @param int $extraLifetime Extra lifetime (in seconds)
      * @return bool True if ok
      */
-    public function touch(string $id, int $extraLifetime): bool;
+    public function touch($id, $extraLifetime);
 
     /**
      * Return an associative array of capabilities of the backend
@@ -103,5 +101,5 @@ interface ExtendedBackendInterface extends BackendInterface
      *
      * @return array Associative array of capabilities
      */
-    public function getCapabilities(): array;
+    public function getCapabilities();
 }

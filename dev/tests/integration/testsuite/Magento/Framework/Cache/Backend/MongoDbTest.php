@@ -10,8 +10,14 @@ use Magento\Framework\Cache\Exception\CacheException;
 
 class MongoDbTest extends \PHPUnit\Framework\TestCase
 {
+    /**
+     * @var string
+     */
     protected $_connectionString;
 
+    /**
+     * @var string
+     */
     protected $_dbName = 'magento_integration_test';
 
     /**

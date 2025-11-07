@@ -12,8 +12,6 @@ namespace Magento\Framework\Cache\Backend;
  *
  * Modern replacement for \Zend_Cache_Backend
  * Provides common functionality for all backend implementations.
- *
- * @api
  */
 abstract class AbstractBackend implements BackendInterface
 {
@@ -55,7 +53,8 @@ abstract class AbstractBackend implements BackendInterface
      *
      * Cumulative since 1.7:
      * - (int) lifetime: cache lifetime (in seconds), null => infinite lifetime
-     * - (int) priority: integer between 0 (very low priority) and 10 (maximum priority) used by some particular backends
+     * - (int) priority: integer between 0 (very low priority) and 10 (maximum priority)
+     *   used by some particular backends
      * - (boolean) logging: if set to true, a logging is done through the frontend->log() method
      *
      * @var array
@@ -95,7 +94,7 @@ abstract class AbstractBackend implements BackendInterface
      * @param array $directives Assoc of directives
      * @return void
      */
-    public function setDirectives(array $directives): void
+    public function setDirectives($directives)
     {
         foreach ($directives as $name => $value) {
             if (array_key_exists($name, $this->_directives)) {
@@ -112,7 +111,7 @@ abstract class AbstractBackend implements BackendInterface
      * @param mixed $value Option value
      * @return void
      */
-    public function setOption(string $name, $value): void
+    public function setOption($name, $value)
     {
         $this->_options[$name] = $value;
     }
@@ -123,7 +122,7 @@ abstract class AbstractBackend implements BackendInterface
      * @param string $name Option name
      * @return mixed Option value or null if not set
      */
-    public function getOption(string $name)
+    public function getOption($name)
     {
         return $this->_options[$name] ?? null;
     }
@@ -134,7 +133,7 @@ abstract class AbstractBackend implements BackendInterface
      * @param object $frontend Frontend object
      * @return void
      */
-    public function setFrontend($frontend): void
+    public function setFrontend($frontend)
     {
         $this->_frontend = $frontend;
     }

@@ -19,8 +19,6 @@ use Psr\Cache\CacheItemPoolInterface;
  *
  * Provides BackendInterface-compatible wrapper for Symfony PSR-6 cache.
  * Delegates operations to the Symfony frontend for proper tag and metadata handling.
- *
- * @api
  */
 class BackendWrapper implements BackendInterface
 {
@@ -60,7 +58,7 @@ class BackendWrapper implements BackendInterface
      * @param string $id Cache id
      * @return int|false Last modified timestamp if available, false otherwise
      */
-    public function test(string $id)
+    public function test($id)
     {
         return $this->symfony->test($id);
     }
@@ -72,7 +70,7 @@ class BackendWrapper implements BackendInterface
      * @param bool $doNotTestCacheValidity If true, validity not tested
      * @return string|false Cached data or false if not available
      */
-    public function load(string $id, bool $doNotTestCacheValidity = false)
+    public function load($id, $doNotTestCacheValidity = false)
     {
         // Delegate to frontend (validity always tested in Symfony)
         return $this->symfony->load($id);
@@ -87,7 +85,7 @@ class BackendWrapper implements BackendInterface
      * @param int|null $specificLifetime Specific lifetime (null = infinite)
      * @return bool True if no problem
      */
-    public function save($data, string $id, array $tags = [], ?int $specificLifetime = null): bool
+    public function save($data, $id, $tags = [], $specificLifetime = null)
     {
         // Delegate to frontend for full save logic
         return $this->symfony->save($data, $id, $tags, $specificLifetime);
@@ -99,7 +97,7 @@ class BackendWrapper implements BackendInterface
      * @param string $id Cache id
      * @return bool True if no problem
      */
-    public function remove(string $id): bool
+    public function remove($id)
     {
         // Delegate to frontend
         return $this->symfony->remove($id);
@@ -113,7 +111,7 @@ class BackendWrapper implements BackendInterface
      * @return bool True if no problem
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function clean(string $mode = 'all', array $tags = []): bool
+    public function clean($mode = 'all', $tags = [])
     {
         return match ($mode) {
             CacheConstants::CLEANING_MODE_ALL, 'all' => $this->clear(),
@@ -130,11 +128,13 @@ class BackendWrapper implements BackendInterface
      * @return void
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function setOption(string $name, $value): void
+    // phpcs:disable Magento2.CodeAnalysis.EmptyBlock
+    public function setOption($name, $value)
     {
-        // For Symfony, backend options are not stored in the wrapper
+        // Intentional no-op: Symfony backend options are not stored in the wrapper
         // This method exists for BackendInterface compliance but does nothing
     }
+    // phpcs:enable Magento2.CodeAnalysis.EmptyBlock
 
     /**
      * Clear all cache entries
@@ -154,9 +154,9 @@ class BackendWrapper implements BackendInterface
      * @return mixed
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getOption(string $name)
+    public function getOption($name)
     {
-        // For Symfony, backend options are not stored in the wrapper
+        // Symfony backend options are not stored in the wrapper
         // This method exists for Zend compatibility but returns null
         return null;
     }

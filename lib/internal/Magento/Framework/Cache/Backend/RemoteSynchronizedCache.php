@@ -19,8 +19,6 @@ use Magento\Framework\Cache\StaleCacheNotifierInterface;
  * in order to be sure that we always have up to date local version of cache.
  * This class will check cache version from remote cache and in case it's newer
  * than local one, it will update local one from remote cache (two-level cache).
- *
- * @api
  */
 class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackendInterface
 {
@@ -91,7 +89,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
      * @param array $options
      * @throws CacheException
      */
-    public function __construct(array $options = [])
+    public function __construct($options = [])
     {
         parent::__construct($options);
 
@@ -127,7 +125,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritDoc
      */
-    public function setDirectives(array $directives): void
+    public function setDirectives($directives)
     {
         $this->remote->setDirectives($directives);
         $this->local->setDirectives($directives);
@@ -185,7 +183,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritdoc
      */
-    public function load(string $id, bool $doNotTestCacheValidity = false)
+    public function load($id, $doNotTestCacheValidity = false)
     {
         $localData = $this->local->load($id);
 
@@ -215,7 +213,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritdoc
      */
-    public function test(string $id)
+    public function test($id)
     {
         return $this->_options['use_stale_cache'] ?
             ($this->local->test($id) ?? $this->remote->test($id))
@@ -225,7 +223,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritdoc
      */
-    public function save($data, string $id, array $tags = [], ?int $specificLifetime = null): bool
+    public function save($data, $id, $tags = [], $specificLifetime = null)
     {
         $dataToSave = $data;
         $remHash = $this->loadRemoteDataVersion($id);
@@ -270,7 +268,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritdoc
      */
-    public function remove(string $id): bool
+    public function remove($id)
     {
         $result = $this->removeRemoteDataVersion($id) && $this->remote->remove($id);
         if ($result && !$this->_options['use_stale_cache']) {
@@ -282,7 +280,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritdoc
      */
-    public function clean(string $mode = 'all', array $tags = []): bool
+    public function clean($mode = 'all', $tags = [])
     {
         return $this->remote->clean($mode, $tags) &&
             $this->local->clean($mode);
@@ -291,7 +289,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritdoc
      */
-    public function getIds(): array
+    public function getIds()
     {
         return $this->remote->getIds();
     }
@@ -299,7 +297,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritdoc
      */
-    public function getTags(): array
+    public function getTags()
     {
         return $this->remote->getTags();
     }
@@ -307,7 +305,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritdoc
      */
-    public function getIdsMatchingTags(array $tags = []): array
+    public function getIdsMatchingTags($tags = [])
     {
         return $this->remote->getIdsMatchingTags($tags);
     }
@@ -315,7 +313,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritdoc
      */
-    public function getIdsNotMatchingTags(array $tags = []): array
+    public function getIdsNotMatchingTags($tags = [])
     {
         return $this->remote->getIdsNotMatchingTags($tags);
     }
@@ -323,7 +321,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritdoc
      */
-    public function getIdsMatchingAnyTags(array $tags = []): array
+    public function getIdsMatchingAnyTags($tags = [])
     {
         return $this->remote->getIdsMatchingAnyTags($tags);
     }
@@ -331,7 +329,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritdoc
      */
-    public function getFillingPercentage(): int
+    public function getFillingPercentage()
     {
         return $this->remote->getFillingPercentage();
     }
@@ -339,7 +337,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritdoc
      */
-    public function getMetadatas(string $id)
+    public function getMetadatas($id)
     {
         return $this->remote->getMetadatas($id);
     }
@@ -347,7 +345,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritdoc
      */
-    public function touch(string $id, int $extraLifetime): bool
+    public function touch($id, $extraLifetime)
     {
         return $this->remote->touch($id, $extraLifetime);
     }
@@ -355,7 +353,7 @@ class RemoteSynchronizedCache extends AbstractBackend implements ExtendedBackend
     /**
      * @inheritdoc
      */
-    public function getCapabilities(): array
+    public function getCapabilities()
     {
         return $this->remote->getCapabilities();
     }

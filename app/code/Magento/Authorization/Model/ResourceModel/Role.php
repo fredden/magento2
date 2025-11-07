@@ -14,14 +14,14 @@ use Magento\Framework\Cache\CacheConstants;
 class Role extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
-     * Rule table
+     * Authorization rule table name
      *
      * @var string
      */
     protected $_ruleTable;
 
     /**
-     * Cache
+     * Cache frontend instance
      *
      * @var \Magento\Framework\Cache\FrontendInterface
      */

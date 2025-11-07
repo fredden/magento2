@@ -15,28 +15,27 @@ use Magento\Framework\Cache\Exception\CacheException;
 
 /**
  * Magento-native MongoDB cache backend
- *
- * @api
- * @deprecated MongoDB extension is deprecated since PHP 5.5. Use Symfony Cache instead.
  */
 class MongoDb extends AbstractBackend implements ExtendedBackendInterface
 {
     /**
      * Infinite expiration time
      */
-    const EXPIRATION_TIME_INFINITE = 0;
+    public const EXPIRATION_TIME_INFINITE = 0;
 
     /**#@+
      * Available comparison modes. Used for composing queries to search by tags
      */
-    const COMPARISON_MODE_MATCHING_TAG = CacheConstants::CLEANING_MODE_MATCHING_TAG;
+    public const COMPARISON_MODE_MATCHING_TAG = CacheConstants::CLEANING_MODE_MATCHING_TAG;
 
-    const COMPARISON_MODE_NOT_MATCHING_TAG = CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG;
+    public const COMPARISON_MODE_NOT_MATCHING_TAG = CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG;
 
-    const COMPARISON_MODE_MATCHING_ANY_TAG = CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG;
+    public const COMPARISON_MODE_MATCHING_ANY_TAG = CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG;
     /**#@-*/
 
-    /**#@-*/
+    /**
+     * @var \MongoCollection|null
+     */
     protected $_collection = null;
 
     /**
@@ -87,7 +86,7 @@ class MongoDb extends AbstractBackend implements ExtendedBackendInterface
      *
      * @return string[] array of stored cache ids (string)
      */
-    public function getIds(): array
+    public function getIds()
     {
         return array_keys(iterator_to_array($this->_getCollection()->find([], ['_id'])));
     }
@@ -97,7 +96,7 @@ class MongoDb extends AbstractBackend implements ExtendedBackendInterface
      *
      * @return string[] array of stored tags (string)
      */
-    public function getTags(): array
+    public function getTags()
     {
         $result = $this->_getCollection()->distinct('tags');
         return $result ?: [];
@@ -111,7 +110,7 @@ class MongoDb extends AbstractBackend implements ExtendedBackendInterface
      * @param string[] $tags array of tags
      * @return string[] array of matching cache ids (string)
      */
-    public function getIdsMatchingTags(array $tags = []): array
+    public function getIdsMatchingTags($tags = [])
     {
         $query = $this->_getQueryMatchingTags($tags, self::COMPARISON_MODE_MATCHING_TAG);
         if (empty($query)) {
@@ -129,7 +128,7 @@ class MongoDb extends AbstractBackend implements ExtendedBackendInterface
      * @param string[] $tags array of tags
      * @return string[] array of not matching cache ids (string)
      */
-    public function getIdsNotMatchingTags(array $tags = []): array
+    public function getIdsNotMatchingTags($tags = [])
     {
         $query = $this->_getQueryMatchingTags($tags, self::COMPARISON_MODE_NOT_MATCHING_TAG);
         if (empty($query)) {
@@ -147,7 +146,7 @@ class MongoDb extends AbstractBackend implements ExtendedBackendInterface
      * @param string[] $tags array of tags
      * @return string[] array of any matching cache ids (string)
      */
-    public function getIdsMatchingAnyTags(array $tags = []): array
+    public function getIdsMatchingAnyTags($tags = [])
     {
         $query = $this->_getQueryMatchingTags($tags, self::COMPARISON_MODE_MATCHING_ANY_TAG);
         if (empty($query)) {
@@ -188,7 +187,7 @@ class MongoDb extends AbstractBackend implements ExtendedBackendInterface
      * @return int integer between 0 and 100
      * TODO: implement basing on info from MongoDB server
      */
-    public function getFillingPercentage(): int
+    public function getFillingPercentage()
     {
         return 1;
     }
@@ -204,7 +203,7 @@ class MongoDb extends AbstractBackend implements ExtendedBackendInterface
      * @param string $cacheId cache id
      * @return array|false array of metadatas (false if the cache id is not found)
      */
-    public function getMetadatas(string $cacheId)
+    public function getMetadatas($cacheId)
     {
         $result = $this->_getCollection()->findOne(
             ['_id' => $this->_quoteString($cacheId)],
@@ -220,7 +219,7 @@ class MongoDb extends AbstractBackend implements ExtendedBackendInterface
      * @param int $extraLifetime
      * @return boolean true if ok
      */
-    public function touch(string $cacheId, int $extraLifetime): bool
+    public function touch($cacheId, $extraLifetime)
     {
         $time = time();
         $condition = ['_id' => $this->_quoteString($cacheId), 'expire' => ['$gt' => $time]];
@@ -243,7 +242,7 @@ class MongoDb extends AbstractBackend implements ExtendedBackendInterface
      *
      * @return array associative of with capabilities
      */
-    public function getCapabilities(): array
+    public function getCapabilities()
     {
         return [
             'automatic_cleaning' => true,
@@ -260,11 +259,11 @@ class MongoDb extends AbstractBackend implements ExtendedBackendInterface
      *
      * Note : return value is always "string" (unserialization is done by the core not by the backend)
      *
-     * @param  string  $cacheId                     Cache id
-     * @param  boolean $notTestCacheValidity If set to true, the cache validity won't be tested
+     * @param string $cacheId Cache id
+     * @param boolean $notTestCacheValidity If set to true, the cache validity won't be tested
      * @return string|bool cached data. Return false if nothing found
      */
-    public function load(string $cacheId, bool $notTestCacheValidity = false)
+    public function load($cacheId, $notTestCacheValidity = false)
     {
         $query = ['_id' => $this->_quoteString($cacheId)];
         if (!$notTestCacheValidity) {
@@ -283,7 +282,7 @@ class MongoDb extends AbstractBackend implements ExtendedBackendInterface
      * @param  string $cacheId cache id
      * @return int|bool "last modified" timestamp of the available cache record or false if cache is not available
      */
-    public function test(string $cacheId)
+    public function test($cacheId)
     {
         $result = $this->_getCollection()->findOne(
             [
@@ -304,13 +303,13 @@ class MongoDb extends AbstractBackend implements ExtendedBackendInterface
      * Note : $data is always "string" (serialization is done by the
      * core not by the backend)
      *
-     * @param  string $data            Datas to cache
-     * @param  string $cacheId              Cache id
-     * @param  string[] $tags             Array of strings, the cache record will be tagged by each string entry
-     * @param  int|bool $specificLifetime If != false, set a specific lifetime (null => infinite lifetime)
+     * @param string $data Datas to cache
+     * @param string $cacheId Cache id
+     * @param string[] $tags Array of strings, the cache record will be tagged by each string entry
+     * @param int|bool $specificLifetime If != false, set a specific lifetime (null => infinite lifetime)
      * @return boolean true if no problem
      */
-    public function save($data, string $cacheId, array $tags = [], ?int $specificLifetime = null): bool
+    public function save($data, $cacheId, $tags = [], $specificLifetime = null)
     {
         $lifetime = $this->getLifetime($specificLifetime);
         $time = time();
@@ -332,7 +331,7 @@ class MongoDb extends AbstractBackend implements ExtendedBackendInterface
      * @param  string $cacheId Cache id
      * @return boolean True if no problem
      */
-    public function remove(string $cacheId): bool
+    public function remove($cacheId)
     {
         return $this->_getCollection()->remove(['_id' => $this->_quoteString($cacheId)]);
     }
@@ -354,7 +353,7 @@ class MongoDb extends AbstractBackend implements ExtendedBackendInterface
      * @param  string[] $tags Array of tags
      * @return bool true if no problem
      */
-    public function clean(string $mode = CacheConstants::CLEANING_MODE_ALL, array $tags = []): bool
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, $tags = [])
     {
         $result = false;
         switch ($mode) {

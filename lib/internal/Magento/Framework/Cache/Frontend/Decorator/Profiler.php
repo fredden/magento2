@@ -1,8 +1,9 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
+declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Frontend\Decorator;
 
@@ -64,7 +65,7 @@ class Profiler extends \Magento\Framework\Cache\Frontend\Decorator\Bare
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function test($identifier)
     {
@@ -75,7 +76,7 @@ class Profiler extends \Magento\Framework\Cache\Frontend\Decorator\Bare
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function load($identifier)
     {
@@ -86,9 +87,9 @@ class Profiler extends \Magento\Framework\Cache\Frontend\Decorator\Bare
     }
 
     /**
-     * Enforce marking with a tag
+     * @inheritDoc
      *
-     * {@inheritdoc}
+     * Enforce marking with a tag
      */
     public function save($data, $identifier, array $tags = [], $lifeTime = null)
     {
@@ -99,7 +100,7 @@ class Profiler extends \Magento\Framework\Cache\Frontend\Decorator\Bare
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function remove($identifier)
     {
@@ -110,7 +111,7 @@ class Profiler extends \Magento\Framework\Cache\Frontend\Decorator\Bare
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = [])
     {

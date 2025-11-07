@@ -37,9 +37,6 @@ use Magento\Framework\Cache\Exception\CacheException;
  * Database cache backend.
  *
  * Magento-native cache backend using database storage.
- *
- * @api
- * @deprecated Use Symfony Cache adapters (RedisAdapter, FilesystemAdapter) for better performance.
  */
 class Database extends AbstractBackend implements ExtendedBackendInterface
 {
@@ -157,7 +154,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      * @return string|false cached datas
      * @throws CacheException
      */
-    public function load(string $id, bool $doNotTestCacheValidity = false)
+    public function load($id, $doNotTestCacheValidity = false)
     {
         if ($this->_options['store_data'] && !$this->_options['infinite_loop_flag']) {
             $this->_options['infinite_loop_flag'] = true;
@@ -184,7 +181,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      * @return mixed|false (a cache is not available) or "last modified" timestamp (int) of the available cache record
      * @throws CacheException
      */
-    public function test(string $id)
+    public function test($id)
     {
         if ($this->_options['store_data'] && !$this->_options['infinite_loop_flag']) {
             $this->_options['infinite_loop_flag'] = true;
@@ -219,7 +216,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      * @throws \Zend_Db_Statement_Exception
      * @throws CacheException
      */
-    public function save($data, string $id, array $tags = [], ?int $specificLifetime = null): bool
+    public function save($data, $id, $tags = [], $specificLifetime = null)
     {
         $result = false;
         if (!$this->_options['infinite_loop_flag']) {
@@ -260,7 +257,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      * @return int|boolean Number of affected rows or false on failure
      * @throws CacheException
      */
-    public function remove(string $id): bool
+    public function remove($id)
     {
         if ($this->_options['store_data'] && !$this->_options['infinite_loop_flag']) {
             $this->_options['infinite_loop_flag'] = true;
@@ -289,7 +286,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      * @return boolean true if no problem
      * @throws CacheException
      */
-    public function clean(string $mode = CacheConstants::CLEANING_MODE_ALL, array $tags = []): bool
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, $tags = [])
     {
         $result = false;
         if (!$this->_options['infinite_loop_flag']) {
@@ -322,7 +319,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      * @return string[] array of stored cache ids (string)
      * @throws CacheException
      */
-    public function getIds(): array
+    public function getIds()
     {
         if ($this->_options['store_data']) {
             $select = $this->_getConnection()->select()->from($this->_getDataTable(), 'id');
@@ -338,7 +335,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      * @return string[] array of stored tags (string)
      * @throws CacheException
      */
-    public function getTags(): array
+    public function getTags()
     {
         $select = $this->_getConnection()->select()->from($this->_getTagsTable(), 'tag')->distinct(true);
         return $this->_getConnection()->fetchCol($select);
@@ -353,7 +350,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      * @return string[] array of matching cache ids (string)
      * @throws CacheException
      */
-    public function getIdsMatchingTags(array $tags = []): array
+    public function getIdsMatchingTags($tags = [])
     {
         $select = $this->_getConnection()->select()->from(
             $this->_getTagsTable(),
@@ -380,7 +377,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      * @return string[] array of not matching cache ids (string)
      * @throws CacheException
      */
-    public function getIdsNotMatchingTags(array $tags = []): array
+    public function getIdsNotMatchingTags($tags = [])
     {
         return array_diff($this->getIds(), $this->getIdsMatchingAnyTags($tags));
     }
@@ -394,7 +391,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      * @return string[] array of any matching cache ids (string)
      * @throws CacheException
      */
-    public function getIdsMatchingAnyTags(array $tags = []): array
+    public function getIdsMatchingAnyTags($tags = [])
     {
         $select = $this->_getConnection()->select()->from(
             $this->_getTagsTable(),
@@ -413,7 +410,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      *
      * @return int integer between 0 and 100
      */
-    public function getFillingPercentage(): int
+    public function getFillingPercentage()
     {
         return 1;
     }
@@ -430,7 +427,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      * @return array|false array of metadatas (false if the cache id is not found)
      * @throws CacheException
      */
-    public function getMetadatas(string $id)
+    public function getMetadatas($id)
     {
         $select = $this->_getConnection()->select()->from($this->_getTagsTable(), 'tag')->where('cache_id=?', $id);
         $tags = $this->_getConnection()->fetchCol($select);
@@ -452,7 +449,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      * @return boolean true if ok
      * @throws CacheException
      */
-    public function touch(string $id, int $extraLifetime): bool
+    public function touch($id, $extraLifetime)
     {
         if ($this->_options['store_data']) {
             return $this->_getConnection()->update(
@@ -479,7 +476,7 @@ class Database extends AbstractBackend implements ExtendedBackendInterface
      *
      * @return array associative of with capabilities
      */
-    public function getCapabilities(): array
+    public function getCapabilities()
     {
         return [
             'automatic_cleaning' => true,

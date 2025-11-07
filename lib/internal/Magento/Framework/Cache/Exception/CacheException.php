@@ -24,3 +24,4 @@ use Magento\Framework\Exception\LocalizedException;
 class CacheException extends LocalizedException
 {
 }
+

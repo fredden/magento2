@@ -160,3 +160,4 @@ class CacheExceptionTest extends TestCase
         $this->assertStringContainsString('CLEANING_MODE_ALL', $message);
     }
 }
+

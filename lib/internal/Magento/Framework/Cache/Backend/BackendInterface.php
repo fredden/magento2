@@ -14,8 +14,6 @@ use Magento\Framework\Cache\Exception\CacheException;
  *
  * Modern replacement for \Zend_Cache_Backend
  * Defines core cache operations for all backend implementations.
- *
- * @api
  */
 interface BackendInterface
 {
@@ -25,7 +23,7 @@ interface BackendInterface
      * @param string $id Cache id
      * @return int|false Last modified timestamp of cache entry if it is available, false otherwise
      */
-    public function test(string $id);
+    public function test($id);
 
     /**
      * Load value with given id from cache
@@ -34,7 +32,7 @@ interface BackendInterface
      * @param bool $doNotTestCacheValidity If set to true, validity is not tested
      * @return string|false Cached data (string) or false if cache is not available
      */
-    public function load(string $id, bool $doNotTestCacheValidity = false);
+    public function load($id, $doNotTestCacheValidity = false);
 
     /**
      * Save some data in cache
@@ -42,11 +40,12 @@ interface BackendInterface
      * @param string $data Data to put in cache (can be another type than string if automatic_serialization is on)
      * @param string $id Cache id (can be an empty string)
      * @param array $tags Array of strings: tags
-     * @param int|null $specificLifetime If != null, set a specific lifetime for this cache record (null => infinite lifetime)
+     * @param int|null $specificLifetime If != null, set a specific lifetime for this cache record
+     *                                   (null => infinite lifetime)
      * @return bool True if no problem
      * @throws CacheException
      */
-    public function save($data, string $id, array $tags = [], ?int $specificLifetime = null): bool;
+    public function save($data, $id, $tags = [], $specificLifetime = null);
 
     /**
      * Remove a cache record
@@ -54,7 +53,7 @@ interface BackendInterface
      * @param string $id Cache id
      * @return bool True if no problem
      */
-    public function remove(string $id): bool;
+    public function remove($id);
 
     /**
      * Clean some cache records
@@ -71,7 +70,7 @@ interface BackendInterface
      * @return bool True if no problem
      * @throws CacheException
      */
-    public function clean(string $mode = 'all', array $tags = []): bool;
+    public function clean($mode = 'all', $tags = []);
 
     /**
      * Set an option
@@ -80,7 +79,7 @@ interface BackendInterface
      * @param mixed $value Option value
      * @return void
      */
-    public function setOption(string $name, $value): void;
+    public function setOption($name, $value);
 
     /**
      * Get an option value
@@ -88,5 +87,5 @@ interface BackendInterface
      * @param string $name Option name
      * @return mixed Option value or null if not set
      */
-    public function getOption(string $name);
+    public function getOption($name);
 }

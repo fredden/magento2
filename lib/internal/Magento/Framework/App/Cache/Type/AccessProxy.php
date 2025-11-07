@@ -1,8 +1,9 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
+declare(strict_types=1);
 
 /**
  * Proxy that delegates execution to an original cache type instance, if access is allowed at the moment.
@@ -55,7 +56,7 @@ class AccessProxy extends \Magento\Framework\Cache\Frontend\Decorator\Bare
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function test($identifier)
     {
@@ -66,7 +67,7 @@ class AccessProxy extends \Magento\Framework\Cache\Frontend\Decorator\Bare
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function load($identifier)
     {
@@ -77,7 +78,7 @@ class AccessProxy extends \Magento\Framework\Cache\Frontend\Decorator\Bare
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function save($data, $identifier, array $tags = [], $lifeTime = null)
     {
@@ -88,7 +89,7 @@ class AccessProxy extends \Magento\Framework\Cache\Frontend\Decorator\Bare
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function remove($identifier)
     {
@@ -99,7 +100,7 @@ class AccessProxy extends \Magento\Framework\Cache\Frontend\Decorator\Bare
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = [])
     {

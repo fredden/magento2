@@ -56,8 +56,9 @@ class SymfonyFactory
     private array $adapterTypeMap = [
         // Redis backends
         'redis' => 'redis',
-        'cm_cache_backend_redis' => 'redis',
-        'Magento\\Framework\\Cache\\Backend\\Redis' => 'redis',
+
+        // Valkey backends (Redis fork, protocol-compatible)
+        'valkey' => 'redis',
 
         // Memcached backends
         'memcached' => 'memcached',

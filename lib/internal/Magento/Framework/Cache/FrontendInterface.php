@@ -78,7 +78,8 @@ interface FrontendInterface
      * This is primarily used for legacy integrations and should be avoided in new code.
      *
      * @return object Low-level frontend instance
-     * @deprecated Use high-level FrontendInterface methods instead
+     * @deprecated Direct low-level frontend access breaks abstraction. Use high-level methods.
+     * @see \Magento\Framework\Cache\FrontendInterface
      */
     public function getLowLevelFrontend();
 }

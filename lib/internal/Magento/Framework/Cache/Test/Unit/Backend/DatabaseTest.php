@@ -246,11 +246,15 @@ class DatabaseTest extends TestCase
     {
         return [
             'major_case_with_store_data' => [
-                'options' => static fn (self $testCase) => $testCase->getOptionsWithStoreData(static fn (self $testCase) => $testCase->getSaveAdapterMock(true)),
+                'options' => static fn (self $testCase) => $testCase->getOptionsWithStoreData(
+                    static fn (self $testCase) => $testCase->getSaveAdapterMock(true)
+                ),
                 'expected' => true
             ],
             'minor_case_with_store_data' => [
-                'options' => static fn (self $testCase) => $testCase->getOptionsWithStoreData(static fn (self $testCase) => $testCase->getSaveAdapterMock(false)),
+                'options' => static fn (self $testCase) => $testCase->getOptionsWithStoreData(
+                    static fn (self $testCase) => $testCase->getSaveAdapterMock(false)
+                ),
                 'expected' => false
             ],
             'without_store_data' => [

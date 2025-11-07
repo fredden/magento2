@@ -23,7 +23,8 @@ class FlushCacheByTags implements ObserverInterface
     /**
      * @var Cache
      *
-     * @deprecated 100.1.0
+     * @deprecated 100.1.0 Use $_fullPageCache instead
+     * @see $_fullPageCache
      */
     protected $_cache;
 

@@ -17,12 +17,12 @@ class Type extends \Magento\Framework\Cache\Frontend\Decorator\TagScope
     /**
      * Cache type code unique among all cache types
      */
-    const TYPE_IDENTIFIER = 'full_page';
+    public const TYPE_IDENTIFIER = 'full_page';
 
     /**
      * Cache tag used to distinguish the cache type from all other cache
      */
-    const CACHE_TAG = 'FPC';
+    public const CACHE_TAG = 'FPC';
 
     /**
      * @var \Magento\Framework\Event\ManagerInterface
@@ -42,7 +42,7 @@ class Type extends \Magento\Framework\Cache\Frontend\Decorator\TagScope
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      *
      * @param string $mode
      * @param array $tags
