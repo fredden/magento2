@@ -8,12 +8,14 @@ declare(strict_types=1);
 namespace Magento\Framework\Cache\Test\Unit\Frontend\Decorator;
 
 use Magento\Framework\Cache\CacheConstants;
+use Magento\Framework\Cache\Frontend\Adapter\Symfony;
 use Magento\Framework\Cache\Frontend\Adapter\Zend;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\Profiler;
 use Magento\Framework\Profiler\DriverInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ProxyTesting;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\NullAdapter;
 
 class ProfilerTest extends TestCase
 {
@@ -82,7 +84,7 @@ class ProfilerTest extends TestCase
      */
     public static function proxyMethodDataProvider()
     {
-        $backend = new \Zend_Cache_Backend_BlackHole();
+        $backend = new NullAdapter();
         $lowLevelFrontend = static fn (self $testCase) => $testCase->getMockForZendCache();
 
         return [
@@ -95,8 +97,8 @@ class ProfilerTest extends TestCase
                 [
                     'group' => 'cache',
                     'operation' => 'cache:test',
-                    'frontend_type' => Zend::class,
-                    'backend_type' => 'BlackHole'
+                    'frontend_type' => Symfony::class,
+                    'backend_type' => NullAdapter::class
                 ],
                 111,
             ],
@@ -109,8 +111,8 @@ class ProfilerTest extends TestCase
                 [
                     'group' => 'cache',
                     'operation' => 'cache:load',
-                    'frontend_type' => Zend::class,
-                    'backend_type' => 'BlackHole'
+                    'frontend_type' => Symfony::class,
+                    'backend_type' => NullAdapter::class
                 ],
                 '111'
             ],
@@ -123,8 +125,8 @@ class ProfilerTest extends TestCase
                 [
                     'group' => 'cache',
                     'operation' => 'cache:save',
-                    'frontend_type' => Zend::class,
-                    'backend_type' => 'BlackHole'
+                    'frontend_type' => Symfony::class,
+                    'backend_type' => NullAdapter::class
                 ],
                 true
             ],
@@ -137,8 +139,8 @@ class ProfilerTest extends TestCase
                 [
                     'group' => 'cache',
                     'operation' => 'cache:remove',
-                    'frontend_type' => Zend::class,
-                    'backend_type' => 'BlackHole'
+                    'frontend_type' => Symfony::class,
+                    'backend_type' => NullAdapter::class
                 ],
                 true
             ],
@@ -151,8 +153,8 @@ class ProfilerTest extends TestCase
                 [
                     'group' => 'cache',
                     'operation' => 'cache:clean',
-                    'frontend_type' => Zend::class,
-                    'backend_type' => 'BlackHole'
+                    'frontend_type' => Symfony::class,
+                    'backend_type' => NullAdapter::class
                 ],
                 true
             ]

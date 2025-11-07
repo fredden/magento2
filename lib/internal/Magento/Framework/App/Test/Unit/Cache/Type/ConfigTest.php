@@ -9,6 +9,7 @@ namespace Magento\Framework\App\Test\Unit\Cache\Type;
 
 use Magento\Framework\App\Cache\Type\Config;
 use Magento\Framework\App\Cache\Type\FrontendPool;
+use Magento\Framework\Cache\Backend\BackendInterface;
 use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
@@ -78,7 +79,7 @@ class ConfigTest extends TestCase
 
     public function createZendCacheBackendMock()
     {
-        return $this->createMock(\Zend_Cache_Backend::class);
+        return $this->createMock(BackendInterface::class);
     }
 
     public function createZendCacheCoreMock()

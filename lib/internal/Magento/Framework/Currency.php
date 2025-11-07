@@ -25,7 +25,8 @@ class Currency extends CurrencyData implements CurrencyInterface
         $locale = null
     ) {
         $frontendCache = $appCache->getFrontend();
-        self::setCache($frontendCache);
+        $lowLevelCache = $frontendCache->getLowLevelFrontend();
+        self::setCache($lowLevelCache);
         parent::__construct($options, $locale);
     }
 }

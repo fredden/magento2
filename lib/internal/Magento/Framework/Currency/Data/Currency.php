@@ -30,7 +30,7 @@ class Currency
     public const LEFT = 32;
 
     /**
-     * @var FrontendInterface|null
+     * @var FrontendInterface|\Psr\Cache\CacheItemPoolInterface|null
      */
     private static $cache = null;
 
@@ -408,7 +408,7 @@ class Currency
     /**
      * Returns the set cache.
      *
-     * @return FrontendInterface|null
+     * @return FrontendInterface|\Psr\Cache\CacheItemPoolInterface|null
      */
     public static function getCache()
     {
@@ -418,10 +418,10 @@ class Currency
     /**
      * Sets a cache for Currency
      *
-     * @param FrontendInterface $cache
+     * @param FrontendInterface|\Psr\Cache\CacheItemPoolInterface $cache
      * @return void
      */
-    public static function setCache(FrontendInterface $cache)
+    public static function setCache($cache)
     {
         self::$cache = $cache;
     }
