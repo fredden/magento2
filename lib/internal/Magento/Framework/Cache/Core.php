@@ -1,128 +1,94 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2011 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\Framework\Cache;
 
-use Psr\Cache\CacheItemPoolInterface;
+use Magento\Framework\Cache\Backend\Redis;
+use Zend_Cache;
+use Zend_Cache_Exception;
 
-class Core implements FrontendInterface
+/**
+ * Legacy cache core for backward compatibility
+ *
+ * Performance optimizations:
+ * - Cached ID cleaning
+ * - Cached backend type check
+ * - Optimized regex operations
+ *
+ * @deprecated No longer used in production. All cache operations now use Symfony cache adapter.
+ * @see \Magento\Framework\Cache\Frontend\Adapter\Symfony
+ */
+class Core extends \Zend_Cache_Core
 {
     /**
-     * @var CacheItemPoolInterface
+     * Available options
+     *
+     * ====> (array) backend_decorators :
+     * - array of decorators to decorate cache backend. Each element of this array should contain:
+     * -- 'class' - concrete decorator, descendant of \Magento\Framework\Cache\Backend\Decorator\AbstractDecorator
+     * -- 'options' - optional array of specific decorator options
+     * @var array
      */
-    protected CacheItemPoolInterface $cachePool;
+    protected $_specificOptions = ['backend_decorators' => [], 'disable_save' => false];
 
     /**
-     * @param CacheItemPoolInterface $cachePool
+     * Cache for cleaned IDs (performance optimization)
+     *
+     * @var array
      */
-    public function __construct(CacheItemPoolInterface $cachePool)
-    {
-        $this->cachePool = $cachePool;
-    }
+    private array $cleanedIds = [];
 
     /**
-     * {@inheritdoc}
+     * Cached check if backend is Redis
+     *
+     * @var bool|null
      */
-    public function test($identifier)
-    {
-        $item = $this->cachePool->getItem($this->_id($identifier));
-        return $item->isHit() ? ($item->getMetadata()['mtime'] ?? time()) : false;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function load($identifier)
-    {
-        $item = $this->cachePool->getItem($this->_id($identifier));
-        return $item->isHit() ? $item->get() : false;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function save($data, $identifier, array $tags = [], $lifeTime = null)
-    {
-        $item = $this->cachePool->getItem($this->_id($identifier));
-        $item->set($data);
-
-        if ($lifeTime !== null) {
-            $item->expiresAfter($lifeTime);
-        }
-
-        // Symfony Cache does not directly support tags in the same way Zend Cache does.
-        // For now, we'll just save the item. Tag-based invalidation will need a different strategy.
-        // This might require custom cache invalidation logic or a different Symfony Cache adapter.
-
-        return $this->cachePool->save($item);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function remove($identifier)
-    {
-        return $this->cachePool->delete($this->_id($identifier));
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function clean($mode = FrontendInterface::CLEANING_MODE_ALL, array $tags = [])
-    {
-        switch ($mode) {
-            case FrontendInterface::CLEANING_MODE_ALL:
-                return $this->cachePool->clear();
-            case FrontendInterface::CLEANING_MODE_MATCHING_TAG:
-            case FrontendInterface::CLEANING_MODE_MATCHING_ANY_TAG:
-                // Symfony Cache does not natively support cleaning by matching tags directly.
-                // For now, we'll clear all cache if tags are provided, as a fallback.
-                // A more robust solution would involve a custom cache pool or a tag-aware decorator.
-                if (!empty($tags)) {
-                    return $this->cachePool->clear();
-                }
-                return true; // No tags, nothing to do
-            default:
-                // Other modes like CLEANING_MODE_OLD or NOT_MATCHING_TAG are not directly supported by Symfony Cache
-                // and would require custom logic or a different cache pool implementation.
-                return false;
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getBackend()
-    {
-        return $this->cachePool;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getLowLevelFrontend()
-    {
-        return $this->cachePool;
-    }
+    private ?bool $isRedisBackend = null;
 
     /**
      * Make and return a cache id
      *
      * Checks 'cache_id_prefix' and returns new id with prefix or simply the id if null
      *
+     * Performance optimizations:
+     * - Cached ID cleaning results
+     * - Optimized regex (single operation)
+     * - Early returns
+     *
      * @param  string $cacheId Cache id
      * @return string Cache id (with or without prefix)
      */
     protected function _id($cacheId)
     {
-        if ($cacheId !== null) {
-            $cacheId = str_replace('.', '__', $cacheId); //reduce collision chances
-            $cacheId = preg_replace('/([^a-zA-Z0-9_]{1,1})/', '_', $cacheId);
-            // The cache_id_prefix is now handled by the Symfony Cache adapter's namespace.
-            // So, we don't need to prepend it here.
+        if ($cacheId === null) {
+            return null;
         }
+
+        // Check cache first
+        if (isset($this->cleanedIds[$cacheId])) {
+            return $this->cleanedIds[$cacheId];
+        }
+
+        $original = $cacheId;
+        
+        // Optimize: Single operation for dot replacement
+        $cacheId = str_replace('.', '__', $cacheId);
+        
+        // Optimize: Single regex operation
+        $cacheId = preg_replace('/[^a-zA-Z0-9_]/', '_', $cacheId);
+        
+        // Add prefix if configured
+        if (isset($this->_options['cache_id_prefix'])) {
+            $cacheId = $this->_options['cache_id_prefix'] . $cacheId;
+        }
+
+        // Cache the result (limit to 1000 entries)
+        if (count($this->cleanedIds) < 1000) {
+            $this->cleanedIds[$original] = $cacheId;
+        }
+
         return $cacheId;
     }
 
@@ -141,26 +107,39 @@ class Core implements FrontendInterface
     }
 
     /**
-     * Return an array of stored cache ids
-     *
-     * @return string[] array of stored cache ids (string)
+     * @inheritDoc
      */
-    public function getIds()
+    public function save($data, $cacheId = null, $tags = [], $specificLifetime = false, $priority = 8)
     {
-        // Symfony Cache (PSR-6) does not provide a direct way to list all IDs.
-        // This functionality might require a custom cache adapter or be limited.
-        return [];
+        if ($this->getOption('disable_save')) {
+            return true;
+        }
+        $tags = $this->_tags($tags);
+        return parent::save($data, $cacheId, $tags, $specificLifetime, $priority);
     }
 
     /**
-     * Return an array of stored tags
+     * Clean cache entries
      *
-     * @return string[] array of stored tags (string)
+     * Available modes are :
+     * 'all' (default)  => remove all cache entries ($tags is not used)
+     * 'old'            => remove too old cache entries ($tags is not used)
+     * 'matchingTag'    => remove cache entries matching all given tags
+     *                     ($tags can be an array of strings or a single string)
+     * 'notMatchingTag' => remove cache entries not matching one of the given tags
+     *                     ($tags can be an array of strings or a single string)
+     * 'matchingAnyTag' => remove cache entries matching any given tags
+     *                     ($tags can be an array of strings or a single string)
+     *
+     * @param string $mode
+     * @param string[] $tags
+     * @throws \Zend_Cache_Exception
+     * @return bool True if ok
      */
-    public function getTags()
+    public function clean($mode = 'all', $tags = [])
     {
-        // Symfony Cache (PSR-6) does not directly support listing all tags.
-        return [];
+        $tags = $this->_tags($tags);
+        return parent::clean($mode, $tags);
     }
 
     /**
@@ -173,8 +152,8 @@ class Core implements FrontendInterface
      */
     public function getIdsMatchingTags($tags = [])
     {
-        // Symfony Cache (PSR-6) does not natively support cleaning by matching tags directly.
-        return [];
+        $tags = $this->_tags($tags);
+        return parent::getIdsMatchingTags($tags);
     }
 
     /**
@@ -187,143 +166,99 @@ class Core implements FrontendInterface
      */
     public function getIdsNotMatchingTags($tags = [])
     {
-        // Symfony Cache (PSR-6) does not natively support cleaning by matching tags directly.
-        return [];
+        $tags = $this->_tags($tags);
+        return parent::getIdsNotMatchingTags($tags);
     }
 
     /**
-     * Return an array of stored cache ids which match any given tags
+     * Validate a cache id or a tag (security, reliable filenames, reserved prefixes...)
      *
-     * In case of multiple tags, a logical AND is made between tags
+     * Throw an exception if a problem is found
      *
-     * @param string[] $tags array of tags
-     * @return string[] array of any matching cache ids (string)
-     */
-    public function getIdsMatchingAnyTags($tags = [])
-    {
-        // Symfony Cache (PSR-6) does not natively support cleaning by matching tags directly.
-        return [];
-    }
-
-    /**
-     * Return the filling percentage of the backend storage
+     * Performance optimization:
+     * - Cached backend type check (instanceof is expensive)
      *
-     * @return int integer between 0 and 100
-     */
-    public function getFillingPercentage()
-    {
-        // PSR-6 does not provide a way to get filling percentage.
-        return 100;
-    }
-
-    /**
-     * Return an array of metadatas for the given cache id
-     *
-     * The array must include these keys :
-     * - expire : the expire timestamp
-     * - tags : a string array of tags
-     * - mtime : timestamp of last modification time
-     *
-     * @param string $cacheId cache id
-     * @return array|bool array of metadatas (false if the cache id is not found)
-     */
-    public function getMetadatas($cacheId)
-    {
-        $item = $this->cachePool->getItem($this->_id($cacheId));
-        if ($item->isHit()) {
-            $metadata = $item->getMetadata();
-            return [
-                'expire' => $metadata['expiry'] ?? 0,
-                'mtime' => $metadata['mtime'] ?? time(),
-                'tags' => [], // Tags are not directly supported by PSR-6 metadata
-            ];
-        }
-        return false;
-    }
-
-    /**
-     * Give (if possible) an extra lifetime to the given cache id
-     *
-     * @param string $cacheId cache id
-     * @param int $extraLifetime
-     * @return boolean true if ok
-     */
-    public function touch($cacheId, $extraLifetime)
-    {
-        $item = $this->cachePool->getItem($this->_id($cacheId));
-        if ($item->isHit()) {
-            $item->expiresAfter($extraLifetime);
-            return $this->cachePool->save($item);
-        }
-        return false;
-    }
-
-    /**
-     * Return an associative array of capabilities (booleans) of the backend
-     *
-     * The array must include these keys :
-     * - automatic_cleaning (is automating cleaning necessary)
-     * - tags (are tags supported)
-     * - expired_read (is it possible to read expired cache records
-     *                 (for doNotTestCacheValidity option for example))
-     * - priority does the backend deal with priority when saving
-     * - infinite_lifetime (is infinite lifetime can work with this backend)
-     * - get_list (is it possible to get the list of cache ids and the complete list of tags)
-     *
-     * @return array associative of with capabilities
-     */
-    public function getCapabilities()
-    {
-        return [
-            'automatic_cleaning' => true,
-            'tags' => false, // PSR-6 does not natively support tags
-            'expired_read' => false,
-            'priority' => false,
-            'infinite_lifetime' => true,
-            'get_list' => false // PSR-6 does not provide a way to list all IDs
-        ];
-    }
-
-    /**
-     * Set an option
-     *
-     * @param  string $name
-     * @param  mixed  $value
+     * @param  string $string Cache id or tag
+     * @throws Zend_Cache_Exception
      * @return void
      */
-    public function setOption($name, $value)
+    protected function _validateIdOrTag($string)
     {
-        // Options are typically set during adapter instantiation in Symfony Cache.
-        // This method might become a no-op or throw an exception if unsupported options are passed.
+        // Cache the instanceof check (performance optimization)
+        if ($this->isRedisBackend === null) {
+            $this->isRedisBackend = $this->_backend instanceof Redis;
+        }
+
+        if ($this->isRedisBackend) {
+            if (!is_string($string)) {
+                Zend_Cache::throwException('Invalid id or tag : must be a string');
+            }
+            if (strpos($string, 'internal-') === 0) {
+                Zend_Cache::throwException('"internal-*" ids or tags are reserved');
+            }
+            if (!preg_match('~^[a-zA-Z0-9_{}]+$~D', $string)) {
+                Zend_Cache::throwException("Invalid id or tag '$string' : must use only [a-zA-Z0-9_{}]");
+            }
+
+            return;
+        }
+
+        parent::_validateIdOrTag($string);
     }
 
     /**
-     * Get the life time
+     * Set the backend
      *
-     * if $specificLifetime is not false, the given specific life time is used
-     * else, the global lifetime is used
-     *
-     * @param  int $specificLifetime
-     * @return int Cache life time
+     * @param  \Zend_Cache_Backend $backendObject
+     * @return void
      */
-    public function getLifetime($specificLifetime)
+    public function setBackend(\Zend_Cache_Backend $backendObject)
     {
-        // Lifetime is handled by expiresAfter in Symfony Cache items.
-        // This method might become a no-op or return a default.
-        return $specificLifetime ?: 0; // Return 0 for infinite, or the specific lifetime
+        $backendObject = $this->_decorateBackend($backendObject);
+        parent::setBackend($backendObject);
+        
+        // Reset cached backend type check
+        $this->isRedisBackend = null;
     }
 
     /**
-     * Determine system TMP directory and detect if we have read access
+     * Decorate cache backend with additional functionality
      *
-     * inspired from \Zend_File_Transfer_Adapter_Abstract
-     *
-     * @return string
+     * @param \Zend_Cache_Backend $backendObject
+     * @return \Zend_Cache_Backend
      */
-    public function getTmpDir()
+    protected function _decorateBackend(\Zend_Cache_Backend $backendObject)
     {
-        // This is typically handled by the underlying Symfony Cache adapter (e.g., FilesystemAdapter).
-        return sys_get_temp_dir();
+        if (!is_array($this->_specificOptions['backend_decorators'])) {
+            \Zend_Cache::throwException("'backend_decorator' option should be an array");
+        }
+
+        foreach ($this->_specificOptions['backend_decorators'] as $decoratorName => $decoratorOptions) {
+            if (!is_array($decoratorOptions) || !array_key_exists('class', $decoratorOptions)) {
+                \Zend_Cache::throwException(
+                    "Concrete decorator options in '" . $decoratorName . "' should be an array containing 'class' key"
+                );
+            }
+            $classOptions = array_key_exists('options', $decoratorOptions) ? $decoratorOptions['options'] : [];
+            $classOptions['concrete_backend'] = $backendObject;
+
+            if (!class_exists($decoratorOptions['class'])) {
+                \Zend_Cache::throwException(
+                    "Class '" . $decoratorOptions['class'] . "' specified in '" . $decoratorName . "' does not exist"
+                );
+            }
+
+            $backendObject = new $decoratorOptions['class']($classOptions);
+            if (!$backendObject instanceof \Magento\Framework\Cache\Backend\Decorator\AbstractDecorator) {
+                \Zend_Cache::throwException(
+                    "Decorator in '" .
+                    $decoratorName .
+                    "' should extend \Magento\Framework\Cache\Backend\Decorator\AbstractDecorator"
+                );
+            }
+        }
+
+        return $backendObject;
     }
 
     /**

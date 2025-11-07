@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2015 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -27,8 +27,6 @@ use Magento\Framework\View\Element\Html\Date;
 use Magento\Framework\View\Element\Template\Context;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Zend_Cache_Backend_BlackHole;
-use Zend_Cache_Core;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -107,8 +105,8 @@ class DobTest extends TestCase
      */
     protected function setUp(): void
     {
-        $zendCacheCore = new Zend_Cache_Core();
-        $zendCacheCore->setBackend(new Zend_Cache_Backend_BlackHole());
+        // Create a mock low-level frontend that does nothing (like BlackHole)
+        $lowLevelFrontend = $this->createMock(\stdClass::class);
 
         $frontendCache = $this->getMockForAbstractClass(
             FrontendInterface::class,
@@ -116,7 +114,7 @@ class DobTest extends TestCase
             '',
             false
         );
-        $frontendCache->expects($this->any())->method('getLowLevelFrontend')->willReturn($zendCacheCore);
+        $frontendCache->expects($this->any())->method('getLowLevelFrontend')->willReturn($lowLevelFrontend);
         $cache = $this->getMockForAbstractClass(CacheInterface::class);
         $cache->expects($this->any())->method('getFrontend')->willReturn($frontendCache);
 
@@ -447,8 +445,7 @@ class DobTest extends TestCase
             $validationRule->expects($this->any())
                 ->method('getValue')
                 ->willReturn(strtotime(self::MIN_DATE));
-        }
-        elseif ($type=="MAX") {
+        } elseif ($type=="MAX") {
             $validationRule->expects($this->any())
                 ->method('getName')
                 ->willReturn(Dob::MAX_DATE_RANGE_KEY);
@@ -456,7 +453,6 @@ class DobTest extends TestCase
                 ->method('getValue')
                 ->willReturn(strtotime(self::MAX_DATE));
         }
-
 
         return $validationRule;
     }

@@ -1,12 +1,13 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Test\Unit\Frontend\Decorator;
 
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\Frontend\Adapter\Zend;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\Profiler;
@@ -29,7 +30,7 @@ class ProfilerTest extends TestCase
     /**
      * @param string $method
      * @param array $params
-     * @param \Zend_Cache_Backend $cacheBackend
+     * @param mixed $cacheBackend
      * @param \Closure $cacheFrontend
      * @param string $expectedProfileId
      * @param array $expectedProfilerTags
@@ -60,7 +61,7 @@ class ProfilerTest extends TestCase
         Profiler::add($driver);
 
         // Test
-        $object = new \Magento\Framework\Cache\Frontend\Decorator\Profiler($frontendMock, ['Zend_Cache_Backend_']);
+        $object = new \Magento\Framework\Cache\Frontend\Decorator\Profiler($frontendMock, []);
         $helper = new ProxyTesting();
         $result = $helper->invokeWithExpectations($object, $frontendMock, $method, $params, $expectedResult);
         $this->assertSame($expectedResult, $result);
@@ -143,7 +144,7 @@ class ProfilerTest extends TestCase
             ],
             [
                 'clean',
-                [\Magento\Framework\Cache\FrontendInterface::CLEANING_MODE_MATCHING_ANY_TAG, ['tag']],
+                [CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, ['tag']],
                 $backend,
                 $lowLevelFrontend,
                 'cache_clean',

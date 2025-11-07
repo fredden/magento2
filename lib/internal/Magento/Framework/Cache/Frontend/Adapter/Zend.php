@@ -1,42 +1,53 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
+declare(strict_types=1);
+
 namespace Magento\Framework\Cache\Frontend\Adapter;
+
+use Magento\Framework\Cache\CacheConstants;
 
 /**
  * Adapter for Magento -> Zend cache frontend interfaces
+ *
+ * @deprecated No longer used in production. All cache operations now use Symfony cache adapter.
+ * @see \Magento\Framework\Cache\Frontend\Adapter\Symfony
  */
 class Zend implements \Magento\Framework\Cache\FrontendInterface
 {
     /**
+     * Zend cache frontend instance
+     *
      * @var \Zend_Cache_Core
      */
     protected $_frontend;
 
     /**
-     * Factory that creates the \Zend_Cache_Cores
+     * Factory that creates the Zend_Cache_Core instances
      *
      * @var \Closure
      */
     private $frontendFactory;
 
     /**
-     * The pid that owns the $_frontend object
+     * Process ID that owns the frontend object
      *
      * @var int
      */
     private $pid;
 
     /**
-     * We need to keep references to parent's frontends so that they don't get destroyed
+     * Parent frontends storage to prevent garbage collection
      *
      * @var array
      */
     private $parentFrontends = [];
 
     /**
+     * Constructor
+     *
      * @param \Closure $frontendFactory
      */
     public function __construct(\Closure $frontendFactory)
@@ -47,7 +58,7 @@ class Zend implements \Magento\Framework\Cache\FrontendInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function test($identifier)
     {
@@ -55,7 +66,7 @@ class Zend implements \Magento\Framework\Cache\FrontendInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function load($identifier)
     {
@@ -63,7 +74,7 @@ class Zend implements \Magento\Framework\Cache\FrontendInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function save($data, $identifier, array $tags = [], $lifeTime = null)
     {
@@ -71,7 +82,7 @@ class Zend implements \Magento\Framework\Cache\FrontendInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function remove($identifier)
     {
@@ -79,20 +90,20 @@ class Zend implements \Magento\Framework\Cache\FrontendInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      *
      * @throws \InvalidArgumentException Exception is thrown when non-supported cleaning mode is specified
      * @throws \Zend_Cache_Exception
      */
-    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, array $tags = [])
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = [])
     {
         // Cleaning modes 'old' and 'notMatchingTag' are prohibited as a trade off for decoration reliability
         if (!in_array(
             $mode,
             [
-                \Zend_Cache::CLEANING_MODE_ALL,
-                \Zend_Cache::CLEANING_MODE_MATCHING_TAG,
-                \Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG
+                CacheConstants::CLEANING_MODE_ALL,
+                CacheConstants::CLEANING_MODE_MATCHING_TAG,
+                CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG
             ]
         )
         ) {
@@ -104,7 +115,7 @@ class Zend implements \Magento\Framework\Cache\FrontendInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function getBackend()
     {
@@ -112,7 +123,7 @@ class Zend implements \Magento\Framework\Cache\FrontendInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function getLowLevelFrontend()
     {
@@ -120,7 +131,7 @@ class Zend implements \Magento\Framework\Cache\FrontendInterface
     }
 
     /**
-     * Retrieve single unified identifier
+     * Retrieve single unified identifier (uppercase conversion)
      *
      * @param string $identifier
      * @return string
@@ -131,7 +142,7 @@ class Zend implements \Magento\Framework\Cache\FrontendInterface
     }
 
     /**
-     * Retrieve multiple unified identifiers
+     * Retrieve multiple unified identifiers (uppercase conversion)
      *
      * @param array $ids
      * @return array
@@ -145,7 +156,9 @@ class Zend implements \Magento\Framework\Cache\FrontendInterface
     }
 
     /**
-     * Get frontEnd cache adapter for current pid
+     * Get frontend cache adapter for current process
+     *
+     * Recreates frontend on process fork to prevent shared resources
      *
      * @return \Zend_Cache_Core
      */
@@ -154,7 +167,7 @@ class Zend implements \Magento\Framework\Cache\FrontendInterface
         if (getmypid() === $this->pid) {
             return $this->_frontend;
         }
-        // Note: We hide the parent process's _frontend so that the destructor won't get called on it.
+        // Note: We hide the parent process's frontend so that the destructor won't get called on it.
         // If the destructor were called, then the parent process's connection would be disconnected.
         $this->parentFrontends[] = $this->_frontend;
         $frontendFactory = $this->frontendFactory;

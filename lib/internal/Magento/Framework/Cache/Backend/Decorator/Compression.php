@@ -1,8 +1,9 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
+declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Backend\Decorator;
 
@@ -11,7 +12,7 @@ namespace Magento\Framework\Cache\Backend\Decorator;
  *
  * @todo re-implement as a cache frontend decorator similarly to \Magento\Framework\Cache\Frontend\Decorator\*
  */
-class Compression extends \Magento\Framework\Cache\Backend\Decorator\AbstractDecorator
+class Compression extends AbstractDecorator
 {
     /**
      * Prefix of compressed strings
@@ -53,18 +54,17 @@ class Compression extends \Magento\Framework\Cache\Backend\Decorator\AbstractDec
      * @param string $data Datas to cache
      * @param string $cacheId Cache id
      * @param string[] $tags Array of strings, the cache record will be tagged by each string entry
-     * @param bool $specificLifetime If != false, set a specific lifetime for this cache record
+     * @param int|null $specificLifetime If not null, set a specific lifetime for this cache record
      * (null => infinite lifetime)
-     * @param int $priority integer between 0 (very low priority) and 10 (max priority) used by some particular backends
      * @return bool true if no problem
      */
-    public function save($data, $cacheId, $tags = [], $specificLifetime = false, $priority = 8)
+    public function save($data, $cacheId, $tags = [], $specificLifetime = null)
     {
         if ($data !== null && $this->_isCompressionNeeded($data)) {
             $data = self::_compressData($data);
         }
 
-        return $this->_backend->save($data, $cacheId, $tags, $specificLifetime, $priority);
+        return $this->_backend->save($data, $cacheId, $tags, $specificLifetime);
     }
 
     /**

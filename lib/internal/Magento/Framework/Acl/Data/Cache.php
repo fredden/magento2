@@ -6,18 +6,17 @@
 
 namespace Magento\Framework\Acl\Data;
 
-use Magento\Framework\Cache\FrontendInterface;
+use Magento\Framework\Cache\CacheConstants;
 
 /**
  * ACL data cache layer.
- * @package Magento\Framework\Acl\Data
  */
 class Cache implements CacheInterface
 {
     /**
      * Acl Data cache tag.
      */
-    const ACL_DATA_CACHE_TAG = 'acl_cache';
+    public const ACL_DATA_CACHE_TAG = 'acl_cache';
 
     /**
      * @var \Magento\Framework\Config\CacheInterface
@@ -52,7 +51,7 @@ class Cache implements CacheInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function test($identifier)
     {
@@ -60,7 +59,7 @@ class Cache implements CacheInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function load($identifier)
     {
@@ -68,7 +67,7 @@ class Cache implements CacheInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function save($data, $identifier, array $tags = [], $lifeTime = null)
     {
@@ -76,7 +75,7 @@ class Cache implements CacheInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function remove($identifier)
     {
@@ -84,16 +83,16 @@ class Cache implements CacheInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function clean($mode = FrontendInterface::CLEANING_MODE_MATCHING_TAG, array $tags = [])
+    public function clean($mode = CacheConstants::CLEANING_MODE_MATCHING_TAG, array $tags = [])
     {
         $this->aclBuilder->resetRuntimeAcl();
         return $this->cache->clean($mode, array_merge($tags, [$this->cacheTag]));
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function getBackend()
     {
@@ -101,7 +100,7 @@ class Cache implements CacheInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function getLowLevelFrontend()
     {

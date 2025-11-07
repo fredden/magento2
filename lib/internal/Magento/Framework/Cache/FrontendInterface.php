@@ -1,9 +1,12 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\Framework\Cache;
+
+use Magento\Framework\Cache\Backend\BackendInterface;
+use Magento\Framework\Cache\CacheConstants;
 
 /**
  * Interface of a cache frontend - an ultimate publicly available interface to an actual cache storage
@@ -13,16 +16,6 @@ namespace Magento\Framework\Cache;
  */
 interface FrontendInterface
 {
-    /**#@+
-     * Cache cleaning modes
-     */
-    public const CLEANING_MODE_ALL = 'all';
-    public const CLEANING_MODE_OLD = 'old';
-    public const CLEANING_MODE_MATCHING_TAG = 'matchingTag';
-    public const CLEANING_MODE_NOT_MATCHING_TAG = 'notMatchingTag';
-    public const CLEANING_MODE_MATCHING_ANY_TAG = 'matchingAnyTag';
-    /**#@-*/
-
     /**
      * Test if a cache is available for the given id
      *
@@ -65,7 +58,7 @@ interface FrontendInterface
      * @param array $tags
      * @return bool
      */
-    public function clean($mode = self::CLEANING_MODE_ALL, array $tags = []);
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = []);
 
     /**
      * Retrieve backend instance
@@ -75,7 +68,7 @@ interface FrontendInterface
     public function getBackend();
 
     /**
-     * Retrieve frontend instance compatible with Zend Locale Data setCache() to be used as a workaround
+     * Retrieve low-level frontend instance for compatibility
      *
      * @return \Psr\Cache\CacheItemPoolInterface
      */

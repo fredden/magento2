@@ -22,10 +22,10 @@ use Magento\Setup\Validator\RedisConnectionValidator;
 class Cache implements ConfigOptionsListInterface
 {
     public const INPUT_VALUE_CACHE_REDIS = 'redis';
-    public const CONFIG_VALUE_CACHE_REDIS = \Magento\Framework\Cache\Backend\Redis::class;
+    public const CONFIG_VALUE_CACHE_REDIS = 'redis';
 
     public const INPUT_VALUE_CACHE_VALKEY = 'valkey';
-    public const CONFIG_VALUE_CACHE_VALKEY = \Magento\Framework\Cache\Backend\Valkey::class;
+    public const CONFIG_VALUE_CACHE_VALKEY = 'valkey';
 
     public const INPUT_KEY_CACHE_BACKEND = 'cache-backend';
     public const INPUT_KEY_CACHE_BACKEND_REDIS_SERVER = 'cache-backend-redis-server';

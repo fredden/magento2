@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2023 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -10,7 +10,9 @@ namespace Magento\TestFramework\TestCase\GraphQl;
 use Magento\Authorization\Model\UserContextInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\App\Area;
+use Magento\Framework\App\Cache\Frontend\Pool;
 use Magento\Framework\App\ObjectManager\ConfigLoader;
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\GraphQl\Model\Query\ContextFactory;
 use Magento\GraphQlResolverCache\Model\Resolver\Result\Type as GraphQlResolverCache;
@@ -220,10 +222,36 @@ class ResolverCacheAbstract extends GraphQlAbstract
      */
     private function cleanCacheType(string $cacheType): void
     {
-        $appDir = dirname(Bootstrap::getInstance()->getAppTempDir());
-        $out = '';
-
-        // phpcs:ignore Magento2.Security.InsecureFunction
-        exec("php -f {$appDir}/bin/magento cache:clean $cacheType", $out);
+        // IMPROVED: Direct cache clean is more reliable and faster than exec()
+        // Also ensures proper test isolation with Symfony cache's unique namespaces
+        try {
+            // Get a fresh Pool instance without affecting shared instances
+            $cachePool = $this->objectManager->create(Pool::class);
+            $cache = $cachePool->get($cacheType);
+            
+            // Clean all cache entries for this type
+            $cache->clean(CacheConstants::CLEANING_MODE_ALL);
+            
+            // Also try to clear the backend completely for graphql_query_resolver_result
+            if ($cacheType === GraphQlResolverCache::TYPE_IDENTIFIER) {
+                $backend = $cache->getBackend();
+                if (method_exists($backend, 'clean')) {
+                    $backend->clean(CacheConstants::CLEANING_MODE_ALL);
+                }
+                
+                // CRITICAL: Only reset GraphQL resolver cache instance
+                // for graphql_query_resolver_result. This ensures fresh cache instance
+                // in next test without corrupting deployment config
+                $this->objectManager->removeSharedInstance(
+                    GraphQlResolverCache::class
+                );
+            }
+        } catch (\Exception $e) {
+            // Fallback to original exec() method if direct clean fails
+            $appDir = dirname(Bootstrap::getInstance()->getAppTempDir());
+            $out = '';
+            // phpcs:ignore Magento2.Security.InsecureFunction
+            exec("php -f {$appDir}/bin/magento cache:clean $cacheType", $out);
+        }
     }
 }

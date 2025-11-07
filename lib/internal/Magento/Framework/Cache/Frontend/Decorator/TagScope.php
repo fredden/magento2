@@ -1,10 +1,13 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2011 Adobe
+ * All Rights Reserved.
  */
+declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Frontend\Decorator;
+
+use Magento\Framework\Cache\CacheConstants;
 
 /**
  * Cache frontend decorator that limits the cleaning scope within a tag
@@ -42,9 +45,9 @@ class TagScope extends \Magento\Framework\Cache\Frontend\Decorator\Bare
     }
 
     /**
-     * Enforce marking with a tag
+     * @inheritDoc
      *
-     * {@inheritdoc}
+     * Enforce marking with a tag
      */
     public function save($data, $identifier, array $tags = [], $lifeTime = null)
     {
@@ -53,22 +56,22 @@ class TagScope extends \Magento\Framework\Cache\Frontend\Decorator\Bare
     }
 
     /**
-     * Limit the cleaning scope within a tag
+     * @inheritDoc
      *
-     * {@inheritdoc}
+     * Limit the cleaning scope within a tag
      */
-    public function clean($mode = \Magento\Framework\Cache\FrontendInterface::CLEANING_MODE_ALL, array $tags = [])
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = [])
     {
-        if ($mode == \Magento\Framework\Cache\FrontendInterface::CLEANING_MODE_MATCHING_ANY_TAG) {
+        if ($mode == CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG) {
             $result = false;
             foreach ($tags as $tag) {
-                if (parent::clean(\Magento\Framework\Cache\FrontendInterface::CLEANING_MODE_MATCHING_TAG, [$tag, $this->getTag()])) {
+                if (parent::clean(CacheConstants::CLEANING_MODE_MATCHING_TAG, [$tag, $this->getTag()])) {
                     $result = true;
                 }
             }
         } else {
-            if ($mode == \Magento\Framework\Cache\FrontendInterface::CLEANING_MODE_ALL) {
-                $mode = \Magento\Framework\Cache\FrontendInterface::CLEANING_MODE_MATCHING_TAG;
+            if ($mode == CacheConstants::CLEANING_MODE_ALL) {
+                $mode = CacheConstants::CLEANING_MODE_MATCHING_TAG;
                 $tags = [$this->getTag()];
             } else {
                 $tags[] = $this->getTag();

@@ -1,8 +1,10 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
+declare(strict_types=1);
+
 namespace Magento\Framework\App;
 
 use Magento\Framework\App\Filesystem\DirectoryList;
@@ -26,22 +28,22 @@ class ObjectManagerFactory
     /**
      * Initialization parameter for a custom deployment configuration file
      */
-    const INIT_PARAM_DEPLOYMENT_CONFIG_FILE = 'MAGE_CONFIG_FILE';
+    public const INIT_PARAM_DEPLOYMENT_CONFIG_FILE = 'MAGE_CONFIG_FILE';
 
     /**
      * Initialization parameter for custom deployment configuration data
      */
-    const INIT_PARAM_DEPLOYMENT_CONFIG = 'MAGE_CONFIG';
+    public const INIT_PARAM_DEPLOYMENT_CONFIG = 'MAGE_CONFIG';
 
     /**
-     * Locator class name
+     * Object manager class name for locating services
      *
      * @var string
      */
     protected $_locatorClassName = \Magento\Framework\App\ObjectManager::class;
 
     /**
-     * Config class name
+     * Interception configuration class name
      *
      * @var string
      */
@@ -76,7 +78,7 @@ class ObjectManagerFactory
     protected $configFilePool;
 
     /**
-     * Factory
+     * Object manager factory instance
      *
      * @var \Magento\Framework\ObjectManager\FactoryInterface
      */
@@ -109,7 +111,10 @@ class ObjectManagerFactory
         $writeFactory = new \Magento\Framework\Filesystem\Directory\WriteFactory($this->driverPool);
         /** @var \Magento\Framework\Filesystem\Driver\File $fileDriver */
         $fileDriver = $this->driverPool->getDriver(DriverPool::FILE);
-        $lockManager = new \Magento\Framework\Lock\Backend\FileLock($fileDriver, BP);
+        $lockManager = new \Magento\Framework\Lock\Backend\FileLock(
+            $fileDriver,
+            $this->directoryList->getRoot()
+        );
         $generatedFiles = new GeneratedFiles($this->directoryList, $writeFactory, $lockManager);
         $generatedFiles->cleanGeneratedFiles();
 
@@ -148,7 +153,11 @@ class ObjectManagerFactory
             $cacheFactoryArguments = $diConfig->getArguments(\Magento\Framework\App\Cache\Frontend\Factory::class);
             $cacheFactoryArguments['decorators'][] = [
                 'class' => \Magento\Framework\Cache\Frontend\Decorator\Profiler::class,
-                'parameters' => ['backendPrefixes' => ['Zend_Cache_Backend_', 'Cm_Cache_Backend_']],
+                'parameters' => ['backendPrefixes' => [
+                    'Magento\Framework\Cache\Backend\\',
+                    'Magento\Framework\Cache\Frontend\Adapter\Symfony\\',
+                    'Cm_Cache_Backend_'
+                ]],
             ];
             $cacheFactoryConfig = [
                 \Magento\Framework\App\Cache\Frontend\Factory::class => ['arguments' => $cacheFactoryArguments]
@@ -295,7 +304,8 @@ class ObjectManagerFactory
      * @param \Magento\Framework\ObjectManager\Config\Config $diConfig
      * @param \Magento\Framework\ObjectManager\DefinitionInterface $definitions
      * @return \Magento\Framework\Interception\PluginList\PluginList
-     * @deprecated 101.0.0
+     * @deprecated 101.0.0 Use ObjectManager::create() directly instead
+     * @see \Magento\Framework\ObjectManagerInterface::create()
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function _createPluginList(

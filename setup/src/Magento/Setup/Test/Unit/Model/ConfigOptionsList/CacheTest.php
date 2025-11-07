@@ -147,7 +147,7 @@ class CacheTest extends TestCase
             'cache' => [
                 'frontend' => [
                     'default' => [
-                        'backend' => \Magento\Framework\Cache\Backend\Redis::class,
+                        'backend' => 'redis',
                         'backend_options' => [
                             'server' => '127.0.0.1',
                             'port' => '6379',
@@ -191,7 +191,7 @@ class CacheTest extends TestCase
             'cache' => [
                 'frontend' => [
                     'default' => [
-                        'backend' => \Magento\Framework\Cache\Backend\Redis::class,
+                        'backend' => 'redis',
                         'backend_options' => [
                             'server' => 'localhost',
                             'port' => '1234',

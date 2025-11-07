@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2015 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -9,6 +9,7 @@ namespace Magento\Framework\App\Test\Unit\Cache\Type;
 
 use Magento\Framework\App\Cache\Type\Config;
 use Magento\Framework\App\Cache\Type\FrontendPool;
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\TestFramework\Unit\Helper\ProxyTesting;
@@ -112,13 +113,13 @@ class ConfigTest extends TestCase
         )->method(
             'clean'
         )->with(
-            \Magento\Framework\Cache\FrontendInterface::CLEANING_MODE_MATCHING_TAG,
+            CacheConstants::CLEANING_MODE_MATCHING_TAG,
             [Config::CACHE_TAG]
         )->willReturn(
             $expectedResult
         );
         $actualResult = $this->model->clean(
-            \Magento\Framework\Cache\FrontendInterface::CLEANING_MODE_ALL,
+            CacheConstants::CLEANING_MODE_ALL,
             ['ignored_tag_one', 'ignored_tag_two']
         );
         $this->assertSame($expectedResult, $actualResult);
@@ -132,13 +133,13 @@ class ConfigTest extends TestCase
         )->method(
             'clean'
         )->with(
-            \Magento\Framework\Cache\FrontendInterface::CLEANING_MODE_MATCHING_TAG,
+            CacheConstants::CLEANING_MODE_MATCHING_TAG,
             ['test_tag_one', 'test_tag_two', Config::CACHE_TAG]
         )->willReturn(
             $expectedResult
         );
         $actualResult = $this->model->clean(
-            \Magento\Framework\Cache\FrontendInterface::CLEANING_MODE_MATCHING_TAG,
+            CacheConstants::CLEANING_MODE_MATCHING_TAG,
             ['test_tag_one', 'test_tag_two']
         );
         $this->assertSame($expectedResult, $actualResult);
@@ -155,16 +156,16 @@ class ConfigTest extends TestCase
         $this->frontendMock
             ->method('clean')
             ->willReturnCallback(function ($arg1, $arg2) use ($fixtureResultOne, $fixtureResultTwo) {
-                if ($arg1 == \Magento\Framework\Cache\FrontendInterface::CLEANING_MODE_MATCHING_TAG &&
+                if ($arg1 == CacheConstants::CLEANING_MODE_MATCHING_TAG &&
                     $arg2 == ['test_tag_one', Config::CACHE_TAG]) {
                     return $fixtureResultOne;
-                } elseif ($arg1 == \Magento\Framework\Cache\FrontendInterface::CLEANING_MODE_MATCHING_TAG &&
+                } elseif ($arg1 == CacheConstants::CLEANING_MODE_MATCHING_TAG &&
                     $arg2 == ['test_tag_two', Config::CACHE_TAG]) {
                     return $fixtureResultTwo;
                 }
             });
         $actualResult = $this->model->clean(
-            \Magento\Framework\Cache\FrontendInterface::CLEANING_MODE_MATCHING_ANY_TAG,
+            CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG,
             ['test_tag_one', 'test_tag_two']
         );
         $this->assertEquals($expectedResult, $actualResult);

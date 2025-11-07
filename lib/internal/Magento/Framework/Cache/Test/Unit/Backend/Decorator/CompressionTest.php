@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Magento\Framework\Cache\Test\Unit\Backend\Decorator;
 
 use Magento\Framework\Cache\Backend\Decorator\Compression;
+use Magento\Framework\Cache\Backend\ExtendedBackendInterface;
 use PHPUnit\Framework\TestCase;
 
 class CompressionTest extends TestCase
@@ -32,8 +33,9 @@ class CompressionTest extends TestCase
 
     protected function setUp(): void
     {
+        $backend = $this->createMock(ExtendedBackendInterface::class);
         $options = [
-            'concrete_backend' => $this->createMock(\Zend_Cache_Backend_File::class),
+            'concrete_backend' => $backend,
             'compression_threshold' => strlen($this->_testString),
         ];
         $this->_decorator = new Compression($options);
@@ -111,10 +113,14 @@ class CompressionTest extends TestCase
     {
         $cacheId = 'cacheId' . rand(1, 100);
 
-        $backend = $this->createPartialMock(\Zend_Cache_Backend_File::class, ['save', 'load']);
-        $backend->expects($this->once())->method('save')->willReturnCallback([__CLASS__, 'mockSave']);
+        $backend = $this->createMock(ExtendedBackendInterface::class);
+        $backend->expects($this->once())
+            ->method('save')
+            ->willReturnCallback([__CLASS__, 'mockSave']);
 
-        $backend->expects($this->once())->method('load')->willReturnCallback([__CLASS__, 'mockLoad']);
+        $backend->expects($this->once())
+            ->method('load')
+            ->willReturnCallback([__CLASS__, 'mockLoad']);
 
         $options = ['concrete_backend' => $backend, 'compression_threshold' => strlen($this->_testString)];
 
@@ -123,7 +129,7 @@ class CompressionTest extends TestCase
         $decorator->setOption('write_control', false);
         $decorator->setOption('automatic_cleaning_factor', 0);
 
-        $decorator->save($this->_testString, $cacheId);
+        $decorator->save($this->_testString, $cacheId, []);
 
         $this->assertArrayHasKey($cacheId, self::$_cacheStorage);
         $this->assertIsString(self::$_cacheStorage[$cacheId]);

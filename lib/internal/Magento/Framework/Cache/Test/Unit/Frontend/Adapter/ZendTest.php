@@ -1,12 +1,13 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Test\Unit\Frontend\Adapter;
 
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\Frontend\Adapter\Zend;
 use Magento\Framework\TestFramework\Unit\Helper\ProxyTesting;
 use PHPUnit\Framework\TestCase;
@@ -60,20 +61,20 @@ class ZendTest extends TestCase
             'remove' => ['remove', ['record_id'], ['RECORD_ID'], true],
             'clean mode "all"' => [
                 'clean',
-                [\Zend_Cache::CLEANING_MODE_ALL, []],
-                [\Zend_Cache::CLEANING_MODE_ALL, []],
+                [CacheConstants::CLEANING_MODE_ALL, []],
+                [CacheConstants::CLEANING_MODE_ALL, []],
                 true,
             ],
             'clean mode "matching tag"' => [
                 'clean',
-                [\Zend_Cache::CLEANING_MODE_MATCHING_TAG, ['tag1', 'tag2']],
-                [\Zend_Cache::CLEANING_MODE_MATCHING_TAG, ['TAG1', 'TAG2']],
+                [CacheConstants::CLEANING_MODE_MATCHING_TAG, ['tag1', 'tag2']],
+                [CacheConstants::CLEANING_MODE_MATCHING_TAG, ['TAG1', 'TAG2']],
                 true,
             ],
             'clean mode "matching any tag"' => [
                 'clean',
-                [\Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, ['tag1', 'tag2']],
-                [\Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, ['TAG1', 'TAG2']],
+                [CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, ['tag1', 'tag2']],
+                [CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, ['TAG1', 'TAG2']],
                 true,
             ],
             'getBackend' => [
@@ -114,11 +115,11 @@ class ZendTest extends TestCase
     {
         return [
             'cleaning mode "expired"' => [
-                \Zend_Cache::CLEANING_MODE_OLD,
+                CacheConstants::CLEANING_MODE_OLD,
                 "Magento cache frontend does not support the cleaning mode 'old'.",
             ],
             'cleaning mode "not matching tag"' => [
-                \Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG,
+                CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG,
                 "Magento cache frontend does not support the cleaning mode 'notMatchingTag'.",
             ],
             'non-existing cleaning mode' => [
