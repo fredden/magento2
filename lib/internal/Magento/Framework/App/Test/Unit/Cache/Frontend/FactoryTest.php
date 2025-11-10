@@ -179,6 +179,29 @@ class FactoryTest extends TestCase
         $filesystem->expects($this->any())->method('getDirectoryRead')->willReturn($dirMock);
         $filesystem->expects($this->any())->method('getDirectoryWrite')->willReturn($writeDirMock);
 
+        // Create ResourceConnection mock for SymfonyFactory
+        $resource = $this->createMock(ResourceConnection::class);
+        $connectionMock = $this->createMock(\Magento\Framework\DB\Adapter\AdapterInterface::class);
+        $resource->expects($this->any())->method('getConnection')->willReturn($connectionMock);
+        $resource->expects($this->any())->method('getTableName')->willReturnCallback(function ($table) {
+            return $table;
+        });
+        
+        // Create Serialize mock for SymfonyFactory
+        $serializer = $this->createMock(\Magento\Framework\Serialize\Serializer\Serialize::class);
+        $serializer->expects($this->any())->method('serialize')->willReturnCallback(
+            function ($data) {
+                // phpcs:ignore Magento2.Security.InsecureFunction.FoundWithAlternative
+                return serialize($data);
+            }
+        );
+        $serializer->expects($this->any())->method('unserialize')->willReturnCallback(
+            function ($data) {
+                // phpcs:ignore Magento2.Security.InsecureFunction.FoundWithAlternative
+                return unserialize($data);
+            }
+        );
+
         // Create mock objects for Symfony adapter
         $cachePoolMock = $this->createMock(\Psr\Cache\CacheItemPoolInterface::class);
         $helperMock = $this->createMock(\Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface::class);
@@ -188,15 +211,24 @@ class FactoryTest extends TestCase
             return $cachePoolMock;
         };
         
-        $processFrontendFunc = function ($class, $params) use ($filesystem, $cacheFactory, $helperMock) {
+        $processFrontendFunc = function (
+            $class,
+            $params
+        ) use (
+            $filesystem,
+            $resource,
+            $serializer,
+            $cacheFactory,
+            $helperMock
+        ) {
             switch ($class) {
                 case CacheDecoratorDummy::class:
                     $frontend = $params['frontend'];
                     unset($params['frontend']);
                     return new $class($frontend, $params);
                 case \Magento\Framework\App\Cache\Frontend\SymfonyFactory::class:
-                    // SymfonyFactory only needs Filesystem parameter
-                    return new $class($filesystem);
+                    // SymfonyFactory needs Filesystem, ResourceConnection, and Serialize serializer
+                    return new $class($filesystem, $resource, $serializer);
                 case \Magento\Framework\Cache\Frontend\Adapter\Symfony::class:
                     // Create Symfony adapter with correct constructor signature:
                     // Closure $cacheFactory, ?AdapterHelperInterface $helper, int $defaultLifetime, string $idPrefix
