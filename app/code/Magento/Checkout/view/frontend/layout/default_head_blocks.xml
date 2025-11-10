@@ -7,7 +7,7 @@
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
-        <script src="mage/requirejs/baseUrlResolver.js"/>
-        <script src="mage/requirejs/mixins.js"/>
+        <script type="text/x-magento-init" src="mage/requirejs/baseUrlResolver.js"/>
+        <script type="text/x-magento-init" src="mage/requirejs/mixins.js"/>
     </head>
 </page>
