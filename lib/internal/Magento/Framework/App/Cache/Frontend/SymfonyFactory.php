@@ -8,11 +8,13 @@ declare(strict_types=1);
 namespace Magento\Framework\App\Cache\Frontend;
 
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
 use Magento\Framework\Cache\Frontend\Adapter\Helper\FilesystemAdapterHelper;
 use Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper;
 use Magento\Framework\Cache\Frontend\Adapter\Helper\RedisAdapterHelper;
 use Magento\Framework\Filesystem;
+use Magento\Framework\Serialize\Serializer\Serialize;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Adapter\ApcuAdapter;
@@ -20,6 +22,7 @@ use Symfony\Component\Cache\Adapter\ChainAdapter;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\Adapter\MemcachedAdapter;
 use Symfony\Component\Cache\Adapter\PdoAdapter;
+use Magento\Framework\Cache\Frontend\Adapter\Symfony\MagentoDatabaseAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 
@@ -40,6 +43,16 @@ class SymfonyFactory
      * @var Filesystem
      */
     private Filesystem $filesystem;
+
+    /**
+     * @var ResourceConnection
+     */
+    private ResourceConnection $resource;
+
+    /**
+     * @var Serialize PHP native serializer
+     */
+    private Serialize $serializer;
 
     /**
      * Connection pool cache for reusing connections
@@ -82,10 +95,17 @@ class SymfonyFactory
 
     /**
      * @param Filesystem $filesystem
+     * @param ResourceConnection $resource
+     * @param Serialize $serializer PHP native serializer
      */
-    public function __construct(Filesystem $filesystem)
-    {
+    public function __construct(
+        Filesystem $filesystem,
+        ResourceConnection $resource,
+        Serialize $serializer
+    ) {
         $this->filesystem = $filesystem;
+        $this->resource = $resource;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -319,42 +339,29 @@ class SymfonyFactory
     }
 
     /**
-     * Create Database (PDO) cache adapter
+     * Create Magento Database cache adapter
      *
-     * Performance optimizations:
-     * - Connection pooling
-     * - Optimized DSN building
+     * Uses Magento's existing Database.php backend (reuses cache/cache_tag tables)
+     * This leverages the 620-line Database.php that has all the logic with zend_db
      *
-     * @param array $options
+     * @param array $options Backend options (unused - database config is in ResourceConnection)
      * @param string $namespace
      * @param int|null $defaultLifetime
-     * @return AdapterInterface
+     * @return CacheItemPoolInterface
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     private function createDatabaseAdapter(
         array $options,
         string $namespace,
         ?int $defaultLifetime
-    ): AdapterInterface {
-        // Extract parameters
-        $host = $options['host'] ?? 'localhost';
-        $dbname = $options['dbname'] ?? 'magento';
-        $username = $options['username'] ?? 'root';
-        $password = $options['password'] ?? '';
-
-        // Build DSN (optimized)
-        $dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $host, $dbname);
-
-        // PDO options include username/password
-        $pdoOptions = [
-            'db_username' => $username,
-            'db_password' => $password
-        ];
-
-        return new PdoAdapter(
-            $dsn,
+    ): CacheItemPoolInterface {
+        // Use Magento's existing Database backend (reuses cache/cache_tag tables)
+        // This leverages the 620-line Database.php that has all the logic
+        return new MagentoDatabaseAdapter(
+            $this->resource,
+            $this->serializer,
             $namespace,
-            $defaultLifetime ?? 0,
-            $pdoOptions
+            $defaultLifetime ?? 0
         );
     }
 
