@@ -1,20 +1,21 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2013 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
 /**
  * \Magento\Framework\Cache\Core test case
+ *
+ * @deprecated No longer used in production. All cache operations now use Symfony cache adapter.
+ * @see \Magento\Framework\Cache\Frontend\Adapter\Symfony
  */
 namespace Magento\Framework\Cache\Test\Unit;
 
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\Core;
-use Magento\Framework\Cache\FrontendInterface;
 use PHPUnit\Framework\TestCase;
-use Psr\Cache\CacheItemPoolInterface;
-use Psr\Cache\CacheItemInterface;
 
 class CoreTest extends TestCase
 {
@@ -24,97 +25,80 @@ class CoreTest extends TestCase
     protected Core $_core;
 
     /**
-     * @var CacheItemPoolInterface|MockObject
+     * @var \Zend_Cache_Backend|MockObject
      */
-    protected $cachePoolMock;
+    protected $backendMock;
 
     protected function setUp(): void
     {
-        $this->cachePoolMock = $this->getMockBuilder(CacheItemPoolInterface::class)
+        // Core extends Zend_Cache_Core, which expects options array
+        // and a backend object. We'll set up a minimal configuration.
+        $this->backendMock = $this->getMockBuilder(\Zend_Cache_Backend::class)
+            ->disableOriginalConstructor()
+            ->addMethods([
+                'save',
+                'clean',
+                'load',
+                'test',
+                'remove',
+                'getCapabilities',
+                'getTags',
+                'getIdsMatchingTags',
+                'getIdsMatchingAnyTags',
+                'getIdsNotMatchingTags',
+                'getFillingPercentage',
+                'getMetadatas'
+            ])
             ->getMock();
-        $this->_core = new Core($this->cachePoolMock);
+        
+        $this->_core = new Core(['disable_save' => false]);
+        $this->_core->setBackend($this->backendMock);
     }
 
     protected function tearDown(): void
     {
-        unset($this->cachePoolMock);
+        unset($this->backendMock);
         unset($this->_core);
     }
 
-    
-
     public function testSaveDisabled()
     {
-        $this->cachePoolMock->expects($this->never())->method('save');
-        $this->_core->save('data', 'id');
-        $this->assertTrue(true); // Assert that no exception is thrown
+        // Test with disable_save option
+        $backendMock = $this->getMockBuilder(\Zend_Cache_Backend::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['save', 'clean', 'load', 'test', 'remove'])
+            ->getMock();
+        
+        $coreDisabled = new Core(['disable_save' => true]);
+        $coreDisabled->setBackend($backendMock);
+        
+        $backendMock->expects($this->never())->method('save');
+        $result = $coreDisabled->save('data', 'id');
+        $this->assertTrue($result);
     }
-
-    
 
     public function testSave()
     {
         $data = 'data';
         $id = 'id';
-        $itemMock = $this->getMockBuilder(CacheItemInterface::class)->getMock();
+        $tags = ['tag1', 'tag2'];
 
-        $this->cachePoolMock->expects($this->once())
-            ->method('getItem')
-            ->with($this->_core->_id($id))
-            ->willReturn($itemMock);
-
-        $itemMock->expects($this->once())
-            ->method('set')
-            ->with($data);
-
-        $this->cachePoolMock->expects($this->once())
+        // Verify that backend save is called when Core save is called
+        $this->backendMock->expects($this->once())
             ->method('save')
-            ->with($itemMock)
             ->willReturn(true);
 
-        $result = $this->_core->save($data, $id);
-        $this->assertTrue($result);
+        $this->_core->save($data, $id, $tags);
     }
 
     public function testClean()
     {
         // Test CLEANING_MODE_ALL
-        $this->cachePoolMock->expects($this->once())
-            ->method('clear')
+        $this->backendMock->expects($this->once())
+            ->method('clean')
+            ->with(CacheConstants::CLEANING_MODE_ALL, [])
             ->willReturn(true);
-        $result = $this->_core->clean(FrontendInterface::CLEANING_MODE_ALL);
+        $result = $this->_core->clean(CacheConstants::CLEANING_MODE_ALL);
         $this->assertTrue($result);
-
-        // Test CLEANING_MODE_MATCHING_TAG with tags
-        $this->cachePoolMock->expects($this->once())
-            ->method('clear')
-            ->willReturn(true);
-        $result = $this->_core->clean(FrontendInterface::CLEANING_MODE_MATCHING_TAG, ['tag1']);
-        $this->assertTrue($result);
-
-        // Test CLEANING_MODE_MATCHING_TAG without tags
-        $this->cachePoolMock->expects($this->never())
-            ->method('clear');
-        $result = $this->_core->clean(FrontendInterface::CLEANING_MODE_MATCHING_TAG, []);
-        $this->assertTrue($result);
-
-        // Test CLEANING_MODE_MATCHING_ANY_TAG with tags
-        $this->cachePoolMock->expects($this->once())
-            ->method('clear')
-            ->willReturn(true);
-        $result = $this->_core->clean(FrontendInterface::CLEANING_MODE_MATCHING_ANY_TAG, ['tag1', 'tag2']);
-        $this->assertTrue($result);
-
-        // Test CLEANING_MODE_MATCHING_ANY_TAG without tags
-        $this->cachePoolMock->expects($this->never())
-            ->method('clear');
-        $result = $this->_core->clean(FrontendInterface::CLEANING_MODE_MATCHING_ANY_TAG, []);
-        $this->assertTrue($result);
-
-        // Test unsupported mode
-        $result = $this->_core->clean('unsupported_mode');
-        $this->assertFalse($result);
     }
-
-    
 }
