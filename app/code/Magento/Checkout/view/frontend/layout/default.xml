@@ -10,10 +10,6 @@
     <update handle="checkout_cart_sidebar_item_price_renderers"/>
     <update handle="checkout_cart_sidebar_total_renderers"/>
     <body>
-        <referenceContainer name="head.additional">
-            <script src="mage/requirejs/baseUrlResolver.js"/>
-            <script src="mage/requirejs/mixins.js"/>
-        </referenceContainer>
         <referenceBlock name="head.components">
             <block class="Magento\Framework\View\Element\Js\Components" name="checkout_page_head_components" template="Magento_Checkout::js/components.phtml"/>
         </referenceBlock>
