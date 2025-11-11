@@ -161,25 +161,67 @@ class FactoryTest extends TestCase
      */
     protected function _buildModelForCreate($enforcedOptions = [], $decorators = [])
     {
-        $dirMock = $this->getMockForAbstractClass(ReadInterface::class);
-        $dirMock->expects($this->any())
-            ->method('getAbsolutePath')
-            ->willReturn('DIR');
+        $filesystem = $this->createFilesystemMock();
+        $resource = $this->createResourceConnectionMock();
+        $serializer = $this->createSerializerMock();
         
-        // Mock WriteInterface for directory creation
+        $cachePoolMock = $this->createMock(\Psr\Cache\CacheItemPoolInterface::class);
+        $helperMock = $this->createMock(\Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface::class);
+        
+        $cacheFactory = function () use ($cachePoolMock) {
+            return $cachePoolMock;
+        };
+        
+        $processFrontendFunc = $this->createFrontendProcessor(
+            $filesystem,
+            $resource,
+            $serializer,
+            $cacheFactory,
+            $helperMock
+        );
+        
+        $objectManager = $this->getMockForAbstractClass(ObjectManagerInterface::class);
+        $objectManager->expects($this->any())->method('create')->willReturnCallback($processFrontendFunc);
+
+        $model = new Factory(
+            $objectManager,
+            $filesystem,
+            $resource,
+            $enforcedOptions,
+            $decorators
+        );
+
+        return $model;
+    }
+
+    /**
+     * Create filesystem mock
+     *
+     * @return Filesystem|MockObject
+     */
+    private function createFilesystemMock()
+    {
+        $dirMock = $this->getMockForAbstractClass(ReadInterface::class);
+        $dirMock->expects($this->any())->method('getAbsolutePath')->willReturn('DIR');
+        
         $writeDirMock = $this->getMockForAbstractClass(\Magento\Framework\Filesystem\Directory\WriteInterface::class);
-        $writeDirMock->expects($this->any())
-            ->method('getAbsolutePath')
-            ->willReturn('DIR');
-        $writeDirMock->expects($this->any())
-            ->method('create')
-            ->willReturn(true);
+        $writeDirMock->expects($this->any())->method('getAbsolutePath')->willReturn('DIR');
+        $writeDirMock->expects($this->any())->method('create')->willReturn(true);
         
         $filesystem = $this->createMock(Filesystem::class);
         $filesystem->expects($this->any())->method('getDirectoryRead')->willReturn($dirMock);
         $filesystem->expects($this->any())->method('getDirectoryWrite')->willReturn($writeDirMock);
+        
+        return $filesystem;
+    }
 
-        // Create ResourceConnection mock for SymfonyFactory
+    /**
+     * Create resource connection mock
+     *
+     * @return ResourceConnection|MockObject
+     */
+    private function createResourceConnectionMock()
+    {
         $resource = $this->createMock(ResourceConnection::class);
         $connectionMock = $this->createMock(\Magento\Framework\DB\Adapter\AdapterInterface::class);
         $resource->expects($this->any())->method('getConnection')->willReturn($connectionMock);
@@ -187,7 +229,16 @@ class FactoryTest extends TestCase
             return $table;
         });
         
-        // Create Serialize mock for SymfonyFactory
+        return $resource;
+    }
+
+    /**
+     * Create serializer mock
+     *
+     * @return \Magento\Framework\Serialize\Serializer\Serialize|MockObject
+     */
+    private function createSerializerMock()
+    {
         $serializer = $this->createMock(\Magento\Framework\Serialize\Serializer\Serialize::class);
         $serializer->expects($this->any())->method('serialize')->willReturnCallback(
             function ($data) {
@@ -201,65 +252,38 @@ class FactoryTest extends TestCase
                 return unserialize($data);
             }
         );
+        
+        return $serializer;
+    }
 
-        // Create mock objects for Symfony adapter
-        $cachePoolMock = $this->createMock(\Psr\Cache\CacheItemPoolInterface::class);
-        $helperMock = $this->createMock(\Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface::class);
-        
-        // Create cache factory closure for Symfony adapter
-        $cacheFactory = function () use ($cachePoolMock) {
-            return $cachePoolMock;
-        };
-        
-        $processFrontendFunc = function (
-            $class,
-            $params
-        ) use (
-            $filesystem,
-            $resource,
-            $serializer,
-            $cacheFactory,
-            $helperMock
-        ) {
+    /**
+     * Create frontend processor callback
+     *
+     * @param Filesystem $filesystem
+     * @param ResourceConnection $resource
+     * @param \Magento\Framework\Serialize\Serializer\Serialize $serializer
+     * @param \Closure $cacheFactory
+     * @param mixed $helperMock
+     * @return \Closure
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    private function createFrontendProcessor($filesystem, $resource, $serializer, $cacheFactory, $helperMock)
+    {
+        return function ($class, $params) use ($filesystem, $resource, $serializer, $cacheFactory, $helperMock) {
             switch ($class) {
                 case CacheDecoratorDummy::class:
                     $frontend = $params['frontend'];
                     unset($params['frontend']);
                     return new $class($frontend, $params);
                 case \Magento\Framework\App\Cache\Frontend\SymfonyFactory::class:
-                    // SymfonyFactory needs Filesystem, ResourceConnection, and Serialize serializer
                     return new $class($filesystem, $resource, $serializer);
                 case \Magento\Framework\Cache\Frontend\Adapter\Symfony::class:
-                    // Create Symfony adapter with correct constructor signature:
-                    // Closure $cacheFactory, ?AdapterHelperInterface $helper, int $defaultLifetime, string $idPrefix
-                    // The Factory passes these as direct parameters, not nested in 'options'
                     $defaultLifetime = $params['defaultLifetime'] ?? 7200;
                     $idPrefix = $params['idPrefix'] ?? '';
-                    return new $class(
-                        $cacheFactory,
-                        $helperMock,
-                        $defaultLifetime,
-                        $idPrefix
-                    );
+                    return new $class($cacheFactory, $helperMock, $defaultLifetime, $idPrefix);
                 default:
                     throw new \Exception("Test is not designed to create {$class} objects");
-                    break;
             }
         };
-        /** @var MockObject $objectManager */
-        $objectManager = $this->getMockForAbstractClass(ObjectManagerInterface::class);
-        $objectManager->expects($this->any())->method('create')->willReturnCallback($processFrontendFunc);
-
-        $resource = $this->createMock(ResourceConnection::class);
-
-        $model = new Factory(
-            $objectManager,
-            $filesystem,
-            $resource,
-            $enforcedOptions,
-            $decorators
-        );
-
-        return $model;
     }
 }
