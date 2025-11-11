@@ -10,12 +10,7 @@ use Zend_Cache;
 use Zend_Cache_Exception;
 
 /**
- * Legacy cache core for backward compatibility
- *
- * Performance optimizations:
- * - Cached ID cleaning
- * - Cached backend type check
- * - Optimized regex operations
+ * Extended Zend Cache Core with backend decorator support
  *
  * @deprecated No longer used in production. All cache operations now use Symfony cache adapter.
  * @see \Magento\Framework\Cache\Frontend\Adapter\Symfony
@@ -34,61 +29,22 @@ class Core extends \Zend_Cache_Core
     protected $_specificOptions = ['backend_decorators' => [], 'disable_save' => false];
 
     /**
-     * Cache for cleaned IDs (performance optimization)
-     *
-     * @var array
-     */
-    private array $cleanedIds = [];
-
-    /**
-     * Cached check if backend is Redis
-     *
-     * @var bool|null
-     */
-    private ?bool $isRedisBackend = null;
-
-    /**
      * Make and return a cache id
      *
      * Checks 'cache_id_prefix' and returns new id with prefix or simply the id if null
-     *
-     * Performance optimizations:
-     * - Cached ID cleaning results
-     * - Optimized regex (single operation)
-     * - Early returns
      *
      * @param  string $cacheId Cache id
      * @return string Cache id (with or without prefix)
      */
     protected function _id($cacheId)
     {
-        if ($cacheId === null) {
-            return null;
+        if ($cacheId !== null) {
+            $cacheId = str_replace('.', '__', $cacheId); //reduce collision chances
+            $cacheId = preg_replace('/([^a-zA-Z0-9_]{1,1})/', '_', $cacheId);
+            if (isset($this->_options['cache_id_prefix'])) {
+                $cacheId = $this->_options['cache_id_prefix'] . $cacheId;
+            }
         }
-
-        // Check cache first
-        if (isset($this->cleanedIds[$cacheId])) {
-            return $this->cleanedIds[$cacheId];
-        }
-
-        $original = $cacheId;
-        
-        // Optimize: Single operation for dot replacement
-        $cacheId = str_replace('.', '__', $cacheId);
-        
-        // Optimize: Single regex operation
-        $cacheId = preg_replace('/[^a-zA-Z0-9_]/', '_', $cacheId);
-        
-        // Add prefix if configured
-        if (isset($this->_options['cache_id_prefix'])) {
-            $cacheId = $this->_options['cache_id_prefix'] . $cacheId;
-        }
-
-        // Cache the result (limit to 1000 entries)
-        if (count($this->cleanedIds) < 1000) {
-            $this->cleanedIds[$original] = $cacheId;
-        }
-
         return $cacheId;
     }
 
@@ -175,25 +131,17 @@ class Core extends \Zend_Cache_Core
      *
      * Throw an exception if a problem is found
      *
-     * Performance optimization:
-     * - Cached backend type check (instanceof is expensive)
-     *
      * @param  string $string Cache id or tag
      * @throws Zend_Cache_Exception
      * @return void
      */
     protected function _validateIdOrTag($string)
     {
-        // Cache the instanceof check (performance optimization)
-        if ($this->isRedisBackend === null) {
-            $this->isRedisBackend = $this->_backend instanceof Redis;
-        }
-
-        if ($this->isRedisBackend) {
+        if ($this->_backend instanceof Redis) {
             if (!is_string($string)) {
                 Zend_Cache::throwException('Invalid id or tag : must be a string');
             }
-            if (strpos($string, 'internal-') === 0) {
+            if (substr($string, 0, 9) == 'internal-') {
                 Zend_Cache::throwException('"internal-*" ids or tags are reserved');
             }
             if (!preg_match('~^[a-zA-Z0-9_{}]+$~D', $string)) {
@@ -216,9 +164,6 @@ class Core extends \Zend_Cache_Core
     {
         $backendObject = $this->_decorateBackend($backendObject);
         parent::setBackend($backendObject);
-        
-        // Reset cached backend type check
-        $this->isRedisBackend = null;
     }
 
     /**

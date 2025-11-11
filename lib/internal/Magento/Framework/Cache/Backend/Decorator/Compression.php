@@ -3,16 +3,19 @@
  * Copyright 2013 Adobe
  * All Rights Reserved.
  */
-declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Backend\Decorator;
 
 /**
  * Decorator class for compressing data before storing in cache
  *
+ * @deprecated Not used in Symfony cache system. Compression is handled by backend libraries directly.
+ * @see vendor/colinmollenhour/cache-backend-redis (Cm_Cache_Backend_Redis has built-in compression)
+ * @see \Magento\Framework\Cache\Frontend\Decorator\* (Frontend decorators for Symfony)
+ *
  * @todo re-implement as a cache frontend decorator similarly to \Magento\Framework\Cache\Frontend\Decorator\*
  */
-class Compression extends AbstractDecorator
+class Compression extends \Magento\Framework\Cache\Backend\Decorator\AbstractDecorator
 {
     /**
      * Prefix of compressed strings
@@ -54,17 +57,18 @@ class Compression extends AbstractDecorator
      * @param string $data Datas to cache
      * @param string $cacheId Cache id
      * @param string[] $tags Array of strings, the cache record will be tagged by each string entry
-     * @param int|null $specificLifetime If not null, set a specific lifetime for this cache record
+     * @param bool $specificLifetime If != false, set a specific lifetime for this cache record
      * (null => infinite lifetime)
+     * @param int $priority integer between 0 (very low priority) and 10 (max priority) used by some particular backends
      * @return bool true if no problem
      */
-    public function save($data, $cacheId, $tags = [], $specificLifetime = null)
+    public function save($data, $cacheId, $tags = [], $specificLifetime = false, $priority = 8)
     {
         if ($data !== null && $this->_isCompressionNeeded($data)) {
             $data = self::_compressData($data);
         }
 
-        return $this->_backend->save($data, $cacheId, $tags, $specificLifetime);
+        return $this->_backend->save($data, $cacheId, $tags, $specificLifetime, $priority);
     }
 
     /**

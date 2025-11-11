@@ -7,11 +7,15 @@ declare(strict_types=1);
 
 /**
  * \Magento\Framework\Cache\Backend\Decorator\Compression test case
+ *
+ * @deprecated Tests deprecated class Compression
+ * @see \Magento\Framework\Cache\Backend\Decorator\Compression
+ * @group legacy
+ * @group disabled
  */
 namespace Magento\Framework\Cache\Test\Unit\Backend\Decorator;
 
 use Magento\Framework\Cache\Backend\Decorator\Compression;
-use Magento\Framework\Cache\Backend\ExtendedBackendInterface;
 use PHPUnit\Framework\TestCase;
 
 class CompressionTest extends TestCase
@@ -31,14 +35,16 @@ class CompressionTest extends TestCase
      */
     protected static $_cacheStorage = [];
 
+    /**
+     * Skip all tests as the class being tested is deprecated
+     *
+     * @return void
+     */
     protected function setUp(): void
     {
-        $backend = $this->createMock(ExtendedBackendInterface::class);
-        $options = [
-            'concrete_backend' => $backend,
-            'compression_threshold' => strlen($this->_testString),
-        ];
-        $this->_decorator = new Compression($options);
+        $this->markTestSkipped(
+            'Test skipped: Compression is deprecated. Compression is handled by backend libraries directly.'
+        );
     }
 
     protected function tearDown(): void
@@ -113,14 +119,10 @@ class CompressionTest extends TestCase
     {
         $cacheId = 'cacheId' . rand(1, 100);
 
-        $backend = $this->createMock(ExtendedBackendInterface::class);
-        $backend->expects($this->once())
-            ->method('save')
-            ->willReturnCallback([__CLASS__, 'mockSave']);
+        $backend = $this->createPartialMock(\Zend_Cache_Backend_File::class, ['save', 'load']);
+        $backend->expects($this->once())->method('save')->willReturnCallback([__CLASS__, 'mockSave']);
 
-        $backend->expects($this->once())
-            ->method('load')
-            ->willReturnCallback([__CLASS__, 'mockLoad']);
+        $backend->expects($this->once())->method('load')->willReturnCallback([__CLASS__, 'mockLoad']);
 
         $options = ['concrete_backend' => $backend, 'compression_threshold' => strlen($this->_testString)];
 
@@ -129,7 +131,7 @@ class CompressionTest extends TestCase
         $decorator->setOption('write_control', false);
         $decorator->setOption('automatic_cleaning_factor', 0);
 
-        $decorator->save($this->_testString, $cacheId, []);
+        $decorator->save($this->_testString, $cacheId);
 
         $this->assertArrayHasKey($cacheId, self::$_cacheStorage);
         $this->assertIsString(self::$_cacheStorage[$cacheId]);

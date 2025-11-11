@@ -13,6 +13,7 @@ use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
 use Magento\Framework\Cache\Frontend\Adapter\Helper\FilesystemAdapterHelper;
 use Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper;
 use Magento\Framework\Cache\Frontend\Adapter\Helper\RedisAdapterHelper;
+use Magento\Framework\Cache\Frontend\Adapter\Symfony\MagentoDatabaseAdapter;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Serialize\Serializer\Serialize;
 use Psr\Cache\CacheItemPoolInterface;
@@ -21,8 +22,6 @@ use Symfony\Component\Cache\Adapter\ApcuAdapter;
 use Symfony\Component\Cache\Adapter\ChainAdapter;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\Adapter\MemcachedAdapter;
-use Symfony\Component\Cache\Adapter\PdoAdapter;
-use Magento\Framework\Cache\Frontend\Adapter\Symfony\MagentoDatabaseAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 

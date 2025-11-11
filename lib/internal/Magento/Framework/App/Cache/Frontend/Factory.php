@@ -593,7 +593,7 @@ class Factory
 
             // Create Symfony adapter with fork detection support and backend helper
             $result = $this->_objectManager->create(
-                \Magento\Framework\Cache\Frontend\Adapter\Symfony::class,
+                Symfony::class,
                 [
                     'cacheFactory' => $cacheFactory,
                     'helper' => $helper,

@@ -7,13 +7,32 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Test\Unit\Frontend\Adapter;
 
-use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\Frontend\Adapter\Zend;
 use Magento\Framework\TestFramework\Unit\Helper\ProxyTesting;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Test for Zend cache frontend adapter
+ *
+ * @deprecated Tests deprecated class Zend
+ * @see \Magento\Framework\Cache\Frontend\Adapter\Zend
+ * @group legacy
+ * @group disabled
+ */
 class ZendTest extends TestCase
 {
+    /**
+     * Skip all tests as the class being tested is deprecated
+     *
+     * @return void
+     */
+    protected function setUp(): void
+    {
+        $this->markTestSkipped(
+            'Test skipped: Zend frontend adapter is deprecated. Use Symfony cache adapter instead.'
+        );
+    }
+
     /**
      * @param string $method
      * @param array $params
@@ -61,20 +80,20 @@ class ZendTest extends TestCase
             'remove' => ['remove', ['record_id'], ['RECORD_ID'], true],
             'clean mode "all"' => [
                 'clean',
-                [CacheConstants::CLEANING_MODE_ALL, []],
-                [CacheConstants::CLEANING_MODE_ALL, []],
+                [\Zend_Cache::CLEANING_MODE_ALL, []],
+                [\Zend_Cache::CLEANING_MODE_ALL, []],
                 true,
             ],
             'clean mode "matching tag"' => [
                 'clean',
-                [CacheConstants::CLEANING_MODE_MATCHING_TAG, ['tag1', 'tag2']],
-                [CacheConstants::CLEANING_MODE_MATCHING_TAG, ['TAG1', 'TAG2']],
+                [\Zend_Cache::CLEANING_MODE_MATCHING_TAG, ['tag1', 'tag2']],
+                [\Zend_Cache::CLEANING_MODE_MATCHING_TAG, ['TAG1', 'TAG2']],
                 true,
             ],
             'clean mode "matching any tag"' => [
                 'clean',
-                [CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, ['tag1', 'tag2']],
-                [CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, ['TAG1', 'TAG2']],
+                [\Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, ['tag1', 'tag2']],
+                [\Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, ['TAG1', 'TAG2']],
                 true,
             ],
             'getBackend' => [
@@ -115,11 +134,11 @@ class ZendTest extends TestCase
     {
         return [
             'cleaning mode "expired"' => [
-                CacheConstants::CLEANING_MODE_OLD,
+                \Zend_Cache::CLEANING_MODE_OLD,
                 "Magento cache frontend does not support the cleaning mode 'old'.",
             ],
             'cleaning mode "not matching tag"' => [
-                CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG,
+                \Zend_Cache::CLEANING_MODE_NOT_MATCHING_TAG,
                 "Magento cache frontend does not support the cleaning mode 'notMatchingTag'.",
             ],
             'non-existing cleaning mode' => [

@@ -27,6 +27,7 @@ use Magento\Framework\View\Element\Html\Date;
 use Magento\Framework\View\Element\Template\Context;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\NullAdapter;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -105,8 +106,8 @@ class DobTest extends TestCase
      */
     protected function setUp(): void
     {
-        // Create a mock low-level frontend that does nothing (like BlackHole)
-        $lowLevelFrontend = $this->createMock(\stdClass::class);
+        // Create a NullAdapter that does nothing (replacement for Zend_Cache_Backend_BlackHole)
+        $lowLevelFrontend = new NullAdapter();
 
         $frontendCache = $this->getMockForAbstractClass(
             FrontendInterface::class,
