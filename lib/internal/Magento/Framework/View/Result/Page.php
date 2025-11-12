@@ -46,12 +46,6 @@ use Magento\Framework\View\EntitySpecificHandlesList;
  */
 class Page extends Layout
 {
-    private const CRITICAL_SCRIPT_PATTERNS = [
-        '/\/require\.js$/',
-        '/\/requirejs-config(\.min)?\.js$/',
-        '/\/requirejs\/mixins(\.min)?\.js$/',
-    ];
-
     /**
      * @var string
      */
@@ -383,43 +377,5 @@ class Page extends Layout
             $this->logger->critical($e);
             return $this->urlBuilder->getUrl('', ['_direct' => 'core/index/notFound']);
         }
-    }
-
-    /**
-     * @param string $url
-     * @return bool
-     */
-    private function isCriticalRequireAsset(string $url): bool
-    {
-        foreach (self::CRITICAL_SCRIPT_PATTERNS as $re) {
-            if (preg_match($re, $url)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * @param string $url
-     * @param array $attrs
-     * @param bool $cfgEnabled
-     * @return bool
-     */
-    private function shouldDefer(string $url, array $attrs, bool $cfgEnabled): bool
-    {
-        if (!$cfgEnabled) {
-            return false;
-        }
-        if ($this->isCriticalRequireAsset($url)) {
-            return false;
-        }
-        if (isset($attrs['async']) && $attrs['async']) {
-            return false;
-        }
-        if (isset($attrs['defer']) && $attrs['defer'] === 'false') {
-            return false;
-        }
-
-        return true;
     }
 }
