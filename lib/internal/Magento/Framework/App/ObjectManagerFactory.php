@@ -10,7 +10,7 @@ namespace Magento\Framework\App;
 use Magento\Framework\App\Arguments\ArgumentInterpreter;
 use Magento\Framework\App\Arguments\FileResolver\Primary;
 use Magento\Framework\App\Arguments\ValidationState;
-use Magento\Framework\App\Cache\Frontend\Decorator\Profiler as ProfilerDecorator;
+use Magento\Framework\Cache\Frontend\Decorator\Profiler as ProfilerDecorator;
 use Magento\Framework\App\Cache\Frontend\Factory as CacheFrontendFactory;
 use Magento\Framework\App\DeploymentConfig;
 use Magento\Framework\App\EnvironmentFactory;
