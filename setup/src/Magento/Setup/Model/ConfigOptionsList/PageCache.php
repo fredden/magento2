@@ -20,9 +20,9 @@ use Magento\Setup\Validator\RedisConnectionValidator;
 class PageCache implements ConfigOptionsListInterface
 {
     public const INPUT_VALUE_PAGE_CACHE_REDIS = 'redis';
-    public const CONFIG_VALUE_PAGE_CACHE_REDIS = \Magento\Framework\Cache\Backend\Redis::class;
+    public const CONFIG_VALUE_PAGE_CACHE_REDIS = 'redis';
     public const INPUT_VALUE_PAGE_CACHE_VALKEY = 'valkey';
-    public const CONFIG_VALUE_PAGE_CACHE_VALKEY = \Magento\Framework\Cache\Backend\Valkey::class;
+    public const CONFIG_VALUE_PAGE_CACHE_VALKEY = 'valkey';
 
     public const INPUT_KEY_PAGE_CACHE_BACKEND = 'page-cache';
     public const INPUT_KEY_PAGE_CACHE_BACKEND_REDIS_SERVER = 'page-cache-redis-server';
