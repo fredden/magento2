@@ -23,6 +23,14 @@ use Magento\Framework\View\Asset\MergeService;
  */
 class Renderer implements RendererInterface
 {
+    private const CRITICAL_SCRIPT_PATTERNS = [
+        '/\/require\.js$/',
+        '/\/requirejs-config(\.min)?\.js$/',
+        '/\/requirejs\/mixins(\.min)?\.js$/',
+        '/\/requirejs\/baseUrlResolver(\.min)?\.js$/',
+        '/\/requirejs\/requirejs-map(\.min)?\.js$/',
+    ];
+
     /**
      * @var array
      */
@@ -428,9 +436,17 @@ class Renderer implements RendererInterface
         try {
             /** @var $asset \Magento\Framework\View\Asset\AssetInterface */
             foreach ($assets as $asset) {
+                $defaultAttributes = $this->addDefaultAttributes($this->getAssetContentType($asset), $attributes);
+                if (
+                    $this->getAssetContentType($asset) == 'js' &&
+                    $this->shouldDefer($asset->getUrl(), $group->getProperty('attributes') ?? []
+                    )
+                ) {
+                    $defaultAttributes .= ' defer';
+                }
                 $template = $this->getAssetTemplate(
                     $group->getProperty(GroupedCollection::PROPERTY_CONTENT_TYPE),
-                    $this->addDefaultAttributes($this->getAssetContentType($asset), $attributes)
+                    $defaultAttributes
                 );
                 $result .= sprintf($template, $asset->getUrl());
             }
@@ -439,6 +455,45 @@ class Renderer implements RendererInterface
             $result .= sprintf($template, $this->urlBuilder->getUrl('', ['_direct' => 'core/index/notFound']));
         }
         return $result;
+    }
+
+    /**
+     * Check if we should add the defer tag or not
+     *
+     * @param string $url
+     * @param array $attrs
+     * @return bool
+     */
+    private function shouldDefer(string $url, array $attrs): bool
+    {
+        if ($this->isCriticalRequireAsset($url)) {
+            return false;
+        }
+        if (isset($attrs['async']) && $attrs['async']) {
+            return false;
+        }
+        if (isset($attrs['defer']) && $attrs['defer'] === 'false') {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if an asset is considered critical
+     *
+     * @param string $url
+     * @return bool
+     */
+    private function isCriticalRequireAsset(string $url): bool
+    {
+        foreach (self::CRITICAL_SCRIPT_PATTERNS as $re) {
+            if (preg_match($re, $url)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
