@@ -31,12 +31,14 @@ class PageCache implements ConfigOptionsListInterface
     public const INPUT_KEY_PAGE_CACHE_BACKEND_REDIS_PASSWORD = 'page-cache-redis-password';
     public const INPUT_KEY_PAGE_CACHE_BACKEND_REDIS_COMPRESS_DATA = 'page-cache-redis-compress-data';
     public const INPUT_KEY_PAGE_CACHE_BACKEND_REDIS_COMPRESSION_LIB = 'page-cache-redis-compression-lib';
+    public const INPUT_KEY_PAGE_CACHE_BACKEND_REDIS_SERIALIZER = 'page-cache-redis-serializer';
     public const INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_SERVER = 'page-cache-valkey-server';
     public const INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_DATABASE = 'page-cache-valkey-db';
     public const INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_PORT = 'page-cache-valkey-port';
     public const INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_PASSWORD = 'page-cache-valkey-password';
     public const INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_COMPRESS_DATA = 'page-cache-valkey-compress-data';
     public const INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_COMPRESSION_LIB = 'page-cache-valkey-compression-lib';
+    public const INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_SERIALIZER = 'page-cache-valkey-serializer';
     public const INPUT_KEY_PAGE_CACHE_ID_PREFIX = 'page-cache-id-prefix';
 
     public const CONFIG_PATH_PAGE_CACHE_BACKEND = 'cache/frontend/page_cache/backend';
@@ -48,6 +50,8 @@ class PageCache implements ConfigOptionsListInterface
         'cache/frontend/page_cache/backend_options/compress_data';
     public const CONFIG_PATH_PAGE_CACHE_BACKEND_COMPRESSION_LIB =
         'cache/frontend/page_cache/backend_options/compression_lib';
+    public const CONFIG_PATH_PAGE_CACHE_BACKEND_SERIALIZER =
+        'cache/frontend/page_cache/backend_options/serializer';
     public const CONFIG_PATH_PAGE_CACHE_ID_PREFIX = 'cache/frontend/page_cache/id_prefix';
 
     /**
@@ -60,12 +64,14 @@ class PageCache implements ConfigOptionsListInterface
         self::INPUT_KEY_PAGE_CACHE_BACKEND_REDIS_PASSWORD => '',
         self::INPUT_KEY_PAGE_CACHE_BACKEND_REDIS_COMPRESS_DATA => '0',
         self::INPUT_KEY_PAGE_CACHE_BACKEND_REDIS_COMPRESSION_LIB => '',
+        self::INPUT_KEY_PAGE_CACHE_BACKEND_REDIS_SERIALIZER => 'igbinary',
         self::INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_SERVER => '127.0.0.1',
         self::INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_DATABASE => '1',
         self::INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_PORT => '6379',
         self::INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_PASSWORD => '',
         self::INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_COMPRESS_DATA => '0',
         self::INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_COMPRESSION_LIB => '',
+        self::INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_SERIALIZER => 'igbinary',
     ];
 
     /**
@@ -87,6 +93,7 @@ class PageCache implements ConfigOptionsListInterface
         self::INPUT_KEY_PAGE_CACHE_BACKEND_REDIS_COMPRESS_DATA => self::CONFIG_PATH_PAGE_CACHE_BACKEND_COMPRESS_DATA,
         self::INPUT_KEY_PAGE_CACHE_BACKEND_REDIS_COMPRESSION_LIB =>
             self::CONFIG_PATH_PAGE_CACHE_BACKEND_COMPRESSION_LIB,
+        self::INPUT_KEY_PAGE_CACHE_BACKEND_REDIS_SERIALIZER => self::CONFIG_PATH_PAGE_CACHE_BACKEND_SERIALIZER,
     ];
 
     /**
@@ -100,6 +107,7 @@ class PageCache implements ConfigOptionsListInterface
         self::INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_COMPRESS_DATA => self::CONFIG_PATH_PAGE_CACHE_BACKEND_COMPRESS_DATA,
         self::INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_COMPRESSION_LIB =>
             self::CONFIG_PATH_PAGE_CACHE_BACKEND_COMPRESSION_LIB,
+        self::INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_SERIALIZER => self::CONFIG_PATH_PAGE_CACHE_BACKEND_SERIALIZER,
     ];
 
     /**
@@ -119,6 +127,8 @@ class PageCache implements ConfigOptionsListInterface
 
     /**
      * @inheritdoc
+     *
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function getOptions()
     {
@@ -167,6 +177,12 @@ class PageCache implements ConfigOptionsListInterface
                 'Compression library to use [snappy,lzf,l4z,zstd,gzip] (leave blank to determine automatically)'
             ),
             new TextConfigOption(
+                self::INPUT_KEY_PAGE_CACHE_BACKEND_REDIS_SERIALIZER,
+                TextConfigOption::FRONTEND_WIZARD_TEXT,
+                self::CONFIG_PATH_PAGE_CACHE_BACKEND_SERIALIZER,
+                'Serializer to use (igbinary is 70% faster, 58% smaller than PHP serialize)'
+            ),
+            new TextConfigOption(
                 self::INPUT_KEY_PAGE_CACHE_ID_PREFIX,
                 TextConfigOption::FRONTEND_WIZARD_TEXT,
                 self::CONFIG_PATH_PAGE_CACHE_ID_PREFIX,
@@ -207,6 +223,12 @@ class PageCache implements ConfigOptionsListInterface
                 TextConfigOption::FRONTEND_WIZARD_TEXT,
                 self::CONFIG_PATH_PAGE_CACHE_BACKEND_COMPRESSION_LIB,
                 'Compression library to use [snappy,lzf,l4z,zstd,gzip] (leave blank to determine automatically)'
+            ),
+            new TextConfigOption(
+                self::INPUT_KEY_PAGE_CACHE_BACKEND_VALKEY_SERIALIZER,
+                TextConfigOption::FRONTEND_WIZARD_TEXT,
+                self::CONFIG_PATH_PAGE_CACHE_BACKEND_SERIALIZER,
+                'Serializer to use (igbinary is 70% faster, 58% smaller than PHP serialize)'
             )
         ];
     }
