@@ -25,6 +25,7 @@ use Magento\Framework\Cache\Backend\Database;
 use Magento\Framework\Cache\Backend\Eaccelerator;
 use Magento\Framework\Cache\Backend\RemoteSynchronizedCache;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony;
+use Magento\Framework\Cache\Frontend\Decorator\Compression as CompressionDecorator;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\Filesystem;
 use Magento\Framework\ObjectManagerInterface;
@@ -602,7 +603,12 @@ class Factory
                 ]
             );
 
-            // Apply decorators
+            // Apply compression decorator if enabled in backend options
+            if ($this->isCompressionEnabled($backendOptions)) {
+                $result = $this->applyCompressionDecorator($result, $backendOptions);
+            }
+
+            // Apply other decorators
             $result = $this->_applyDecorators($result);
 
         } catch (\Exception $e) {
@@ -622,6 +628,56 @@ class Factory
         Profiler::stop('cache_symfony_create');
 
         return $result;
+    }
+
+    /**
+     * Check if compression is enabled in backend options
+     *
+     * @param array $backendOptions
+     * @return bool
+     */
+    private function isCompressionEnabled(array $backendOptions): bool
+    {
+        // Check if compress_data is explicitly enabled (value '1' or true)
+        return isset($backendOptions['compress_data'])
+            && ($backendOptions['compress_data'] === '1' || $backendOptions['compress_data'] === 1);
+    }
+
+    /**
+     * Apply compression decorator to cache frontend
+     *
+     * @param FrontendInterface $frontend
+     * @param array $backendOptions
+     * @return FrontendInterface
+     */
+    private function applyCompressionDecorator(
+        FrontendInterface $frontend,
+        array $backendOptions
+    ): FrontendInterface {
+        // Get compression threshold (default: 2048 bytes)
+        // Matches legacy Zend cache default of 512, but increased for better performance
+        $threshold = (int)($backendOptions['compression_threshold'] ?? 2048);
+
+        // Get compression library (default: gzip for best compatibility)
+        // Supported: gzip, snappy, lzf, lz4, zstd
+        $compressionLib = $backendOptions['compression_lib'] ?? 'gzip';
+        if (empty($compressionLib)) {
+            $compressionLib = 'gzip'; // Default to gzip if empty string
+        }
+
+        // Get compression level (1-9, default: 6)
+        $compressionLevel = (int)($backendOptions['compression_level'] ?? 6);
+
+        // Create and return compression decorator
+        return $this->_objectManager->create(
+            CompressionDecorator::class,
+            [
+                'frontend' => $frontend,
+                'threshold' => $threshold,
+                'compressionLib' => $compressionLib,
+                'compressionLevel' => $compressionLevel,
+            ]
+        );
     }
 
     /**
