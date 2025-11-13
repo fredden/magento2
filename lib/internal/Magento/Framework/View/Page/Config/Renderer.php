@@ -6,15 +6,17 @@
 
 namespace Magento\Framework\View\Page\Config;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Escaper;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Stdlib\StringUtils;
+use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Asset\GroupedCollection;
+use Magento\Framework\View\Asset\MergeService;
 use Magento\Framework\View\Page\Config;
 use Magento\Framework\View\Page\Config\Metadata\MsApplicationTileImage;
 use Psr\Log\LoggerInterface;
-use Magento\Framework\UrlInterface;
-use Magento\Framework\Escaper;
-use Magento\Framework\Stdlib\StringUtils;
-use Magento\Framework\View\Asset\MergeService;
 
 /**
  * Page config Renderer model
@@ -23,12 +25,13 @@ use Magento\Framework\View\Asset\MergeService;
  */
 class Renderer implements RendererInterface
 {
-    private const CRITICAL_SCRIPT_PATTERNS = [
-        '/\/require\.js$/',
+    private const DEFAULT_CRITICAL_SCRIPT_PATTERNS = [
+        '/\/require(\.min)?\.js$/',
         '/\/requirejs-config(\.min)?\.js$/',
         '/\/requirejs\/mixins(\.min)?\.js$/',
         '/\/requirejs\/baseUrlResolver(\.min)?\.js$/',
         '/\/requirejs\/requirejs-map(\.min)?\.js$/',
+        '#/(?:_cache|merged)/#',
     ];
 
     /**
@@ -94,6 +97,16 @@ class Renderer implements RendererInterface
     private $msApplicationTileImage;
 
     /**
+     * @var ScopeConfigInterface
+     */
+    private ScopeConfigInterface $scopeConfig;
+
+    /**
+     * @var array
+     */
+    private array $criticalFilePatterns = [];
+
+    /**
      * @param Config $pageConfig
      * @param MergeService $assetMergeService
      * @param UrlInterface $urlBuilder
@@ -101,6 +114,8 @@ class Renderer implements RendererInterface
      * @param StringUtils $string
      * @param LoggerInterface $logger
      * @param MsApplicationTileImage|null $msApplicationTileImage
+     * @param ScopeConfigInterface|null $scopeConfig
+     * @param array $criticalFilePatterns
      */
     public function __construct(
         Config $pageConfig,
@@ -109,7 +124,9 @@ class Renderer implements RendererInterface
         Escaper $escaper,
         StringUtils $string,
         LoggerInterface $logger,
-        ?MsApplicationTileImage $msApplicationTileImage = null
+        ?MsApplicationTileImage $msApplicationTileImage = null,
+        ?ScopeConfigInterface $scopeConfig = null,
+        array $criticalFilePatterns = []
     ) {
         $this->pageConfig = $pageConfig;
         $this->assetMergeService = $assetMergeService;
@@ -118,7 +135,9 @@ class Renderer implements RendererInterface
         $this->string = $string;
         $this->logger = $logger;
         $this->msApplicationTileImage = $msApplicationTileImage ?:
-            \Magento\Framework\App\ObjectManager::getInstance()->get(MsApplicationTileImage::class);
+            ObjectManager::getInstance()->get(MsApplicationTileImage::class);
+        $this->scopeConfig = $scopeConfig ?: ObjectManager::getInstance()->get(ScopeConfigInterface::class);
+        $this->criticalFilePatterns = $criticalFilePatterns ?: self::DEFAULT_CRITICAL_SCRIPT_PATTERNS;
     }
 
     /**
@@ -439,7 +458,9 @@ class Renderer implements RendererInterface
                 $defaultAttributes = $this->addDefaultAttributes($this->getAssetContentType($asset), $attributes);
                 if (
                     $this->getAssetContentType($asset) == 'js' &&
-                    $this->shouldDefer($asset->getUrl(), $group->getProperty('attributes') ?? []
+                    $this->shouldDefer(
+                        $asset->getUrl(),
+                        $group->getProperty('attributes') ?? []
                     )
                 ) {
                     $defaultAttributes .= ' defer';
@@ -466,6 +487,9 @@ class Renderer implements RendererInterface
      */
     private function shouldDefer(string $url, array $attrs): bool
     {
+        if (!$this->scopeConfig->getValue('dev/js/defer_non_critical')) {
+            return false;
+        }
         if ($this->isCriticalRequireAsset($url)) {
             return false;
         }
@@ -487,8 +511,8 @@ class Renderer implements RendererInterface
      */
     private function isCriticalRequireAsset(string $url): bool
     {
-        foreach (self::CRITICAL_SCRIPT_PATTERNS as $re) {
-            if (preg_match($re, $url)) {
+        foreach ($this->criticalFilePatterns as $pattern) {
+            if (preg_match($pattern, $url)) {
                 return true;
             }
         }
