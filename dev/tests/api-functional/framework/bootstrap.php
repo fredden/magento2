@@ -11,6 +11,29 @@ require_once __DIR__ . '/../../../../app/bootstrap.php';
 require_once __DIR__ . '/autoload.php';
 
 error_reporting(E_ALL);
+
+// Log env.php cache configuration for debugging
+try {
+    $envConfigPath = __DIR__ . '/../../../../app/etc/env.php';
+    $debugLogPath = __DIR__ . '/../../../../var/log/debug.log';
+    
+    if (file_exists($envConfigPath)) {
+        $envConfig = include $envConfigPath;
+        $cacheConfig = $envConfig['cache'] ?? [];
+        
+        $logMessage = sprintf(
+            "\n[%s] API Functional Test Bootstrap - Cache Configuration:\n%s\n",
+            date('Y-m-d H:i:s'),
+            print_r($cacheConfig, true)
+        );
+        
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        file_put_contents($debugLogPath, $logMessage, FILE_APPEND);
+    }
+} catch (\Exception $e) {
+    // Silently ignore logging errors
+}
+
 $testsBaseDir = dirname(__DIR__);
 $integrationTestsDir = realpath("{$testsBaseDir}/../integration");
 $fixtureBaseDir = $integrationTestsDir . '/testsuite';
