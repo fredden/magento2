@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
  */
 
 namespace Magento\Framework\View\Page\Config;
@@ -473,6 +473,10 @@ class Renderer implements RendererInterface
             }
         } catch (LocalizedException $e) {
             $this->logger->critical($e);
+            $template = $this->getAssetTemplate(
+                $group->getProperty(GroupedCollection::PROPERTY_CONTENT_TYPE),
+                $defaultAttributes
+            );
             $result .= sprintf($template, $this->urlBuilder->getUrl('', ['_direct' => 'core/index/notFound']));
         }
         return $result;
@@ -482,11 +486,14 @@ class Renderer implements RendererInterface
      * Check if we should add the defer tag or not
      *
      * @param string $url
-     * @param array $attrs
+     * @param mixed $attrs
      * @return bool
      */
-    private function shouldDefer(string $url, array $attrs): bool
+    private function shouldDefer(string $url, mixed $attrs): bool
     {
+        if (is_string($attrs)) {
+            $attrs = explode(" ", $attrs);
+        }
         if (!$this->scopeConfig->getValue('dev/js/defer_non_critical')) {
             return false;
         }

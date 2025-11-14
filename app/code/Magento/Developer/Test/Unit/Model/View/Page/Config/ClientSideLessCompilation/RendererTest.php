@@ -7,6 +7,7 @@
 namespace Magento\Developer\Test\Unit\Model\View\Page\Config\ClientSideLessCompilation;
 
 use Magento\Developer\Model\View\Page\Config\ClientSideLessCompilation\Renderer;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\View\Asset\File;
 use Magento\Framework\View\Asset\GroupedCollection;
@@ -27,9 +28,13 @@ class RendererTest extends TestCase
     /** @var  MockObject|Repository */
     private $assetRepo;
 
+    /**
+     * @var ScopeConfigInterface
+     */
+    private ScopeConfigInterface $scopeConfig;
+
     protected function setUp(): void
     {
-        $objectManager = new ObjectManager($this);
         $pageConfigMock = $this->getMockBuilder(Config::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -42,9 +47,11 @@ class RendererTest extends TestCase
         $this->assetRepo = $this->getMockBuilder(Repository::class)
             ->disableOriginalConstructor()
             ->getMock();
+        $this->scopeConfig = $this->createMock(ScopeConfigInterface::class);
         $overriddenMocks = [
             'assetRepo' => $this->assetRepo,
-            'pageConfig' => $pageConfigMock
+            'pageConfig' => $pageConfigMock,
+            'scopeConfig' => $this->scopeConfig
         ];
 
         $mocks = $objectManager->getConstructArguments(
