@@ -451,7 +451,6 @@ class Renderer implements RendererInterface
         $attributes = $this->getGroupAttributes($group);
 
         $result = '';
-        $template = '';
         try {
             /** @var $asset \Magento\Framework\View\Asset\AssetInterface */
             foreach ($assets as $asset) {

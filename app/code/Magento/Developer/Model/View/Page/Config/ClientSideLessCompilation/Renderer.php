@@ -5,7 +5,16 @@
  */
 namespace Magento\Developer\Model\View\Page\Config\ClientSideLessCompilation;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Escaper;
+use Magento\Framework\Stdlib\StringUtils;
+use Magento\Framework\UrlInterface;
+use Magento\Framework\View\Asset\MergeService;
+use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\View\Page\Config;
+use Magento\Framework\View\Page\Config\Metadata\MsApplicationTileImage;
+use Psr\Log\LoggerInterface;
 
 /**
  * Page config Renderer model
@@ -24,12 +33,14 @@ class Renderer extends Config\Renderer
 
     /**
      * @param Config $pageConfig
-     * @param \Magento\Framework\View\Asset\MergeService $assetMergeService
-     * @param \Magento\Framework\UrlInterface $urlBuilder
-     * @param \Magento\Framework\Escaper $escaper
-     * @param \Magento\Framework\Stdlib\StringUtils $string
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Magento\Framework\View\Asset\Repository $assetRepo
+     * @param MergeService $assetMergeService
+     * @param UrlInterface $urlBuilder
+     * @param Escaper $escaper
+     * @param StringUtils $string
+     * @param LoggerInterface $logger
+     * @param Repository $assetRepo
+     * @param MsApplicationTileImage|null $msApplicationTileImage
+     * @param ScopeConfigInterface|null $scopeConfig
      */
     public function __construct(
         Config $pageConfig,
@@ -38,7 +49,9 @@ class Renderer extends Config\Renderer
         \Magento\Framework\Escaper $escaper,
         \Magento\Framework\Stdlib\StringUtils $string,
         \Psr\Log\LoggerInterface $logger,
-        \Magento\Framework\View\Asset\Repository $assetRepo
+        \Magento\Framework\View\Asset\Repository $assetRepo,
+        ?MsApplicationTileImage $msApplicationTileImage = null,
+        ?ScopeConfigInterface $scopeConfig = null,
     ) {
         $this->assetRepo = $assetRepo;
 
@@ -48,7 +61,9 @@ class Renderer extends Config\Renderer
             $urlBuilder,
             $escaper,
             $string,
-            $logger
+            $logger,
+            $msApplicationTileImage ?: ObjectManager::getInstance()->get(MsApplicationTileImage::class),
+            $scopeConfig ?: ObjectManager::getInstance()->get(ScopeConfigInterface::class)
         );
     }
 
