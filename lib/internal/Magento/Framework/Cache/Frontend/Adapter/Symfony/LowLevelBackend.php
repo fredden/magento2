@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Magento\Framework\Cache\Frontend\Adapter\Symfony;
 
 use Magento\Framework\Cache\CacheConstants;
-use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface;
 
 /**
  * Low-level backend wrapper for Symfony cache adapter
@@ -19,16 +19,16 @@ use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
 class LowLevelBackend
 {
     /**
-     * @var AdapterHelperInterface
+     * @var AdapterInterface
      */
-    private AdapterHelperInterface $helper;
+    private AdapterInterface $adapter;
 
     /**
-     * @param AdapterHelperInterface $helper
+     * @param AdapterInterface $adapter
      */
-    public function __construct(AdapterHelperInterface $helper)
+    public function __construct(AdapterInterface $adapter)
     {
-        $this->helper = $helper;
+        $this->adapter = $adapter;
     }
 
     /**
@@ -40,8 +40,8 @@ class LowLevelBackend
     public function getIdsMatchingTags(array $tags): array
     {
         // Get IDs from helper (uses backend-specific logic)
-        if (method_exists($this->helper, 'getIdsMatchingTags')) {
-            return $this->helper->getIdsMatchingTags($tags);
+        if (method_exists($this->adapter, 'getIdsMatchingTags')) {
+            return $this->adapter->getIdsMatchingTags($tags);
         }
         return [];
     }
@@ -58,8 +58,8 @@ class LowLevelBackend
     {
         // Backend clean is handled by helper
         if ($mode === CacheConstants::CLEANING_MODE_ALL) {
-            if (method_exists($this->helper, 'clearAllTagIndices')) {
-                $this->helper->clearAllTagIndices();
+            if (method_exists($this->adapter, 'clearAllTagIndices')) {
+                $this->adapter->clearAllTagIndices();
             }
         }
         return true;

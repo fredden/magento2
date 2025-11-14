@@ -10,7 +10,7 @@ namespace Magento\Framework\Cache\Frontend\Adapter\Symfony;
 use InvalidArgumentException;
 use Magento\Framework\Cache\Backend\BackendInterface;
 use Magento\Framework\Cache\CacheConstants;
-use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface;
 use Magento\Framework\Cache\FrontendInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
@@ -28,9 +28,9 @@ class BackendWrapper implements BackendInterface
     private CacheItemPoolInterface $cache;
 
     /**
-     * @var AdapterHelperInterface
+     * @var AdapterInterface
      */
-    private AdapterHelperInterface $helper;
+    private AdapterInterface $adapter;
 
     /**
      * @var FrontendInterface
@@ -39,16 +39,16 @@ class BackendWrapper implements BackendInterface
 
     /**
      * @param CacheItemPoolInterface $cache
-     * @param AdapterHelperInterface $helper
+     * @param AdapterInterface $adapter
      * @param FrontendInterface $symfony
      */
     public function __construct(
         CacheItemPoolInterface $cache,
-        AdapterHelperInterface $helper,
+        AdapterInterface $adapter,
         FrontendInterface $symfony
     ) {
         $this->cache = $cache;
-        $this->helper = $helper;
+        $this->adapter = $adapter;
         $this->symfony = $symfony;
     }
 
@@ -143,7 +143,7 @@ class BackendWrapper implements BackendInterface
      */
     public function clear(): bool
     {
-        $this->helper->clearAllIndices();
+        $this->adapter->clearAllIndices();
         return $this->cache->clear();
     }
 

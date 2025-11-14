@@ -5,7 +5,7 @@
  */
 declare(strict_types=1);
 
-namespace Magento\Framework\Cache\Frontend\Adapter\Helper;
+namespace Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters;
 
 use Psr\Cache\CacheItemPoolInterface;
 
@@ -16,11 +16,11 @@ use Psr\Cache\CacheItemPoolInterface;
  * particularly for tag-based cache invalidation with AND logic (MATCHING_TAG mode).
  *
  * Implementations:
- * - RedisAdapterHelper: Uses Redis SINTER for true AND logic
- * - FilesystemAdapterHelper: Uses file-based tag indices with array_intersect
- * - GenericAdapterHelper: Fallback using namespace tags or best-effort logic
+ * - RedisAdapterService: Uses Redis SINTER for true AND logic
+ * - FilesystemAdapterService: Uses file-based tag indices with array_intersect
+ * - GenericAdapterService: Fallback using namespace tags or best-effort logic
  */
-interface AdapterHelperInterface
+interface AdapterInterface
 {
     /**
      * Get cache IDs that match ALL given tags (AND logic)

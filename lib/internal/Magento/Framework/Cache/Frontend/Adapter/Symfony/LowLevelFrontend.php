@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Frontend\Adapter\Symfony;
 
-use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
-use Psr\Cache\CacheItemPoolInterface;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface;
 use Magento\Framework\Cache\FrontendInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Low-level frontend wrapper for Symfony cache adapter
@@ -30,9 +30,9 @@ class LowLevelFrontend
     private FrontendInterface $symfony;
 
     /**
-     * @var AdapterHelperInterface
+     * @var AdapterInterface
      */
-    private AdapterHelperInterface $helper;
+    private AdapterInterface $adapter;
 
     /**
      * @var string
@@ -52,20 +52,20 @@ class LowLevelFrontend
     /**
      * @param CacheItemPoolInterface $cache
      * @param FrontendInterface $symfony
-     * @param AdapterHelperInterface $helper
+     * @param AdapterInterface $adapter
      * @param string $idPrefix
      * @param int $lifetime
      */
     public function __construct(
         CacheItemPoolInterface $cache,
         FrontendInterface $symfony,
-        AdapterHelperInterface $helper,
+        AdapterInterface $adapter,
         string $idPrefix,
         int $lifetime = 7200
     ) {
         $this->cache = $cache;
         $this->symfony = $symfony;
-        $this->helper = $helper;
+        $this->adapter = $adapter;
         $this->idPrefix = $idPrefix;
         $this->lifetime = $lifetime;
     }
@@ -107,10 +107,10 @@ class LowLevelFrontend
     public function getIdsMatchingTags(array $tags): array
     {
         // Get IDs from helper (uses backend-specific logic)
-        if (method_exists($this->helper, 'getIdsMatchingTags')) {
+        if (method_exists($this->adapter, 'getIdsMatchingTags')) {
             // Tags are already in the correct format from the caller
             // Helper will add namespace prefix internally
-            return $this->helper->getIdsMatchingTags($tags);
+            return $this->adapter->getIdsMatchingTags($tags);
         }
         
         // For GenericAdapterHelper, return empty array
@@ -126,7 +126,7 @@ class LowLevelFrontend
     public function getBackend(): LowLevelBackend
     {
         if ($this->backend === null) {
-            $this->backend = new LowLevelBackend($this->helper);
+            $this->backend = new LowLevelBackend($this->adapter);
         }
         return $this->backend;
     }

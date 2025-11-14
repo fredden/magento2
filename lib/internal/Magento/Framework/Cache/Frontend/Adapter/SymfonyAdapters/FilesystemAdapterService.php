@@ -5,12 +5,12 @@
  */
 declare(strict_types=1);
 
-namespace Magento\Framework\Cache\Frontend\Adapter\Helper;
+namespace Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters;
 
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * Filesystem-specific adapter helper
+ * Filesystem-specific adapter service
  *
  * Implements tag-to-ID index management using filesystem, similar to Colin Mollenhour's
  * Cm_Cache_Backend_File implementation. This enables true AND logic for MATCHING_TAG mode
@@ -36,7 +36,7 @@ use Psr\Cache\CacheItemPoolInterface;
  * - Read var/cache/symfony/tags/eav => ['config_1', 'eav_1']
  * - array_intersect() => ['config_1']  ← Only IDs in BOTH (true AND logic)
  */
-class FilesystemAdapterHelper implements AdapterHelperInterface
+class FilesystemAdapterService implements AdapterInterface
 {
     /**
      * @var CacheItemPoolInterface

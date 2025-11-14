@@ -10,7 +10,7 @@
  * Performance optimizations:
  * - Cached directory paths
  * - Cached extension checks
- * - SymfonyFactory instance caching
+ * - SymfonyAdapterProvider instance caching
  * - Optimized backend type resolution
  * - Early returns where possible
  */
@@ -22,6 +22,7 @@ use LogicException;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Cache\Backend\Database;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapterProvider;
 use Magento\Framework\Cache\Backend\Eaccelerator;
 use Magento\Framework\Cache\Backend\RemoteSynchronizedCache;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony;
@@ -98,11 +99,11 @@ class Factory
     protected $_resource;
 
     /**
-     * Cached SymfonyFactory instance (performance optimization)
+     * SymfonyAdapterProvider instance for creating Symfony cache adapters
      *
-     * @var SymfonyFactory|null
+     * @var SymfonyAdapterProvider
      */
-    private ?SymfonyFactory $symfonyFactory = null;
+    private SymfonyAdapterProvider $adapterProvider;
 
     /**
      * Cached directory paths (performance optimization)
@@ -129,6 +130,7 @@ class Factory
      * @param ObjectManagerInterface $objectManager
      * @param Filesystem $filesystem
      * @param ResourceConnection $resource
+     * @param SymfonyAdapterProvider $adapterProvider
      * @param array $enforcedOptions
      * @param array $decorators
      */
@@ -136,12 +138,14 @@ class Factory
         ObjectManagerInterface $objectManager,
         Filesystem $filesystem,
         ResourceConnection $resource,
+        SymfonyAdapterProvider $adapterProvider,
         array $enforcedOptions = [],
         array $decorators = []
     ) {
         $this->_objectManager = $objectManager;
         $this->_filesystem = $filesystem;
         $this->_resource = $resource;
+        $this->adapterProvider = $adapterProvider;
         $this->_enforcedOptions = $enforcedOptions;
         $this->_decorators = $decorators;
     }
@@ -483,19 +487,6 @@ class Factory
     }
 
     /**
-     * Get or create cached SymfonyFactory instance (performance optimization)
-     *
-     * @return SymfonyFactory
-     */
-    private function getSymfonyFactory(): SymfonyFactory
-    {
-        if ($this->symfonyFactory === null) {
-            $this->symfonyFactory = $this->_objectManager->create(SymfonyFactory::class);
-        }
-        return $this->symfonyFactory;
-    }
-
-    /**
      * Prepare and cache directory paths for cache storage
      *
      * @param array $options
@@ -523,7 +514,7 @@ class Factory
      * It provides PSR-6 compliant caching while maintaining full backward compatibility.
      *
      * Performance optimizations:
-     * - Cached SymfonyFactory instance
+     * - Cached SymfonyAdapterProvider instance
      * - Cached directory operations
      * - Cached ID prefix
      * - Optimized option resolution
@@ -565,20 +556,20 @@ class Factory
         Profiler::start('cache_symfony_create', $profilerTags);
 
         try {
-            // Optimize: Use cached Symfony factory instance
-            $symfonyFactory = $this->getSymfonyFactory();
+            // Use injected adapter provider instance
+            $adapterProvider = $this->adapterProvider;
 
             // Create cache adapter factory closure (for fork detection)
-            // Use originalBackendType so SymfonyFactory can map it correctly
+            // Use originalBackendType so SymfonyAdapterProvider can map it correctly
             // (e.g., cm_cache_backend_redis -> redis)
             $cacheFactory = function () use (
-                $symfonyFactory,
+                $adapterProvider,
                 $originalBackendType,
                 $backendOptions,
                 $idPrefix,
                 $defaultLifetime
             ) {
-                return $symfonyFactory->createAdapter(
+                return $adapterProvider->createAdapter(
                     $originalBackendType,
                     $backendOptions,
                     $idPrefix,
@@ -589,15 +580,20 @@ class Factory
             // Create initial cache pool
             $cachePool = $cacheFactory();
 
-            // Create adapter helper for backend-specific operations
-            $helper = $symfonyFactory->createHelper($originalBackendType, $cachePool, $idPrefix, $isPageCache);
+            // Create adapter service for backend-specific operations
+            $adapter = $adapterProvider->createAdapterService(
+                $originalBackendType,
+                $cachePool,
+                $idPrefix,
+                $isPageCache
+            );
 
-            // Create Symfony adapter with fork detection support and backend helper
+            // Create Symfony adapter with fork detection support and backend adapter service
             $result = $this->_objectManager->create(
                 Symfony::class,
                 [
                     'cacheFactory' => $cacheFactory,
-                    'helper' => $helper,
+                    'adapter' => $adapter,
                     'defaultLifetime' => $defaultLifetime,
                     'idPrefix' => $idPrefix,
                 ]
@@ -615,7 +611,7 @@ class Factory
             // Stop profiling on error
             Profiler::stop('cache_symfony_create');
 
-            // Log the error but don't re-throw - SymfonyFactory has fallback logic
+            // Log the error but don't re-throw - SymfonyAdapterProvider has fallback logic
             // Re-throw exception only for critical errors (not connection failures)
             throw new \RuntimeException(
                 'Failed to create Symfony cache: ' . $e->getMessage(),

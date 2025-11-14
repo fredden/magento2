@@ -9,7 +9,7 @@ namespace Magento\Framework\Cache\Test\Unit\Frontend\Adapter\Symfony;
 
 use Magento\Framework\Cache\Backend\BackendInterface;
 use Magento\Framework\Cache\CacheConstants;
-use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony\BackendWrapper;
 use Magento\Framework\Cache\FrontendInterface;
 use PHPUnit\Framework\TestCase;
@@ -26,9 +26,9 @@ class BackendWrapperTest extends TestCase
     private $cache;
 
     /**
-     * @var AdapterHelperInterface
+     * @var AdapterInterface
      */
-    private $helper;
+    private $adapter;
 
     /**
      * @var FrontendInterface
@@ -48,9 +48,9 @@ class BackendWrapperTest extends TestCase
     protected function setUp(): void
     {
         $this->cache = $this->createMock(CacheItemPoolInterface::class);
-        $this->helper = $this->createMock(AdapterHelperInterface::class);
+        $this->adapter = $this->createMock(AdapterInterface::class);
         $this->symfony = $this->createMock(FrontendInterface::class);
-        $this->backendWrapper = new BackendWrapper($this->cache, $this->helper, $this->symfony);
+        $this->backendWrapper = new BackendWrapper($this->cache, $this->adapter, $this->symfony);
     }
 
     /**
@@ -61,9 +61,9 @@ class BackendWrapperTest extends TestCase
     public function testConstructor(): void
     {
         $cache = $this->createMock(CacheItemPoolInterface::class);
-        $helper = $this->createMock(AdapterHelperInterface::class);
+        $adapter = $this->createMock(AdapterInterface::class);
         $symfony = $this->createMock(FrontendInterface::class);
-        $wrapper = new BackendWrapper($cache, $helper, $symfony);
+        $wrapper = new BackendWrapper($cache, $adapter, $symfony);
 
         $this->assertInstanceOf(BackendWrapper::class, $wrapper);
         $this->assertInstanceOf(BackendInterface::class, $wrapper);
@@ -178,7 +178,7 @@ class BackendWrapperTest extends TestCase
      */
     public function testCleanWithModeAll(): void
     {
-        $this->helper->expects($this->once())->method('clearAllIndices');
+        $this->adapter->expects($this->once())->method('clearAllIndices');
         $this->cache->expects($this->once())->method('clear')->willReturn(true);
 
         $result = $this->backendWrapper->clean(CacheConstants::CLEANING_MODE_ALL, []);
@@ -231,7 +231,7 @@ class BackendWrapperTest extends TestCase
      */
     public function testClear(): void
     {
-        $this->helper->expects($this->once())->method('clearAllIndices');
+        $this->adapter->expects($this->once())->method('clearAllIndices');
         $this->cache->expects($this->once())->method('clear')->willReturn(true);
 
         $result = $this->backendWrapper->clear();

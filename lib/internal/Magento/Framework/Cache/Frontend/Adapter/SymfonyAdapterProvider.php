@@ -5,15 +5,15 @@
  */
 declare(strict_types=1);
 
-namespace Magento\Framework\App\Cache\Frontend;
+namespace Magento\Framework\Cache\Frontend\Adapter;
 
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
-use Magento\Framework\Cache\Frontend\Adapter\Helper\FilesystemAdapterHelper;
-use Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper;
-use Magento\Framework\Cache\Frontend\Adapter\Helper\RedisAdapterHelper;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony\MagentoDatabaseAdapter;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface as SymfonyAdapterInterface;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\FilesystemAdapterService;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\GenericAdapterService;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\RedisAdapterService;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Serialize\Serializer\Serialize;
 use Psr\Cache\CacheItemPoolInterface;
@@ -27,7 +27,13 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\Cache\Marshaller\DefaultMarshaller;
 
 /**
- * Factory for creating Symfony Cache adapters
+ * Provider for creating Symfony Cache adapters and adapter services
+ *
+ * This class is responsible for:
+ * - Creating PSR-6 cache pool adapters (RedisAdapter, FilesystemAdapter, etc.)
+ * - Creating backend-specific adapter services (RedisAdapterService, FilesystemAdapterService, etc.)
+ * - Managing connection pooling and optimization
+ * - Parsing and applying cache configuration from env.php
  *
  * Performance optimizations:
  * - Connection pooling for Redis/Memcached
@@ -37,7 +43,7 @@ use Symfony\Component\Cache\Marshaller\DefaultMarshaller;
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class SymfonyFactory
+class SymfonyAdapterProvider
 {
     /**
      * @var Filesystem
@@ -155,20 +161,20 @@ class SymfonyFactory
     }
 
     /**
-     * Create appropriate AdapterHelper based on backend type
+     * Create appropriate Adapter Service based on backend type
      *
      * @param string $backendType
      * @param CacheItemPoolInterface $cachePool
      * @param string $namespace
      * @param bool $isPageCache
-     * @return AdapterHelperInterface
+     * @return SymfonyAdapterInterface
      */
-    public function createHelper(
+    public function createAdapterService(
         string $backendType,
         CacheItemPoolInterface $cachePool,
         string $namespace = '',
         bool $isPageCache = false
-    ): AdapterHelperInterface {
+    ): SymfonyAdapterInterface {
         // Resolve backend type
         $backendTypeLower = strtolower($backendType);
         $resolvedType = $this->adapterTypeMap[$backendTypeLower] ?? 'filesystem';
@@ -176,22 +182,22 @@ class SymfonyFactory
         // Create appropriate helper with fallback to GenericAdapterHelper
         try {
             return match ($resolvedType) {
-                'redis' => new RedisAdapterHelper(
+                'redis' => new RedisAdapterService(
                     $cachePool,
                     $namespace
                 ),
-                'filesystem' => new FilesystemAdapterHelper(
+                'filesystem' => new FilesystemAdapterService(
                     $cachePool,
                     $this->getCacheDirectory()
                 ),
-                default => new GenericAdapterHelper(
+                default => new GenericAdapterService(
                     $cachePool,
                     $isPageCache
                 ),
             };
         } catch (\Exception $e) {
-            // Fallback to GenericAdapterHelper if specialized helper creation fails
-            return new GenericAdapterHelper($cachePool, $isPageCache);
+            // Fallback to GenericAdapterService if specialized helper creation fails
+            return new GenericAdapterService($cachePool, $isPageCache);
         }
     }
 
@@ -274,10 +280,10 @@ class SymfonyFactory
         }
 
         // Check if igbinary extension is loaded
-        //if (!extension_loaded('igbinary')) {
+        if (!extension_loaded('igbinary')) {
             // Fallback to default PHP serializer if igbinary not available
-        //    return null;
-        //}
+            return null;
+        }
 
         // Create marshaller with igbinary enabled
         // true = use igbinary_serialize/igbinary_unserialize

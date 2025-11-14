@@ -10,8 +10,8 @@ namespace Magento\Framework\Cache\Frontend\Adapter;
 use Closure;
 use InvalidArgumentException;
 use Magento\Framework\Cache\CacheConstants;
-use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
-use Magento\Framework\Cache\Frontend\Adapter\Helper\GenericAdapterHelper;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\GenericAdapterService;
 use Magento\Framework\Cache\FrontendInterface;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
@@ -21,19 +21,19 @@ use Symfony\Component\Cache\CacheItem;
 /**
  * Symfony Cache adapter for Magento - FRESH IMPLEMENTATION
  *
- * This is a complete rewrite that uses AdapterHelper classes for backend-specific operations.
+ * This is a complete rewrite that uses Symfony adapter services for backend-specific operations.
  *
  * Supported cleaning modes:
  * - CLEANING_MODE_ALL: Clear all cache (native Symfony)
  * - CLEANING_MODE_OLD: Remove expired items (native Symfony)
- * - CLEANING_MODE_MATCHING_TAG: AND logic (uses helper classes)
- * - CLEANING_MODE_NOT_MATCHING_TAG: Inverse logic (uses helper classes)
+ * - CLEANING_MODE_MATCHING_TAG: AND logic (uses adapter services)
+ * - CLEANING_MODE_NOT_MATCHING_TAG: Inverse logic (uses adapter services)
  * - CLEANING_MODE_MATCHING_ANY_TAG: OR logic (native Symfony)
  *
  * Architecture:
- * - RedisAdapterHelper: Uses Redis SINTER for true AND logic
- * - FilesystemAdapterHelper: Uses file indices with array_intersect for AND logic
- * - GenericAdapterHelper: Fallback using namespace tags for other adapters
+ * - RedisAdapterService: Uses Redis SINTER for true AND logic
+ * - FilesystemAdapterService: Uses file indices with array_intersect for AND logic
+ * - GenericAdapterService: Fallback using namespace tags for other adapters
  *
  * @see Symfony\BackendWrapper
  * @see Symfony\LowLevelFrontend
@@ -68,9 +68,9 @@ class Symfony implements FrontendInterface
     private CacheItemPoolInterface $cache;
 
     /**
-     * @var AdapterHelperInterface
+     * @var AdapterInterface
      */
-    private AdapterHelperInterface $helper;
+    private AdapterInterface $adapter;
 
     /**
      * @var Closure|null
@@ -104,13 +104,13 @@ class Symfony implements FrontendInterface
 
     /**
      * @param Closure $cacheFactory Factory that creates the cache pool
-     * @param AdapterHelperInterface|null $helper Backend-specific helper
+     * @param AdapterInterface|null $adapter Backend-specific adapter service
      * @param int $defaultLifetime Default cache lifetime in seconds
      * @param string $idPrefix Cache ID prefix
      */
     public function __construct(
         Closure $cacheFactory,
-        ?AdapterHelperInterface $helper = null,
+        ?AdapterInterface $adapter = null,
         int $defaultLifetime = self::DEFAULT_LIFETIME,
         string $idPrefix = self::DEFAULT_CACHE_PREFIX
     ) {
@@ -120,8 +120,8 @@ class Symfony implements FrontendInterface
         $this->defaultLifetime = $defaultLifetime;
         $this->idPrefix = $idPrefix;
         
-        // Use provided helper or create generic fallback
-        $this->helper = $helper ?? new GenericAdapterHelper($this->cache);
+        // Use provided adapter or create generic fallback
+        $this->adapter = $adapter ?? new GenericAdapterService($this->cache);
     }
 
     /**
@@ -313,8 +313,8 @@ class Symfony implements FrontendInterface
         
         // Get enhanced tags (including namespace tags if applicable)
         $tagsToSet = $cleanTags;
-        if ($this->helper instanceof GenericAdapterHelper && !empty($cleanTags)) {
-            $tagsToSet = $this->helper->getTagsForSave($cleanTags);
+        if ($this->adapter instanceof GenericAdapterService && !empty($cleanTags)) {
+            $tagsToSet = $this->adapter->getTagsForSave($cleanTags);
         }
         
         // Calculate expiry timestamp (for Zend compatibility)
@@ -354,11 +354,11 @@ class Symfony implements FrontendInterface
         
         // Notify helper about the save (for Redis/Filesystem to maintain indices)
         if ($success && !empty($cleanTags)) {
-            $this->helper->onSave($cleanId, $cleanTags);
+            $this->adapter->onSave($cleanId, $cleanTags);
             
             // For Redis, also store reverse index
-            if (method_exists($this->helper, 'storeReverseIndex')) {
-                $this->helper->storeReverseIndex($cleanId, $cleanTags);
+            if (method_exists($this->adapter, 'storeReverseIndex')) {
+                $this->adapter->storeReverseIndex($cleanId, $cleanTags);
             }
         }
     }
@@ -372,7 +372,7 @@ class Symfony implements FrontendInterface
         $cleanId = $this->cleanIdentifier($identifier);
         
         // Notify helper before removal (for index cleanup)
-        $this->helper->onRemove($cleanId);
+        $this->adapter->onRemove($cleanId);
         
         return $cache->deleteItem($cleanId);
     }
@@ -421,7 +421,7 @@ class Symfony implements FrontendInterface
      */
     private function cleanAll(CacheItemPoolInterface $cache): bool
     {
-        $this->helper->clearAllIndices();
+        $this->adapter->clearAllIndices();
         return $cache->clear();
     }
 
@@ -456,9 +456,9 @@ class Symfony implements FrontendInterface
         $cleanTags = $this->cleanIdentifiers($tags);
         
         // For GenericHelper with namespace tags, use the namespace tag
-        if ($this->helper instanceof GenericAdapterHelper) {
-            if ($this->helper->usesNamespaceTags()) {
-                $tagsToInvalidate = $this->helper->getTagsForMatchingTag($cleanTags);
+        if ($this->adapter instanceof GenericAdapterService) {
+            if ($this->adapter->usesNamespaceTags()) {
+                $tagsToInvalidate = $this->adapter->getTagsForMatchingTag($cleanTags);
                 if ($this->isTagAware()) {
                     $success = $cache->invalidateTags($tagsToInvalidate);
                     
@@ -493,13 +493,13 @@ class Symfony implements FrontendInterface
         }
         
         // For Redis/Filesystem helpers with native AND support
-        $ids = $this->helper->getIdsMatchingTags($cleanTags);
+        $ids = $this->adapter->getIdsMatchingTags($cleanTags);
         
         if (empty($ids)) {
             return true;
         }
         
-        return $this->helper->deleteByIds($ids);
+        return $this->adapter->deleteByIds($ids);
     }
 
     /**
@@ -517,13 +517,13 @@ class Symfony implements FrontendInterface
         }
         
         $cleanTags = $this->cleanIdentifiers($tags);
-        $ids = $this->helper->getIdsNotMatchingTags($cleanTags);
+        $ids = $this->adapter->getIdsNotMatchingTags($cleanTags);
         
         if (empty($ids)) {
             return true;
         }
         
-        return $this->helper->deleteByIds($ids);
+        return $this->adapter->deleteByIds($ids);
     }
 
     /**
@@ -633,13 +633,13 @@ class Symfony implements FrontendInterface
         }
         
         // Fallback: use helper
-        $ids = $this->helper->getIdsMatchingAnyTags($cleanTags);
+        $ids = $this->adapter->getIdsMatchingAnyTags($cleanTags);
         
         if (empty($ids)) {
             return true;
         }
         
-        return $this->helper->deleteByIds($ids);
+        return $this->adapter->deleteByIds($ids);
     }
 
     /**
@@ -647,7 +647,7 @@ class Symfony implements FrontendInterface
      */
     public function getBackend()
     {
-        return new Symfony\BackendWrapper($this->getCache(), $this->helper, $this);
+        return new Symfony\BackendWrapper($this->getCache(), $this->adapter, $this);
     }
 
     /**
@@ -658,7 +658,7 @@ class Symfony implements FrontendInterface
         return new Symfony\LowLevelFrontend(
             $this->getCache(),
             $this,
-            $this->helper,
+            $this->adapter,
             $this->idPrefix,
             $this->defaultLifetime
         );

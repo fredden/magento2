@@ -8,10 +8,10 @@ declare(strict_types=1);
 namespace Magento\Framework\App\Test\Unit\Cache\Frontend;
 
 use Magento\Framework\App\Cache\Frontend\Factory;
-use Magento\Framework\App\Cache\Frontend\SymfonyFactory;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapterProvider;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\App\Test\Unit\Cache\Frontend\FactoryTest\CacheDecoratorDummy;
-use Magento\Framework\Cache\Frontend\Adapter\Helper\AdapterHelperInterface;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony\BackendWrapper;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony\LowLevelBackend;
@@ -177,7 +177,7 @@ class FactoryTest extends TestCase
         $serializer = $this->createSerializerMock();
 
         $cachePoolMock = $this->createMock(\Psr\Cache\CacheItemPoolInterface::class);
-        $helperMock = $this->createMock(AdapterHelperInterface::class);
+        $adapterMock = $this->createMock(AdapterInterface::class);
 
         $cacheFactory = function () use ($cachePoolMock) {
             return $cachePoolMock;
@@ -188,7 +188,7 @@ class FactoryTest extends TestCase
             $resource,
             $serializer,
             $cacheFactory,
-            $helperMock
+            $adapterMock
         );
 
         $objectManager = $this->getMockForAbstractClass(ObjectManagerInterface::class);
@@ -274,24 +274,24 @@ class FactoryTest extends TestCase
      * @param ResourceConnection $resource
      * @param Serialize $serializer
      * @param \Closure $cacheFactory
-     * @param mixed $helperMock
+     * @param mixed $adapterMock
      * @return \Closure
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    private function createFrontendProcessor($filesystem, $resource, $serializer, $cacheFactory, $helperMock)
+    private function createFrontendProcessor($filesystem, $resource, $serializer, $cacheFactory, $adapterMock)
     {
-        return function ($class, $params) use ($filesystem, $resource, $serializer, $cacheFactory, $helperMock) {
+        return function ($class, $params) use ($filesystem, $resource, $serializer, $cacheFactory, $adapterMock) {
             switch ($class) {
                 case CacheDecoratorDummy::class:
                     $frontend = $params['frontend'];
                     unset($params['frontend']);
                     return new $class($frontend, $params);
-                case SymfonyFactory::class:
+                case SymfonyAdapterProvider::class:
                     return new $class($filesystem, $resource, $serializer);
                 case Symfony::class:
                     $defaultLifetime = $params['defaultLifetime'] ?? 7200;
                     $idPrefix = $params['idPrefix'] ?? '';
-                    return new $class($cacheFactory, $helperMock, $defaultLifetime, $idPrefix);
+                    return new $class($cacheFactory, $adapterMock, $defaultLifetime, $idPrefix);
                 default:
                     throw new \Exception("Test is not designed to create {$class} objects");
             }

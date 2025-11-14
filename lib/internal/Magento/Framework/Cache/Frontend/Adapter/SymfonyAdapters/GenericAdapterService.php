@@ -5,13 +5,12 @@
  */
 declare(strict_types=1);
 
-namespace Magento\Framework\Cache\Frontend\Adapter\Helper;
+namespace Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters;
 
 use Psr\Cache\CacheItemPoolInterface;
-use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 
 /**
- * Generic adapter helper for backends that don't support native tag-to-ID indices
+ * Generic adapter service for backends that don't support native tag-to-ID indices
  *
  * This is a fallback implementation for adapters like Memcached, APCu, Database, etc.
  * that don't have efficient tag-to-ID index capabilities like Redis or Filesystem.
@@ -25,7 +24,7 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
  * - MATCHING_TAG only works if items were saved with those exact tags
  * - NOT_MATCHING_TAG is not efficiently supported (falls back to invalidating nothing)
  */
-class GenericAdapterHelper implements AdapterHelperInterface
+class GenericAdapterService implements AdapterInterface
 {
     private const NAMESPACE_PREFIX = 'NS_';
     private const NAMESPACE_SEPARATOR = '|';
@@ -73,12 +72,12 @@ class GenericAdapterHelper implements AdapterHelperInterface
     private function shouldUseNamespaceTags(array $tags): bool
     {
         $count = count($tags);
-        
+
         // For page cache, use namespace tags for 2-4 tags
         if ($this->isPageCache) {
             return $count >= 2 && $count <= self::MAX_TAGS_FOR_NAMESPACE;
         }
-        
+
         // For application cache, don't use namespace tags
         return false;
     }
@@ -92,7 +91,7 @@ class GenericAdapterHelper implements AdapterHelperInterface
     {
         // This method returns IDs, but we don't maintain explicit indices
         // Instead, we use it to determine what to invalidate
-        
+
         // For generic adapters, we can't efficiently get IDs
         // This is handled in Symfony.php by using invalidateTags
         return [];
