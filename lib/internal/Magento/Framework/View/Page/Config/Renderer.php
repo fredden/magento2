@@ -456,8 +456,7 @@ class Renderer implements RendererInterface
             /** @var $asset \Magento\Framework\View\Asset\AssetInterface */
             foreach ($assets as $asset) {
                 $defaultAttributes = $this->addDefaultAttributes($this->getAssetContentType($asset), $attributes);
-                if (
-                    $this->getAssetContentType($asset) == 'js' &&
+                if ($this->getAssetContentType($asset) == 'js' &&
                     $this->shouldDefer(
                         $asset->getUrl(),
                         $group->getProperty('attributes') ?? []

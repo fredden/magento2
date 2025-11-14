@@ -35,6 +35,7 @@ class RendererTest extends TestCase
 
     protected function setUp(): void
     {
+        $objectManager = new ObjectManager($this);
         $pageConfigMock = $this->getMockBuilder(Config::class)
             ->disableOriginalConstructor()
             ->getMock();
