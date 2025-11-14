@@ -63,15 +63,15 @@ class Cli extends Console\Application
     private $initException;
 
     /**
-     * GetCommands exception.
-     * 
+     * Exception that occurred during command initialization.
+     *
      * @var \Exception
      */
     private $getCommandsException;
 
     /**
      * Failed commands during loading
-     * 
+     *
      * @var array
      */
     private $failedCommands = [];
@@ -125,9 +125,9 @@ class Cli extends Console\Application
         $this->setCommandLoader($this->getCommandLoader());
     }
 
-  /**
+    /**
      * @inheritdoc
-     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @throws \Exception The exception in case of unexpected error
      */
     public function doRun(Console\Input\InputInterface $input, Console\Output\OutputInterface $output)
@@ -142,8 +142,8 @@ class Cli extends Console\Application
                 // Command loading exception occurred earlier
                 if ($this->isDeveloperMode()) {
                     // Developer mode: provide detailed error about command loading failure
-                    $combinedErrorMessage = "Exception during console commands initialization: " . 
-                        $this->getCommandsException->getMessage() . PHP_EOL; 
+                    $combinedErrorMessage = "Exception during console commands initialization: " .
+                        $this->getCommandsException->getMessage() . PHP_EOL;
                     $this->initException = new \Exception($combinedErrorMessage, $e->getCode(), $e);
                     try {
                         if ($this->logger) {
@@ -155,16 +155,18 @@ class Cli extends Console\Application
                 } else {
                     // Production mode: command loading errors were already logged
                     // The specific command user tried to run may not be available
-                    $warningMessage = "\n" . '<comment>Warning: Some commands failed to load due to errors.</comment>' . "\n" .
-                        '<comment>Check error logs (var/log/system.log) for details.</comment>' . "\n" .
-                        '<comment>The command you tried to run may not be available. Try running: bin/magento list</comment>' . "\n";
-                    
+                    $warningMessage = "\n"
+                        . '<comment>Warning: Some commands failed to load due to errors.</comment>' . "\n"
+                        . '<comment>Check error logs (var/log/system.log) for details.</comment>' . "\n"
+                        . '<comment>The command you tried to run may not be available. '
+                        . 'Try running: bin/magento list</comment>' . "\n";
+
                     try {
                         $output->writeln($warningMessage);
                     } catch (\Exception $outputEx) {
                         error_log(strip_tags($warningMessage));
                     }
-                    
+
                     // Return failure since the command couldn't be executed
                     return self::RETURN_FAILURE;
                 }
@@ -204,16 +206,6 @@ class Cli extends Console\Application
     protected function getApplicationCommands()
     {
         $commands = [];
-        
-        // Load setup commands (try-catch to continue if this fails)
-        try {
-            if (class_exists(\Magento\Setup\Console\CommandList::class)) {
-                $setupCommandList = new \Magento\Setup\Console\CommandList($this->serviceManager);
-                $commands = array_merge($commands, $setupCommandList->getCommands());
-            }
-        } catch (\Exception $e) {
-            $this->handleCommandLoadingException('setup commands', $e);
-        }
 
         // Load core Magento commands (try-catch to continue if this fails)
         try {
@@ -268,8 +260,10 @@ class Cli extends Console\Application
         
         // Special handling for core commands failure - this is critical
         if ($commandType === 'core Magento commands') {
-            $errorMessage .= "\n\nCRITICAL: Core Magento commands (cache:flush, deploy:mode:set, etc.) are unavailable!";
-            $errorMessage .= "\nThis usually happens when a custom module injects a broken command into di.xml.";
+            $errorMessage .= "\n\nCRITICAL: Core Magento commands "
+                . "(cache:flush, deploy:mode:set, etc.) are unavailable!";
+            $errorMessage .= "\nThis usually happens when a custom module "
+                . "injects a broken command into di.xml.";
             $errorMessage .= "\n\nTO FIX THIS IMMEDIATELY:";
             $errorMessage .= "\n1. Run: rm -rf generated/code var/cache var/page_cache";
             $errorMessage .= "\n2. If problem persists, check var/log/system.log for the broken class";
@@ -479,9 +473,7 @@ class Cli extends Console\Application
      * @return void
      */
     private function logCommandLoadingError(string $errorMessage, \Exception $exception): void
-    {
-        $fullErrorMessage = $errorMessage . "\n" . $exception->getTraceAsString();
-        
+    {   
         // Try to log to Magento's log system
         $loggedToMagento = false;
         if ($this->logger) {
