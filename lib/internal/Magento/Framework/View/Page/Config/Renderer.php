@@ -450,7 +450,7 @@ class Renderer implements RendererInterface
         $assets = $this->processMerge($group->getAll(), $group);
         $attributes = $this->getGroupAttributes($group);
 
-        $result = '';
+        $result = $defaultAttributes = '';
         try {
             /** @var $asset \Magento\Framework\View\Asset\AssetInterface */
             foreach ($assets as $asset) {

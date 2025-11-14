@@ -68,6 +68,8 @@ class Renderer extends Config\Renderer
     }
 
     /**
+     * Add default attributes for specific content types
+     *
      * @param string $contentType
      * @param string $attributes
      * @return string
