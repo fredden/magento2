@@ -10,10 +10,10 @@ namespace Magento\Framework\Cache\Frontend\Adapter;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony\MagentoDatabaseAdapter;
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface as SymfonyAdapterInterface;
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\FilesystemAdapterService;
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\GenericAdapterService;
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\RedisAdapterService;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\TagAdapterInterface;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\FilesystemTagAdapter;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\GenericTagAdapter;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\RedisTagAdapter;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Serialize\Serializer\Serialize;
 use Psr\Cache\CacheItemPoolInterface;
@@ -27,11 +27,11 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\Cache\Marshaller\DefaultMarshaller;
 
 /**
- * Provider for creating Symfony Cache adapters and adapter services
+ * Provider for creating Symfony Cache adapters and tag adapters
  *
  * This class is responsible for:
  * - Creating PSR-6 cache pool adapters (RedisAdapter, FilesystemAdapter, etc.)
- * - Creating backend-specific adapter services (RedisAdapterService, FilesystemAdapterService, etc.)
+ * - Creating backend-specific tag adapters (RedisTagAdapter, FilesystemTagAdapter, etc.)
  * - Managing connection pooling and optimization
  * - Parsing and applying cache configuration from env.php
  *
@@ -161,43 +161,43 @@ class SymfonyAdapterProvider
     }
 
     /**
-     * Create appropriate Adapter Service based on backend type
+     * Create appropriate tag adapter based on backend type
      *
      * @param string $backendType
      * @param CacheItemPoolInterface $cachePool
      * @param string $namespace
      * @param bool $isPageCache
-     * @return SymfonyAdapterInterface
+     * @return TagAdapterInterface
      */
-    public function createAdapterService(
+    public function createTagAdapter(
         string $backendType,
         CacheItemPoolInterface $cachePool,
         string $namespace = '',
         bool $isPageCache = false
-    ): SymfonyAdapterInterface {
+    ): TagAdapterInterface {
         // Resolve backend type
         $backendTypeLower = strtolower($backendType);
         $resolvedType = $this->adapterTypeMap[$backendTypeLower] ?? 'filesystem';
 
-        // Create appropriate helper with fallback to GenericAdapterHelper
+        // Create appropriate tag adapter with fallback to GenericTagAdapter
         try {
             return match ($resolvedType) {
-                'redis' => new RedisAdapterService(
+                'redis' => new RedisTagAdapter(
                     $cachePool,
                     $namespace
                 ),
-                'filesystem' => new FilesystemAdapterService(
+                'filesystem' => new FilesystemTagAdapter(
                     $cachePool,
                     $this->getCacheDirectory()
                 ),
-                default => new GenericAdapterService(
+                default => new GenericTagAdapter(
                     $cachePool,
                     $isPageCache
                 ),
             };
         } catch (\Exception $e) {
-            // Fallback to GenericAdapterService if specialized helper creation fails
-            return new GenericAdapterService($cachePool, $isPageCache);
+            // Fallback to GenericTagAdapter if specialized adapter creation fails
+            return new GenericTagAdapter($cachePool, $isPageCache);
         }
     }
 

@@ -10,7 +10,7 @@ namespace Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * Generic adapter service for backends that don't support native tag-to-ID indices
+ * Generic tag adapter for backends that don't support native tag-to-ID indices
  *
  * This is a fallback implementation for adapters like Memcached, APCu, Database, etc.
  * that don't have efficient tag-to-ID index capabilities like Redis or Filesystem.
@@ -24,7 +24,7 @@ use Psr\Cache\CacheItemPoolInterface;
  * - MATCHING_TAG only works if items were saved with those exact tags
  * - NOT_MATCHING_TAG is not efficiently supported (falls back to invalidating nothing)
  */
-class GenericAdapterService implements AdapterInterface
+class GenericTagAdapter implements TagAdapterInterface
 {
     private const NAMESPACE_PREFIX = 'NS_';
     private const NAMESPACE_SEPARATOR = '|';

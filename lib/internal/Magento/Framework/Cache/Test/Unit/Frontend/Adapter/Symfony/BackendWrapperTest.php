@@ -9,7 +9,7 @@ namespace Magento\Framework\Cache\Test\Unit\Frontend\Adapter\Symfony;
 
 use Magento\Framework\Cache\Backend\BackendInterface;
 use Magento\Framework\Cache\CacheConstants;
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\TagAdapterInterface;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony\BackendWrapper;
 use Magento\Framework\Cache\FrontendInterface;
 use PHPUnit\Framework\TestCase;
@@ -26,7 +26,7 @@ class BackendWrapperTest extends TestCase
     private $cache;
 
     /**
-     * @var AdapterInterface
+     * @var TagAdapterInterface
      */
     private $adapter;
 
@@ -48,7 +48,7 @@ class BackendWrapperTest extends TestCase
     protected function setUp(): void
     {
         $this->cache = $this->createMock(CacheItemPoolInterface::class);
-        $this->adapter = $this->createMock(AdapterInterface::class);
+        $this->adapter = $this->createMock(TagAdapterInterface::class);
         $this->symfony = $this->createMock(FrontendInterface::class);
         $this->backendWrapper = new BackendWrapper($this->cache, $this->adapter, $this->symfony);
     }
@@ -61,7 +61,7 @@ class BackendWrapperTest extends TestCase
     public function testConstructor(): void
     {
         $cache = $this->createMock(CacheItemPoolInterface::class);
-        $adapter = $this->createMock(AdapterInterface::class);
+        $adapter = $this->createMock(TagAdapterInterface::class);
         $symfony = $this->createMock(FrontendInterface::class);
         $wrapper = new BackendWrapper($cache, $adapter, $symfony);
 

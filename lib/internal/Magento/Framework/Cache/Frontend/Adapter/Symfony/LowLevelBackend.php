@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Magento\Framework\Cache\Frontend\Adapter\Symfony;
 
 use Magento\Framework\Cache\CacheConstants;
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\TagAdapterInterface;
 
 /**
  * Low-level backend wrapper for Symfony cache adapter
@@ -19,14 +19,14 @@ use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface;
 class LowLevelBackend
 {
     /**
-     * @var AdapterInterface
+     * @var TagAdapterInterface
      */
-    private AdapterInterface $adapter;
+    private TagAdapterInterface $adapter;
 
     /**
-     * @param AdapterInterface $adapter
+     * @param TagAdapterInterface $adapter
      */
-    public function __construct(AdapterInterface $adapter)
+    public function __construct(TagAdapterInterface $adapter)
     {
         $this->adapter = $adapter;
     }

@@ -580,15 +580,15 @@ class Factory
             // Create initial cache pool
             $cachePool = $cacheFactory();
 
-            // Create adapter service for backend-specific operations
-            $adapter = $adapterProvider->createAdapterService(
-                $originalBackendType,
-                $cachePool,
-                $idPrefix,
-                $isPageCache
-            );
+            // Create tag adapter for backend-specific operations
+        $adapter = $adapterProvider->createTagAdapter(
+            $originalBackendType,
+            $cachePool,
+            $idPrefix,
+            $isPageCache
+        );
 
-            // Create Symfony adapter with fork detection support and backend adapter service
+            // Create Symfony adapter with fork detection support and tag adapter
             $result = $this->_objectManager->create(
                 Symfony::class,
                 [

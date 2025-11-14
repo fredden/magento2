@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Frontend\Adapter\Symfony;
 
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\TagAdapterInterface;
 use Magento\Framework\Cache\FrontendInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
@@ -30,9 +30,9 @@ class LowLevelFrontend
     private FrontendInterface $symfony;
 
     /**
-     * @var AdapterInterface
+     * @var TagAdapterInterface
      */
-    private AdapterInterface $adapter;
+    private TagAdapterInterface $adapter;
 
     /**
      * @var string
@@ -52,14 +52,14 @@ class LowLevelFrontend
     /**
      * @param CacheItemPoolInterface $cache
      * @param FrontendInterface $symfony
-     * @param AdapterInterface $adapter
+     * @param TagAdapterInterface $adapter
      * @param string $idPrefix
      * @param int $lifetime
      */
     public function __construct(
         CacheItemPoolInterface $cache,
         FrontendInterface $symfony,
-        AdapterInterface $adapter,
+        TagAdapterInterface $adapter,
         string $idPrefix,
         int $lifetime = 7200
     ) {

@@ -10,7 +10,7 @@ namespace Magento\Framework\Cache\Frontend\Adapter\Symfony;
 use InvalidArgumentException;
 use Magento\Framework\Cache\Backend\BackendInterface;
 use Magento\Framework\Cache\CacheConstants;
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\TagAdapterInterface;
 use Magento\Framework\Cache\FrontendInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
@@ -28,9 +28,9 @@ class BackendWrapper implements BackendInterface
     private CacheItemPoolInterface $cache;
 
     /**
-     * @var AdapterInterface
+     * @var TagAdapterInterface
      */
-    private AdapterInterface $adapter;
+    private TagAdapterInterface $adapter;
 
     /**
      * @var FrontendInterface
@@ -39,12 +39,12 @@ class BackendWrapper implements BackendInterface
 
     /**
      * @param CacheItemPoolInterface $cache
-     * @param AdapterInterface $adapter
+     * @param TagAdapterInterface $adapter
      * @param FrontendInterface $symfony
      */
     public function __construct(
         CacheItemPoolInterface $cache,
-        AdapterInterface $adapter,
+        TagAdapterInterface $adapter,
         FrontendInterface $symfony
     ) {
         $this->cache = $cache;

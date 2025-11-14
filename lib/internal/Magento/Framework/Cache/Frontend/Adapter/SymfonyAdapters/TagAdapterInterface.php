@@ -10,17 +10,17 @@ namespace Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * Interface for backend-specific cache operations
+ * Interface for backend-specific tag operations
  *
  * This interface defines operations that different cache backends implement differently,
  * particularly for tag-based cache invalidation with AND logic (MATCHING_TAG mode).
  *
  * Implementations:
- * - RedisAdapterService: Uses Redis SINTER for true AND logic
- * - FilesystemAdapterService: Uses file-based tag indices with array_intersect
- * - GenericAdapterService: Fallback using namespace tags or best-effort logic
+ * - RedisTagAdapter: Uses Redis SINTER for true AND logic
+ * - FilesystemTagAdapter: Uses file-based tag indices with array_intersect
+ * - GenericTagAdapter: Fallback using namespace tags or best-effort logic
  */
-interface AdapterInterface
+interface TagAdapterInterface
 {
     /**
      * Get cache IDs that match ALL given tags (AND logic)

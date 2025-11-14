@@ -12,7 +12,7 @@ use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 
 /**
- * Redis-specific adapter service
+ * Redis-specific tag adapter
  *
  * Implements tag-to-ID index management using Redis SETs, similar to Colin Mollenhour's
  * Cm_Cache_Backend_Redis implementation. This enables true AND logic for MATCHING_TAG mode
@@ -33,7 +33,7 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
  * - SINTER cache:tags:69d_config cache:tags:69d_eav
  * - Returns: {config_1}  ← Only IDs in BOTH sets (true AND logic)
  */
-class RedisAdapterService implements AdapterInterface
+class RedisTagAdapter implements TagAdapterInterface
 {
     private const TAG_INDEX_PREFIX = 'cache:tags:';
     private const ALL_IDS_SET = 'cache:all_ids';

@@ -11,7 +11,7 @@ use Magento\Framework\App\Cache\Frontend\Factory;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapterProvider;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\App\Test\Unit\Cache\Frontend\FactoryTest\CacheDecoratorDummy;
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\TagAdapterInterface;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony\BackendWrapper;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony\LowLevelBackend;
@@ -177,7 +177,7 @@ class FactoryTest extends TestCase
         $serializer = $this->createSerializerMock();
 
         $cachePoolMock = $this->createMock(\Psr\Cache\CacheItemPoolInterface::class);
-        $adapterMock = $this->createMock(AdapterInterface::class);
+        $adapterMock = $this->createMock(TagAdapterInterface::class);
 
         $cacheFactory = function () use ($cachePoolMock) {
             return $cachePoolMock;
@@ -194,10 +194,17 @@ class FactoryTest extends TestCase
         $objectManager = $this->getMockForAbstractClass(ObjectManagerInterface::class);
         $objectManager->expects($this->any())->method('create')->willReturnCallback($processFrontendFunc);
 
+        // Create mock for SymfonyAdapterProvider
+        $adapterProviderMock = $this->createMock(SymfonyAdapterProvider::class);
+        $adapterProviderMock->expects($this->any())
+            ->method('createTagAdapter')
+            ->willReturn($adapterMock);
+
         $model = new Factory(
             $objectManager,
             $filesystem,
             $resource,
+            $adapterProviderMock,
             $enforcedOptions,
             $decorators
         );

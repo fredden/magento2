@@ -10,8 +10,8 @@ namespace Magento\Framework\Cache\Frontend\Adapter;
 use Closure;
 use InvalidArgumentException;
 use Magento\Framework\Cache\CacheConstants;
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\AdapterInterface;
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\GenericAdapterService;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\GenericTagAdapter;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\TagAdapterInterface;
 use Magento\Framework\Cache\FrontendInterface;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
@@ -21,19 +21,19 @@ use Symfony\Component\Cache\CacheItem;
 /**
  * Symfony Cache adapter for Magento - FRESH IMPLEMENTATION
  *
- * This is a complete rewrite that uses Symfony adapter services for backend-specific operations.
+ * This is a complete rewrite that uses tag adapters for backend-specific operations.
  *
  * Supported cleaning modes:
  * - CLEANING_MODE_ALL: Clear all cache (native Symfony)
  * - CLEANING_MODE_OLD: Remove expired items (native Symfony)
- * - CLEANING_MODE_MATCHING_TAG: AND logic (uses adapter services)
- * - CLEANING_MODE_NOT_MATCHING_TAG: Inverse logic (uses adapter services)
+ * - CLEANING_MODE_MATCHING_TAG: AND logic (uses tag adapters)
+ * - CLEANING_MODE_NOT_MATCHING_TAG: Inverse logic (uses tag adapters)
  * - CLEANING_MODE_MATCHING_ANY_TAG: OR logic (native Symfony)
  *
  * Architecture:
- * - RedisAdapterService: Uses Redis SINTER for true AND logic
- * - FilesystemAdapterService: Uses file indices with array_intersect for AND logic
- * - GenericAdapterService: Fallback using namespace tags for other adapters
+ * - RedisTagAdapter: Uses Redis SINTER for true AND logic
+ * - FilesystemTagAdapter: Uses file indices with array_intersect for AND logic
+ * - GenericTagAdapter: Fallback using namespace tags for other adapters
  *
  * @see Symfony\BackendWrapper
  * @see Symfony\LowLevelFrontend
@@ -68,9 +68,9 @@ class Symfony implements FrontendInterface
     private CacheItemPoolInterface $cache;
 
     /**
-     * @var AdapterInterface
+     * @var TagAdapterInterface
      */
-    private AdapterInterface $adapter;
+    private TagAdapterInterface $adapter;
 
     /**
      * @var Closure|null
@@ -104,13 +104,13 @@ class Symfony implements FrontendInterface
 
     /**
      * @param Closure $cacheFactory Factory that creates the cache pool
-     * @param AdapterInterface|null $adapter Backend-specific adapter service
+     * @param TagAdapterInterface|null $adapter Backend-specific tag adapter
      * @param int $defaultLifetime Default cache lifetime in seconds
      * @param string $idPrefix Cache ID prefix
      */
     public function __construct(
         Closure $cacheFactory,
-        ?AdapterInterface $adapter = null,
+        ?TagAdapterInterface $adapter = null,
         int $defaultLifetime = self::DEFAULT_LIFETIME,
         string $idPrefix = self::DEFAULT_CACHE_PREFIX
     ) {
@@ -121,7 +121,7 @@ class Symfony implements FrontendInterface
         $this->idPrefix = $idPrefix;
         
         // Use provided adapter or create generic fallback
-        $this->adapter = $adapter ?? new GenericAdapterService($this->cache);
+        $this->adapter = $adapter ?? new GenericTagAdapter($this->cache);
     }
 
     /**
@@ -313,7 +313,7 @@ class Symfony implements FrontendInterface
         
         // Get enhanced tags (including namespace tags if applicable)
         $tagsToSet = $cleanTags;
-        if ($this->adapter instanceof GenericAdapterService && !empty($cleanTags)) {
+        if ($this->adapter instanceof GenericTagAdapter && !empty($cleanTags)) {
             $tagsToSet = $this->adapter->getTagsForSave($cleanTags);
         }
         
@@ -456,7 +456,7 @@ class Symfony implements FrontendInterface
         $cleanTags = $this->cleanIdentifiers($tags);
         
         // For GenericHelper with namespace tags, use the namespace tag
-        if ($this->adapter instanceof GenericAdapterService) {
+        if ($this->adapter instanceof GenericTagAdapter) {
             if ($this->adapter->usesNamespaceTags()) {
                 $tagsToInvalidate = $this->adapter->getTagsForMatchingTag($cleanTags);
                 if ($this->isTagAware()) {
