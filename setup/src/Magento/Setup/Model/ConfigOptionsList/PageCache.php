@@ -243,6 +243,9 @@ class PageCache implements ConfigOptionsListInterface
             $configData->set(self::CONFIG_PATH_PAGE_CACHE_ID_PREFIX, $options[self::INPUT_KEY_PAGE_CACHE_ID_PREFIX]);
         } elseif (!$deploymentConfig->get(self::CONFIG_PATH_PAGE_CACHE_ID_PREFIX)) {
             $configData->set(self::CONFIG_PATH_PAGE_CACHE_ID_PREFIX, $this->generateCachePrefix());
+            $options[self::INPUT_KEY_PAGE_CACHE_BACKEND] = self::INPUT_VALUE_PAGE_CACHE_REDIS;
+            $configData->set(self::CONFIG_PATH_PAGE_CACHE_BACKEND, self::CONFIG_VALUE_PAGE_CACHE_REDIS);
+            $this->setDefaultRedisConfig($deploymentConfig, $configData);
         }
 
         if (isset($options[self::INPUT_KEY_PAGE_CACHE_BACKEND])) {
