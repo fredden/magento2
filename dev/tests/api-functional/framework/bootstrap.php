@@ -90,10 +90,6 @@ try {
     $application->initialize();
 
     \Magento\TestFramework\Helper\Bootstrap::setInstance(new \Magento\TestFramework\Helper\Bootstrap($bootstrap));
-
-    // Log env.php cache configuration for debugging Web API tests
-    logCacheConfiguration();
-
     $dirSearch = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()
        ->create(\Magento\Framework\Component\DirSearch::class);
     $themePackageList = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()
@@ -159,50 +155,4 @@ function setCustomErrorHandler()
             }
         }
     );
-}
-
-/**
- * Log cache configuration from env.php to debug.log
- *
- * @return void
- */
-function logCacheConfiguration()
-{
-    try {
-        // Read env.php cache configuration
-        // phpcs:ignore Magento2.Security.IncludeFile.FoundIncludeFile
-        $envConfig = include BP . '/app/etc/env.php';
-        $cacheConfig = $envConfig['cache'] ?? [];
-        $sessionConfig = $envConfig['session'] ?? [];
-        
-        // Check igbinary status
-        $igbinaryActive = extension_loaded('igbinary');
-        $igbinaryVersion = $igbinaryActive ? phpversion('igbinary') : 'N/A';
-        
-        // Prepare log message
-        $logData = [
-            'timestamp' => date('Y-m-d H:i:s'),
-            'test_type' => 'WEB API TEST',
-            'php_version' => PHP_VERSION,
-            'igbinary_active' => $igbinaryActive ? 'YES' : 'NO',
-            'igbinary_version' => $igbinaryVersion,
-            'cache_frontend_default' => $cacheConfig['frontend']['default'] ?? 'NOT SET',
-            'cache_frontend_page_cache' => $cacheConfig['frontend']['page_cache'] ?? 'NOT SET',
-            'session_config' => $sessionConfig,
-        ];
-        
-        $logMessage = "\n" . str_repeat('=', 80) . "\n";
-        $logMessage .= "[WEB API TEST] ENV.PHP Cache Configuration\n";
-        $logMessage .= str_repeat('=', 80) . "\n";
-        $logMessage .= print_r($logData, true);
-        $logMessage .= str_repeat('=', 80) . "\n";
-        
-        // Write directly to debug.log
-        $logFile = BP . '/var/log/debug.log';
-        // phpcs:ignore Magento2.Functions.DiscouragedFunction
-        file_put_contents($logFile, $logMessage, FILE_APPEND);
-    } catch (\Exception $e) {
-        // Silently fail if logging fails - don't break tests
-        error_log('Failed to log cache configuration: ' . $e->getMessage());
-    }
 }
