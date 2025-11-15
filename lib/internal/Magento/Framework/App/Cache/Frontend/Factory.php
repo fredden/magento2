@@ -581,12 +581,12 @@ class Factory
             $cachePool = $cacheFactory();
 
             // Create tag adapter for backend-specific operations
-        $adapter = $adapterProvider->createTagAdapter(
-            $originalBackendType,
-            $cachePool,
-            $idPrefix,
-            $isPageCache
-        );
+            $adapter = $adapterProvider->createTagAdapter(
+                $originalBackendType,
+                $cachePool,
+                $idPrefix,
+                $isPageCache
+            );
 
             // Create Symfony adapter with fork detection support and tag adapter
             $result = $this->_objectManager->create(
@@ -608,7 +608,6 @@ class Factory
             $result = $this->_applyDecorators($result);
 
         } catch (\Exception $e) {
-            // Stop profiling on error
             Profiler::stop('cache_symfony_create');
 
             // Log the error but don't re-throw - SymfonyAdapterProvider has fallback logic
@@ -620,9 +619,7 @@ class Factory
             );
         }
 
-        // Stop profiling
         Profiler::stop('cache_symfony_create');
-
         return $result;
     }
 

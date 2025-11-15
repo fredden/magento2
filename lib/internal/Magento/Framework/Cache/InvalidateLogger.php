@@ -26,13 +26,6 @@ class InvalidateLogger
     private $logger;
 
     /**
-     * Static flag to ensure env config is logged only once
-     *
-     * @var bool
-     */
-    private static $envConfigLogged = false;
-
-    /**
      * @param HttpRequest $request
      * @param Logger $logger
      */
@@ -50,46 +43,7 @@ class InvalidateLogger
      */
     public function execute($invalidateInfo)
     {
-        // Log env.php cache configuration once
-        if (!self::$envConfigLogged) {
-            $this->logEnvCacheConfig();
-            self::$envConfigLogged = true;
-        }
-
         $this->logger->debug('cache_invalidate: ', $this->makeParams($invalidateInfo));
-    }
-
-    /**
-     * Log env.php cache configuration (one time only)
-     *
-     * @return void
-     */
-    private function logEnvCacheConfig()
-    {
-        try {
-            // phpcs:ignore Magento2.Security.IncludeFile.FoundIncludeFile
-            $envConfig = include BP . '/app/etc/env.php';
-            $cacheConfig = $envConfig['cache'] ?? [];
-            $sessionConfig = $envConfig['session'] ?? [];
-
-            // Check if igbinary extension is loaded
-            $igbinaryActive = extension_loaded('igbinary');
-            $igbinaryVersion = $igbinaryActive ? phpversion('igbinary') : 'N/A';
-
-            $this->logger->debug(
-                'ENV.PHP Cache Configuration (logged once per request lifecycle):',
-                [
-                    'cache_config' => $cacheConfig,
-                    'session_config' => $sessionConfig,
-                    'igbinary_active' => $igbinaryActive,
-                    'igbinary_version' => $igbinaryVersion,
-                    'timestamp' => date('Y-m-d H:i:s')
-                ]
-            );
-        } catch (\Exception $e) {
-            // Silently fail if unable to read env.php
-            $this->logger->debug('Unable to read env.php cache config: ' . $e->getMessage());
-        }
     }
 
     /**
