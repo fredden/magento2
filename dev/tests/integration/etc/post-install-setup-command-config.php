@@ -9,8 +9,9 @@ return [
     [
         'command' => 'setup:config:set',
         'config' => [
-            '--cache-backend' => 'redis'
+            '--cache-backend' => 'redis',
+            '--page-cache' => 'redis'
         ]
     ]
 ];
-    
+
