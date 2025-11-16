@@ -234,9 +234,6 @@ class DiCompileCommand extends Command
             $progressBar->finish();
             $output->writeln('');
             $output->writeln('<info>Generated code and dependency injection configuration successfully.</info>');
-            
-            // Log env.php cache configuration
-            $this->logEnvCacheConfig($output);
         } catch (OperationException $e) {
             $output->writeln('<error>' . $e->getMessage() . '</error>');
             // we must have an exit code higher than zero to indicate something was wrong
@@ -432,63 +429,5 @@ class DiCompileCommand extends Command
             OperationFactory::APPLICATION_ACTION_LIST_GENERATOR => [],
             OperationFactory::PLUGIN_LIST_GENERATOR => [],
         ];
-    }
-
-    /**
-     * Log env.php cache configuration to console output
-     *
-     * @param OutputInterface $output
-     * @return void
-     */
-    private function logEnvCacheConfig(OutputInterface $output)
-    {
-        try {
-            $envPath = $this->directoryList->getPath(DirectoryList::CONFIG) . '/env.php';
-            
-            if (!$this->fileDriver->isExists($envPath)) {
-                return;
-            }
-
-            // phpcs:ignore Magento2.Security.IncludeFile.FoundIncludeFile
-            $envConfig = include $envPath;
-            $cacheConfig = $envConfig['cache'] ?? [];
-            $sessionConfig = $envConfig['session'] ?? [];
-
-            // Check igbinary status
-            $igbinaryActive = extension_loaded('igbinary');
-            $igbinaryVersion = $igbinaryActive ? phpversion('igbinary') : 'N/A';
-
-            $output->writeln('');
-            $output->writeln('<comment>Cache & Session Configuration from env.php:</comment>');
-            
-            $backend = $cacheConfig['frontend']['default']['backend'] ?? 'N/A';
-            $output->writeln('<info>├─ Cache Backend: ' . $backend . '</info>');
-            
-            if (isset($cacheConfig['frontend']['default']['backend_options'])) {
-                $backendOpts = $cacheConfig['frontend']['default']['backend_options'];
-                $compressionLib = $backendOpts['compression_lib'] ?? 'N/A';
-                $compressData = $backendOpts['compress_data'] ?? '0';
-                $output->writeln(
-                    '<info>├─ Compression: ' . $compressData . ' (' . $compressionLib . ')</info>'
-                );
-                $output->writeln(
-                    '<info>├─ Serializer: ' . ($backendOpts['serializer'] ?? 'N/A') . '</info>'
-                );
-                $server = ($backendOpts['server'] ?? 'N/A') . ':' . ($backendOpts['port'] ?? 'N/A');
-                $output->writeln('<info>├─ Server: ' . $server . '</info>');
-                $output->writeln(
-                    '<info>├─ Database: ' . ($backendOpts['database'] ?? 'N/A') . '</info>'
-                );
-            }
-            
-            $output->writeln('<info>├─ Session Save: ' . ($sessionConfig['save'] ?? 'N/A') . '</info>');
-            $igbinaryStatus = $igbinaryActive ? 'YES' : 'NO';
-            $output->writeln('<info>├─ igbinary Active: ' . $igbinaryStatus . '</info>');
-            $output->writeln('<info>└─ igbinary Version: ' . $igbinaryVersion . '</info>');
-            $output->writeln('');
-        } catch (\Exception $e) {
-            // Silently fail if unable to read config
-            $output->writeln('<comment>Unable to read env.php cache configuration.</comment>');
-        }
     }
 }
