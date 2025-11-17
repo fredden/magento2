@@ -244,6 +244,9 @@ class CacheTest extends TestCase
                 'frontend' => [
                     'default' => [
                         'id_prefix' => $this->expectedIdPrefix(),
+                        'backend_options' => [
+                            'serializer' => 'igbinary'
+                        ]
                     ]
                 ]
             ]
@@ -267,6 +270,9 @@ class CacheTest extends TestCase
                 'frontend' => [
                     'default' => [
                         'id_prefix' => $explicitPrefix,
+                        'backend_options' => [
+                            'serializer' => 'igbinary'
+                        ]
                     ]
                 ]
             ]

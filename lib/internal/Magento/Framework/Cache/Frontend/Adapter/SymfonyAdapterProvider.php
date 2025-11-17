@@ -237,7 +237,7 @@ class SymfonyAdapterProvider
         $port = $options['port'] ?? 6379;
         $password = $options['password'] ?? null;
         $database = $options['database'] ?? 0;
-        $serializer = $options['serializer'] ?? 'igbinary';
+        $serializer = $options['serializer'] ?? null;
 
         // Persistent connection support (15-30% performance gain)
         $persistent = $options['persistent'] ?? true;  // Enable by default
@@ -389,7 +389,7 @@ class SymfonyAdapterProvider
         }
 
         // Add igbinary marshaller support for file cache (70% faster, 58% smaller)
-        $serializer = $options['serializer'] ?? 'igbinary';
+        $serializer = $options['serializer'] ?? null;
         $marshaller = $this->createMarshaller($serializer);
 
         return new FilesystemAdapter(
