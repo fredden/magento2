@@ -137,7 +137,7 @@ class Renderer implements RendererInterface
         $this->msApplicationTileImage = $msApplicationTileImage ?:
             ObjectManager::getInstance()->get(MsApplicationTileImage::class);
         $this->scopeConfig = $scopeConfig ?: ObjectManager::getInstance()->get(ScopeConfigInterface::class);
-        $this->criticalFilePatterns = $criticalFilePatterns ?: self::DEFAULT_CRITICAL_SCRIPT_PATTERNS;
+        $this->criticalFilePatterns = array_merge(self::DEFAULT_CRITICAL_SCRIPT_PATTERNS, $criticalFilePatterns);
     }
 
     /**
@@ -455,7 +455,7 @@ class Renderer implements RendererInterface
             /** @var $asset \Magento\Framework\View\Asset\AssetInterface */
             foreach ($assets as $asset) {
                 $defaultAttributes = $this->addDefaultAttributes($this->getAssetContentType($asset), $attributes);
-                if ($this->getAssetContentType($asset) == 'js' &&
+                if ($this->getAssetContentType($asset) === 'js' &&
                     $this->shouldDefer(
                         $asset->getUrl(),
                         $group->getProperty('attributes') ?? []
