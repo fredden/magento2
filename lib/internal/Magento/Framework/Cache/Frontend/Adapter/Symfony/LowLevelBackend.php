@@ -56,10 +56,10 @@ class LowLevelBackend
      */
     public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = []): bool
     {
-        // Backend clean is handled by helper
+        // Backend clean is handled by adapter
         if ($mode === CacheConstants::CLEANING_MODE_ALL) {
-            if (method_exists($this->adapter, 'clearAllTagIndices')) {
-                $this->adapter->clearAllTagIndices();
+            if (method_exists($this->adapter, 'clearAllIndices')) {
+                $this->adapter->clearAllIndices();
             }
         }
         return true;

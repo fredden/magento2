@@ -7,232 +7,357 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Test\Unit\Frontend\Adapter\Symfony;
 
-use Magento\Framework\Cache\Backend\BackendInterface;
+use InvalidArgumentException;
 use Magento\Framework\Cache\CacheConstants;
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\TagAdapterInterface;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony\BackendWrapper;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\TagAdapterInterface;
 use Magento\Framework\Cache\FrontendInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
- * Test for BackendWrapper
+ * Unit test for BackendWrapper
  */
 class BackendWrapperTest extends TestCase
 {
     /**
-     * @var CacheItemPoolInterface
+     * @var CacheItemPoolInterface|MockObject
      */
-    private $cache;
+    private $cacheMock;
 
     /**
-     * @var TagAdapterInterface
+     * @var TagAdapterInterface|MockObject
      */
-    private $adapter;
+    private $adapterMock;
 
     /**
-     * @var FrontendInterface
+     * @var FrontendInterface|MockObject
      */
-    private $symfony;
+    private $symfonyMock;
 
     /**
      * @var BackendWrapper
      */
-    private $backendWrapper;
+    private BackendWrapper $backendWrapper;
 
     /**
-     * Set up test
-     *
-     * @return void
+     * Set up test environment
      */
     protected function setUp(): void
     {
-        $this->cache = $this->createMock(CacheItemPoolInterface::class);
-        $this->adapter = $this->createMock(TagAdapterInterface::class);
-        $this->symfony = $this->createMock(FrontendInterface::class);
-        $this->backendWrapper = new BackendWrapper($this->cache, $this->adapter, $this->symfony);
+        parent::setUp();
+
+        $this->cacheMock = $this->createMock(CacheItemPoolInterface::class);
+        $this->adapterMock = $this->createMock(TagAdapterInterface::class);
+        $this->symfonyMock = $this->createMock(FrontendInterface::class);
+
+        $this->backendWrapper = new BackendWrapper(
+            $this->cacheMock,
+            $this->adapterMock,
+            $this->symfonyMock
+        );
     }
 
     /**
-     * Test constructor
-     *
-     * @return void
+     * Test test() delegates to symfony frontend
      */
-    public function testConstructor(): void
+    public function testTestDelegatesToSymfony(): void
     {
-        $cache = $this->createMock(CacheItemPoolInterface::class);
-        $adapter = $this->createMock(TagAdapterInterface::class);
-        $symfony = $this->createMock(FrontendInterface::class);
-        $wrapper = new BackendWrapper($cache, $adapter, $symfony);
+        $this->symfonyMock
+            ->expects($this->once())
+            ->method('test')
+            ->with('test_key')
+            ->willReturn(1234567890);
 
-        $this->assertInstanceOf(BackendWrapper::class, $wrapper);
-        $this->assertInstanceOf(BackendInterface::class, $wrapper);
+        $result = $this->backendWrapper->test('test_key');
+
+        $this->assertEquals(1234567890, $result);
     }
 
     /**
-     * Test load method
-     *
-     * @return void
+     * Test test() returns false when cache miss
      */
-    public function testLoad(): void
+    public function testTestReturnsFalseOnCacheMiss(): void
     {
-        $this->symfony->expects($this->once())
-            ->method('load')
-            ->with('test_id')
-            ->willReturn('cached_data');
-
-        $result = $this->backendWrapper->load('test_id');
-
-        $this->assertEquals('cached_data', $result);
-    }
-
-    /**
-     * Test load method returns false when cache miss
-     *
-     * @return void
-     */
-    public function testLoadReturnsFalseOnCacheMiss(): void
-    {
-        $this->symfony->expects($this->once())
-            ->method('load')
-            ->with('test_id')
+        $this->symfonyMock
+            ->expects($this->once())
+            ->method('test')
+            ->with('missing_key')
             ->willReturn(false);
 
-        $result = $this->backendWrapper->load('test_id');
+        $result = $this->backendWrapper->test('missing_key');
 
         $this->assertFalse($result);
     }
 
     /**
-     * Test test method
-     *
-     * @return void
+     * Test load() delegates to symfony frontend
      */
-    public function testTest(): void
+    public function testLoadDelegatesToSymfony(): void
     {
-        $this->symfony->expects($this->once())
-            ->method('test')
-            ->with('test_id')
-            ->willReturn(time());
+        $testData = 'cached_data';
 
-        $result = $this->backendWrapper->test('test_id');
+        $this->symfonyMock
+            ->expects($this->once())
+            ->method('load')
+            ->with('test_key')
+            ->willReturn($testData);
 
-        $this->assertIsInt($result);
+        $result = $this->backendWrapper->load('test_key');
+
+        $this->assertEquals($testData, $result);
     }
 
     /**
-     * Test save method
-     *
-     * @return void
+     * Test load() ignores doNotTestCacheValidity parameter
      */
-    public function testSave(): void
+    public function testLoadIgnoresValidityParameter(): void
     {
-        $this->symfony->expects($this->once())
+        $testData = 'cached_data';
+
+        $this->symfonyMock
+            ->expects($this->once())
+            ->method('load')
+            ->with('test_key')
+            ->willReturn($testData);
+
+        // doNotTestCacheValidity parameter should be ignored
+        $result = $this->backendWrapper->load('test_key', true);
+
+        $this->assertEquals($testData, $result);
+    }
+
+    /**
+     * Test load() returns false on cache miss
+     */
+    public function testLoadReturnsFalseOnCacheMiss(): void
+    {
+        $this->symfonyMock
+            ->expects($this->once())
+            ->method('load')
+            ->with('missing_key')
+            ->willReturn(false);
+
+        $result = $this->backendWrapper->load('missing_key');
+
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Test save() delegates to symfony frontend
+     */
+    public function testSaveDelegatesToSymfony(): void
+    {
+        $data = 'test_data';
+        $id = 'test_key';
+        $tags = ['tag1', 'tag2'];
+        $lifetime = 3600;
+
+        $this->symfonyMock
+            ->expects($this->once())
             ->method('save')
-            ->with('test_data', 'test_id', [], null)
+            ->with($data, $id, $tags, $lifetime)
             ->willReturn(true);
 
-        $result = $this->backendWrapper->save('test_data', 'test_id', [], null);
+        $result = $this->backendWrapper->save($data, $id, $tags, $lifetime);
 
         $this->assertTrue($result);
     }
 
     /**
-     * Test save method with tags
-     *
-     * @return void
+     * Test save() without tags
      */
-    public function testSaveWithTags(): void
+    public function testSaveWithoutTags(): void
     {
-        $this->symfony->expects($this->once())
+        $data = 'test_data';
+        $id = 'test_key';
+
+        $this->symfonyMock
+            ->expects($this->once())
             ->method('save')
-            ->with('test_data', 'test_id', ['tag1', 'tag2'], null)
+            ->with($data, $id, [], null)
             ->willReturn(true);
 
-        $result = $this->backendWrapper->save('test_data', 'test_id', ['tag1', 'tag2'], null);
+        $result = $this->backendWrapper->save($data, $id);
 
         $this->assertTrue($result);
     }
 
     /**
-     * Test remove method
-     *
-     * @return void
+     * Test save() returns false on failure
      */
-    public function testRemove(): void
+    public function testSaveReturnsFalseOnFailure(): void
     {
-        $this->symfony->expects($this->once())
+        $this->symfonyMock
+            ->expects($this->once())
+            ->method('save')
+            ->willReturn(false);
+
+        $result = $this->backendWrapper->save('data', 'key');
+
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Test remove() delegates to symfony frontend
+     */
+    public function testRemoveDelegatesToSymfony(): void
+    {
+        $this->symfonyMock
+            ->expects($this->once())
             ->method('remove')
-            ->with('test_id')
+            ->with('test_key')
             ->willReturn(true);
 
-        $result = $this->backendWrapper->remove('test_id');
+        $result = $this->backendWrapper->remove('test_key');
 
         $this->assertTrue($result);
     }
 
     /**
-     * Test clean method with CLEANING_MODE_ALL
-     *
-     * @return void
+     * Test remove() returns false on failure
      */
-    public function testCleanWithModeAll(): void
+    public function testRemoveReturnsFalseOnFailure(): void
     {
-        $this->adapter->expects($this->once())->method('clearAllIndices');
-        $this->cache->expects($this->once())->method('clear')->willReturn(true);
+        $this->symfonyMock
+            ->expects($this->once())
+            ->method('remove')
+            ->with('test_key')
+            ->willReturn(false);
 
-        $result = $this->backendWrapper->clean(CacheConstants::CLEANING_MODE_ALL, []);
+        $result = $this->backendWrapper->remove('test_key');
 
-        $this->assertTrue($result);
+        $this->assertFalse($result);
     }
 
     /**
-     * Test clean method with CLEANING_MODE_OLD
-     *
-     * @return void
+     * Test clean() with 'all' mode
      */
-    public function testCleanWithModeOld(): void
+    public function testCleanWithAllMode(): void
     {
-        $result = $this->backendWrapper->clean(CacheConstants::CLEANING_MODE_OLD, []);
+        $this->adapterMock
+            ->expects($this->once())
+            ->method('clearAllIndices');
+
+        $this->cacheMock
+            ->expects($this->once())
+            ->method('clear')
+            ->willReturn(true);
+
+        $result = $this->backendWrapper->clean('all');
 
         $this->assertTrue($result);
     }
 
     /**
-     * Test clean method with unsupported mode throws exception
-     *
-     * @return void
+     * Test clean() with CLEANING_MODE_ALL constant
+     */
+    public function testCleanWithAllModeConstant(): void
+    {
+        $this->adapterMock
+            ->expects($this->once())
+            ->method('clearAllIndices');
+
+        $this->cacheMock
+            ->expects($this->once())
+            ->method('clear')
+            ->willReturn(true);
+
+        $result = $this->backendWrapper->clean(CacheConstants::CLEANING_MODE_ALL);
+
+        $this->assertTrue($result);
+    }
+
+    /**
+     * Test clean() with 'old' mode
+     */
+    public function testCleanWithOldMode(): void
+    {
+        // 'old' mode is a no-op (returns true without doing anything)
+        $this->adapterMock
+            ->expects($this->never())
+            ->method('clearAllIndices');
+
+        $this->cacheMock
+            ->expects($this->never())
+            ->method('clear');
+
+        $result = $this->backendWrapper->clean('old');
+
+        $this->assertTrue($result);
+    }
+
+    /**
+     * Test clean() with CLEANING_MODE_OLD constant
+     */
+    public function testCleanWithOldModeConstant(): void
+    {
+        $result = $this->backendWrapper->clean(CacheConstants::CLEANING_MODE_OLD);
+
+        $this->assertTrue($result);
+    }
+
+    /**
+     * Test clean() with unsupported mode throws exception
      */
     public function testCleanWithUnsupportedModeThrowsException(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Backend clean only supports ALL and OLD modes');
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Backend clean only supports ALL and OLD modes");
+
+        $this->backendWrapper->clean('unsupported_mode');
+    }
+
+    /**
+     * Test clean() with CLEANING_MODE_MATCHING_TAG throws exception
+     */
+    public function testCleanWithMatchingTagModeThrowsException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Backend clean only supports ALL and OLD modes");
 
         $this->backendWrapper->clean(CacheConstants::CLEANING_MODE_MATCHING_TAG, ['tag1']);
     }
 
     /**
-     * Test setOption does nothing (intentional no-op)
-     *
-     * @return void
+     * Test setOption() is a no-op
      */
-    public function testSetOption(): void
+    public function testSetOptionIsNoOp(): void
     {
-        $this->backendWrapper->setOption('test_option', 'test_value');
+        // Should not throw any exceptions
+        $this->backendWrapper->setOption('some_option', 'some_value');
+        $this->backendWrapper->setOption('another_option', 123);
 
-        // No exception means success (intentional no-op)
+        // No assertions needed - just verify it doesn't crash
         $this->assertTrue(true);
     }
 
     /**
-     * Test clear method
-     *
-     * @return void
+     * Test getOption() returns null for any option
      */
-    public function testClear(): void
+    public function testGetOptionReturnsNull(): void
     {
-        $this->adapter->expects($this->once())->method('clearAllIndices');
-        $this->cache->expects($this->once())->method('clear')->willReturn(true);
+        $result1 = $this->backendWrapper->getOption('any_option');
+        $result2 = $this->backendWrapper->getOption('another_option');
+
+        $this->assertNull($result1);
+        $this->assertNull($result2);
+    }
+
+    /**
+     * Test clear() clears all indices and cache
+     */
+    public function testClearClearsAllIndicesAndCache(): void
+    {
+        $this->adapterMock
+            ->expects($this->once())
+            ->method('clearAllIndices');
+
+        $this->cacheMock
+            ->expects($this->once())
+            ->method('clear')
+            ->willReturn(true);
 
         $result = $this->backendWrapper->clear();
 
@@ -240,14 +365,21 @@ class BackendWrapperTest extends TestCase
     }
 
     /**
-     * Test getOption returns null
-     *
-     * @return void
+     * Test clear() returns false on cache clear failure
      */
-    public function testGetOptionReturnsNull(): void
+    public function testClearReturnsFalseOnFailure(): void
     {
-        $result = $this->backendWrapper->getOption('any_option');
+        $this->adapterMock
+            ->expects($this->once())
+            ->method('clearAllIndices');
 
-        $this->assertNull($result);
+        $this->cacheMock
+            ->expects($this->once())
+            ->method('clear')
+            ->willReturn(false);
+
+        $result = $this->backendWrapper->clear();
+
+        $this->assertFalse($result);
     }
 }
