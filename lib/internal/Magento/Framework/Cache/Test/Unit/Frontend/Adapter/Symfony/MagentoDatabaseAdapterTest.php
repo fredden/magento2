@@ -113,8 +113,10 @@ class MagentoDatabaseAdapterTest extends TestCase
             'mtime' => time(),
             'expire' => time() + 3600
         ];
-        // phpcs:ignore Magento2.Functions.DiscouragedFunction -- Test data preparation
-        $serializedData = serialize($dataStructure);
+        
+        // Use Magento serializer to prepare test data
+        $realSerializer = new Serialize();
+        $serializedData = $realSerializer->serialize($dataStructure);
 
         // Mock backend load
         $backendMock = $this->getMockBuilder(Database::class)
@@ -188,8 +190,10 @@ class MagentoDatabaseAdapterTest extends TestCase
             'tags' => ['tag1', 'tag2'],
             'expire' => time() + 3600
         ];
-        // phpcs:ignore Magento2.Functions.DiscouragedFunction -- Test data preparation
-        $serializedData = serialize($oldFormatData);
+        
+        // Use Magento serializer to prepare test data
+        $realSerializer = new Serialize();
+        $serializedData = $realSerializer->serialize($oldFormatData);
 
         $backendMock = $this->getMockBuilder(Database::class)
             ->disableOriginalConstructor()
@@ -223,8 +227,10 @@ class MagentoDatabaseAdapterTest extends TestCase
     {
         $key = 'simple_key';
         $simpleValue = 'simple_string';
-        // phpcs:ignore Magento2.Functions.DiscouragedFunction -- Test data preparation
-        $serializedData = serialize($simpleValue);
+        
+        // Use Magento serializer to prepare test data
+        $realSerializer = new Serialize();
+        $serializedData = $realSerializer->serialize($simpleValue);
 
         $backendMock = $this->getMockBuilder(Database::class)
             ->disableOriginalConstructor()
