@@ -378,4 +378,3 @@ class GenericTagAdapterTest extends TestCase
         $this->assertCount(3, $result);
     }
 }
-

@@ -547,4 +547,3 @@ class SymfonyFileAdapterTest extends TestCase
         $this->assertEquals($data, $loadResult, 'Data with special char tags should be loadable');
     }
 }
-

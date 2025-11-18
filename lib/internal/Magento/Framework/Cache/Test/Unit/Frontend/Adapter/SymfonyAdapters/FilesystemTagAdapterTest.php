@@ -523,4 +523,3 @@ class FilesystemTagAdapterTest extends TestCase
         $this->assertEquals('id2', trim($lines[1]));
     }
 }
-

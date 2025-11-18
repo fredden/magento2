@@ -109,6 +109,7 @@ class SymfonyRedisAdapterTest extends TestCase
         // Check if Redis server is available
         try {
             self::$redis = new \Redis();
+            // phpcs:ignore Generic.PHP.NoSilencedErrors -- Suppress connection errors during test setup
             self::$redisAvailable = @self::$redis->connect(self::$redisServer, 6379);
 
             if (!self::$redisAvailable) {
@@ -389,6 +390,7 @@ class SymfonyRedisAdapterTest extends TestCase
         $this->assertArrayHasKey('redis_version', $info, 'Redis version should be available');
 
         // Log Redis version for debugging
+        // phpcs:ignore Magento2.Security.LanguageConstruct -- Test output
         echo "\nRedis Version: " . $info['redis_version'];
     }
 
@@ -409,6 +411,7 @@ class SymfonyRedisAdapterTest extends TestCase
         // Check Redis memory usage
         $info = self::$redis->info('memory');
         $this->assertArrayHasKey('used_memory_human', $info, 'Redis memory info should be available');
+        // phpcs:ignore Magento2.Security.LanguageConstruct -- Test output
         echo "\nRedis Memory Usage: " . $info['used_memory_human'];
     }
 
@@ -437,6 +440,7 @@ class SymfonyRedisAdapterTest extends TestCase
         $this->cache->clean(CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, ['batch_tag']);
         $duration = microtime(true) - $startTime;
 
+        // phpcs:ignore Magento2.Security.LanguageConstruct -- Test output
         echo "\nBatch delete duration: " . number_format($duration * 1000, 2) . "ms";
 
         // Verify all removed
@@ -647,12 +651,14 @@ class SymfonyRedisAdapterTest extends TestCase
         $this->cache->clean(CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, ['perf_tag']);
         $cleanDuration = microtime(true) - $cleanStart;
 
+        // phpcs:disable Magento2.Security.LanguageConstruct -- Test performance output
         echo "\n=== Redis Performance ===";
         echo "\nSave $operations items: " . number_format($saveDuration * 1000, 2) . "ms (" .
              number_format($operations / $saveDuration, 0) . " ops/sec)";
         echo "\nLoad $operations items: " . number_format($loadDuration * 1000, 2) . "ms (" .
              number_format($operations / $loadDuration, 0) . " ops/sec)";
         echo "\nClean $operations items: " . number_format($cleanDuration * 1000, 2) . "ms";
+        // phpcs:enable Magento2.Security.LanguageConstruct
 
         // Performance assertions (should be fast)
         $this->assertLessThan(1.0, $saveDuration, 'Saving 100 items should take less than 1 second');
@@ -660,4 +666,3 @@ class SymfonyRedisAdapterTest extends TestCase
         $this->assertLessThan(1.0, $cleanDuration, 'Cleaning 100 items should take less than 1 second');
     }
 }
-

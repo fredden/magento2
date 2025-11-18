@@ -799,4 +799,3 @@ class MagentoDatabaseAdapterTest extends TestCase
         $this->assertInstanceOf(Database::class, $backend);
     }
 }
-

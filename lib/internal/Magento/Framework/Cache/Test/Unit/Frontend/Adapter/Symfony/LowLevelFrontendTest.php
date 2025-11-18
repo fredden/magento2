@@ -463,4 +463,3 @@ class LowLevelFrontendTest extends TestCase
         $this->assertInstanceOf(LowLevelBackend::class, $backend);
     }
 }
-
