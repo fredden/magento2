@@ -11,7 +11,6 @@ use Magento\Framework\App\Cache\Frontend\Factory;
 use Magento\Framework\App\DeploymentConfig;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
 
 /**
  * Integration test for Symfony cache with Redis backend
@@ -37,11 +36,6 @@ class SymfonyRedisAdapterTest extends TestCase
      * @var Factory
      */
     private Factory $cacheFactory;
-
-    /**
-     * @var LoggerInterface
-     */
-    private LoggerInterface $logger;
 
     /**
      * @var bool
@@ -131,13 +125,7 @@ class SymfonyRedisAdapterTest extends TestCase
             $this->markTestSkipped('Redis is not available');
         }
 
-        $this->logger = Bootstrap::getObjectManager()->get(LoggerInterface::class);
         $this->cacheFactory = Bootstrap::getObjectManager()->get(Factory::class);
-
-        $this->logger->info('=== SymfonyRedisAdapterTest setUp ===', [
-            'test' => $this->name(),
-            'redis_server' => self::$redisServer
-        ]);
 
         // Create Symfony cache adapter with Redis backend
         $this->cache = $this->cacheFactory->create([
@@ -166,10 +154,6 @@ class SymfonyRedisAdapterTest extends TestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-
-        $this->logger->info('=== SymfonyRedisAdapterTest tearDown ===', [
-            'test' => $this->name()
-        ]);
 
         // Clean up test cache
         if ($this->cache) {
@@ -203,28 +187,18 @@ class SymfonyRedisAdapterTest extends TestCase
         $id = 'redis_test_' . uniqid();
         $data = 'redis_data_' . time();
 
-        $this->logger->info('Starting testRedisSaveAndLoad', ['id' => $id, 'data' => $data]);
-
         // Save
-        $this->logger->info('Calling cache->save()', ['id' => $id]);
         $saveResult = $this->cache->save($data, $id);
-        $this->logger->info('cache->save() result', ['success' => $saveResult]);
         $this->assertTrue($saveResult, 'Redis save should succeed');
 
         // Load
-        $this->logger->info('Calling cache->load()', ['id' => $id]);
         $loadResult = $this->cache->load($id);
-        $this->logger->info('cache->load() result', ['loaded_data' => $loadResult]);
         $this->assertEquals($data, $loadResult, 'Loaded data should match saved data');
 
         // Verify test() method works
-        $this->logger->info('Calling cache->test()', ['id' => $id]);
         $testResult = $this->cache->test($id);
-        $this->logger->info('cache->test() result', ['timestamp' => $testResult]);
         $this->assertIsInt($testResult, 'test() should return integer timestamp');
         $this->assertGreaterThan(0, $testResult, 'Timestamp should be positive');
-
-        $this->logger->info('Completed testRedisSaveAndLoad successfully');
     }
 
     /**
@@ -237,30 +211,18 @@ class SymfonyRedisAdapterTest extends TestCase
         $id3 = 'redis_tag3_' . uniqid();
         $tag = 'redis_test_tag';
 
-        $this->logger->info('Starting testRedisTagBasedCleaning', [
-            'id1' => $id1,
-            'id2' => $id2,
-            'id3' => $id3,
-            'tag' => $tag
-        ]);
-
         // Save items with same tag
-        $this->logger->info('Saving items with tags');
         $this->cache->save('data1', $id1, [$tag]);
         $this->cache->save('data2', $id2, [$tag]);
         $this->cache->save('data3', $id3, ['other_tag']); // Different tag
-        $this->logger->info('Saved 3 items: 2 with test tag, 1 with different tag');
 
         // Verify all exist
         $this->assertEquals('data1', $this->cache->load($id1));
         $this->assertEquals('data2', $this->cache->load($id2));
         $this->assertEquals('data3', $this->cache->load($id3));
-        $this->logger->info('Verified all 3 items exist');
 
         // Clean by tag (uses Redis tag indices)
-        $this->logger->info('Calling clean() with MATCHING_ANY_TAG mode', ['tag' => $tag]);
         $cleanResult = $this->cache->clean(CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, [$tag]);
-        $this->logger->info('Clean operation completed', ['result' => $cleanResult]);
         $this->assertTrue($cleanResult, 'Clean by tag should succeed');
 
         // Items with redis_test_tag should be removed
@@ -388,10 +350,6 @@ class SymfonyRedisAdapterTest extends TestCase
         $info = self::$redis->info('server');
         $this->assertIsArray($info, 'Redis info should be array');
         $this->assertArrayHasKey('redis_version', $info, 'Redis version should be available');
-
-        // Log Redis version for debugging
-        // phpcs:ignore Magento2.Security.LanguageConstruct -- Test output
-        echo "\nRedis Version: " . $info['redis_version'];
     }
 
     /**
@@ -411,8 +369,6 @@ class SymfonyRedisAdapterTest extends TestCase
         // Check Redis memory usage
         $info = self::$redis->info('memory');
         $this->assertArrayHasKey('used_memory_human', $info, 'Redis memory info should be available');
-        // phpcs:ignore Magento2.Security.LanguageConstruct -- Test output
-        echo "\nRedis Memory Usage: " . $info['used_memory_human'];
     }
 
     /**
@@ -436,12 +392,7 @@ class SymfonyRedisAdapterTest extends TestCase
         }
 
         // Clean by tag (should use Redis pipeline for efficiency)
-        $startTime = microtime(true);
         $this->cache->clean(CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, ['batch_tag']);
-        $duration = microtime(true) - $startTime;
-
-        // phpcs:ignore Magento2.Security.LanguageConstruct -- Test output
-        echo "\nBatch delete duration: " . number_format($duration * 1000, 2) . "ms";
 
         // Verify all removed
         foreach ($ids as $id) {
@@ -650,15 +601,6 @@ class SymfonyRedisAdapterTest extends TestCase
         $cleanStart = microtime(true);
         $this->cache->clean(CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, ['perf_tag']);
         $cleanDuration = microtime(true) - $cleanStart;
-
-        // phpcs:disable Magento2.Security.LanguageConstruct -- Test performance output
-        echo "\n=== Redis Performance ===";
-        echo "\nSave $operations items: " . number_format($saveDuration * 1000, 2) . "ms (" .
-             number_format($operations / $saveDuration, 0) . " ops/sec)";
-        echo "\nLoad $operations items: " . number_format($loadDuration * 1000, 2) . "ms (" .
-             number_format($operations / $loadDuration, 0) . " ops/sec)";
-        echo "\nClean $operations items: " . number_format($cleanDuration * 1000, 2) . "ms";
-        // phpcs:enable Magento2.Security.LanguageConstruct
 
         // Performance assertions (should be fast)
         $this->assertLessThan(1.0, $saveDuration, 'Saving 100 items should take less than 1 second');
