@@ -31,6 +31,7 @@ use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\Filesystem;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Profiler;
+use Psr\Log\LoggerInterface;
 use UnexpectedValueException;
 
 /**
@@ -127,12 +128,18 @@ class Factory
     private ?string $cachedIdPrefix = null;
 
     /**
+     * @var LoggerInterface|null
+     */
+    private ?LoggerInterface $logger = null;
+
+    /**
      * @param ObjectManagerInterface $objectManager
      * @param Filesystem $filesystem
      * @param ResourceConnection $resource
      * @param SymfonyAdapterProvider $adapterProvider
      * @param array $enforcedOptions
      * @param array $decorators
+     * @param LoggerInterface|null $logger
      */
     public function __construct(
         ObjectManagerInterface $objectManager,
@@ -140,7 +147,8 @@ class Factory
         ResourceConnection $resource,
         SymfonyAdapterProvider $adapterProvider,
         array $enforcedOptions = [],
-        array $decorators = []
+        array $decorators = [],
+        ?LoggerInterface $logger = null
     ) {
         $this->_objectManager = $objectManager;
         $this->_filesystem = $filesystem;
@@ -148,6 +156,7 @@ class Factory
         $this->adapterProvider = $adapterProvider;
         $this->_enforcedOptions = $enforcedOptions;
         $this->_decorators = $decorators;
+        $this->logger = $logger;
     }
 
     /**
@@ -193,6 +202,26 @@ class Factory
             'backend_type' => $backend['type'],
         ];
         Profiler::start('cache_frontend_create', $profilerTags);
+
+        // Log cache configuration
+        if ($this->logger) {
+            $this->logger->info('CacheEnvConfig', [
+                'backend_type' => $backend['type'],
+                'backend_options' => $backend['options'] ?? [],
+                'namespace' => $options['frontend_options']['cache_id_prefix'] ?? '',
+                'default_lifetime' => $frontend['options']['lifetime'] ?? self::DEFAULT_LIFETIME
+            ]);
+        }
+        
+        // Also log to error_log for integration tests
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction
+        error_log(sprintf(
+            "=== Factory::create ===\nBackend Type: %s\nBackend Options: %s\nNamespace: %s\nDefault Lifetime: %s\n",
+            $backend['type'],
+            json_encode($backend['options'] ?? [], JSON_PRETTY_PRINT),
+            $options['frontend_options']['cache_id_prefix'] ?? '',
+            $frontend['options']['lifetime'] ?? self::DEFAULT_LIFETIME
+        ));
 
         // Use Symfony cache - fully backward compatible, no Zend cache needed
         $result = $this->createSymfonyCache($options);
