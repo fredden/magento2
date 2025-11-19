@@ -17,7 +17,6 @@ use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\RedisTagAdapter;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Serialize\Serializer\Serialize;
 use Psr\Cache\CacheItemPoolInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Adapter\ApcuAdapter;
 use Symfony\Component\Cache\Adapter\ChainAdapter;
@@ -62,11 +61,6 @@ class SymfonyAdapterProvider
     private Serialize $serializer;
 
     /**
-     * @var LoggerInterface|null
-     */
-    private ?LoggerInterface $logger = null;
-
-    /**
      * Connection pool cache for reusing connections
      *
      * @var array<string, mixed>
@@ -91,7 +85,6 @@ class SymfonyAdapterProvider
 
         // File backends
         'file' => 'filesystem',
-        'cm_cache_backend_file' => 'filesystem',
 
         // Database backend
         'database' => 'database',
@@ -109,18 +102,15 @@ class SymfonyAdapterProvider
      * @param Filesystem $filesystem
      * @param ResourceConnection $resource
      * @param Serialize $serializer PHP native serializer
-     * @param LoggerInterface|null $logger
      */
     public function __construct(
         Filesystem $filesystem,
         ResourceConnection $resource,
-        Serialize $serializer,
-        ?LoggerInterface $logger = null
+        Serialize $serializer
     ) {
         $this->filesystem = $filesystem;
         $this->resource = $resource;
         $this->serializer = $serializer;
-        $this->logger = $logger;
     }
 
     /**
@@ -144,16 +134,6 @@ class SymfonyAdapterProvider
         string $namespace = '',
         ?int $defaultLifetime = null
     ): CacheItemPoolInterface {
-        // Log backend options for debugging
-        if ($this->logger) {
-            $this->logger->info('CacheEnvConfig', [
-                'backend_type' => $backendType,
-                'backend_options' => $backendOptions,
-                'namespace' => $namespace,
-                'default_lifetime' => $defaultLifetime
-            ]);
-        }
-
         // Optimize: Use pre-built map instead of switch
         $backendTypeLower = strtolower($backendType);
         $resolvedType = $this->adapterTypeMap[$backendTypeLower] ?? 'filesystem';
@@ -498,7 +478,7 @@ class SymfonyAdapterProvider
         $slowOptions = $options['slow_backend_options'] ?? [];
         $slowType = strtolower($options['slow_backend'] ?? 'file');
 
-        if ($slowType === 'redis' || $slowType === 'cm_cache_backend_redis') {
+        if ($slowType === 'redis') {
             $adapters[] = $this->createRedisAdapter($slowOptions, $namespace . '_slow', $defaultLifetime);
         } else {
             $adapters[] = $this->createFilesystemAdapter($slowOptions, $namespace . '_slow', $defaultLifetime);
