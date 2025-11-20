@@ -473,7 +473,7 @@ class Cli extends Console\Application
      * @return void
      */
     private function logCommandLoadingError(string $errorMessage, \Exception $exception): void
-    {   
+    {
         // Try to log to Magento's log system
         $loggedToMagento = false;
         if ($this->logger) {
