@@ -166,24 +166,32 @@ class SymfonyAdapterProvider
      * @param CacheItemPoolInterface $cachePool
      * @param string $namespace
      * @param bool $isPageCache
+     * @param array $backendOptions
      * @return TagAdapterInterface
      */
     public function createTagAdapter(
         string $backendType,
         CacheItemPoolInterface $cachePool,
         string $namespace = '',
-        bool $isPageCache = false
+        bool $isPageCache = false,
+        array $backendOptions = []
     ): TagAdapterInterface {
         // Resolve backend type
         $backendTypeLower = strtolower($backendType);
         $resolvedType = $this->adapterTypeMap[$backendTypeLower] ?? 'filesystem';
+
+        // Check if Lua scripts are enabled (separate flags for different operations)
+        $useLua = !empty($backendOptions['use_lua']) && $backendOptions['use_lua'] === '1';
+        $useLuaOnGc = !empty($backendOptions['use_lua_on_gc']) && $backendOptions['use_lua_on_gc'] === '1';
 
         // Create appropriate tag adapter with fallback to GenericTagAdapter
         try {
             return match ($resolvedType) {
                 'redis' => new RedisTagAdapter(
                     $cachePool,
-                    $namespace
+                    $namespace,
+                    $useLua,
+                    $useLuaOnGc
                 ),
                 'filesystem' => new FilesystemTagAdapter(
                     $cachePool,
@@ -270,6 +278,12 @@ class SymfonyAdapterProvider
             $this->connectionPool[$connectionKey] = RedisAdapter::createConnection($dsn);
         }
 
+        // Set client name every time (even for pooled connections)
+        // This ensures persistent connections get named correctly
+        if ($persistentId) {
+            $this->setRedisClientName($this->connectionPool[$connectionKey], $persistentId);
+        }
+
         // Create marshaller with igbinary support if configured
         $marshaller = $this->createMarshaller($serializer);
 
@@ -279,6 +293,34 @@ class SymfonyAdapterProvider
             $defaultLifetime ?? 0,
             $marshaller
         );
+    }
+
+    /**
+     * Set Redis client name for better monitoring and debugging
+     *
+     * @param mixed $connection Redis connection from RedisAdapter::createConnection()
+     * @param string $clientName Name to set for the client
+     * @return void
+     */
+    private function setRedisClientName($connection, string $clientName): void
+    {
+        try {
+            // Set Redis client name for better monitoring
+            // Symfony's RedisAdapter::createConnection() can return \Redis, \RedisCluster, or \Relay
+            if ($connection instanceof \Redis) {
+                $connection->client('SETNAME', $clientName);
+                // phpcs:disable Magento2.CodeAnalysis.EmptyBlock
+            } elseif ($connection instanceof \RedisCluster) {
+                // Intentional no-op: RedisCluster doesn't support CLIENT SETNAME
+                // phpcs:enable Magento2.CodeAnalysis.EmptyBlock
+            } elseif (method_exists($connection, 'client')) {
+                // Relay or other compatible implementations
+                $connection->client('SETNAME', $clientName);
+            }
+            // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
+        } catch (\Exception $e) {
+            // Intentional no-op: Client name is for monitoring only, failures are non-critical
+        }
     }
 
     /**

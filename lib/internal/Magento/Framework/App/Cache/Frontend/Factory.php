@@ -583,7 +583,8 @@ class Factory
                 $originalBackendType,
                 $cachePool,
                 $idPrefix,
-                $isPageCache
+                $isPageCache,
+                $backendOptions
             );
 
             // Create Symfony adapter with fork detection support and tag adapter

@@ -54,14 +54,42 @@ class RedisTagAdapter implements TagAdapterInterface
     private CacheItemPoolInterface $cachePool;
 
     /**
+     * @var RedisLuaHelper|null
+     */
+    private ?RedisLuaHelper $luaHelper = null;
+
+    /**
+     * @var bool
+     */
+    private bool $useLua;
+
+    /**
+     * @var bool
+     */
+    private bool $useLuaOnGc;
+
+    /**
      * @param CacheItemPoolInterface $cachePool
      * @param string $namespace Cache namespace/prefix
+     * @param bool $useLua Enable Lua scripts for cache operations
+     * @param bool $useLuaOnGc Enable Lua scripts for garbage collection
      */
-    public function __construct(CacheItemPoolInterface $cachePool, string $namespace = '')
-    {
+    public function __construct(
+        CacheItemPoolInterface $cachePool,
+        string $namespace = '',
+        bool $useLua = false,
+        bool $useLuaOnGc = false
+    ) {
         $this->cachePool = $cachePool;
         $this->namespace = $namespace;
+        $this->useLua = $useLua;
+        $this->useLuaOnGc = $useLuaOnGc;
         $this->redis = $this->extractRedisClient($cachePool);
+        
+        // Initialize Lua helper if either flag is enabled
+        if ($this->useLua || $this->useLuaOnGc) {
+            $this->luaHelper = new RedisLuaHelper($this->redis, true);
+        }
     }
 
     /**
@@ -333,5 +361,68 @@ class RedisTagAdapter implements TagAdapterInterface
         
         // Execute all operations in one go
         $pipeline->exec();
+    }
+
+    /**
+     * Run garbage collection to clean expired items
+     *
+     * Uses Lua scripts if use_lua_on_gc is enabled for atomic server-side execution,
+     * otherwise returns 0 (no garbage collection)
+     *
+     * @param int $batchSize Number of keys to process per iteration
+     * @return int Number of items cleaned
+     */
+    public function garbageCollect(int $batchSize = 1000): int
+    {
+        // Garbage collection specifically checks use_lua_on_gc flag
+        if (!$this->useLuaOnGc || !$this->luaHelper) {
+            return 0;
+        }
+
+        [$deleted, $iterations] = $this->luaHelper->garbageCollect(
+            $this->namespace . '*',
+            self::TAG_INDEX_PREFIX . $this->namespace,
+            $batchSize
+        );
+
+        return $deleted;
+    }
+
+    /**
+     * Check if Lua scripts are enabled and available
+     *
+     * @return bool
+     */
+    public function isLuaEnabled(): bool
+    {
+        return ($this->useLua || $this->useLuaOnGc)
+            && $this->luaHelper !== null
+            && $this->luaHelper->isEnabled();
+    }
+
+    /**
+     * Clean expired items for specific tag using Lua
+     *
+     * Only deletes items that have expired (TTL = -2)
+     * More efficient than fetching all IDs and checking client-side
+     * Uses use_lua flag (general cache operations)
+     *
+     * @param string $tag Tag to clean
+     * @return int Number of items deleted
+     */
+    public function cleanExpiredByTag(string $tag): int
+    {
+        // Tag operations check use_lua flag
+        if (!$this->useLua || !$this->luaHelper) {
+            return 0;
+        }
+
+        $tagKey = $this->getTagKey($tag);
+        
+        return $this->luaHelper->cleanByTagConditional(
+            $tagKey,
+            $this->namespace,
+            'expired'
+        );
     }
 }
