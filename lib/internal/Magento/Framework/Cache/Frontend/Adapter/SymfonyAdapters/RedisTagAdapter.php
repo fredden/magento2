@@ -309,6 +309,14 @@ class RedisTagAdapter implements TagAdapterInterface
      */
     public function clearAllIndices(): void
     {
+        // Use Lua script if enabled for atomic, efficient clearing
+        if ($this->useLua && $this->luaHelper) {
+            $this->luaHelper->clearAllIndices($this->namespace);
+            // Lua script handles everything atomically
+            return;
+        }
+
+        // Fallback: PHP-based clearing (original implementation)
         // Get all tag keys
         $pattern = self::TAG_INDEX_PREFIX . $this->namespace . '*';
         $tagKeys = $this->redis->keys($pattern);

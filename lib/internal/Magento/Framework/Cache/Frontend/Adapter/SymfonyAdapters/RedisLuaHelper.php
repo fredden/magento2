@@ -179,6 +179,63 @@ return {next_cursor, deleted}
 LUA;
 
     /**
+     * Lua script for clearing all cache indices atomically
+     *
+     * Efficiently removes all tag indices, reverse indices, and all_ids set
+     * Uses SCAN to handle large datasets without blocking Redis
+     */
+    private const SCRIPT_CLEAR_ALL_INDICES = <<<'LUA'
+-- KEYS[1]: tag pattern (e.g., "cache:tags:69d_*")
+-- KEYS[2]: reverse index pattern (e.g., "cache:id_tags:69d_*")
+-- KEYS[3]: all_ids set key (e.g., "cache:all_ids")
+-- ARGV[1]: batch size for SCAN operations
+
+local tag_pattern = KEYS[1]
+local reverse_pattern = KEYS[2]
+local all_ids_key = KEYS[3]
+local batch_size = tonumber(ARGV[1]) or 1000
+
+local total_deleted = 0
+
+-- Helper function to delete keys matching pattern using SCAN
+local function delete_by_pattern(pattern)
+    local cursor = "0"
+    local deleted = 0
+    local iterations = 0
+    local max_iterations = 100  -- Safety limit
+    
+    repeat
+        local result = redis.call('SCAN', cursor, 'MATCH', pattern, 'COUNT', batch_size)
+        cursor = result[1]
+        local keys = result[2]
+        
+        if #keys > 0 then
+            redis.call('DEL', unpack(keys))
+            deleted = deleted + #keys
+        end
+        
+        iterations = iterations + 1
+    until cursor == "0" or iterations >= max_iterations
+    
+    return deleted
+end
+
+-- Delete all tag indices (cache:tags:*)
+total_deleted = total_deleted + delete_by_pattern(tag_pattern)
+
+-- Delete all reverse indices (cache:id_tags:*)
+total_deleted = total_deleted + delete_by_pattern(reverse_pattern)
+
+-- Delete all_ids set
+if redis.call('EXISTS', all_ids_key) == 1 then
+    redis.call('DEL', all_ids_key)
+    total_deleted = total_deleted + 1
+end
+
+return total_deleted
+LUA;
+
+    /**
      * Constructor
      *
      * Note: Uses untyped parameter to avoid DI compilation issues with PHP extension classes
@@ -347,6 +404,53 @@ LUA;
         } while ($cursor !== '0');
         
         return [$totalDeleted, $iterations];
+    }
+
+    /**
+     * Clear all cache indices using Lua script
+     *
+     * Atomically removes all tag indices, reverse indices, and all_ids set
+     * More efficient than PHP-based iteration for large datasets
+     *
+     * @param string $namespace Cache namespace/prefix (e.g., "69d_")
+     * @param int $batchSize Batch size for SCAN operations
+     * @return int Total number of keys deleted
+     */
+    public function clearAllIndices(string $namespace, int $batchSize = 1000): int
+    {
+        if (!$this->isEnabled()) {
+            return 0;
+        }
+
+        $sha = $this->loadScript(self::SCRIPT_CLEAR_ALL_INDICES);
+        
+        // Build patterns
+        $tagPattern = 'cache:tags:' . $namespace . '*';
+        $reversePattern = 'cache:id_tags:' . $namespace . '*';
+        $allIdsKey = 'cache:all_ids';
+        
+        try {
+            $result = $this->redis->evalSha(
+                $sha,
+                [$tagPattern, $reversePattern, $allIdsKey, $batchSize],
+                3  // Number of KEYS
+            );
+            
+            return (int)$result;
+        } catch (\RedisException $e) {
+            // Fallback: run script directly
+            try {
+                $result = $this->redis->eval(
+                    self::SCRIPT_CLEAR_ALL_INDICES,
+                    [$tagPattern, $reversePattern, $allIdsKey, $batchSize],
+                    3
+                );
+                return (int)$result;
+            } catch (\RedisException $e) {
+                // Script execution failed
+                return 0;
+            }
+        }
     }
 
     /**

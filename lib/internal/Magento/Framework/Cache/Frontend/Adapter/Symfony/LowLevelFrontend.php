@@ -132,6 +132,21 @@ class LowLevelFrontend
     }
 
     /**
+     * Clean cache entries
+     *
+     * Delegates to Symfony frontend adapter to ensure proper Lua integration
+     *
+     * @param string $mode Cleaning mode
+     * @param array $tags Tags array
+     * @return bool
+     */
+    public function clean($mode = 'all', array $tags = []): bool
+    {
+        // Delegate to Symfony frontend for proper Lua script integration
+        return $this->symfony->clean($mode, $tags);
+    }
+
+    /**
      * Delegate all other method calls to the cache
      *
      * @param string $method
