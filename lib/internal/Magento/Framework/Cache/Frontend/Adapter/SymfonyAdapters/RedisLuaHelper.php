@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters;
 
+use InvalidArgumentException;
+
 /**
  * Redis Lua script helper for advanced atomic operations
  *
@@ -22,12 +24,14 @@ namespace Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters;
 class RedisLuaHelper
 {
     /**
-     * @var \Redis
+     * Redis connection
+     *
+     * @var mixed Redis connection object
      */
-    private \Redis $redis;
+    private $redis;
 
     /**
-     * @var array Script SHA1 cache
+     * @var array
      */
     private array $scriptShas = [];
 
@@ -175,11 +179,21 @@ return {next_cursor, deleted}
 LUA;
 
     /**
-     * @param \Redis $redis
-     * @param bool $enabled
+     * Constructor
+     *
+     * Note: Uses untyped parameter to avoid DI compilation issues with PHP extension classes
+     *
+     * @param mixed $redis Redis connection from Symfony RedisAdapter
+     * @param bool $enabled Whether Lua scripts are enabled
      */
-    public function __construct(\Redis $redis, bool $enabled = true)
+    public function __construct($redis, bool $enabled = true)
     {
+        // Runtime type check using get_class to avoid referencing Redis class directly
+        // This prevents DI compilation errors with PHP extension classes
+        if (!is_object($redis) || get_class($redis) !== 'Redis') {
+            throw new InvalidArgumentException('Redis connection must be an instance of Redis');
+        }
+
         $this->redis = $redis;
         $this->enabled = $enabled;
     }
