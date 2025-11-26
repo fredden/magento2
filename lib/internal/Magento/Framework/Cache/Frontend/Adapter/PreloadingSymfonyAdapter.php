@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Frontend\Adapter;
 
-use Magento\Framework\Cache\Backend\ExtendedBackendInterface;
 use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\FrontendInterface;
 
@@ -166,7 +165,7 @@ class PreloadingSymfonyAdapter implements FrontendInterface
     /**
      * @inheritDoc
      */
-    public function getBackend(): ExtendedBackendInterface
+    public function getBackend()
     {
         return $this->adapter->getBackend();
     }
