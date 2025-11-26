@@ -379,13 +379,13 @@ class RedisTagAdapter implements TagAdapterInterface
             return 0;
         }
 
-        [$deleted, $iterations] = $this->luaHelper->garbageCollect(
+        $result = $this->luaHelper->garbageCollect(
             $this->namespace . '*',
             self::TAG_INDEX_PREFIX . $this->namespace,
             $batchSize
         );
 
-        return $deleted;
+        return $result[0]; // Return deleted count (first element)
     }
 
     /**

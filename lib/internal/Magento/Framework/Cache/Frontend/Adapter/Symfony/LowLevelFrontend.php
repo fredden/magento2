@@ -14,8 +14,8 @@ use Psr\Cache\CacheItemPoolInterface;
 /**
  * Low-level frontend wrapper for Symfony cache adapter
  *
- * Provides Zend_Cache_Core compatible interface for backward compatibility
- * Used by legacy code that needs direct access to cache internals
+ * Provides backward-compatible interface for legacy code
+ * Used by code that needs direct access to cache internals
  */
 class LowLevelFrontend
 {

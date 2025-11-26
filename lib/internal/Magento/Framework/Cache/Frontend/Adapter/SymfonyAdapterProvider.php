@@ -228,11 +228,27 @@ class SymfonyAdapterProvider
      * - Optimized DSN building
      * - Persistent connections support
      * - igbinary serializer support (70% faster, 58% smaller)
+     * - Connection tuning (timeout, read_timeout, retry_interval, connect_retries)
      *
-     * @param array $options
-     * @param string $namespace
-     * @param int|null $defaultLifetime
+     * Supported options:
+     * - server/host: Redis server hostname (default: 127.0.0.1)
+     * - port: Redis port (default: 6379)
+     * - password: Redis password (optional)
+     * - database: Redis database number (default: 0)
+     * - persistent: Enable persistent connections (default: true)
+     * - persistent_id: Persistent connection identifier (optional)
+     * - serializer: Serializer to use (igbinary, php, default: php)
+     * - timeout: Connection timeout in seconds (optional, e.g. 2.5)
+     * - read_timeout: Read timeout in seconds (optional, e.g. 2.0)
+     * - retry_interval: Retry interval in milliseconds (optional, e.g. 100)
+     * - connect_retries: Number of connection retries (optional, e.g. 3)
+     *
+     * @param array $options Connection and configuration options
+     * @param string $namespace Cache key namespace/prefix
+     * @param int|null $defaultLifetime Default cache lifetime in seconds
      * @return AdapterInterface
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     private function createRedisAdapter(
         array $options,
@@ -250,12 +266,18 @@ class SymfonyAdapterProvider
         $persistent = $options['persistent'] ?? true;  // Enable by default
         $persistentId = $options['persistent_id'] ?? null;
 
+        // Connection tuning parameters
+        $timeout = $options['timeout'] ?? null;
+        $readTimeout = $options['read_timeout'] ?? null;
+        $retryInterval = $options['retry_interval'] ?? null;
+        $connectRetries = $options['connect_retries'] ?? null;
+
         // Create connection key for pooling
         $connectionKey = sprintf('redis:%s:%d:%d', $host, $port, $database);
 
         // Check connection pool
         if (!isset($this->connectionPool[$connectionKey])) {
-            // Build optimized DSN with persistence support
+            // Build optimized DSN with all connection parameters
             $dsnParams = [];
 
             // Add persistent connection parameters
@@ -264,6 +286,24 @@ class SymfonyAdapterProvider
                 if ($persistentId) {
                     $dsnParams[] = 'persistent_id=' . urlencode($persistentId);
                 }
+            }
+
+            // Add connection timeout parameters
+            if ($timeout !== null) {
+                $dsnParams[] = 'timeout=' . $timeout;
+            }
+
+            if ($readTimeout !== null) {
+                $dsnParams[] = 'read_timeout=' . $readTimeout;
+            }
+
+            // Add retry parameters
+            if ($retryInterval !== null) {
+                $dsnParams[] = 'retry_interval=' . $retryInterval;
+            }
+
+            if ($connectRetries !== null) {
+                $dsnParams[] = 'connect_retries=' . $connectRetries;
             }
 
             // Build base DSN

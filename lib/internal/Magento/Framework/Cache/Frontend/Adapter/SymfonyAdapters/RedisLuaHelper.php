@@ -7,9 +7,6 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters;
 
-use Redis;
-use RedisException;
-
 /**
  * Redis Lua script helper for advanced atomic operations
  *
@@ -25,9 +22,9 @@ use RedisException;
 class RedisLuaHelper
 {
     /**
-     * @var Redis
+     * @var \Redis
      */
-    private Redis $redis;
+    private \Redis $redis;
 
     /**
      * @var array Script SHA1 cache
@@ -178,10 +175,10 @@ return {next_cursor, deleted}
 LUA;
 
     /**
-     * @param Redis $redis
+     * @param \Redis $redis
      * @param bool $enabled
      */
-    public function __construct(Redis $redis, bool $enabled = true)
+    public function __construct(\Redis $redis, bool $enabled = true)
     {
         $this->redis = $redis;
         $this->enabled = $enabled;
@@ -202,7 +199,7 @@ LUA;
             // Test if Lua is supported
             $this->redis->eval('return 1', [], 0);
             return true;
-        } catch (RedisException $e) {
+        } catch (\RedisException $e) {
             return false;
         }
     }
@@ -234,7 +231,7 @@ LUA;
             );
             
             return (int)$result;
-        } catch (RedisException $e) {
+        } catch (\RedisException $e) {
             // Fallback: script not loaded, try eval
             return (int)$this->redis->eval(
                 self::SCRIPT_CLEAN_BY_TAG_CONDITIONAL,
@@ -279,7 +276,7 @@ LUA;
             );
             
             return (bool)$result;
-        } catch (RedisException $e) {
+        } catch (\RedisException $e) {
             // Fallback: script not loaded
             return (bool)$this->redis->eval(
                 self::SCRIPT_ATOMIC_SAVE_WITH_TAGS,
@@ -329,7 +326,7 @@ LUA;
                 if ($iterations >= 100) {
                     break;
                 }
-            } catch (RedisException $e) {
+            } catch (\RedisException $e) {
                 // Fallback or break on error
                 break;
             }
@@ -356,7 +353,7 @@ LUA;
             $sha = $this->redis->script('load', $script);
             $this->scriptShas[$hash] = $sha;
             return $sha;
-        } catch (RedisException $e) {
+        } catch (\RedisException $e) {
             throw new \RuntimeException('Failed to load Lua script: ' . $e->getMessage(), 0, $e);
         }
     }

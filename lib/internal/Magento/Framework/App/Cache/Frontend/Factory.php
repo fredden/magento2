@@ -21,10 +21,11 @@ use LogicException;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Cache\Backend\Database;
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapterProvider;
 use Magento\Framework\Cache\Backend\Eaccelerator;
 use Magento\Framework\Cache\Backend\RemoteSynchronizedCache;
+use Magento\Framework\Cache\Frontend\Adapter\PreloadingSymfonyAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapterProvider;
 use Magento\Framework\Cache\Frontend\Decorator\Compression as CompressionDecorator;
 use Magento\Framework\Cache\FrontendInterface;
 use Magento\Framework\Filesystem;
@@ -521,6 +522,7 @@ class Factory
      * @param array $options
      * @return FrontendInterface
      * @throws \Exception
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     private function createSymfonyCache(array $options): FrontendInterface
     {
@@ -605,6 +607,17 @@ class Factory
 
             // Apply other decorators
             $result = $this->_applyDecorators($result);
+
+            // Apply preloading wrapper if preload_keys configured
+            if (!empty($backendOptions['preload_keys']) && is_array($backendOptions['preload_keys'])) {
+                $result = $this->_objectManager->create(
+                    PreloadingSymfonyAdapter::class,
+                    [
+                        'adapter' => $result,
+                        'preloadKeys' => $backendOptions['preload_keys'],
+                    ]
+                );
+            }
 
         } catch (\Exception $e) {
             Profiler::stop('cache_symfony_create');
