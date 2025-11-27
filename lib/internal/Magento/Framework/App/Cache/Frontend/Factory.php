@@ -194,8 +194,17 @@ class Factory
         ];
         Profiler::start('cache_frontend_create', $profilerTags);
 
-        // Use Symfony cache - fully backward compatible, no Zend cache needed
-        $result = $this->createSymfonyCache($options);
+        // Check for special backend types
+        $backendType = $options['backend'] ?? $this->_defaultBackend;
+        
+        if ($this->isSymfonyL2Cache($backendType)) {
+            // SymfonyL2Cache backend for L2 cache with Symfony
+            $result = $this->createSymfonyL2Cache($options);
+        } else {
+            // Use Symfony cache - fully backward compatible, no Zend cache needed
+            $result = $this->createSymfonyCache($options);
+        }
+        
         $result = $this->_applyDecorators($result);
 
         // stop profiling
@@ -683,6 +692,105 @@ class Factory
                 'compressionLevel' => $compressionLevel,
             ]
         );
+    }
+
+    /**
+     * Check if backend is SymfonyL2Cache
+     *
+     * @param string $backendType
+     * @return bool
+     */
+    private function isSymfonyL2Cache(string $backendType): bool
+    {
+        $backendLower = strtolower($backendType);
+        
+        // Check for symfony_l2 or l2_symfony or SymfonyL2Cache
+        return in_array($backendLower, [
+            'symfony_l2',
+            'l2_symfony',
+            'symfony_l2_cache',
+            'magento\framework\cache\backend\symfonyl2cache',
+        ], true);
+    }
+
+    /**
+     * Create SymfonyL2Cache (Clean L2 cache for Symfony)
+     *
+     * @param array $options
+     * @return FrontendInterface
+     * @throws \Exception
+     */
+    private function createSymfonyL2Cache(array $options): FrontendInterface
+    {
+        $backendOptions = $options['backend_options'] ?? [];
+        
+        // Get remote backend configuration (L2 - persistent, shared)
+        $remoteBackend = $backendOptions['remote_backend'] ?? 'redis';
+        $remoteBackendOptions = $backendOptions['remote_backend_options'] ?? [];
+        
+        // Get local backend configuration (L1 - fast, local)
+        $localBackend = $backendOptions['local_backend'] ?? 'file';
+        $localBackendOptions = $backendOptions['local_backend_options'] ?? [];
+        
+        // Get common options
+        $frontend = $this->_getFrontendOptions($options);
+        $defaultLifetime = $frontend['lifetime'] ?? self::DEFAULT_LIFETIME;
+        
+        Profiler::start('cache_symfony_l2_create', [
+            'group' => 'cache',
+            'operation' => 'cache:create_symfony_l2',
+            'remote_backend' => $remoteBackend,
+            'local_backend' => $localBackend,
+        ]);
+
+        try {
+            // Create remote backend (L2 - Symfony)
+            $remoteOptions = array_merge($options, [
+                'backend' => $remoteBackend,
+                'backend_options' => $remoteBackendOptions,
+            ]);
+            $remoteFrontend = $this->createSymfonyCache($remoteOptions);
+            
+            // Create local backend (L1 - Symfony)
+            $localOptions = array_merge($options, [
+                'backend' => $localBackend,
+                'backend_options' => $localBackendOptions,
+            ]);
+            $localFrontend = $this->createSymfonyCache($localOptions);
+            
+            // Create SymfonyL2Cache backend
+            $l2Backend = $this->_objectManager->create(
+                \Magento\Framework\Cache\Backend\SymfonyL2Cache::class,
+                [
+                    'remote' => $remoteFrontend,
+                    'local' => $localFrontend,
+                    'options' => [
+                        'cleanup_percentage' => $backendOptions['cleanup_percentage'] ?? 90,
+                        'use_stale_cache' => $backendOptions['use_stale_cache'] ?? false,
+                    ],
+                ]
+            );
+
+            // Wrap in frontend adapter
+            $result = $this->_objectManager->create(
+                \Magento\Framework\Cache\Frontend\Adapter\RemoteSynchronizedSymfonyAdapter::class,
+                [
+                    'backend' => $l2Backend,
+                    'defaultLifetime' => $defaultLifetime,
+                ]
+            );
+
+            Profiler::stop('cache_symfony_l2_create');
+            return $result;
+
+        } catch (\Exception $e) {
+            Profiler::stop('cache_symfony_l2_create');
+            throw new \RuntimeException(
+                'Failed to create Symfony L2 cache: ' . $e->getMessage(),
+                $e->getCode(),
+                $e
+            );
+        }
     }
 
     /**

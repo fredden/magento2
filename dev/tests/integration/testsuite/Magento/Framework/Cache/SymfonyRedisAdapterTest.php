@@ -943,4 +943,239 @@ class SymfonyRedisAdapterTest extends TestCase
         // After clean, preloaded key should not exist (was removed)
         $this->assertFalse($cache->load($preloadKey1), 'Preloaded key should be removed after clean all');
     }
+
+    /**
+     * Test L2 cache (SymfonyL2Cache) with Symfony Redis backend
+     *
+     * @magentoConfigFixture current_store system/cache/remote_backend redis
+     * @magentoConfigFixture current_store system/cache/local_backend file
+     */
+    public function testL2CacheWithSymfonyRedis()
+    {
+        // Create L2 cache with Symfony Redis as remote backend
+        $cache = $this->cacheFactory->create([
+            'frontend' => [
+                'backend' => 'symfony_l2',
+                'backend_options' => [
+                    'remote_backend' => 'redis',
+                    'remote_backend_options' => [
+                        'server' => self::$redisServer,
+                        'port' => '6379',
+                        'database' => '5',
+                        'serializer' => 'igbinary',
+                        'compression_lib' => 'gzip',
+                        'preload_keys' => [
+                            'l2_preload_1:hash',
+                            'l2_preload_2:hash',
+                        ],
+                    ],
+                    'local_backend' => 'file',
+                    'local_backend_options' => [
+                        'cache_dir' => '/dev/shm/magento_test_l2',
+                    ],
+                    'use_stale_cache' => false,
+                    'cleanup_percentage' => 90,
+                ]
+            ]
+        ]);
+
+        $this->assertInstanceOf(
+            \Magento\Framework\Cache\FrontendInterface::class,
+            $cache,
+            'L2 + Symfony cache should implement FrontendInterface'
+        );
+
+        // Test 1: Save to L2 cache
+        $testKey = 'l2_test_' . uniqid();
+        $testData = 'L2 cache data with Symfony backend';
+        $this->assertTrue(
+            $cache->save($testData, $testKey, ['l2_tag']),
+            'Should save data to L2 cache'
+        );
+
+        // Test 2: Load from L2 cache (should hit local cache after first load)
+        $this->assertEquals(
+            $testData,
+            $cache->load($testKey),
+            'Should load data from L2 cache'
+        );
+
+        // Test 3: Verify :hash suffix works with preload_keys
+        $hashKey1 = 'l2_preload_1';
+        $hashKey2 = 'l2_preload_2';
+        $cache->save('hash_data_1', $hashKey1, []);
+        $cache->save('hash_data_2', $hashKey2, []);
+
+        // Load to verify
+        $this->assertEquals('hash_data_1', $cache->load($hashKey1), 'L2 preload with :hash should work');
+        $this->assertEquals('hash_data_2', $cache->load($hashKey2), 'L2 preload with :hash should work');
+
+        // Test 4: Tag-based cleaning
+        $taggedKey = 'l2_tagged_' . uniqid();
+        $cache->save('tagged_data', $taggedKey, ['l2_tag']);
+        $cache->clean(CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, ['l2_tag']);
+        $this->assertFalse(
+            $cache->load($taggedKey),
+            'L2 cache should support tag-based cleaning'
+        );
+
+        // Test 5: Clean all
+        $cache->save('data_before_clean', $testKey);
+        $cache->clean(CacheConstants::CLEANING_MODE_ALL);
+        $this->assertFalse(
+            $cache->load($testKey),
+            'L2 cache clean all should remove all data'
+        );
+    }
+
+    /**
+     * Test L2 cache synchronization between local and remote (Symfony)
+     */
+    public function testL2SynchronizationWithSymfony()
+    {
+        // Create first L2 cache instance (simulating first web node)
+        $cache1 = $this->cacheFactory->create([
+            'frontend' => [
+                'backend' => 'symfony_l2',
+                'backend_options' => [
+                    'remote_backend' => 'redis',
+                    'remote_backend_options' => [
+                        'server' => self::$redisServer,
+                        'port' => '6379',
+                        'database' => '6',
+                    ],
+                    'local_backend' => 'file',
+                    'local_backend_options' => [
+                        'cache_dir' => '/dev/shm/magento_test_l2_node1',
+                    ],
+                ]
+            ]
+        ]);
+
+        // Create second L2 cache instance (simulating second web node)
+        $cache2 = $this->cacheFactory->create([
+            'frontend' => [
+                'backend' => 'symfony_l2',
+                'backend_options' => [
+                    'remote_backend' => 'redis',
+                    'remote_backend_options' => [
+                        'server' => self::$redisServer,
+                        'port' => '6379',
+                        'database' => '6', // Same database for shared remote cache
+                    ],
+                    'local_backend' => 'file',
+                    'local_backend_options' => [
+                        'cache_dir' => '/dev/shm/magento_test_l2_node2',
+                    ],
+                ]
+            ]
+        ]);
+
+        $syncKey = 'l2_sync_test_' . uniqid();
+        $originalData = 'Original data from node 1';
+        $updatedData = 'Updated data from node 1';
+
+        // Node 1 saves data
+        $cache1->save($originalData, $syncKey);
+
+        // Node 2 should see the data (from remote)
+        $this->assertEquals(
+            $originalData,
+            $cache2->load($syncKey),
+            'Node 2 should load data from shared remote cache'
+        );
+
+        // Node 1 updates the data
+        $cache1->save($updatedData, $syncKey);
+
+        // Node 2 should see updated data (L2 sync via :hash)
+        // Note: This tests the synchronization mechanism
+        $loadedData = $cache2->load($syncKey);
+        $this->assertEquals(
+            $updatedData,
+            $loadedData,
+            'Node 2 should see updated data from node 1 via L2 sync'
+        );
+
+        // Cleanup
+        $cache1->clean(CacheConstants::CLEANING_MODE_ALL);
+    }
+
+    /**
+     * Test use_stale_cache feature with L2 cache
+     *
+     * @return void
+     */
+    public function testUseStaleCache()
+    {
+        $factory = Bootstrap::getObjectManager()->get(Factory::class);
+
+        // Create L2 cache with use_stale_cache enabled
+        $cache = $factory->create([
+            'frontend' => [
+                'backend' => 'symfony_l2',
+                'backend_options' => [
+                    'remote_backend' => 'redis',
+                    'remote_backend_options' => [
+                        'server' => 'redis',
+                        'database' => '10',
+                        'port' => '6379',
+                    ],
+                    'local_backend' => 'file',
+                    'local_backend_options' => [
+                        'cache_dir' => '/tmp/magento_stale_cache_test',
+                    ],
+                    'use_stale_cache' => true,  // Enable stale cache
+                ]
+            ]
+        ]);
+
+        $testKey = 'stale_cache_test_' . uniqid();
+        $testData = 'Stale cache test data';
+
+        // Save data (should be in both L1 and L2)
+        $cache->save($testData, $testKey);
+
+        // Verify data is loaded
+        $this->assertEquals($testData, $cache->load($testKey));
+
+        // Simulate remote cache failure by creating a new cache instance
+        // with different remote but same local (stale data should be served)
+        $cacheWithDifferentRemote = $factory->create([
+            'frontend' => [
+                'backend' => 'symfony_l2',
+                'backend_options' => [
+                    'remote_backend' => 'redis',
+                    'remote_backend_options' => [
+                        'server' => 'redis',
+                        'database' => '11',  // Different DB (simulates unavailable remote)
+                        'port' => '6379',
+                    ],
+                    'local_backend' => 'file',
+                    'local_backend_options' => [
+                        'cache_dir' => '/tmp/magento_stale_cache_test',  // Same local cache
+                    ],
+                    'use_stale_cache' => true,
+                ]
+            ]
+        ]);
+
+        // With use_stale_cache=true, should still return stale local data
+        // even though remote (DB 11) doesn't have it
+        $staleCacheResult = $cacheWithDifferentRemote->load($testKey);
+        $this->assertEquals(
+            $testData,
+            $staleCacheResult,
+            'Should serve stale cache when remote is unavailable and use_stale_cache=true'
+        );
+
+        // Cleanup
+        $cache->clean(CacheConstants::CLEANING_MODE_ALL);
+        
+        // Clean up test cache directory
+        $testCacheFile = '/tmp/magento_stale_cache_test/' . $testKey;
+        if (file_exists($testCacheFile)) {
+            unlink($testCacheFile);
+        }
+    }
 }
