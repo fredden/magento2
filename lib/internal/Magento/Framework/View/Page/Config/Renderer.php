@@ -453,7 +453,8 @@ class Renderer implements RendererInterface
 
         $result = $defaultAttributes = '';
         try {
-            $deferEnabled = $this->scopeConfig->getValue('dev/js/defer_non_critical');
+            //$deferEnabled = $this->scopeConfig->getValue('dev/js/defer_non_critical');
+            $deferEnabled = true;
             /** @var $asset \Magento\Framework\View\Asset\AssetInterface */
             foreach ($assets as $asset) {
                 $defaultAttributes = $this->addDefaultAttributes($this->getAssetContentType($asset), $attributes);
