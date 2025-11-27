@@ -453,8 +453,7 @@ class Renderer implements RendererInterface
 
         $result = $defaultAttributes = '';
         try {
-            //$deferEnabled = $this->scopeConfig->getValue('dev/js/defer_non_critical');
-            $deferEnabled = true;
+            $deferEnabled = $this->scopeConfig->getValue('dev/js/defer_non_critical');
             /** @var $asset \Magento\Framework\View\Asset\AssetInterface */
             foreach ($assets as $asset) {
                 $defaultAttributes = $this->addDefaultAttributes($this->getAssetContentType($asset), $attributes);
@@ -488,13 +487,19 @@ class Renderer implements RendererInterface
      * Check if we should add the defer tag or not
      *
      * @param string $url
-     * @param array $attrs
+     * @param mixed $attrs
      * @return bool
      */
-    private function shouldDefer(string $url, array $attrs): bool
+    private function shouldDefer(string $url, mixed $attrs): bool
     {
         if ($this->isCriticalRequireAsset($url)) {
             return false;
+        }
+        if (is_string($attrs)) {
+            if (str_contains(strtolower($attrs), 'defer') || str_contains(strtolower($attrs), 'async')) {
+                return false;
+            }
+            return true;
         }
         if (isset($attrs['async']) && $attrs['async']) {
             return false;
