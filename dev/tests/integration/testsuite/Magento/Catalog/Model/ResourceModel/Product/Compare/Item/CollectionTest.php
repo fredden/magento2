@@ -1,8 +1,9 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
  */
+
 declare(strict_types=1);
 
 namespace Magento\Catalog\Model\ResourceModel\Product\Compare\Item;
@@ -45,9 +46,11 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
         $compareTable = $this->collection->getTable('catalog_compare_item');
 
         // phpcs:ignore Magento2.SQL.RawQuery
-        $expected = 'SELECT `e`.*, `t_compare`.`product_id`, `t_compare`.`customer_id`, `t_compare`.`visitor_id`, `t_compare`.`store_id` AS `item_store_id`, `t_compare`.`catalog_compare_item_id` FROM `' . $productTable . '` AS `e` '
-        . 'INNER JOIN `' . $compareTable . '` AS `t_compare` '
-        . 'ON (t_compare.product_id=e.entity_id) AND (t_compare.customer_id IS NULL) AND (t_compare.visitor_id = \'0\') AND (t_compare.list_id IS NULL)';
+        $expected = 'SELECT `e`.*, `t_compare`.`product_id`, `t_compare`.`customer_id`, `t_compare`.`visitor_id`, '
+        . '`t_compare`.`store_id` AS `item_store_id`, `t_compare`.`catalog_compare_item_id` FROM `' . $productTable
+        . '` AS `e` INNER JOIN `' . $compareTable . '` AS `t_compare` '
+        . 'ON (t_compare.product_id=e.entity_id) AND (t_compare.customer_id IS NULL) '
+        . 'AND (t_compare.visitor_id = \'0\') AND (t_compare.list_id IS NULL)';
 
         self::assertStringContainsString($expected, str_replace(PHP_EOL, '', $sql));
     }
