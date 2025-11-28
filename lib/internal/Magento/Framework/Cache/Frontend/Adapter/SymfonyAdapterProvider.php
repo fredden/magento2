@@ -10,12 +10,13 @@ namespace Magento\Framework\Cache\Frontend\Adapter;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony\MagentoDatabaseAdapter;
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\TagAdapterInterface;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\FilesystemTagAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\GenericTagAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\RedisTagAdapter;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\TagAdapterInterface;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Serialize\Serializer\Serialize;
+use Predis\Client as PredisClient;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Adapter\ApcuAdapter;
@@ -221,12 +222,17 @@ class SymfonyAdapterProvider
     }
 
     /**
-     * Create Redis cache adapter
+     * Create Redis cache adapter with automatic fallback support
+     *
+     * Connection Strategy:
+     * 1. Try phpredis extension (fastest - native C extension)
+     * 2. Fallback to Predis library (slower but no extension required)
+     * 3. Throw exception if neither available
      *
      * Performance optimizations:
      * - Connection pooling (reuse existing connections)
      * - Optimized DSN building
-     * - Persistent connections support
+     * - Persistent connections support (phpredis only)
      * - igbinary serializer support (70% faster, 58% smaller)
      * - Connection tuning (timeout, read_timeout, retry_interval, connect_retries)
      *
@@ -235,20 +241,22 @@ class SymfonyAdapterProvider
      * - port: Redis port (default: 6379)
      * - password: Redis password (optional)
      * - database: Redis database number (default: 0)
-     * - persistent: Enable persistent connections (default: true)
-     * - persistent_id: Persistent connection identifier (optional)
+     * - persistent: Enable persistent connections (default: true, phpredis only)
+     * - persistent_id: Persistent connection identifier (optional, phpredis only)
      * - serializer: Serializer to use (igbinary, php, default: php)
      * - timeout: Connection timeout in seconds (optional, e.g. 2.5)
      * - read_timeout: Read timeout in seconds (optional, e.g. 2.0)
-     * - retry_interval: Retry interval in milliseconds (optional, e.g. 100)
-     * - connect_retries: Number of connection retries (optional, e.g. 3)
+     * - retry_interval: Retry interval in milliseconds (optional, e.g. 100, phpredis only)
+     * - connect_retries: Number of connection retries (optional, e.g. 3, phpredis only)
      *
      * @param array $options Connection and configuration options
      * @param string $namespace Cache key namespace/prefix
      * @param int|null $defaultLifetime Default cache lifetime in seconds
      * @return AdapterInterface
+     * @throws \RuntimeException If neither phpredis nor Predis is available
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     private function createRedisAdapter(
         array $options,
@@ -257,65 +265,58 @@ class SymfonyAdapterProvider
     ): AdapterInterface {
         // Extract connection parameters (optimized with null coalescing)
         $host = $options['server'] ?? $options['host'] ?? '127.0.0.1';
-        $port = $options['port'] ?? 6379;
+        $port = (int)($options['port'] ?? 6379);
         $password = $options['password'] ?? null;
-        $database = $options['database'] ?? 0;
+        $database = (int)($options['database'] ?? 0);
         $serializer = $options['serializer'] ?? null;
 
         // Persistent connection support (15-30% performance gain)
         $persistent = $options['persistent'] ?? true;  // Enable by default
         $persistentId = $options['persistent_id'] ?? null;
 
-        // Connection tuning parameters
-        $timeout = $options['timeout'] ?? null;
-        $readTimeout = $options['read_timeout'] ?? null;
-        $retryInterval = $options['retry_interval'] ?? null;
-        $connectRetries = $options['connect_retries'] ?? null;
+        // Connection tuning parameters (cast to proper types from string config)
+        $timeout = isset($options['timeout']) ? (float)$options['timeout'] : null;
+        $readTimeout = isset($options['read_timeout']) ? (float)$options['read_timeout'] : null;
+        $retryInterval = isset($options['retry_interval']) ? (int)$options['retry_interval'] : null;
+        $connectRetries = isset($options['connect_retries']) ? (int)$options['connect_retries'] : null;
 
         // Create connection key for pooling
         $connectionKey = sprintf('redis:%s:%d:%d', $host, $port, $database);
 
         // Check connection pool
         if (!isset($this->connectionPool[$connectionKey])) {
-            // Build optimized DSN with all connection parameters
-            $dsnParams = [];
-
-            // Add persistent connection parameters
-            if ($persistent) {
-                $dsnParams[] = 'persistent=1';
-                if ($persistentId) {
-                    $dsnParams[] = 'persistent_id=' . urlencode($persistentId);
-                }
+            // Check if phpredis extension is available
+            if (extension_loaded('redis')) {
+                // Use phpredis (native C extension - fastest)
+                $this->connectionPool[$connectionKey] = $this->createPhpRedisConnection(
+                    $host,
+                    $port,
+                    $password,
+                    $database,
+                    $persistent,
+                    $persistentId,
+                    $timeout,
+                    $readTimeout,
+                    $retryInterval,
+                    $connectRetries
+                );
+            } elseif (class_exists(PredisClient::class)) {
+                // Fallback to Predis (pure PHP - slower but no extension required)
+                $this->connectionPool[$connectionKey] = $this->createPredisConnection(
+                    $host,
+                    $port,
+                    $password,
+                    $database,
+                    $persistent,
+                    $timeout,
+                    $readTimeout
+                );
+            } else {
+                throw new \RuntimeException(
+                    'Redis cache requires either phpredis extension or predis/predis library. ' .
+                    'Install phpredis extension (recommended) or run: composer require predis/predis'
+                );
             }
-
-            // Add connection timeout parameters
-            if ($timeout !== null) {
-                $dsnParams[] = 'timeout=' . $timeout;
-            }
-
-            if ($readTimeout !== null) {
-                $dsnParams[] = 'read_timeout=' . $readTimeout;
-            }
-
-            // Add retry parameters
-            if ($retryInterval !== null) {
-                $dsnParams[] = 'retry_interval=' . $retryInterval;
-            }
-
-            if ($connectRetries !== null) {
-                $dsnParams[] = 'connect_retries=' . $connectRetries;
-            }
-
-            // Build base DSN
-            $baseDsn = $password
-                ? sprintf('redis://%s@%s:%d/%d', urlencode($password), $host, $port, $database)
-                : sprintf('redis://%s:%d/%d', $host, $port, $database);
-
-            // Append DSN parameters
-            $dsn = $dsnParams ? $baseDsn . '?' . implode('&', $dsnParams) : $baseDsn;
-
-            // Create and pool the connection
-            $this->connectionPool[$connectionKey] = RedisAdapter::createConnection($dsn);
         }
 
         // Set client name every time (even for pooled connections)
@@ -336,9 +337,136 @@ class SymfonyAdapterProvider
     }
 
     /**
+     * Create phpredis connection (native C extension)
+     *
+     * This is the recommended and fastest option for Redis connectivity.
+     *
+     * @param string $host
+     * @param int $port
+     * @param string|null $password
+     * @param int $database
+     * @param bool $persistent
+     * @param string|null $persistentId
+     * @param float|null $timeout
+     * @param float|null $readTimeout
+     * @param int|null $retryInterval
+     * @param int|null $connectRetries
+     * @return \Redis|\RedisCluster|\Relay\Relay
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     */
+    private function createPhpRedisConnection(
+        string $host,
+        int $port,
+        ?string $password,
+        int $database,
+        bool $persistent,
+        ?string $persistentId,
+        ?float $timeout,
+        ?float $readTimeout,
+        ?int $retryInterval,
+        ?int $connectRetries
+    ) {
+        // Build optimized DSN with all connection parameters
+        $dsnParams = [];
+
+        // Add persistent connection parameters
+        if ($persistent) {
+            $dsnParams[] = 'persistent=1';
+            if ($persistentId) {
+                $dsnParams[] = 'persistent_id=' . urlencode($persistentId);
+            }
+        }
+
+        // Add connection timeout parameters
+        if ($timeout !== null) {
+            $dsnParams[] = 'timeout=' . $timeout;
+        }
+
+        if ($readTimeout !== null) {
+            $dsnParams[] = 'read_timeout=' . $readTimeout;
+        }
+
+        // Add retry parameters
+        if ($retryInterval !== null) {
+            $dsnParams[] = 'retry_interval=' . $retryInterval;
+        }
+
+        if ($connectRetries !== null) {
+            $dsnParams[] = 'connect_retries=' . $connectRetries;
+        }
+
+        // Build base DSN
+        $baseDsn = $password
+            ? sprintf('redis://%s@%s:%d/%d', urlencode($password), $host, $port, $database)
+            : sprintf('redis://%s:%d/%d', $host, $port, $database);
+
+        // Append DSN parameters
+        $dsn = $dsnParams ? $baseDsn . '?' . implode('&', $dsnParams) : $baseDsn;
+
+        // Create and return the connection using Symfony's factory
+        return RedisAdapter::createConnection($dsn);
+    }
+
+    /**
+     * Create Predis connection (pure PHP fallback)
+     *
+     * This is a fallback when phpredis extension is not available.
+     * Performance is ~2-3x slower than phpredis, but requires no PHP extensions.
+     *
+     * @param string $host
+     * @param int $port
+     * @param string|null $password
+     * @param int $database
+     * @param bool $persistent
+     * @param float|null $timeout
+     * @param float|null $readTimeout
+     * @return PredisClient
+     */
+    private function createPredisConnection(
+        string $host,
+        int $port,
+        ?string $password,
+        int $database,
+        bool $persistent,
+        ?float $timeout,
+        ?float $readTimeout
+    ): PredisClient {
+        $connectionParams = [
+            'scheme' => 'tcp',
+            'host' => $host,
+            'port' => $port,
+            'database' => $database,
+        ];
+
+        // Add optional parameters
+        if ($password) {
+            $connectionParams['password'] = $password;
+        }
+
+        if ($timeout !== null) {
+            $connectionParams['timeout'] = $timeout;
+        }
+
+        if ($readTimeout !== null) {
+            $connectionParams['read_write_timeout'] = $readTimeout;
+        }
+
+        // Note: Predis doesn't support true persistent connections like phpredis
+        // The 'persistent' option creates a connection string but doesn't actually persist
+        // For true persistent connections, use phpredis extension
+        if ($persistent) {
+            $connectionParams['persistent'] = true;
+        }
+
+        $options = [];
+
+        return new PredisClient($connectionParams, $options);
+    }
+
+    /**
      * Set Redis client name for better monitoring and debugging
      *
-     * @param mixed $connection Redis connection from RedisAdapter::createConnection()
+     * @param mixed $connection Redis connection (phpredis, RedisCluster, Relay, or Predis)
      * @param string $clientName Name to set for the client
      * @return void
      */
@@ -346,13 +474,16 @@ class SymfonyAdapterProvider
     {
         try {
             // Set Redis client name for better monitoring
-            // Symfony's RedisAdapter::createConnection() can return \Redis, \RedisCluster, or \Relay
             if ($connection instanceof \Redis) {
+                // phpredis
                 $connection->client('SETNAME', $clientName);
                 // phpcs:disable Magento2.CodeAnalysis.EmptyBlock
             } elseif ($connection instanceof \RedisCluster) {
                 // Intentional no-op: RedisCluster doesn't support CLIENT SETNAME
                 // phpcs:enable Magento2.CodeAnalysis.EmptyBlock
+            } elseif ($connection instanceof PredisClient) {
+                // Predis
+                $connection->client('SETNAME', $clientName);
             } elseif (method_exists($connection, 'client')) {
                 // Relay or other compatible implementations
                 $connection->client('SETNAME', $clientName);

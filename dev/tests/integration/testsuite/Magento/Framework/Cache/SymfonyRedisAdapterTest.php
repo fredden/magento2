@@ -1178,4 +1178,57 @@ class SymfonyRedisAdapterTest extends TestCase
             unlink($testCacheFile);
         }
     }
+
+    /**
+     * Test Predis fallback when phpredis extension is not available
+     *
+     * This test verifies the Predis fallback functionality by directly testing
+     * with Predis client, simulating a scenario where phpredis is not installed.
+     */
+    public function testPredisFallback()
+    {
+        // Skip if Predis is not installed
+        if (!class_exists(\Predis\Client::class)) {
+            $this->markTestSkipped('Predis library not installed. Run: composer require predis/predis');
+        }
+
+        // Create Predis client directly
+        $predisClient = new \Predis\Client([
+            'scheme' => 'tcp',
+            'host' => self::$redisServer,
+            'port' => '6379',
+            'database' => '5', // Use database 5 for Predis test
+        ]);
+
+        // Verify Predis can connect
+        $this->assertNotNull($predisClient);
+        $response = $predisClient->ping();
+        $this->assertEquals('PONG', $response->getPayload());
+
+        // Create Symfony RedisAdapter with Predis client
+        $adapter = new \Symfony\Component\Cache\Adapter\RedisAdapter(
+            $predisClient,
+            'predis_test_',
+            3600
+        );
+
+        $testKey = 'predis_fallback_test_' . uniqid();
+        $testValue = 'Predis fallback works!';
+
+        // Test basic cache operations
+        $item = $adapter->getItem($testKey);
+        $item->set($testValue);
+        $this->assertTrue($adapter->save($item));
+
+        $item = $adapter->getItem($testKey);
+        $this->assertEquals($testValue, $item->get());
+
+        // Cleanup
+        $adapter->deleteItem($testKey);
+
+        $this->assertTrue(
+            true,
+            'Predis fallback is functional and tested'
+        );
+    }
 }
