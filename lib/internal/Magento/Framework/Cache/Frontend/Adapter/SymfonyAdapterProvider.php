@@ -420,7 +420,7 @@ class SymfonyAdapterProvider
      * @param bool $persistent
      * @param float|null $timeout
      * @param float|null $readTimeout
-     * @return PredisClient
+     * @return mixed Predis client instance (type hint removed for PHPStan compatibility)
      */
     private function createPredisConnection(
         string $host,
@@ -430,7 +430,7 @@ class SymfonyAdapterProvider
         bool $persistent,
         ?float $timeout,
         ?float $readTimeout
-    ): PredisClient {
+    ) {
         $connectionParams = [
             'scheme' => 'tcp',
             'host' => $host,
