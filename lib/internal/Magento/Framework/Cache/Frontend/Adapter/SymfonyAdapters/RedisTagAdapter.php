@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters;
 
+use Predis\Client as PredisClient;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
@@ -39,9 +40,9 @@ class RedisTagAdapter implements TagAdapterInterface
     private const ALL_IDS_SET = 'cache:all_ids';
 
     /**
-     * @var \Redis
+     * @var \Redis|\RedisCluster|PredisClient
      */
-    private \Redis $redis;
+    private \Redis|\RedisCluster|PredisClient $redis;
 
     /**
      * @var string
@@ -82,12 +83,19 @@ class RedisTagAdapter implements TagAdapterInterface
     ) {
         $this->cachePool = $cachePool;
         $this->namespace = $namespace;
-        $this->useLua = $useLua;
-        $this->useLuaOnGc = $useLuaOnGc;
         $this->redis = $this->extractRedisClient($cachePool);
         
-        // Initialize Lua helper if either flag is enabled
-        if ($this->useLua || $this->useLuaOnGc) {
+        // Disable Lua for Predis (only works with phpredis)
+        if ($this->redis instanceof PredisClient) {
+            $this->useLua = false;
+            $this->useLuaOnGc = false;
+        } else {
+            $this->useLua = $useLua;
+            $this->useLuaOnGc = $useLuaOnGc;
+        }
+        
+        // Initialize Lua helper if either flag is enabled (phpredis only)
+        if (($this->useLua || $this->useLuaOnGc) && !($this->redis instanceof PredisClient)) {
             $this->luaHelper = new RedisLuaHelper($this->redis, true);
         }
     }
@@ -96,10 +104,10 @@ class RedisTagAdapter implements TagAdapterInterface
      * Extract Redis client from Symfony cache adapter
      *
      * @param CacheItemPoolInterface $cachePool
-     * @return \Redis
+     * @return \Redis|\RedisCluster|PredisClient
      * @throws \RuntimeException If Redis client cannot be extracted
      */
-    private function extractRedisClient(CacheItemPoolInterface $cachePool): \Redis
+    private function extractRedisClient(CacheItemPoolInterface $cachePool): \Redis|\RedisCluster|PredisClient
     {
         // Unwrap TagAwareAdapter if present
         $adapter = $cachePool;
@@ -117,7 +125,7 @@ class RedisTagAdapter implements TagAdapterInterface
             $redisProperty->setAccessible(true);
             $redis = $redisProperty->getValue($adapter);
 
-            if ($redis instanceof \Redis || $redis instanceof \RedisCluster) {
+            if ($redis instanceof \Redis || $redis instanceof \RedisCluster || $redis instanceof PredisClient) {
                 return $redis;
             }
         }
@@ -137,6 +145,39 @@ class RedisTagAdapter implements TagAdapterInterface
     }
 
     /**
+     * Create Redis pipeline compatible with both phpredis and Predis
+     *
+     * @return \Redis|object Predis pipeline object
+     */
+    private function createPipeline()
+    {
+        if ($this->redis instanceof PredisClient) {
+            // Predis uses pipeline() method
+            return $this->redis->pipeline();
+        }
+        
+        // phpredis uses multi(PIPELINE)
+        return $this->redis->multi(\Redis::PIPELINE);
+    }
+
+    /**
+     * Execute Redis pipeline compatible with both phpredis and Predis
+     *
+     * @param \Redis|object $pipeline
+     * @return mixed
+     */
+    private function executePipeline($pipeline)
+    {
+        if ($pipeline instanceof PredisClient || method_exists($pipeline, 'execute')) {
+            // Predis pipeline
+            return $pipeline->execute();
+        }
+        
+        // phpredis pipeline
+        return $pipeline->exec();
+    }
+
+    /**
      * @inheritDoc
      *
      * Uses Redis SINTER for efficient set intersection (true AND logic)
@@ -151,7 +192,7 @@ class RedisTagAdapter implements TagAdapterInterface
         $tagKeys = array_map([$this, 'getTagKey'], $tags);
 
         // Redis SINTER returns IDs present in ALL sets
-        $ids = $this->redis->sInter($tagKeys);
+        $ids = $this->redis->sinter($tagKeys);
 
         return is_array($ids) ? $ids : [];
     }
@@ -185,12 +226,12 @@ class RedisTagAdapter implements TagAdapterInterface
     {
         if (empty($tags)) {
             // Return all IDs if no tags specified
-            $allIds = $this->redis->sMembers(self::ALL_IDS_SET);
+            $allIds = $this->redis->smembers(self::ALL_IDS_SET);
             return is_array($allIds) ? $allIds : [];
         }
 
         // Get all IDs
-        $allIds = $this->redis->sMembers(self::ALL_IDS_SET);
+        $allIds = $this->redis->smembers(self::ALL_IDS_SET);
         if (!is_array($allIds) || empty($allIds)) {
             return [];
         }
@@ -218,14 +259,14 @@ class RedisTagAdapter implements TagAdapterInterface
 
         // OPTIMIZATION: Use pipeline for large batches (more than 10 IDs)
         if (count($ids) > 10) {
-            $pipeline = $this->redis->multi(\Redis::PIPELINE);
+            $pipeline = $this->createPipeline();
             
             // Remove each ID from all_ids set in pipeline
             foreach ($ids as $id) {
-                $pipeline->sRem(self::ALL_IDS_SET, $id);
+                $pipeline->srem(self::ALL_IDS_SET, $id);
             }
             
-            $pipeline->exec();
+            $this->executePipeline($pipeline);
         } else {
             // For small batches, use single command (slightly faster)
             // Use array_unshift to prepend the set key, then call_user_func_array
@@ -250,19 +291,19 @@ class RedisTagAdapter implements TagAdapterInterface
 
         // OPTIMIZATION: Use Redis pipeline for all operations
         // Reduces network round trips from N+1 to 1
-        $pipeline = $this->redis->multi(\Redis::PIPELINE);
+        $pipeline = $this->createPipeline();
         
         // Add ID to all_ids set
-        $pipeline->sAdd(self::ALL_IDS_SET, $id);
+        $pipeline->sadd(self::ALL_IDS_SET, $id);
 
         // Add ID to each tag's SET in pipeline
         foreach ($tags as $tag) {
             $tagKey = $this->getTagKey($tag);
-            $pipeline->sAdd($tagKey, $id);
+            $pipeline->sadd($tagKey, $id);
         }
         
         // Execute all operations in one go
-        $pipeline->exec();
+        $this->executePipeline($pipeline);
     }
 
     /**
@@ -276,32 +317,32 @@ class RedisTagAdapter implements TagAdapterInterface
         // We need to find which tags this ID was associated with
         // Store a reverse index: cache:id:tags => SET{tag1, tag2}
         $idTagsKey = 'cache:id_tags:' . $this->namespace . $id;
-        $tags = $this->redis->sMembers($idTagsKey);
+        $tags = $this->redis->smembers($idTagsKey);
         
         if (!is_array($tags) || empty($tags)) {
             // No tags, just remove from all_ids
-            $this->redis->sRem(self::ALL_IDS_SET, $id);
+            $this->redis->srem(self::ALL_IDS_SET, $id);
             return;
         }
         
         // OPTIMIZATION: Use Redis pipeline for all remove operations
         // Reduces network round trips from N+2 to 1
-        $pipeline = $this->redis->multi(\Redis::PIPELINE);
+        $pipeline = $this->createPipeline();
         
         // Remove from all_ids set
-        $pipeline->sRem(self::ALL_IDS_SET, $id);
+        $pipeline->srem(self::ALL_IDS_SET, $id);
         
         // Remove ID from each tag's SET in pipeline
         foreach ($tags as $tag) {
             $tagKey = $this->getTagKey($tag);
-            $pipeline->sRem($tagKey, $id);
+            $pipeline->srem($tagKey, $id);
         }
         
         // Delete the reverse index
         $pipeline->del($idTagsKey);
         
         // Execute all operations in one go
-        $pipeline->exec();
+        $this->executePipeline($pipeline);
     }
 
     /**
@@ -357,18 +398,18 @@ class RedisTagAdapter implements TagAdapterInterface
         
         // OPTIMIZATION: Use Redis pipeline for all operations
         // Reduces network round trips from N+1 to 1
-        $pipeline = $this->redis->multi(\Redis::PIPELINE);
+        $pipeline = $this->createPipeline();
         
         // Clear existing reverse index
         $pipeline->del($idTagsKey);
         
         // Add all tags to reverse index in pipeline
         foreach ($tags as $tag) {
-            $pipeline->sAdd($idTagsKey, $tag);
+            $pipeline->sadd($idTagsKey, $tag);
         }
         
         // Execute all operations in one go
-        $pipeline->exec();
+        $this->executePipeline($pipeline);
     }
 
     /**
