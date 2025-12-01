@@ -281,12 +281,19 @@ class SymfonyAdapterProvider
         $connectRetries = isset($options['connect_retries']) ? (int)$options['connect_retries'] : null;
 
         // Create connection key for pooling
-        $connectionKey = sprintf('redis:%s:%d:%d', $host, $port, $database);
+        // IMPORTANT: For Predis, add unique ID to prevent connection pooling
+        // Predis doesn't support true persistent connections and pooling can cause
+        // database isolation issues (e.g., layout cache clearing app cache).
+        // phpredis can safely use connection pooling with proper database isolation.
+        $usePhpRedis = extension_loaded('redis');
+        $connectionKey = $usePhpRedis 
+            ? sprintf('redis:%s:%d:%d', $host, $port, $database)
+            : sprintf('predis:%s:%d:%d:%s', $host, $port, $database, uniqid('', true));
 
         // Check connection pool
         if (!isset($this->connectionPool[$connectionKey])) {
             // Check if phpredis extension is available
-            if (extension_loaded('redis')) {
+            if ($usePhpRedis) {
                 // Use phpredis (native C extension - fastest)
                 $this->connectionPool[$connectionKey] = $this->createPhpRedisConnection(
                     $host,
@@ -451,16 +458,26 @@ class SymfonyAdapterProvider
             $connectionParams['read_write_timeout'] = $readTimeout;
         }
 
-        // Note: Predis doesn't support true persistent connections like phpredis
-        // The 'persistent' option creates a connection string but doesn't actually persist
-        // For true persistent connections, use phpredis extension
-        if ($persistent) {
-            $connectionParams['persistent'] = true;
-        }
+        // IMPORTANT: Disable persistent connections for Predis
+        // Predis doesn't support true persistent connections like phpredis.
+        // Persistent connections in Predis can cause database isolation issues
+        // where connections are shared between different cache types (databases).
+        // For proper cache isolation, each Predis connection must be independent.
+        // This ensures the correct database is selected for each cache type.
+        // Performance impact is minimal since Predis is already slower than phpredis.
+        // For production, use phpredis extension for better performance and persistence.
+        // Note: $persistent parameter is ignored for Predis
 
         $options = [];
 
-        return new PredisClient($connectionParams, $options);
+        $client = new PredisClient($connectionParams, $options);
+        
+        // Explicitly select the database to ensure proper isolation
+        // This is critical for multi-database setups (app cache, layout cache, etc.)
+        // Even though database is in connectionParams, explicit SELECT ensures it's active
+        $client->select($database);
+        
+        return $client;
     }
 
     /**
