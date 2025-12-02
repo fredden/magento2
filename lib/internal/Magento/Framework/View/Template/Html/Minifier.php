@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2015 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -148,7 +148,7 @@ class Minifier implements MinifierInterface
                                 '#(?<!:|\'|")//[^\n\r<]*(\?\>)#',
                                 ' $1',
                                 preg_replace(
-                                    '#(?<!:)//[^\n\r]*(\<\?php)[^\n\r]*(\s\?\>)[^\n\r]*#',
+                                    '#(?<!:)//[^\n\r(\?\>)]*(\<\?php)[^\n\r]*(\s\?\>)[^\n\r]*#',
                                     '',
                                     ($content ?? '')
                                 )

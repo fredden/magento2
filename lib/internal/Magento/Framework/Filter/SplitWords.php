@@ -1,11 +1,13 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2014 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\Framework\Filter;
 
-class SplitWords implements \Zend_Filter_Interface
+use Laminas\Filter\FilterInterface;
+
+class SplitWords implements FilterInterface
 {
     /**
      * @var bool

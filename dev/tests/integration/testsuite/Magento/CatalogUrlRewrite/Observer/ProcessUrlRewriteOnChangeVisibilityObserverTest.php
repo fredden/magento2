@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2019 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\CatalogUrlRewrite\Observer;
 
@@ -171,6 +171,8 @@ class ProcessUrlRewriteOnChangeVisibilityObserverTest extends \PHPUnit\Framework
     /**
      * Test for multistore properties of the product to be respected in generated UrlRewrites
      * during the mass update for visibility change
+     *
+     * @magentoConfigFixture default/catalog/seo/generate_category_product_rewrites 1
      */
     #[
         AppIsolation(true),

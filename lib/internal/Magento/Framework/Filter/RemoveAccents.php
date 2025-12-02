@@ -1,14 +1,16 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2014 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\Framework\Filter;
+
+use Laminas\Filter\FilterInterface;
 
 /**
  * Remove accents from string
  */
-class RemoveAccents implements \Zend_Filter_Interface
+class RemoveAccents implements FilterInterface
 {
     /**
      * @var bool

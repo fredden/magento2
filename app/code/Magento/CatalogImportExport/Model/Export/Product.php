@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2014 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\CatalogImportExport\Model\Export;
 
@@ -9,6 +9,7 @@ use Magento\Catalog\Model\Product as ProductEntity;
 use Magento\Catalog\Model\ResourceModel\Product\Option\Collection;
 use Magento\CatalogImportExport\Model\Import\Product as ImportProduct;
 use Magento\CatalogImportExport\Model\Import\Product\CategoryProcessor;
+use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\ImportExport\Model\Import;
 use Magento\Store\Model\Store;
@@ -116,13 +117,6 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     protected $_productTypeModels = [];
 
     /**
-     * Array of pairs store ID to its code.
-     *
-     * @var array
-     */
-    protected $_storeIdToCode = [];
-
-    /**
      * Array of Website ID-to-code.
      *
      * @var array
@@ -169,6 +163,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
      *
      * @var array
      * @deprecated 100.2.0
+     * @see we don't use this variable anymore
      */
     protected $_headerColumns = [];
 
@@ -369,6 +364,26 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     private $filter;
 
     /**
+     * @var StockConfigurationInterface
+     */
+    private $stockConfiguration;
+
+    /**
+     * @var array
+     */
+    private array $attributeFrontendTypes = [];
+
+    /**
+     * @var int
+     */
+    private int $currentMaxAllowedMemoryUsage = 0;
+
+    /**
+     * @var int
+     */
+    private int $currentMemoryUsage = 0;
+
+    /**
      * Product constructor.
      *
      * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate
@@ -388,7 +403,8 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
      * @param ProductEntity\LinkTypeProvider $linkTypeProvider
      * @param RowCustomizerInterface $rowCustomizer
      * @param array $dateAttrCodes
-     * @param ProductFilterInterface $filter
+     * @param ProductFilterInterface|null $filter
+     * @param StockConfigurationInterface|null $stockConfiguration
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function __construct(
@@ -409,7 +425,8 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
         \Magento\Catalog\Model\Product\LinkTypeProvider $linkTypeProvider,
         \Magento\CatalogImportExport\Model\Export\RowCustomizerInterface $rowCustomizer,
         array $dateAttrCodes = [],
-        ?ProductFilterInterface $filter = null
+        ?ProductFilterInterface $filter = null,
+        ?StockConfigurationInterface $stockConfiguration = null
     ) {
         $this->_entityCollectionFactory = $collectionFactory;
         $this->_exportConfig = $exportConfig;
@@ -426,7 +443,8 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
         $this->rowCustomizer = $rowCustomizer;
         $this->dateAttrCodes = array_merge($this->dateAttrCodes, $dateAttrCodes);
         $this->filter = $filter ?? ObjectManager::getInstance()->get(ProductFilterInterface::class);
-
+        $this->stockConfiguration = $stockConfiguration ?? ObjectManager::getInstance()
+                ->get(StockConfigurationInterface::class);
         parent::__construct($localeDate, $config, $resource, $storeManager);
 
         $this->initTypeModels()
@@ -460,6 +478,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     {
         $collection = $this->_categoryColFactory->create()->addNameToResult();
         /* @var $collection \Magento\Catalog\Model\ResourceModel\Category\Collection */
+        $collection->setStoreId(\Magento\Store\Model\Store::DEFAULT_STORE_ID);
         foreach ($collection as $category) {
             $structure = preg_split('#/+#', $category->getPath());
             $pathSize = count($structure);
@@ -625,6 +644,17 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
                 $stockItemRow['stock_id'],
                 $stockItemRow['stock_status_changed_auto']
             );
+
+            if ($stockItemRow['use_config_max_sale_qty']) {
+                $stockItemRow['max_sale_qty'] = $this->stockConfiguration->getMaxSaleQty();
+            }
+            if ($stockItemRow['use_config_min_sale_qty']) {
+                $stockItemRow['min_sale_qty'] = $this->stockConfiguration->getMinSaleQty();
+            }
+            if ($stockItemRow['use_config_manage_stock']) {
+                $stockItemRow['manage_stock'] = $this->stockConfiguration->getManageStock();
+            }
+
             $stockItemRows[$productId] = $stockItemRow;
         }
         return $stockItemRows;
@@ -755,7 +785,8 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
      * @param array $customOptionsData
      * @param array $stockItemRows
      * @return void
-     * @deprecated 100.2.0 Logic will be moved to _getHeaderColumns in future release
+     * @deprecated 100.2.0
+     * @see Logic is moved to _getHeaderColumns
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
@@ -833,7 +864,10 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
      */
     protected function getItemsPerPage()
     {
-        if ($this->_itemsPerPage === null) {
+        if ($this->_itemsPerPage === null ||
+            $this->currentMemoryUsage < memory_get_usage(true) ||
+            $this->currentMaxAllowedMemoryUsage < memory_get_usage(true)
+        ) {
             $memoryLimitConfigValue = trim(ini_get('memory_limit'));
             $lastMemoryLimitLetter = strtolower($memoryLimitConfigValue[strlen($memoryLimitConfigValue) - 1]);
             $memoryLimit = (int) $memoryLimitConfigValue;
@@ -863,9 +897,19 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
             // Maximal Products limit
             $maxProductsLimit = 5000;
 
+            $this->currentMaxAllowedMemoryUsage = (int)($memoryLimit * $memoryUsagePercent);
+            $this->currentMemoryUsage = memory_get_usage(true);
+
             $this->_itemsPerPage = (int)(
-                ($memoryLimit * $memoryUsagePercent - memory_get_usage(true)) / $memoryPerProduct
+            ($this->currentMaxAllowedMemoryUsage - $this->currentMemoryUsage)  / $memoryPerProduct
             );
+
+            $this->_itemsPerPage = $this->adjustItemsPerPageByAttributeOptions(
+                $this->_itemsPerPage,
+                $this->currentMaxAllowedMemoryUsage,
+                $this->currentMemoryUsage
+            );
+
             if ($this->_itemsPerPage < $minProductsLimit) {
                 $this->_itemsPerPage = $minProductsLimit;
             }
@@ -874,6 +918,61 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
             }
         }
         return $this->_itemsPerPage;
+    }
+
+    /**
+     * Adjust items per page by attribute options
+     *
+     * @param int $initialItemsPerPage
+     * @param int $memoryLimit
+     * @param int $currentMemoryUsage
+     * @return int
+     */
+    private function adjustItemsPerPageByAttributeOptions(
+        int $initialItemsPerPage,
+        int $memoryLimit,
+        int $currentMemoryUsage
+    ): int {
+        $maxAttributeOptions = $this->getMaxAttributeValues();
+        $minProductsLimit = 500;
+        $maxProductsLimit = 5000;
+        $memoryPerProduct = 500000;
+
+        if ($maxAttributeOptions > 5000) {
+            $adjustedItemsPerPage = max(1000, (int)($initialItemsPerPage * 0.25));
+        } elseif ($maxAttributeOptions > 2500) {
+            $adjustedItemsPerPage = max(2500, (int)($initialItemsPerPage * 0.5));
+        } elseif ($maxAttributeOptions > 1000) {
+            $adjustedItemsPerPage = max(3500, (int)($initialItemsPerPage * 0.75));
+        } else {
+            $adjustedItemsPerPage = $initialItemsPerPage;
+        }
+
+        $availableMemory = $memoryLimit - $currentMemoryUsage;
+        $maxItemsByMemory = (int)($availableMemory / $memoryPerProduct);
+
+        $adjustedItemsPerPage = min($adjustedItemsPerPage, $maxItemsByMemory);
+        $adjustedItemsPerPage = max($minProductsLimit, $adjustedItemsPerPage);
+        $adjustedItemsPerPage = min($maxProductsLimit, $adjustedItemsPerPage);
+
+        return $adjustedItemsPerPage;
+    }
+
+    /**
+     * Get max attribute values
+     *
+     * @return int
+     */
+
+    private function getMaxAttributeValues(): int
+    {
+        $maxCount = 0;
+
+        foreach ($this->_attributeValues as $attributeValues) {
+            $maxCount = max($maxCount, count($attributeValues));
+        }
+
+        return $maxCount;
     }
 
     /**
@@ -905,13 +1004,13 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
             ++$page;
             $entityCollection = $this->_getEntityCollection(true);
             $entityCollection->setOrder('entity_id', 'asc');
-            $entityCollection->setStoreId(Store::DEFAULT_STORE_ID);
             $this->_prepareEntityCollection($entityCollection);
             $this->paginateCollection($page, $this->getItemsPerPage());
-            if ($entityCollection->count() == 0) {
+
+            $exportData = $this->getExportData();
+            if ($exportData == null || count($exportData) == 0) {
                 break;
             }
-            $exportData = $this->getExportData();
             if ($page == 1) {
                 $writer->setHeaderCols($this->_getHeaderColumns());
             }
@@ -997,10 +1096,11 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
     protected function loadCollection(): array
     {
         $data = [];
-        $collection = $this->_getEntityCollection();
         foreach (array_keys($this->_storeIdToCode) as $storeId) {
+            $collection = $this->_getEntityCollection(true);
             $collection->setOrder('entity_id', 'asc');
             $collection->setStoreId($storeId);
+            $this->_prepareEntityCollection($collection);
             $collection->load();
             foreach ($collection as $itemId => $item) {
                 $data[$itemId][$storeId] = $item;
@@ -1030,6 +1130,9 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
          */
         foreach ($items as $itemId => $itemByStore) {
             foreach ($this->_storeIdToCode as $storeId => $storeCode) {
+                if (!key_exists($storeId, $itemByStore)) {
+                    continue;
+                }
                 $item = $itemByStore[$storeId];
                 $additionalAttributes = [];
                 $productLinkId = $item->getData($this->getProductEntityLinkField());
@@ -1046,7 +1149,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
 
                     if ($this->_attributeTypes[$code] == 'datetime') {
                         if (in_array($code, $this->dateAttrCodes)
-                            || in_array($code, $this->userDefinedAttributes)
+                            || $this->attributeFrontendTypes[$code] === 'date'
                         ) {
                             $attrValue = $this->_localeDate->formatDateTime(
                                 new \DateTime($attrValue),
@@ -1066,7 +1169,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
 
                     if ($storeId != Store::DEFAULT_STORE_ID
                         && isset($data[$itemId][Store::DEFAULT_STORE_ID][$fieldName])
-                        && $data[$itemId][Store::DEFAULT_STORE_ID][$fieldName] == htmlspecialchars_decode($attrValue)
+                        && $data[$itemId][Store::DEFAULT_STORE_ID][$fieldName] == $attrValue
                     ) {
                         continue;
                     }
@@ -1077,7 +1180,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
                                 $additionalAttributes[$fieldName] = $fieldName .
                                     ImportProduct::PAIR_NAME_VALUE_SEPARATOR . $this->wrapValue($attrValue);
                             }
-                            $data[$itemId][$storeId][$fieldName] = htmlspecialchars_decode($attrValue);
+                            $data[$itemId][$storeId][$fieldName] = $attrValue;
                         }
                     } else {
                         $this->collectMultiselectValues($item, $code, $storeId);
@@ -1092,7 +1195,6 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
                 }
 
                 if (!empty($additionalAttributes)) {
-                    $additionalAttributes = array_map('htmlspecialchars_decode', $additionalAttributes);
                     $data[$itemId][$storeId][self::COL_ADDITIONAL_ATTRIBUTES] =
                         implode(Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR, $additionalAttributes);
                 } else {
@@ -1103,7 +1205,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
                 $data[$itemId][$storeId][self::COL_STORE] = $storeCode;
                 $data[$itemId][$storeId][self::COL_ATTR_SET] = $this->_attrSetIdToName[$attrSetId];
                 $data[$itemId][$storeId][self::COL_TYPE] = $item->getTypeId();
-                $data[$itemId][$storeId][self::COL_SKU] = htmlspecialchars_decode($item->getSku());
+                $data[$itemId][$storeId][self::COL_SKU] = $item->getSku();
                 $data[$itemId][$storeId]['store_id'] = $storeId;
                 $data[$itemId][$storeId]['product_id'] = $itemId;
                 $data[$itemId][$storeId]['product_link_id'] = $productLinkId;
@@ -1182,6 +1284,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
      * @param int $storeId
      * @return bool
      * @deprecated 100.2.3
+     * @see This protected method is not used anymore
      */
     protected function hasMultiselectData($item, $storeId)
     {
@@ -1410,6 +1513,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
      * Add multi row data to export
      *
      * @deprecated 100.1.0
+     * @see This protected method is not used anymore
      * @param array $dataRow
      * @param array $multiRawData
      * @return array
@@ -1640,6 +1744,7 @@ class Product extends \Magento\ImportExport\Model\Export\Entity\AbstractEntity
             $this->_attributeValues[$attribute->getAttributeCode()] = $this->getAttributeOptions($attribute);
             $this->_attributeTypes[$attribute->getAttributeCode()] =
                 \Magento\ImportExport\Model\Import::getAttributeType($attribute);
+            $this->attributeFrontendTypes[$attribute->getAttributeCode()] = $attribute->getFrontendInput();
             if ($attribute->getIsUserDefined()) {
                 $this->userDefinedAttributes[] = $attribute->getAttributeCode();
             }

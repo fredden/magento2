@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2014 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -160,7 +160,7 @@ class Stat
      * @param string|null $filterPattern
      * @return array
      */
-    public function getFilteredTimerIds(array $thresholds = null, $filterPattern = null)
+    public function getFilteredTimerIds(?array $thresholds = null, $filterPattern = null)
     {
         $timerIds = $this->_getOrderedTimerIds();
         if (!$thresholds && !$filterPattern) {
@@ -218,8 +218,10 @@ class Stat
             while (strpos($timerId, $prevTimerId . Profiler::NESTING_SEPARATOR) !== 0) {
                 /* Add to result all timers nested in the previous timer */
                 for ($j = $i + 1; $j < $numberTimerIds; $j++) {
-                    if (isset($timerIds[$j]) &&
-                        strpos($timerIds[$j], $prevTimerId . Profiler::NESTING_SEPARATOR) === 0) {
+                    if (!$timerIds[$j]) {
+                        continue;
+                    }
+                    if (strpos($timerIds[$j], $prevTimerId . Profiler::NESTING_SEPARATOR) === 0) {
                         $result[] = $timerIds[$j];
                         /* Mark timer as already added */
                         $timerIds[$j] = null;

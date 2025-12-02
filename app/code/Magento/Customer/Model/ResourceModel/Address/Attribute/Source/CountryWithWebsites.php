@@ -1,13 +1,11 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2016 Adobe
+ * All Rights Reserved.
  */
 
 /**
  * Customer country with website specified attribute source
- *
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 namespace Magento\Customer\Model\ResourceModel\Address\Attribute\Source;
 
@@ -120,16 +118,16 @@ class CountryWithWebsites extends Table
                 $allowedCountries = array_unique(array_merge([], ...$allowedCountries));
             } else {
                 // Address can be added only for the allowed country list.
-                $storeId = null;
+                $websiteId = null;
                 $customerId = $this->request->getParam('parent_id') ?? null;
                 if ($customerId) {
                     $customer = $this->customerRepository->getById($customerId);
-                    $storeId = $customer->getStoreId();
+                    $websiteId = $customer->getWebsiteId();
                 }
 
                 $allowedCountries = $this->allowedCountriesReader->getAllowedCountries(
                     ScopeInterface::SCOPE_WEBSITE,
-                    $storeId
+                    $websiteId
                 );
             }
 

@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2019 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -141,6 +141,14 @@ class OnAuthorization extends AbstractExpress implements HttpPostActionInterface
                 $this->_getCheckoutSession()->setLastOrderId($order->getId())
                     ->setLastRealOrderId($order->getIncrementId())
                     ->setLastOrderStatus($order->getStatus());
+
+                $this->_eventManager->dispatch(
+                    'checkout_submit_all_after',
+                    [
+                        'order' => $order,
+                        'quote' => $quote
+                    ]
+                );
 
                 $this->_eventManager->dispatch(
                     'paypal_express_place_order_success',

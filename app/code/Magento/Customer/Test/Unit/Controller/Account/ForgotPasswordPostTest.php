@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2015 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -147,6 +147,8 @@ class ForgotPasswordPostTest extends TestCase
             ->with('*/*/')
             ->willReturnSelf();
 
+        $this->session->expects($this->once())->method('destroy')->with(['send_expire_cookie']);
+
         $this->controller->execute();
     }
 
@@ -232,7 +234,7 @@ class ForgotPasswordPostTest extends TestCase
 
         $this->request = $this->getMockBuilder(\Magento\Framework\App\Request\Http::class)
             ->disableOriginalConstructor()
-            ->setMethods([
+            ->onlyMethods([
                 'getPost',
             ])
             ->getMock();

@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2022 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
 namespace Magento\Sales\Block\Adminhtml\Order\View;
 
-use Magento\Config\Model\Config\Factory;
+use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Store\Model\StoreManagerInterface;
@@ -52,21 +52,13 @@ class AddressInfoTest extends TestCase
     {
         $storeManager = $this->objectManager->get(StoreManagerInterface::class);
         $website = $storeManager->getWebsites(false, true)['base'];
-        $configData = [
-            'section' => 'customer',
-            'website' => $website->getId(),
-            'store' => null,
-            'groups' => [
-                'address' => [
-                    'fields' => [
-                        'company_show' => ['value' => ''],
-                    ],
-                ],
-            ],
-        ];
-        $configFactory = $this->objectManager->get(Factory::class);
-        $config = $configFactory->create(['data' => $configData]);
-        $config->save();
+        $config = $this->objectManager->get(ReinitableConfigInterface::class);
+        $config->setValue(
+            'customer/address/company_show',
+            'websites',
+            '',
+            $website->getId()
+        );
         $orderFixtureStore = $this->objectManager->create(Order::class)->loadByIncrementId('100000001');
         $address = $orderFixtureStore->getBillingAddress();
         self::assertStringContainsString('Test Company', $this->orderAddressRenderer->format($address, 'html'));
