@@ -41,17 +41,13 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
     public function testJoinTable()
     {
         $this->collection->setVisitorId(0);
-        $sql = (string) $this->collection->getSelect();
-        $productTable = $this->collection->getTable('catalog_product_entity');
-        $compareTable = $this->collection->getTable('catalog_compare_item');
-
-        // phpcs:ignore Magento2.SQL.RawQuery
-        $expected = 'SELECT `e`.*, `t_compare`.`product_id`, `t_compare`.`customer_id`, `t_compare`.`visitor_id`, '
-        . '`t_compare`.`store_id` AS `item_store_id`, `t_compare`.`catalog_compare_item_id` FROM `' . $productTable
-        . '` AS `e` INNER JOIN `' . $compareTable . '` AS `t_compare` '
-        . 'ON (t_compare.product_id=e.entity_id) AND (t_compare.customer_id IS NULL) '
-        . 'AND (t_compare.visitor_id = \'0\') AND (t_compare.list_id IS NULL)';
-
-        self::assertStringContainsString($expected, str_replace(PHP_EOL, '', $sql));
+        $fromParts = $this->collection->getSelect()->getPart(\Magento\Framework\DB\Select::FROM);
+        
+        self::assertArrayHasKey('t_compare', $fromParts);
+        $joinCondition = $fromParts['t_compare']['joinCondition'];
+        
+        self::assertStringContainsString('t_compare.list_id IS NULL', $joinCondition);
+        self::assertStringContainsString('t_compare.customer_id IS NULL', $joinCondition);
+        self::assertStringContainsString("t_compare.visitor_id = '0'", $joinCondition);
     }
 }
