@@ -32,7 +32,10 @@ class Renderer implements RendererInterface
         '/\/requirejs\/baseUrlResolver(\.min)?\.js$/',
         '/\/requirejs-map(\.min)?\.js$/',
         '#/(?:_cache|merged)/#',
-        '#/requirejs-min-resolver(\.min)?(\.[A-Za-z0-9]+)?\.js$#'
+        '#/requirejs-min-resolver(\.min)?(\.[A-Za-z0-9]+)?\.js$#',
+        '/\/static(\.min)?\.js$/',
+        '#/js/bundle/[^/]+(\.min)?(\.[A-Za-z0-9]+)?\.js$#',
+        '/\/sri(\.min)?\.js$/',
     ];
 
     /**
