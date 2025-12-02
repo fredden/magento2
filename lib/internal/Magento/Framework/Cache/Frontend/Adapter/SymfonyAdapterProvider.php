@@ -286,7 +286,7 @@ class SymfonyAdapterProvider
         // database isolation issues (e.g., layout cache clearing app cache).
         // phpredis can safely use connection pooling with proper database isolation.
         $usePhpRedis = extension_loaded('redis');
-        $connectionKey = $usePhpRedis 
+        $connectionKey = $usePhpRedis
             ? sprintf('redis:%s:%d:%d', $host, $port, $database)
             : sprintf('predis:%s:%d:%d:%s', $host, $port, $database, uniqid('', true));
 
@@ -424,10 +424,11 @@ class SymfonyAdapterProvider
      * @param int $port
      * @param string|null $password
      * @param int $database
-     * @param bool $persistent
+     * @param bool $persistent Intentionally unused - Predis doesn't support true persistence
      * @param float|null $timeout
      * @param float|null $readTimeout
      * @return mixed Predis client instance (type hint removed for PHPStan compatibility)
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     private function createPredisConnection(
         string $host,
