@@ -7,7 +7,7 @@
 -->
 
 <entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:mftf:DataGenerator/etc/dataProfileSchema.xsd">
+          xsi:noNamespaceSchemaLocation="urn:magento:mftf:DataGenerator/etc/dataProfileSchema.xsd">
     <entity name="productAttributeWysiwyg" type="ProductAttribute">
         <data key="attribute_code" unique="suffix">attribute</data>
         <data key="frontend_input">textarea</data>
@@ -312,10 +312,12 @@
     </entity>
     <entity name="dateProductAttribute" extends="productAttributeWysiwyg" type="ProductAttribute">
         <data key="frontend_input">date</data>
+        <data key="backend_type">datetime</data>
         <data key="is_required_admin">No</data>
     </entity>
     <entity name="DatetimeProductAttribute" extends="productAttributeWysiwyg" type="ProductAttribute">
         <data key="frontend_input">datetime</data>
+        <data key="backend_type">datetime</data>
         <data key="is_required_admin">No</data>
     </entity>
     <entity name="priceProductAttribute" extends="productAttributeWysiwyg" type="ProductAttribute">
@@ -324,6 +326,7 @@
     </entity>
     <entity name="dropdownProductAttribute" extends="productAttributeLayered" type="ProductAttribute">
         <data key="frontend_input">select</data>
+        <data key="backend_type">int</data>
         <data key="frontend_input_admin">Dropdown</data>
         <data key="is_required_admin">No</data>
         <data key="option1_admin" unique="suffix">opt1Admin</data>
@@ -449,6 +452,7 @@
     </entity>
     <entity name="dateAttributeWithNoProductSortListing" extends="productAttributeWysiwyg" type="ProductAttribute">
         <data key="frontend_input">date</data>
+        <data key="backend_type">datetime</data>
         <data key="used_for_sort_by">false</data>
     </entity>
     <entity name="yesNoAttributeWithNoProductSortListing" extends="productYesNoAttribute" type="ProductAttribute">
@@ -493,4 +497,3 @@
         <data key="option3">3</data>
     </entity>
 </entities>
-
