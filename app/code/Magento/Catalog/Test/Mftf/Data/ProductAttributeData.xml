@@ -307,6 +307,7 @@
     </entity>
     <entity name="textProductAttribute" extends="productAttributeWysiwyg" type="ProductAttribute">
         <data key="frontend_input">text</data>
+        <data key="backend_type">varchar</data>
         <data key="default_value" unique="suffix">defaultValue</data>
         <data key="is_required_admin">No</data>
     </entity>
