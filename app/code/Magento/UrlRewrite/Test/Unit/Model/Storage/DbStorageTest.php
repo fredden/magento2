@@ -619,7 +619,7 @@ class DbStorageTest extends TestCase
     }
 
     /**
-     * Test that invalid UTF-8 sequences are rejected to prevent collation errors
+     * Test that invalid UTF-8 sequences are handled gracefully by querying the database
      *
      * @param string $requestPath
      * @param string $description
@@ -633,12 +633,17 @@ class DbStorageTest extends TestCase
             UrlRewrite::STORE_ID => 1
         ];
 
-        // Database should never be queried for invalid paths
-        $this->connectionMock->expects($this->never())
-            ->method('fetchAll');
+        $this->connectionMock->method('quoteIdentifier')
+            ->willReturnArgument(0);
 
-        $this->connectionMock->expects($this->never())
-            ->method('fetchRow');
+        $this->select->method('where')
+            ->willReturnSelf();
+
+        // Database will be queried and return empty results
+        $this->connectionMock->expects($this->once())
+            ->method('fetchAll')
+            ->with($this->select)
+            ->willReturn([]);
 
         $result = $this->storage->findOneByData($data);
 
