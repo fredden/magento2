@@ -8,17 +8,22 @@ declare(strict_types=1);
 namespace Magento\UrlRewrite\Model\Storage;
 
 use Magento\Framework\App\ResourceConnection;
+use Magento\TestFramework\Fixture\AppIsolation;
+use Magento\TestFramework\Fixture\DataFixture;
+use Magento\TestFramework\Fixture\DbIsolation;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\UrlRewrite\Service\V1\Data\UrlRewrite;
 use Magento\UrlRewrite\Service\V1\Data\UrlRewriteFactory;
+use Magento\UrlRewrite\Test\Fixture\UrlRewrite as UrlRewriteFixture;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Integration test for DbStorage to verify UTF-8mb4 character support
- *
- * @magentoDbIsolation enabled
- * @magentoAppIsolation enabled
  */
+#[
+    AppIsolation(true),
+    DbIsolation(true)
+]
 class DbStorageTest extends TestCase
 {
     /**
@@ -71,9 +76,6 @@ class DbStorageTest extends TestCase
             $collation,
             'Table collation should be utf8mb4 or utf8'
         );
-
-        // Log the actual collation for debugging
-        echo "\nTable charset/collation: {$collation}\n";
     }
 
     /**
@@ -85,12 +87,41 @@ class DbStorageTest extends TestCase
      * 3. Returns correct results with emoji matching
      *
      * @dataProvider utf8mb4RequestPathDataProvider
-     * @magentoDataFixture Magento/UrlRewrite/_files/url_rewrite_with_utf8mb4.php
      * @param string $requestPath
      * @param string $expectedTargetPath
      * @param string $description
      * @return void
      */
+    #[
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'search/🔎/products', 'target_path' => 'catalog/search/results', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'celebrate/🎉', 'target_path' => 'cms/party', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'emoji/😀/happy', 'target_path' => 'cms/happiness', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'home/🏠', 'target_path' => 'cms/index/index', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'math/𝕳𝖊𝖑𝖑𝖔', 'target_path' => 'cms/math/hello', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'special/café', 'target_path' => 'cms/cafe', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'chinese/你好', 'target_path' => 'cms/hello', 'store_id' => 1]
+        )
+    ]
     public function testFindOneByDataWithUtf8mb4Characters(
         string $requestPath,
         string $expectedTargetPath,
@@ -128,12 +159,41 @@ class DbStorageTest extends TestCase
      * Test that 3-byte UTF-8 characters work in both utf8 and utf8mb4
      *
      * @dataProvider utf8RequestPathDataProvider
-     * @magentoDataFixture Magento/UrlRewrite/_files/url_rewrite_with_utf8mb4.php
      * @param string $requestPath
      * @param string $expectedTargetPath
      * @param string $description
      * @return void
      */
+    #[
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'search/🔎/products', 'target_path' => 'catalog/search/results', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'celebrate/🎉', 'target_path' => 'cms/party', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'emoji/😀/happy', 'target_path' => 'cms/happiness', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'home/🏠', 'target_path' => 'cms/index/index', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'math/𝕳𝖊𝖑𝖑𝖔', 'target_path' => 'cms/math/hello', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'special/café', 'target_path' => 'cms/cafe', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'chinese/你好', 'target_path' => 'cms/hello', 'store_id' => 1]
+        )
+    ]
     public function testFindOneByDataWith3ByteUtf8Characters(
         string $requestPath,
         string $expectedTargetPath,
@@ -208,9 +268,38 @@ class DbStorageTest extends TestCase
     /**
      * Test findAllByData with 4-byte UTF-8 characters
      *
-     * @magentoDataFixture Magento/UrlRewrite/_files/url_rewrite_with_utf8mb4.php
      * @return void
      */
+    #[
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'search/🔎/products', 'target_path' => 'catalog/search/results', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'celebrate/🎉', 'target_path' => 'cms/party', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'emoji/😀/happy', 'target_path' => 'cms/happiness', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'home/🏠', 'target_path' => 'cms/index/index', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'math/𝕳𝖊𝖑𝖑𝖔', 'target_path' => 'cms/math/hello', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'special/café', 'target_path' => 'cms/cafe', 'store_id' => 1]
+        ),
+        DataFixture(
+            UrlRewriteFixture::class,
+            ['request_path' => 'chinese/你好', 'target_path' => 'cms/hello', 'store_id' => 1]
+        )
+    ]
     public function testFindAllByDataWithUtf8mb4Characters(): void
     {
         // Check if database supports utf8mb4
@@ -302,4 +391,3 @@ class DbStorageTest extends TestCase
         ];
     }
 }
-

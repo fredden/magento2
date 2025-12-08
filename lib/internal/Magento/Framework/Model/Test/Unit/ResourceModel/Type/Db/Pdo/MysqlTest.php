@@ -8,20 +8,15 @@ declare(strict_types=1);
 namespace Magento\Framework\Model\Test\Unit\ResourceModel\Type\Db\Pdo;
 
 use Magento\Framework\DB\Adapter\Pdo\MysqlFactory;
+use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\DB\LoggerInterface;
 use Magento\Framework\DB\SelectFactory;
 use Magento\Framework\Model\ResourceModel\Type\Db\Pdo\Mysql;
-use Magento\Framework\Serialize\SerializerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class MysqlTest extends TestCase
 {
-    /**
-     * @var SerializerInterface|MockObject
-     */
-    private $serializerMock;
-
     /**
      * @var SelectFactory
      */
@@ -32,11 +27,16 @@ class MysqlTest extends TestCase
      */
     private $mysqlFactoryMock;
 
+    /**
+     * @var Table|MockObject
+     */
+    private $ddlTableMock;
+
     protected function setUp(): void
     {
-        $this->serializerMock = $this->getMockForAbstractClass(SerializerInterface::class);
         $this->selectFactoryMock = $this->createMock(SelectFactory::class);
         $this->mysqlFactoryMock = $this->createMock(MysqlFactory::class);
+        $this->ddlTableMock = $this->createMock(Table::class);
     }
 
     /**
@@ -50,7 +50,8 @@ class MysqlTest extends TestCase
 
         $object = new Mysql(
             $inputConfig,
-            $this->mysqlFactoryMock
+            $this->mysqlFactoryMock,
+            $this->ddlTableMock
         );
         $this->assertAttributeEquals($expectedConfig, 'connectionConfig', $object);
     }
@@ -63,7 +64,7 @@ class MysqlTest extends TestCase
         return [
             'default values' => [
                 ['host' => 'localhost'],
-                ['host' => 'localhost', 'initStatements' => 'SET NAMES utf8', 'type' => 'pdo_mysql', 'active' => false],
+                ['host' => 'localhost', 'type' => 'pdo_mysql', 'active' => false],
             ],
             'custom values' => [
                 ['host' => 'localhost', 'initStatements' => 'init statement', 'type' => 'type', 'active' => true],
@@ -71,19 +72,19 @@ class MysqlTest extends TestCase
             ],
             'active string true' => [
                 ['host' => 'localhost', 'active' => 'true'],
-                ['host' => 'localhost', 'initStatements' => 'SET NAMES utf8', 'type' => 'pdo_mysql', 'active' => true],
+                ['host' => 'localhost', 'type' => 'pdo_mysql', 'active' => true],
             ],
             'non-active string false' => [
                 ['host' => 'localhost', 'active' => 'false'],
-                ['host' => 'localhost', 'initStatements' => 'SET NAMES utf8', 'type' => 'pdo_mysql', 'active' => false],
+                ['host' => 'localhost', 'type' => 'pdo_mysql', 'active' => false],
             ],
             'non-active string 0' => [
                 ['host' => 'localhost', 'active' => '0'],
-                ['host' => 'localhost', 'initStatements' => 'SET NAMES utf8', 'type' => 'pdo_mysql', 'active' => false],
+                ['host' => 'localhost', 'type' => 'pdo_mysql', 'active' => false],
             ],
             'non-active bool false' => [
                 ['host' => 'localhost', 'active' => false],
-                ['host' => 'localhost', 'initStatements' => 'SET NAMES utf8', 'type' => 'pdo_mysql', 'active' => false],
+                ['host' => 'localhost', 'type' => 'pdo_mysql', 'active' => false],
             ],
         ];
     }
@@ -94,7 +95,8 @@ class MysqlTest extends TestCase
         $this->expectExceptionMessage('MySQL adapter: Missing required configuration option \'host\'');
         new Mysql(
             [],
-            $this->mysqlFactoryMock
+            $this->mysqlFactoryMock,
+            $this->ddlTableMock
         );
     }
 
@@ -105,6 +107,13 @@ class MysqlTest extends TestCase
             'Configuration array must have a key for \'dbname\' that names the database instance'
         );
         $config = ['host' => 'localhost', 'active' => false];
+        
+        // Mock DB\Ddl\Table to return utf8mb4 charset
+        $this->ddlTableMock->expects($this->once())
+            ->method('getOption')
+            ->with('charset')
+            ->willReturn('utf8mb4');
+        
         $this->mysqlFactoryMock->expects($this->once())
             ->method('create')
             ->willThrowException(
@@ -114,7 +123,8 @@ class MysqlTest extends TestCase
             );
         $object = new Mysql(
             $config,
-            $this->mysqlFactoryMock
+            $this->mysqlFactoryMock,
+            $this->ddlTableMock
         );
         $loggerMock = $this->getMockForAbstractClass(LoggerInterface::class);
         $this->assertNull($object->getConnection($loggerMock, $this->selectFactoryMock));

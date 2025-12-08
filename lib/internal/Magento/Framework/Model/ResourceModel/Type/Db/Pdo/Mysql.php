@@ -9,6 +9,7 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection\ConnectionAdapterInterface;
 use Magento\Framework\DB;
 use Magento\Framework\DB\Adapter\Pdo\MysqlFactory;
+use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\DB\SelectFactory;
 
 // @codingStandardsIgnoreStart
@@ -28,25 +29,38 @@ class Mysql extends \Magento\Framework\Model\ResourceModel\Type\Db implements
     private $mysqlFactory;
 
     /**
+     * @var Table
+     */
+    private $ddlTable;
+
+    /**
      * Constructor
      *
      * @param array $config
      * @param MysqlFactory|null $mysqlFactory
+     * @param Table|null $ddlTable
      */
     public function __construct(
         array $config,
-        ?MysqlFactory $mysqlFactory = null
+        ?MysqlFactory $mysqlFactory = null,
+        ?Table $ddlTable = null
     ) {
-        $this->connectionConfig = $this->getValidConfig($config);
         $this->mysqlFactory = $mysqlFactory ?: ObjectManager::getInstance()->get(MysqlFactory::class);
+        $this->ddlTable = $ddlTable ?: ObjectManager::getInstance()->get(Table::class);
+        $this->connectionConfig = $this->getValidConfig($config);
         parent::__construct();
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function getConnection(?DB\LoggerInterface $logger = null, ?SelectFactory $selectFactory = null)
     {
+        // Set charset based on database version if not already configured
+        if (!isset($this->connectionConfig['initStatements'])) {
+            $this->connectionConfig['initStatements'] = $this->getDefaultInitStatements();
+        }
+        
         $connection = $this->getDbConnectionInstance($logger, $selectFactory);
 
         $profiler = $connection->getProfiler();
@@ -119,5 +133,24 @@ class Mysql extends \Magento\Framework\Model\ResourceModel\Type\Db implements
         );
 
         return $config;
+    }
+
+    /**
+     * Get default initStatements based on database charset
+     *
+     * Uses DB\Ddl\Table::getOption('charset') to get charset
+     * based on database version (same as table creation)
+     *
+     * @return string
+     */
+    private function getDefaultInitStatements(): string
+    {
+        try {
+            $charset = $this->ddlTable->getOption('charset');
+            return "SET NAMES {$charset}";
+        } catch (\Exception $e) {
+            // Fallback to utf8 if detection fails
+            return 'SET NAMES utf8';
+        }
     }
 }
