@@ -229,7 +229,8 @@ class CreateTest extends TestCase
      */
     public function testBeforeToHtmlSetsCorrectUrlInConfig(): void
     {
-        $expectedUrl = 'http://example.com/catalog/product_attribute/new?group=general&store=1&product=5&type=simple&popup=1';
+        $expectedUrl = 'http://example.com/catalog/product_attribute/new'
+            . '?group=general&store=1&product=5&type=simple&popup=1';
         $groupCode = 'general';
         $storeId = '1';
         $productId = '5';
@@ -399,4 +400,3 @@ class CreateTest extends TestCase
         $this->assertSame($expectedHtml, $result);
     }
 }
-

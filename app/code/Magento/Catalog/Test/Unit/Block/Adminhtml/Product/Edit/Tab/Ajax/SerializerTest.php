@@ -307,4 +307,3 @@ class SerializerTest extends TestCase
         $this->block->getProductsJSON();
     }
 }
-
