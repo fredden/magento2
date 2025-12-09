@@ -43,7 +43,7 @@ class Mysql extends \Magento\Framework\Model\ResourceModel\Type\Db implements
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function getConnection(?DB\LoggerInterface $logger = null, ?SelectFactory $selectFactory = null)
     {
