@@ -39,6 +39,7 @@ class OrdersTest extends GraphQlAbstract
 query {
   customerOrders {
     items {
+      number
       order_number
       grand_total
       status
@@ -53,26 +54,31 @@ QUERY;
 
         $expectedData = [
             [
+                'number' => '100000002',
                 'order_number' => '100000002',
                 'status' => 'processing',
                 'grand_total' => 120.00
             ],
             [
+                'number' => '100000003',
                 'order_number' => '100000003',
                 'status' => 'processing',
                 'grand_total' => 130.00
             ],
             [
+                'number' => '100000004',
                 'order_number' => '100000004',
                 'status' => 'closed',
                 'grand_total' => 140.00
             ],
             [
+                'number' => '100000005',
                 'order_number' => '100000005',
                 'status' => 'complete',
                 'grand_total' => 150.00
             ],
             [
+                'number' => '100000006',
                 'order_number' => '100000006',
                 'status' => 'complete',
                 'grand_total' => 160.00
@@ -82,6 +88,11 @@ QUERY;
         $actualData = $response['customerOrders']['items'];
 
         foreach ($expectedData as $key => $data) {
+            $this->assertEquals(
+                $data['number'],
+                $actualData[$key]['number'],
+                "number is different than the expected for order - " . $data['number']
+            );
             $this->assertEquals(
                 $data['order_number'],
                 $actualData[$key]['order_number'],
