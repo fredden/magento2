@@ -156,7 +156,7 @@ class DbStorageTest extends TestCase
     }
 
     /**
-     * Test that 3-byte UTF-8 characters work in both utf8 and utf8mb4
+     * Test that utf8mb3 characters work in both utf8 and utf8mb4
      *
      * @dataProvider utf8RequestPathDataProvider
      * @param string $requestPath
@@ -194,7 +194,7 @@ class DbStorageTest extends TestCase
             ['request_path' => 'chinese/你好', 'target_path' => 'cms/hello', 'store_id' => 1]
         )
     ]
-    public function testFindOneByDataWith3ByteUtf8Characters(
+    public function testFindOneByDataWithUtf8mb3Characters(
         string $requestPath,
         string $expectedTargetPath,
         string $description
