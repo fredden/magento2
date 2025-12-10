@@ -13,6 +13,8 @@ use Magento\TestFramework\TestCase\GraphQlAbstract;
 use Magento\TestFramework\Helper\Bootstrap;
 
 /**
+ * Webapi functional test for customerOrders graphql query
+ *
  * Class OrdersTest
  */
 class OrdersTest extends GraphQlAbstract
