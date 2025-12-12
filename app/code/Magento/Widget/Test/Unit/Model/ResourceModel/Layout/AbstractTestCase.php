@@ -69,17 +69,10 @@ abstract class AbstractTestCase extends TestCase
         $connection->expects($this->once())->method('select')->willReturn($select);
         $connection->expects($this->any())->method('quoteIdentifier')->willReturnArgument(0);
 
-        $resource = $this->getMockForAbstractClass(
-            AbstractDb::class,
-            [],
-            '',
-            false,
-            true,
-            true,
-            ['getConnection', 'getMainTable', 'getTable', '__wakeup']
-        );
+        $resource = $this->createMock(AbstractDb::class);
         $resource->expects($this->any())->method('getConnection')->willReturn($connection);
         $resource->expects($this->any())->method('getTable')->willReturnArgument(0);
+        $resource->expects($this->any())->method('getMainTable')->willReturn('main_table');
 
         return $resource;
     }

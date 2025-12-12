@@ -13,9 +13,12 @@ use Magento\Widget\Block\Adminhtml\Widget\Instance\Edit\Tab\Properties;
 use Magento\Widget\Model\Widget\Instance;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class PropertiesTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var MockObject
      */
@@ -36,21 +39,36 @@ class PropertiesTest extends TestCase
         $this->widget = $this->createMock(Instance::class);
         $this->registry = $this->createMock(Registry::class);
 
-        $objectManager = new ObjectManager($this);
-        $this->propertiesBlock = $objectManager->getObject(
+        // Use mock instead of ObjectManager::getObject to avoid ObjectManager initialization issues
+        $this->propertiesBlock = $this->createPartialMockWithReflection(
             Properties::class,
-            [
-                'registry' => $this->registry
-            ]
+            ['isHidden', 'getWidgetInstance']
         );
+        
+        // Override isHidden to use the actual implementation by returning the widget from registry
+        $this->propertiesBlock = $this->getMockBuilder(Properties::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['_construct'])
+            ->getMock();
+        
+        // Inject registry via reflection
+        $reflection = new \ReflectionClass($this->propertiesBlock);
+        $parent = $reflection->getParentClass();
+        while ($parent && !$parent->hasProperty('_coreRegistry')) {
+            $parent = $parent->getParentClass();
+        }
+        if ($parent) {
+            $property = $parent->getProperty('_coreRegistry');
+            $property->setAccessible(true);
+            $property->setValue($this->propertiesBlock, $this->registry);
+        }
     }
 
     /**
      * @param array $widgetConfig
      * @param boolean $isHidden
-     *
-     * @dataProvider isHiddenDataProvider
      */
+    #[DataProvider('isHiddenDataProvider')]
     public function testIsHidden($widgetConfig, $isHidden)
     {
         $this->widget->expects($this->atLeastOnce())->method('getWidgetConfigAsArray')->willReturn($widgetConfig);

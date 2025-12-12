@@ -128,8 +128,7 @@ abstract class AbstractContainerTestCase extends TestCase
         $this->contextMock->expects($this->once())->method('getScopeConfig')->willReturn($this->scopeConfigMock);
         $this->contextMock->expects($this->once())->method('getEscaper')->willReturn($this->escaperMock);
 
-        $this->pageLayoutConfigBuilderMock = $this->getMockBuilder(PageLayoutConfigBuilder::class)
-            ->getMockForAbstractClass();
+        $this->pageLayoutConfigBuilderMock = $this->createMock(PageLayoutConfigBuilder::class);
         $pageLayoutConfigMock = $this->getMockBuilder(PageLayoutConfig::class)
             ->onlyMethods(['getPageLayouts'])
             ->disableOriginalConstructor()
