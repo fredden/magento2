@@ -462,12 +462,8 @@ class Symfony implements FrontendInterface
                 if ($this->isTagAware()) {
                     $success = $cache->invalidateTags($tagsToInvalidate);
                     
-                    // CRITICAL: Commit invalidation immediately and clear internal cache state
                     if (method_exists($cache, 'commit')) {
                         $cache->commit();
-                    }
-                    if (method_exists($cache, 'prune')) {
-                        $cache->prune();
                     }
                     
                     return $success;
@@ -478,12 +474,8 @@ class Symfony implements FrontendInterface
                 if ($this->isTagAware()) {
                     $success = $cache->invalidateTags($cleanTags);
                     
-                    // CRITICAL: Commit invalidation immediately and clear internal cache state
                     if (method_exists($cache, 'commit')) {
                         $cache->commit();
-                    }
-                    if (method_exists($cache, 'prune')) {
-                        $cache->prune();
                     }
                     
                     return $success;
@@ -620,13 +612,8 @@ class Symfony implements FrontendInterface
         if ($this->isTagAware()) {
             $success = $cache->invalidateTags($cleanTags);
             
-            // CRITICAL: Commit invalidation immediately and clear internal cache state
-            // This ensures invalidated entries are not returned by subsequent getItem() calls
             if (method_exists($cache, 'commit')) {
                 $cache->commit();
-            }
-            if (method_exists($cache, 'prune')) {
-                $cache->prune();
             }
             
             return $success;
