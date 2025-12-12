@@ -9,12 +9,12 @@ namespace Magento\Email\Test\Unit\Block\Adminhtml\Template\Edit;
 
 use Magento\Email\Block\Adminhtml\Template\Edit\Form;
 use Magento\Email\Model\Template;
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Variable\Model\Source\Variables;
 use Magento\Variable\Model\Variable;
 use Magento\Variable\Model\VariableFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 /**
  * @covers \Magento\Email\Block\Adminhtml\Template\Edit\Form
@@ -54,14 +54,21 @@ class FormTest extends TestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['getId', 'getVariablesOptionArray'])
             ->getMock();
-        $objectManager = new ObjectManager($this);
-        $this->form = $objectManager->getObject(
-            Form::class,
-            [
-                'variableFactory' => $this->variableFactoryMock,
-                'variables' => $this->variablesMock
-            ]
-        );
+
+        // Create Form mock without invoking constructor to avoid ObjectManager dependency
+        $this->form = $this->getMockBuilder(Form::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods([])
+            ->getMock();
+
+        // Inject dependencies via reflection (properties use underscore prefix)
+        $reflection = new ReflectionClass(Form::class);
+
+        $variableFactoryProperty = $reflection->getProperty('_variableFactory');
+        $variableFactoryProperty->setValue($this->form, $this->variableFactoryMock);
+
+        $variablesProperty = $reflection->getProperty('_variables');
+        $variablesProperty->setValue($this->form, $this->variablesMock);
     }
 
     /**
