@@ -150,6 +150,7 @@ class OptionsTest extends TestCase
     {
         $this->layoutMock->method('createBlock')
             ->willReturnCallback(function ($class, $name) {
+                unset($class);
                 if (str_contains($name, 'add_button')) {
                     return $this->addButtonMock;
                 } elseif (str_contains($name, 'options_box')) {
