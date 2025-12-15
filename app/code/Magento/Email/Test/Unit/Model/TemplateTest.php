@@ -61,6 +61,7 @@ class TemplateTest extends TestCase
     /**
      * @var Registry|MockObject
      * @deprecated since 2.3.0 in favor of stateful global objects elimination.
+     * @see \Magento\Framework\Registry
      */
     private $registry;
 
@@ -283,7 +284,7 @@ class TemplateTest extends TestCase
             ->willReturn($filterTemplate);
         $designConfig = $this->createPartialMockWithReflection(DataObject::class, ['getStore']);
 
-        $model = $this->getModelMock(['getDesignConfig'],['getUseAbsoluteLinks']);
+        $model = $this->getModelMock(['getDesignConfig'], ['getUseAbsoluteLinks']);
         $model->expects($this->once())
             ->method('getDesignConfig')
             ->willReturn($designConfig);
@@ -502,7 +503,7 @@ class TemplateTest extends TestCase
     #[DataProvider('isValidForSendDataProvider')]
     public function testIsValidForSend($senderName, $senderEmail, $templateSubject, $expectedValue)
     {
-        $model = $this->getModelMock([],['getSenderName', 'getSenderEmail', 'getTemplateSubject']);
+        $model = $this->getModelMock([], ['getSenderName', 'getSenderEmail', 'getTemplateSubject']);
         $model->expects($this->any())
             ->method('getSenderName')
             ->willReturn($senderName);

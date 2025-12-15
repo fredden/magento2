@@ -15,6 +15,9 @@ use PHPUnit\Framework\TestCase;
 
 class CountryTest extends TestCase
 {
+    /**
+     * @var Country
+     */
     protected $country;
 
     /**

@@ -31,6 +31,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
  */
 class PreviewTest extends TestCase
 {
@@ -41,7 +42,7 @@ class PreviewTest extends TestCase
      */
     protected $objectManagerHelper;
 
-    const MALICIOUS_TEXT = 'test malicious';
+    protected const MALICIOUS_TEXT = 'test malicious';
 
     /**
      * @var Http|MockObject

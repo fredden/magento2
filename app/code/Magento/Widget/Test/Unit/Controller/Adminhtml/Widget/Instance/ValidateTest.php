@@ -30,6 +30,10 @@ use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 class ValidateTest extends TestCase
 {
     use MockCreationTrait;
+
+    /**
+     * @var string
+     */
     private $errorMessage = 'We cannot create the widget instance because it is missing required information.';
 
     /**

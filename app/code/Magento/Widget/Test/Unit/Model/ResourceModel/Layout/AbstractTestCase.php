@@ -20,12 +20,12 @@ abstract class AbstractTestCase extends TestCase
     /**
      * Test 'where' condition for assertion
      */
-    const TEST_WHERE_CONDITION = 'condition = 1';
+    protected const TEST_WHERE_CONDITION = 'condition = 1';
 
     /**
      * Test interval in days
      */
-    const TEST_DAYS_BEFORE = 3;
+    protected const TEST_DAYS_BEFORE = 3;
 
     /**
      * @var Collection

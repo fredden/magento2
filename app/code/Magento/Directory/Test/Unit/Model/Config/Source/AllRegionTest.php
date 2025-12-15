@@ -90,14 +90,10 @@ class AllRegionTest extends TestCase
     public function testToOptionArray($isMultiselect, $countries, $regions, $expectedResult)
     {
         $newRegions = [];
-        foreach ($regions as $region)
-        {
-            if(is_callable($region))
-            {
+        foreach ($regions as $region) {
+            if (is_callable($region)) {
                 $newRegions[] = $region($this);
-            }
-            else
-            {
+            } else {
                 $newRegions[] = $region;
             }
         }

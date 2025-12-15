@@ -34,7 +34,7 @@ class CurrencysymbolTest extends TestCase
 {
     use MockCreationTrait;
     /**
-     * Object manager helper
+     * Object manager for the test
      *
      * @var ObjectManager
      */

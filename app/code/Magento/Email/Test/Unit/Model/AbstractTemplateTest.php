@@ -172,7 +172,8 @@ class AbstractTemplateTest extends TestCase
         if (!empty($data)) {
             foreach ($data as $key => $value) {
                 $mock->setData($key, $value);
-                // If 'area' is in data, also inject it as a property since setForcedArea checks the private $area property
+                // If 'area' is in data, also inject it as a property since
+                // setForcedArea checks the private $area property
                 if ($key === 'area') {
                     $this->setPropertyValue($reflection, $mock, 'area', $value);
                 }

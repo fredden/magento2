@@ -23,7 +23,7 @@ class CollectionTest extends AbstractTestCase
     /**
      * Name of test table
      */
-    const TEST_TABLE = 'layout_update';
+    protected const TEST_TABLE = 'layout_update';
 
     /**
      * Name of main table alias
