@@ -14,24 +14,9 @@ use Magento\Framework\Registry;
 class MenuCategoryData
 {
     /**
-     * @var CategoryHelper
-     */
-    protected $catalogCategory;
-
-    /**
      * @var Layer
      */
     private $catalogLayer = null;
-
-    /**
-     * @var Resolver
-     */
-    protected $layerResolver;
-
-    /**
-     * @var Registry
-     */
-    protected $registry;
 
     /**
      * @param CategoryHelper $catalogCategory
@@ -39,13 +24,10 @@ class MenuCategoryData
      * @param Registry $registry
      */
     public function __construct(
-        CategoryHelper $catalogCategory,
-        Resolver $layerResolver,
-        Registry $registry
+        private readonly CategoryHelper $catalogCategory,
+        private readonly Resolver $layerResolver,
+        private readonly Registry $registry,
     ) {
-        $this->catalogCategory = $catalogCategory;
-        $this->layerResolver = $layerResolver;
-        $this->registry = $registry;
     }
 
     /**
@@ -82,7 +64,7 @@ class MenuCategoryData
      * @param Category $category
      * @return bool
      */
-    protected function hasActive(Category $category): bool
+    private function hasActive(Category $category): bool
     {
         $catalogLayer = $this->getCatalogLayer();
         if (!$catalogLayer) {
