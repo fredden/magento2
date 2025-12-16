@@ -15,6 +15,7 @@ use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\GenericTagAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\RedisTagAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\TagAdapterInterface;
 use Magento\Framework\Filesystem;
+use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
 use Magento\Framework\Serialize\Serializer\Serialize;
 use Predis\Client as PredisClient;
 use Psr\Cache\CacheItemPoolInterface;
@@ -42,9 +43,14 @@ use Symfony\Component\Cache\Marshaller\DefaultMarshaller;
  * - Optimized string operations
  * - Lazy initialization where possible
  *
+ * Application Server Support:
+ * - Implements ResetAfterRequestInterface for proper state management
+ * - Clears connection pool between Swoole worker requests
+ * - Prevents stale connection reuse and state pollution
+ *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class SymfonyAdapterProvider
+class SymfonyAdapterProvider implements ResetAfterRequestInterface
 {
     /**
      * @var Filesystem
@@ -112,6 +118,24 @@ class SymfonyAdapterProvider
         $this->filesystem = $filesystem;
         $this->resource = $resource;
         $this->serializer = $serializer;
+    }
+
+    /**
+     * Reset state for Application Server (Swoole) request handling
+     *
+     * Called by ObjectManager::_resetState() between HTTP requests in Application Server mode.
+     * Clears connection pool to prevent stale connections and state pollution across requests.
+     *
+     * CRITICAL: Without this, connection pooling causes:
+     * - Stale Redis/Memcached connections reused across requests
+     * - Corrupted cache state (e.g., "Undefined array key 'data'" in Initial.php)
+     * - GraphQL 500 errors under load (createEmptyCart, setBillingAddressOnCart, etc.)
+     *
+     * @return void
+     */
+    public function _resetState(): void
+    {
+        $this->connectionPool = [];
     }
 
     /**
@@ -472,12 +496,12 @@ class SymfonyAdapterProvider
         $options = [];
 
         $client = new PredisClient($connectionParams, $options);
-        
+
         // Explicitly select the database to ensure proper isolation
         // This is critical for multi-database setups (app cache, layout cache, etc.)
         // Even though database is in connectionParams, explicit SELECT ensures it's active
         $client->select($database);
-        
+
         return $client;
     }
 

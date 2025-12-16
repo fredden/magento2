@@ -45,17 +45,17 @@ class Symfony implements FrontendInterface
      * Default cache ID prefix (must match Factory configuration)
      */
     public const DEFAULT_CACHE_PREFIX = '69d_';
-    
+
     /**
      * Default cache lifetime in seconds (2 hours)
      */
     public const DEFAULT_LIFETIME = 7200;
-    
+
     /**
      * Fallback expiry for items without explicit lifetime (24 hours)
      */
     public const FALLBACK_EXPIRY = 86400;
-    
+
     /**
      * Assumed lifetime for mtime calculation (2 hours)
      * Used when calculating modification time from expiry timestamp
@@ -119,7 +119,7 @@ class Symfony implements FrontendInterface
         $this->cache = $cacheFactory();
         $this->defaultLifetime = $defaultLifetime;
         $this->idPrefix = $idPrefix;
-        
+
         // Use provided adapter or create generic fallback
         $this->adapter = $adapter ?? new GenericTagAdapter($this->cache);
     }
@@ -132,7 +132,7 @@ class Symfony implements FrontendInterface
     private function getCache(): CacheItemPoolInterface
     {
         $currentPid = getmypid();
-        
+
         if ($currentPid !== $this->pid) {
             // Fork detected - create new cache pool
             $this->parentCachePools[] = $this->cache; // Prevent destruction
@@ -140,7 +140,7 @@ class Symfony implements FrontendInterface
             $this->pid = $currentPid;
             $this->isTagAware = null; // Reset cache
         }
-        
+
         return $this->cache;
     }
 
@@ -168,10 +168,10 @@ class Symfony implements FrontendInterface
         if ($identifier === null) {
             return null;
         }
-        
+
         // Uppercase to match Zend's _unifyId behavior
         $identifier = strtoupper($identifier);
-        
+
         // Replace periods and invalid characters
         $cleaned = str_replace('.', '__', $identifier);
         return preg_replace('/[^a-zA-Z0-9_]/', '_', $cleaned);
@@ -195,18 +195,18 @@ class Symfony implements FrontendInterface
     {
         $cache = $this->getCache();
         $item = $cache->getItem($this->cleanIdentifier($identifier));
-        
+
         if (!$item->isHit()) {
             return false;
         }
-        
+
         $value = $item->get();
-        
+
         // Return stored mtime from wrapper for consistent timestamps
         if (is_array($value) && isset($value['mtime'])) {
             return (int)$value['mtime'];
         }
-        
+
         // OPTIMIZATION: For unwrapped data (fast path), return current time
         // This matches Zend behavior for cache entries without metadata
         return time();
@@ -219,20 +219,20 @@ class Symfony implements FrontendInterface
     {
         $cache = $this->getCache();
         $item = $cache->getItem($this->cleanIdentifier($identifier));
-        
+
         if (!$item->isHit()) {
             return false;
         }
-        
+
         $wrappedData = $item->get();
-        
+
         // Unwrap data from metadata wrapper
         // CRITICAL: Use array_key_exists instead of isset for 'data' key
         // because isset returns false when value is null!
         if (is_array($wrappedData) && array_key_exists('data', $wrappedData)) {
             return $wrappedData['data'];
         }
-        
+
         // Fallback for non-wrapped data (shouldn't happen)
         return $wrappedData;
     }
@@ -247,33 +247,33 @@ class Symfony implements FrontendInterface
         $cache = $this->getCache();
         $cleanId = $this->cleanIdentifier($identifier);
         $item = $cache->getItem($cleanId);
-        
+
         // Calculate actual lifetime to use
         $actualLifetime = $this->calculateActualLifetime($lifeTime);
-        
+
         // Clean tags once for reuse
         $cleanTags = !empty($tags) ? $this->cleanIdentifiers($tags) : [];
-        
+
         // OPTIMIZATION: Conditional metadata wrapping
         $needsMetadata = !empty($cleanTags) || ($actualLifetime !== $this->defaultLifetime);
-        
+
         if ($needsMetadata) {
             $this->prepareItemWithMetadata($item, $data, $cleanTags, $actualLifetime);
         } else {
             // FAST PATH: Store data directly without metadata wrapper
             $item->set($data);
         }
-        
+
         // Set expiration on Symfony item
         if ($actualLifetime !== null) {
             $item->expiresAfter($actualLifetime);
         }
-        
+
         $success = $cache->save($item);
-        
+
         // Commit and notify helpers
         $this->commitAndNotify($cache, $success, $cleanId, $cleanTags);
-        
+
         return $success;
     }
 
@@ -288,12 +288,12 @@ class Symfony implements FrontendInterface
         if ($lifeTime !== null && $lifeTime !== false && $lifeTime !== 0) {
             return (int)$lifeTime;
         }
-        
+
         if ($lifeTime === 0 || $lifeTime === false) {
             // 0 or false means use default in Zend behavior
             return $this->defaultLifetime;
         }
-        
+
         return $this->defaultLifetime;
     }
 
@@ -310,16 +310,16 @@ class Symfony implements FrontendInterface
     private function prepareItemWithMetadata($item, $data, array $cleanTags, ?int $actualLifetime): void
     {
         $now = time();
-        
+
         // Get enhanced tags (including namespace tags if applicable)
         $tagsToSet = $cleanTags;
         if ($this->adapter instanceof GenericTagAdapter && !empty($cleanTags)) {
             $tagsToSet = $this->adapter->getTagsForSave($cleanTags);
         }
-        
+
         // Calculate expiry timestamp (for Zend compatibility)
         $expiry = $actualLifetime !== null ? ($now + $actualLifetime) : null;
-        
+
         // Wrap data with metadata for consistent timestamps
         $wrappedData = [
             'data' => $data,
@@ -327,9 +327,9 @@ class Symfony implements FrontendInterface
             'expire' => $expiry,
             'tags' => array_values(array_unique($tagsToSet))
         ];
-        
+
         $item->set($wrappedData);
-        
+
         // Handle tags
         if ($this->isTagAware() && !empty($tagsToSet)) {
             $item->tag($tagsToSet);
@@ -351,11 +351,11 @@ class Symfony implements FrontendInterface
         if ($success && method_exists($cache, 'commit')) {
             $cache->commit();
         }
-        
+
         // Notify helper about the save (for Redis/Filesystem to maintain indices)
         if ($success && !empty($cleanTags)) {
             $this->adapter->onSave($cleanId, $cleanTags);
-            
+
             // For Redis, also store reverse index
             if (method_exists($this->adapter, 'storeReverseIndex')) {
                 $this->adapter->storeReverseIndex($cleanId, $cleanTags);
@@ -370,10 +370,10 @@ class Symfony implements FrontendInterface
     {
         $cache = $this->getCache();
         $cleanId = $this->cleanIdentifier($identifier);
-        
+
         // Notify helper before removal (for index cleanup)
         $this->adapter->onRemove($cleanId);
-        
+
         return $cache->deleteItem($cleanId);
     }
 
@@ -390,25 +390,25 @@ class Symfony implements FrontendInterface
             CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG,
             CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG
         ];
-        
+
         if (!in_array($mode, $validModes, true)) {
             throw new InvalidArgumentException(
                 "Invalid cleaning mode '{$mode}'. Supported modes: " .
                 "ALL, OLD, MATCHING_TAG, NOT_MATCHING_TAG, MATCHING_ANY_TAG"
             );
         }
-        
+
         $cache = $this->getCache();
-        
+
         return match ($mode) {
             CacheConstants::CLEANING_MODE_ALL, 'all' => $this->cleanAll($cache),
             CacheConstants::CLEANING_MODE_OLD, 'old' => $this->cleanOld($cache),
             CacheConstants::CLEANING_MODE_MATCHING_TAG, 'matchingTag' =>
-                $this->cleanMatchingTag($cache, $tags),
+            $this->cleanMatchingTag($cache, $tags),
             CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG, 'notMatchingTag' =>
-                $this->cleanNotMatchingTag($cache, $tags),
+            $this->cleanNotMatchingTag($cache, $tags),
             CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, 'matchingAnyTag' =>
-                $this->cleanMatchingAnyTag($cache, $tags),
+            $this->cleanMatchingAnyTag($cache, $tags),
             default => throw new InvalidArgumentException("Unsupported cleaning mode: {$mode}")
         };
     }
@@ -452,20 +452,24 @@ class Symfony implements FrontendInterface
         if (empty($tags)) {
             return true;
         }
-        
+
         $cleanTags = $this->cleanIdentifiers($tags);
-        
+
         // For GenericHelper with namespace tags, use the namespace tag
         if ($this->adapter instanceof GenericTagAdapter) {
             if ($this->adapter->usesNamespaceTags()) {
                 $tagsToInvalidate = $this->adapter->getTagsForMatchingTag($cleanTags);
                 if ($this->isTagAware()) {
                     $success = $cache->invalidateTags($tagsToInvalidate);
-                    
+
+                    // CRITICAL: Commit invalidation immediately and clear internal cache state
                     if (method_exists($cache, 'commit')) {
                         $cache->commit();
                     }
-                    
+                    if (method_exists($cache, 'prune')) {
+                        $cache->prune();
+                    }
+
                     return $success;
                 }
                 return false;
@@ -473,24 +477,28 @@ class Symfony implements FrontendInterface
                 // For non-FPC generic adapters, use OR logic (best we can do)
                 if ($this->isTagAware()) {
                     $success = $cache->invalidateTags($cleanTags);
-                    
+
+                    // CRITICAL: Commit invalidation immediately and clear internal cache state
                     if (method_exists($cache, 'commit')) {
                         $cache->commit();
                     }
-                    
+                    if (method_exists($cache, 'prune')) {
+                        $cache->prune();
+                    }
+
                     return $success;
                 }
                 return false;
             }
         }
-        
+
         // For Redis/Filesystem helpers with native AND support
         $ids = $this->adapter->getIdsMatchingTags($cleanTags);
-        
+
         if (empty($ids)) {
             return true;
         }
-        
+
         return $this->adapter->deleteByIds($ids);
     }
 
@@ -507,14 +515,14 @@ class Symfony implements FrontendInterface
             // No tags means clean all
             return $this->cleanAll($cache);
         }
-        
+
         $cleanTags = $this->cleanIdentifiers($tags);
         $ids = $this->adapter->getIdsNotMatchingTags($cleanTags);
-        
+
         if (empty($ids)) {
             return true;
         }
-        
+
         return $this->adapter->deleteByIds($ids);
     }
 
@@ -528,15 +536,15 @@ class Symfony implements FrontendInterface
     {
         $cache = $this->getCache();
         $cleanId = $this->cleanIdentifier($id);
-        
+
         $item = $cache->getItem($cleanId);
-        
+
         if (!$item->isHit()) {
             return false;
         }
-        
+
         $wrappedData = $item->get();
-        
+
         // Return stored metadata from wrapper
         if (is_array($wrappedData) && isset($wrappedData['mtime'])) {
             // Add cache ID prefix to tags (to match Zend behavior)
@@ -544,39 +552,39 @@ class Symfony implements FrontendInterface
             $tags = array_values(array_map(function ($tag) {
                 return self::DEFAULT_CACHE_PREFIX . $tag;
             }, $storedTags));
-            
+
             return [
                 'expire' => $wrappedData['expire'] ?? null,
                 'tags' => $tags,
                 'mtime' => $wrappedData['mtime'],
             ];
         }
-        
+
         // Fallback for non-wrapped data (shouldn't happen)
         // Calculate metadata from Symfony metadata
         $metadata = $item->getMetadata();
-        
+
         // Get expiry timestamp from Symfony metadata
         $expiry = null;
         if (isset($metadata[CacheItem::METADATA_EXPIRY])) {
             $expiry = (int) $metadata[CacheItem::METADATA_EXPIRY];
         }
-        
+
         // If no expiry, default to now + 24 hours
         if (!$expiry) {
             $expiry = time() + self::FALLBACK_EXPIRY;
         }
-        
+
         // Calculate mtime from expiry (Symfony doesn't store creation time)
         // Use ASSUMED_LIFETIME for approximation: mtime ≈ expiry - lifetime
         $mtime = $expiry - self::ASSUMED_LIFETIME;
-        
+
         // Ensure mtime is not in the future
         $now = time();
         if ($mtime > $now) {
             $mtime = $now;
         }
-        
+
         // Get tags from metadata and add cache ID prefix
         $tags = [];
         if (isset($metadata[CacheItem::METADATA_TAGS])) {
@@ -585,7 +593,7 @@ class Symfony implements FrontendInterface
                 return self::DEFAULT_CACHE_PREFIX . $tag;
             }, $rawTags));
         }
-        
+
         return [
             'expire' => $expiry,
             'tags' => $tags,
@@ -605,27 +613,32 @@ class Symfony implements FrontendInterface
         if (empty($tags)) {
             return true;
         }
-        
+
         $cleanTags = $this->cleanIdentifiers($tags);
-        
+
         // Try Symfony's native invalidateTags first (OR logic)
         if ($this->isTagAware()) {
             $success = $cache->invalidateTags($cleanTags);
-            
+
+            // CRITICAL: Commit invalidation immediately and clear internal cache state
+            // This ensures invalidated entries are not returned by subsequent getItem() calls
             if (method_exists($cache, 'commit')) {
                 $cache->commit();
             }
-            
+            if (method_exists($cache, 'prune')) {
+                $cache->prune();
+            }
+
             return $success;
         }
-        
+
         // Fallback: use helper
         $ids = $this->adapter->getIdsMatchingAnyTags($cleanTags);
-        
+
         if (empty($ids)) {
             return true;
         }
-        
+
         return $this->adapter->deleteByIds($ids);
     }
 
