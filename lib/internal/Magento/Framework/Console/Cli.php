@@ -130,7 +130,7 @@ class Cli extends Console\Application
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @throws \Exception The exception in case of unexpected error
      */
-    public function doRun(Console\Input\InputInterface $input, Console\Output\OutputInterface $output)
+    public function doRun(Console\Input\InputInterface $input, Console\Output\OutputInterface $output): int
     {
         $exitCode = null;
         try {
