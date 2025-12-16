@@ -15,6 +15,7 @@ use Magento\Catalog\Helper\ImageFactory as HelperFactory;
 use Magento\Catalog\Model\Product;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 /**
  * Unit test for ImageBuilder
@@ -231,7 +232,7 @@ class ImageBuilderTest extends TestCase
         $helperMock->method('getWidth')->willReturn($width);
         $helperMock->method('getHeight')->willReturn($height);
 
-        $reflection = new \ReflectionClass($this->imageBuilder);
+        $reflection = new ReflectionClass($this->imageBuilder);
         $method = $reflection->getMethod('getRatio');
         $method->setAccessible(true);
 
@@ -301,7 +302,7 @@ class ImageBuilderTest extends TestCase
     ): void {
         $this->imageBuilder->setAttributes($attributes);
 
-        $reflection = new \ReflectionClass($this->imageBuilder);
+        $reflection = new ReflectionClass($this->imageBuilder);
         $method = $reflection->getMethod('getCustomAttributes');
         $method->setAccessible(true);
 
