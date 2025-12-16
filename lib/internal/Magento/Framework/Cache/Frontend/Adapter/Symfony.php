@@ -403,12 +403,9 @@ class Symfony implements FrontendInterface
         return match ($mode) {
             CacheConstants::CLEANING_MODE_ALL, 'all' => $this->cleanAll($cache),
             CacheConstants::CLEANING_MODE_OLD, 'old' => $this->cleanOld($cache),
-            CacheConstants::CLEANING_MODE_MATCHING_TAG, 'matchingTag' =>
-            $this->cleanMatchingTag($cache, $tags),
-            CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG, 'notMatchingTag' =>
-            $this->cleanNotMatchingTag($cache, $tags),
-            CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, 'matchingAnyTag' =>
-            $this->cleanMatchingAnyTag($cache, $tags),
+            CacheConstants::CLEANING_MODE_MATCHING_TAG, 'matchingTag' => $this->cleanMatchingTag($cache, $tags),
+            CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG, 'notMatchingTag' => $this->cleanNotMatchingTag($cache, $tags),
+            CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, 'matchingAnyTag' => $this->cleanMatchingAnyTag($cache, $tags),
             default => throw new InvalidArgumentException("Unsupported cleaning mode: {$mode}")
         };
     }
@@ -462,12 +459,8 @@ class Symfony implements FrontendInterface
                 if ($this->isTagAware()) {
                     $success = $cache->invalidateTags($tagsToInvalidate);
 
-                    // CRITICAL: Commit invalidation immediately and clear internal cache state
                     if (method_exists($cache, 'commit')) {
                         $cache->commit();
-                    }
-                    if (method_exists($cache, 'prune')) {
-                        $cache->prune();
                     }
 
                     return $success;
@@ -478,12 +471,8 @@ class Symfony implements FrontendInterface
                 if ($this->isTagAware()) {
                     $success = $cache->invalidateTags($cleanTags);
 
-                    // CRITICAL: Commit invalidation immediately and clear internal cache state
                     if (method_exists($cache, 'commit')) {
                         $cache->commit();
-                    }
-                    if (method_exists($cache, 'prune')) {
-                        $cache->prune();
                     }
 
                     return $success;
@@ -620,13 +609,8 @@ class Symfony implements FrontendInterface
         if ($this->isTagAware()) {
             $success = $cache->invalidateTags($cleanTags);
 
-            // CRITICAL: Commit invalidation immediately and clear internal cache state
-            // This ensures invalidated entries are not returned by subsequent getItem() calls
             if (method_exists($cache, 'commit')) {
                 $cache->commit();
-            }
-            if (method_exists($cache, 'prune')) {
-                $cache->prune();
             }
 
             return $success;
