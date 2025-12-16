@@ -197,7 +197,6 @@ class TemplateTest extends TestCase
         $allMethods = array_merge($mockedMethods, $addMockedMethods, ['__wakeup', '__sleep', '_init']);
         $mock = $this->createPartialMockWithReflection(Template::class, $allMethods);
         
-        // Inject dependencies via reflection
         $reflection = new \ReflectionClass($mock);
         
         $properties = [

@@ -308,11 +308,9 @@ class DataTest extends TestCase
         $elementHtmlSelect = $this->createPartialMockWithReflection(
             Select::class,
             [
-                // Methods that don't exist in Select class (addMethods replacement)
                 'setName',
                 'setValue',
                 'setExtraParams',
-                // Existing methods
                 'setId',
                 'setTitle',
                 'setOptions',

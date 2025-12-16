@@ -39,19 +39,16 @@ class PropertiesTest extends TestCase
         $this->widget = $this->createMock(Instance::class);
         $this->registry = $this->createMock(Registry::class);
 
-        // Use mock instead of ObjectManager::getObject to avoid ObjectManager initialization issues
         $this->propertiesBlock = $this->createPartialMockWithReflection(
             Properties::class,
             ['isHidden', 'getWidgetInstance']
         );
         
-        // Override isHidden to use the actual implementation by returning the widget from registry
         $this->propertiesBlock = $this->getMockBuilder(Properties::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['_construct'])
             ->getMock();
         
-        // Inject registry via reflection
         $reflection = new \ReflectionClass($this->propertiesBlock);
         $parent = $reflection->getParentClass();
         while ($parent && !$parent->hasProperty('_coreRegistry')) {

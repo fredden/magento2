@@ -55,13 +55,11 @@ class FormTest extends TestCase
             ->onlyMethods(['getId', 'getVariablesOptionArray'])
             ->getMock();
 
-        // Create Form mock without invoking constructor to avoid ObjectManager dependency
         $this->form = $this->getMockBuilder(Form::class)
             ->disableOriginalConstructor()
             ->onlyMethods([])
             ->getMock();
 
-        // Inject dependencies via reflection (properties use underscore prefix)
         $reflection = new ReflectionClass(Form::class);
 
         $variableFactoryProperty = $reflection->getProperty('_variableFactory');

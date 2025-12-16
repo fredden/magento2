@@ -53,20 +53,16 @@ class BaseTest extends TestCase
         $this->scopeConfigMock = $this->createMock(ScopeConfigInterface::class);
         $this->requestMock = $this->createMock(RequestInterface::class);
 
-        // Create Base mock without invoking constructor to avoid ObjectManager dependency
         $this->baseCurrency = $this->getMockBuilder(Base::class)
             ->disableOriginalConstructor()
             ->onlyMethods([])
             ->getMock();
 
-        // Inject dependencies via reflection (PHP 8.1+ compatible - setAccessible not needed)
         $reflection = new ReflectionClass(Base::class);
 
-        // Set _request property (from AbstractBlock parent)
         $requestProperty = $reflection->getProperty('_request');
         $requestProperty->setValue($this->baseCurrency, $this->requestMock);
 
-        // Set _scopeConfig property (from AbstractBlock parent)
         $scopeConfigProperty = $reflection->getProperty('_scopeConfig');
         $scopeConfigProperty->setValue($this->baseCurrency, $this->scopeConfigMock);
     }

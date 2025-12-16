@@ -148,7 +148,6 @@ class AbstractTemplateTest extends TestCase
         $allMethods = array_merge($mockedMethods, ['__wakeup', '__sleep', '_init']);
         $mock = $this->createPartialMockWithReflection(Template::class, $allMethods);
         
-        // Inject dependencies via reflection
         $reflection = new \ReflectionClass($mock);
         
         $properties = [
@@ -168,12 +167,9 @@ class AbstractTemplateTest extends TestCase
             $this->setPropertyValue($reflection, $mock, $propertyName, $value);
         }
         
-        // Set data if provided
         if (!empty($data)) {
             foreach ($data as $key => $value) {
                 $mock->setData($key, $value);
-                // If 'area' is in data, also inject it as a property since
-                // setForcedArea checks the private $area property
                 if ($key === 'area') {
                     $this->setPropertyValue($reflection, $mock, 'area', $value);
                 }
@@ -472,8 +468,7 @@ class AbstractTemplateTest extends TestCase
         $storeManagerMock->expects($this->any())->method('getStore')->willReturn($storeMock);
 
         $model = $this->createPartialMockWithReflection(Template::class, ['__wakeup', '__sleep', '_init']);
-        
-        // Inject dependencies
+
         $reflection = new \ReflectionClass($model);
         $this->setPropertyValue($reflection, $model, 'design', $designMock);
         $this->setPropertyValue($reflection, $model, 'storeManager', $storeManagerMock);

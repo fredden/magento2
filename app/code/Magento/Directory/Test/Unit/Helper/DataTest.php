@@ -171,7 +171,6 @@ class DataTest extends TestCase
             'encoded_json'
         );
 
-        // Test
         $result = $this->_object->getRegionJson();
         $this->assertEquals('encoded_json', $result);
     }
