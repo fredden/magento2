@@ -405,4 +405,3 @@ class ShippingAddressWithoutCompanyTest extends TestCase
         parent::tearDown();
     }
 }
-
