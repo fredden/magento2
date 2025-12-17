@@ -204,6 +204,7 @@ class RedisTagAdapter implements TagAdapterInterface
      *
      * OPTIMIZED: Single tag uses SMEMBERS (faster), multiple tags use SUNION
      * Redis SUNION already returns unique values, no need for array_unique()
+     * Works with both phpredis and Predis
      */
     public function getIdsMatchingAnyTags(array $tags): array
     {
@@ -220,8 +221,9 @@ class RedisTagAdapter implements TagAdapterInterface
         // Build tag keys for Redis SUNION
         $tagKeys = array_map([$this, 'getTagKey'], $tags);
 
-        // Redis SUNION returns IDs present in ANY set
-        // Note: SUNION already returns unique values, no need for array_unique()
+        // OPTIMIZATION: Handle both phpredis and Predis
+        // phpredis: $redis->sUnion($tagKeys) - array argument
+        // Predis: $redis->sunion($tagKeys) - array argument (works same way)
         $ids = $this->redis->sUnion($tagKeys);
 
         return is_array($ids) ? $ids : [];
@@ -254,9 +256,54 @@ class RedisTagAdapter implements TagAdapterInterface
     }
 
     /**
+     * Get IDs matching ANY of the tags AND also matching a scope tag
+     *
+     * This is an optimized operation for TagScope decorator that needs to find items with:
+     * (tag1 OR tag2 OR ... OR tagN) AND scopeTag
+     *
+     * Without this optimization, TagScope loops through each tag calling MATCHING_TAG (AND logic):
+     * - 59 product tags = 59 SINTER operations (inefficient!)
+     *
+     * With this optimization:
+     * - 1 SUNION to get all matching IDs (OR logic)
+     * - 1 SMEMBERS to get scope IDs
+     * - 1 PHP array_intersect to filter (fast for reasonable sizes)
+     * - Total: 2 Redis calls instead of 59!
+     *
+     * @param array $tags Product/entity tags to match (OR logic)
+     * @param string $scopeTag Scope tag that all results must also have (AND logic)
+     * @return array IDs matching (any tag) AND (scope tag)
+     */
+    public function getIdsMatchingAnyTagsAndScope(array $tags, string $scopeTag): array
+    {
+        if (empty($tags)) {
+            return [];
+        }
+
+        // Step 1: Get all IDs matching ANY of the tags (SUNION)
+        $matchingIds = $this->getIdsMatchingAnyTags($tags);
+
+        if (empty($matchingIds)) {
+            return [];
+        }
+
+        // Step 2: Get all IDs with the scope tag (SMEMBERS)
+        $scopeIds = $this->redis->sMembers($this->getTagKey($scopeTag));
+
+        if (empty($scopeIds)) {
+            return [];
+        }
+
+        // Step 3: Return intersection (items matching any tag AND scope tag)
+        // Note: array_intersect is fast for reasonable sizes (<10k items typically)
+        return array_values(array_intersect($matchingIds, $scopeIds));
+    }
+
+    /**
      * @inheritDoc
      *
      * OPTIMIZED: Uses Redis pipeline for large batches
+     * Works with both phpredis and Predis
      */
     public function deleteByIds(array $ids): bool
     {
@@ -279,9 +326,9 @@ class RedisTagAdapter implements TagAdapterInterface
             $this->executePipeline($pipeline);
         } else {
             // For small batches, use single command (slightly faster)
-            // Use array_unshift to prepend the set key, then call_user_func_array
-            array_unshift($ids, self::ALL_IDS_SET);
-            call_user_func_array([$this->redis, 'sRem'], $ids);
+            // OPTIMIZATION: Works with both phpredis and Predis
+            // Both support variadic syntax: sRem(key, member1, member2, ...)
+            $this->redis->sRem(self::ALL_IDS_SET, ...$ids);
         }
 
         return $success;
