@@ -19,33 +19,34 @@ use Magento\Framework\View\Element\BlockInterface;
 /**
  * Unit test for Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\Options
  *
+ * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\Options
  */
 class OptionsTest extends TestCase
 {
     /**
      * @var Options
      */
-    private $block;
+    private Options $block;
 
     /**
      * @var LayoutInterface&MockObject
      */
-    private $layoutMock;
+    private LayoutInterface&MockObject $layoutMock;
 
     /**
      * @var Button&MockObject
      */
-    private $addButtonMock;
+    private Button&MockObject $addButtonMock;
 
     /**
      * @var Button&MockObject
      */
-    private $importButtonMock;
+    private Button&MockObject $importButtonMock;
 
     /**
      * @var Option&MockObject
      */
-    private $optionsBoxMock;
+    private Option&MockObject $optionsBoxMock;
 
     /**
      * Set up test environment
@@ -76,6 +77,7 @@ class OptionsTest extends TestCase
     /**
      * Test that _prepareLayout creates all required child blocks
      *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\Options::_prepareLayout
      * @return void
      * @throws \ReflectionException
      */
@@ -98,59 +100,59 @@ class OptionsTest extends TestCase
     /**
      * Test that getAddButtonHtml method executes without errors
      *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\Options::getAddButtonHtml
      * @return void
      * @throws \ReflectionException
      */
     public function testGetAddButtonHtmlIsCallable(): void
     {
-        $this->addButtonMock->method('toHtml')->willReturn('<button>Add</button>');
+        $this->addButtonMock->method('toHtml')
+            ->willReturn('<button>Add</button>');
         $this->setupLayoutMock();
         $this->block->setLayout($this->layoutMock);
 
-        // Prepare layout first
         $reflection = new \ReflectionClass($this->block);
         $method = $reflection->getMethod('_prepareLayout');
         $method->setAccessible(true);
         $method->invoke($this->block);
 
         $result = $this->block->getAddButtonHtml();
-
         $this->assertIsString($result);
     }
 
     /**
      * Test that getOptionsBoxHtml method executes without errors
      *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\Options::getOptionsBoxHtml
      * @return void
      * @throws \ReflectionException
      */
     public function testGetOptionsBoxHtmlIsCallable(): void
     {
-        $this->optionsBoxMock->method('toHtml')->willReturn('<div>Options</div>');
+        $this->optionsBoxMock->method('toHtml')
+            ->willReturn('<div>Options</div>');
         $this->setupLayoutMock();
         $this->block->setLayout($this->layoutMock);
 
-        // Prepare layout first
         $reflection = new \ReflectionClass($this->block);
         $method = $reflection->getMethod('_prepareLayout');
         $method->setAccessible(true);
         $method->invoke($this->block);
 
         $result = $this->block->getOptionsBoxHtml();
-
         $this->assertIsString($result);
     }
 
     /**
      * Configure layout mock to return appropriate child blocks
      *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      * @return void
      */
     private function setupLayoutMock(): void
     {
         $this->layoutMock->method('createBlock')
             ->willReturnCallback(function ($class, $name) {
-                unset($class);
                 if (str_contains($name, 'add_button')) {
                     return $this->addButtonMock;
                 } elseif (str_contains($name, 'options_box')) {

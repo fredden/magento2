@@ -15,18 +15,20 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Unit test for Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab
+ *
+ * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab
  */
 class ChildTabTest extends TestCase
 {
     /**
      * @var ChildTab
      */
-    private $block;
+    private ChildTab $block;
 
     /**
      * @var TabInterface&MockObject
      */
-    private $tabMock;
+    private TabInterface&MockObject $tabMock;
 
     /**
      * Set up test environment
@@ -46,6 +48,7 @@ class ChildTabTest extends TestCase
     /**
      * Test that setTab correctly sets the tab property and returns $this for chaining
      *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab::setTab
      * @return void
      */
     public function testSetTabSetsTabAndReturnsThis(): void
@@ -58,6 +61,7 @@ class ChildTabTest extends TestCase
     /**
      * Test that getTitle returns the correct tab title from the tab
      *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab::getTitle
      * @return void
      */
     public function testGetTitleReturnsTabTitle(): void
@@ -71,12 +75,13 @@ class ChildTabTest extends TestCase
         $this->block->setTab($this->tabMock);
         $result = $this->block->getTitle();
 
-        $this->assertEquals($expectedTitle, $result);
+        $this->assertSame($expectedTitle, $result);
     }
 
     /**
      * Test that getContent returns the HTML content from the tab
      *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab::getContent
      * @return void
      */
     public function testGetContentReturnsTabHtml(): void
@@ -90,12 +95,13 @@ class ChildTabTest extends TestCase
         $this->block->setTab($this->tabMock);
         $result = $this->block->getContent();
 
-        $this->assertEquals($expectedHtml, $result);
+        $this->assertSame($expectedHtml, $result);
     }
 
     /**
      * Test that getTabId returns the correct tab ID from the tab
      *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab::getTabId
      * @return void
      */
     public function testGetTabIdReturnsTabId(): void
@@ -109,12 +115,13 @@ class ChildTabTest extends TestCase
         $this->block->setTab($this->tabMock);
         $result = $this->block->getTabId();
 
-        $this->assertEquals($expectedTabId, $result);
+        $this->assertSame($expectedTabId, $result);
     }
 
     /**
      * Test that isTabOpened returns true when tab has opened data set to true
      *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab::isTabOpened
      * @return void
      */
     public function testIsTabOpenedReturnsTrueWhenTabIsOpened(): void
@@ -133,6 +140,7 @@ class ChildTabTest extends TestCase
     /**
      * Test that isTabOpened returns false when tab has opened data set to false
      *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab::isTabOpened
      * @return void
      */
     public function testIsTabOpenedReturnsFalseWhenTabIsClosed(): void
@@ -151,6 +159,7 @@ class ChildTabTest extends TestCase
     /**
      * Test that isTabOpened returns false when tab has no opened data
      *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab::isTabOpened
      * @return void
      */
     public function testIsTabOpenedReturnsFalseWhenOpenedDataIsNull(): void
@@ -169,12 +178,13 @@ class ChildTabTest extends TestCase
     /**
      * Test that isTabOpened returns boolean for various truthy/falsy values
      *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab::isTabOpened
      * @dataProvider openedDataProvider
      * @param mixed $openedValue
      * @param bool $expectedResult
      * @return void
      */
-    public function testIsTabOpenedHandlesDifferentDataTypes($openedValue, bool $expectedResult): void
+    public function testIsTabOpenedHandlesDifferentDataTypes(mixed $openedValue, bool $expectedResult): void
     {
         $this->tabMock->expects($this->once())
             ->method('getData')
@@ -208,17 +218,20 @@ class ChildTabTest extends TestCase
     /**
      * Test that method chaining works correctly with setTab
      *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab::setTab
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab::getTitle
      * @return void
      */
     public function testMethodChainingWorksWithSetTab(): void
     {
         $expectedTitle = 'Chained Tab Title';
 
-        $this->tabMock->method('getTabTitle')
+        $this->tabMock->expects($this->once())
+            ->method('getTabTitle')
             ->willReturn($expectedTitle);
 
         $result = $this->block->setTab($this->tabMock)->getTitle();
 
-        $this->assertEquals($expectedTitle, $result);
+        $this->assertSame($expectedTitle, $result);
     }
 }
