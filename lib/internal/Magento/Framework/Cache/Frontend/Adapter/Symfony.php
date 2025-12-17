@@ -403,9 +403,12 @@ class Symfony implements FrontendInterface
         return match ($mode) {
             CacheConstants::CLEANING_MODE_ALL, 'all' => $this->cleanAll($cache),
             CacheConstants::CLEANING_MODE_OLD, 'old' => $this->cleanOld($cache),
-            CacheConstants::CLEANING_MODE_MATCHING_TAG, 'matchingTag' => $this->cleanMatchingTag($cache, $tags),
-            CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG, 'notMatchingTag' => $this->cleanNotMatchingTag($cache, $tags),
-            CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, 'matchingAnyTag' => $this->cleanMatchingAnyTag($cache, $tags),
+            CacheConstants::CLEANING_MODE_MATCHING_TAG, 'matchingTag' =>
+                $this->cleanMatchingTag($cache, $tags),
+            CacheConstants::CLEANING_MODE_NOT_MATCHING_TAG, 'notMatchingTag' =>
+                $this->cleanNotMatchingTag($cache, $tags),
+            CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, 'matchingAnyTag' =>
+                $this->cleanMatchingAnyTag($cache, $tags),
             default => throw new InvalidArgumentException("Unsupported cleaning mode: {$mode}")
         };
     }
