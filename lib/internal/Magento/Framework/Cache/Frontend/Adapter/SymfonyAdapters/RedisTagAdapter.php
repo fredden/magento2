@@ -201,6 +201,9 @@ class RedisTagAdapter implements TagAdapterInterface
      * @inheritDoc
      *
      * Uses Redis SUNION for efficient set union (OR logic)
+     *
+     * OPTIMIZED: Single tag uses SMEMBERS (faster), multiple tags use SUNION
+     * Redis SUNION already returns unique values, no need for array_unique()
      */
     public function getIdsMatchingAnyTags(array $tags): array
     {
@@ -208,13 +211,20 @@ class RedisTagAdapter implements TagAdapterInterface
             return [];
         }
 
+        // OPTIMIZATION: For single tag, use SMEMBERS directly (faster than SUNION)
+        if (count($tags) === 1) {
+            $ids = $this->redis->sMembers($this->getTagKey($tags[0]));
+            return is_array($ids) ? $ids : [];
+        }
+
         // Build tag keys for Redis SUNION
         $tagKeys = array_map([$this, 'getTagKey'], $tags);
 
         // Redis SUNION returns IDs present in ANY set
+        // Note: SUNION already returns unique values, no need for array_unique()
         $ids = $this->redis->sUnion($tagKeys);
 
-        return is_array($ids) ? array_unique($ids) : [];
+        return is_array($ids) ? $ids : [];
     }
 
     /**
