@@ -52,8 +52,8 @@ class Topmenu
         string $childrenWrapClass = '',
         int $limit = 0
     ): void {
-        $rootId = $this->storeManager->getStore()->getRootCategoryId();
-        $storeId = $this->storeManager->getStore()->getId();
+        $rootId = (int) $this->storeManager->getStore()->getRootCategoryId();
+        $storeId = (int) $this->storeManager->getStore()->getId();
         /** @var \Magento\Catalog\Model\ResourceModel\Category\Collection $collection */
         $collection = $this->getCategoryTree($storeId, $rootId);
         $mapping = [$rootId => $subject->getMenu()];  // use nodes stack to avoid recursion
@@ -96,8 +96,8 @@ class Topmenu
     public function beforeGetIdentities(\Magento\Theme\Block\Html\Topmenu $subject): void
     {
         $subject->addIdentity(Category::CACHE_TAG);
-        $rootId = $this->storeManager->getStore()->getRootCategoryId();
-        $storeId = $this->storeManager->getStore()->getId();
+        $rootId = (int) $this->storeManager->getStore()->getRootCategoryId();
+        $storeId = (int) $this->storeManager->getStore()->getId();
         /** @var \Magento\Catalog\Model\ResourceModel\Category\Collection $collection */
         $collection = $this->getCategoryTree($storeId, $rootId);
         $mapping = [$rootId => $subject->getMenu()];  // use nodes stack to avoid recursion
