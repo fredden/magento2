@@ -5,7 +5,7 @@
  */
 declare(strict_types=1);
 
-namespace Magento\Checkout\Test\Integration\Model;
+namespace Magento\Checkout\Model;
 
 use Exception;
 use Magento\Catalog\Api\ProductRepositoryInterface;
