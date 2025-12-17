@@ -709,12 +709,12 @@ class Price implements DimensionalIndexerInterface
                 'tier_price' => $tierExpr,
             ]
         );
-        $select->join(
+        /*$select->join(
             ['si' => $this->getTable('cataloginventory_stock_status')],
             'si.product_id = bs.product_id',
             []
-        );
-        $select->where('si.stock_status = ?', Stock::STOCK_IN_STOCK);
+        );*/
+        //$select->where('si.stock_status = ?', Stock::STOCK_IN_STOCK);//here
         $query = str_replace('AS `idx`', 'AS `idx` USE INDEX (PRIMARY)', (string) $select);
         $insertColumns = [
             'entity_id',
