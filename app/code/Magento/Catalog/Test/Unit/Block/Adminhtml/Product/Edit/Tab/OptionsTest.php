@@ -24,26 +24,36 @@ use Magento\Framework\View\Element\BlockInterface;
 class OptionsTest extends TestCase
 {
     /**
+     * System under test
+     *
      * @var Options
      */
     private Options $block;
 
     /**
+     * Mock for layout interface
+     *
      * @var LayoutInterface&MockObject
      */
     private LayoutInterface&MockObject $layoutMock;
 
     /**
+     * Mock for add button widget
+     *
      * @var Button&MockObject
      */
     private Button&MockObject $addButtonMock;
 
     /**
+     * Mock for import button widget
+     *
      * @var Button&MockObject
      */
     private Button&MockObject $importButtonMock;
 
     /**
+     * Mock for options box block
+     *
      * @var Option&MockObject
      */
     private Option&MockObject $optionsBoxMock;

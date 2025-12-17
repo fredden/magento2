@@ -21,11 +21,15 @@ use PHPUnit\Framework\TestCase;
 class ChildTabTest extends TestCase
 {
     /**
+     * System under test
+     *
      * @var ChildTab
      */
     private ChildTab $block;
 
     /**
+     * Mock for tab interface
+     *
      * @var TabInterface&MockObject
      */
     private TabInterface&MockObject $tabMock;
