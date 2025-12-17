@@ -554,7 +554,8 @@ class DynamicStorageTest extends TestCase
         $this->scopeConfigMock
             ->method('getValue')
             ->willReturnMap([
-                [CategoryUrlPathGenerator::XML_PATH_CATEGORY_URL_SUFFIX, ScopeInterface::SCOPE_STORE, $data['store_id'], '.html']
+                [CategoryUrlPathGenerator::XML_PATH_CATEGORY_URL_SUFFIX,
+                    ScopeInterface::SCOPE_STORE, $data['store_id'], '.html']
             ]);
         $this->productResourceMock
             ->method('canBeShowInCategory')
@@ -651,7 +652,8 @@ class DynamicStorageTest extends TestCase
         $this->scopeConfigMock
             ->method('getValue')
             ->willReturnMap([
-                [CategoryUrlPathGenerator::XML_PATH_CATEGORY_URL_SUFFIX, ScopeInterface::SCOPE_STORE, $data['store_id'], '.html']
+                [CategoryUrlPathGenerator::XML_PATH_CATEGORY_URL_SUFFIX,
+                    ScopeInterface::SCOPE_STORE, $data['store_id'], '.html']
             ]);
 
         $method = new ReflectionMethod($this->object, 'doFindOneByData');
