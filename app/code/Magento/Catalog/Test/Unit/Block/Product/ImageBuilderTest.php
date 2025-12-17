@@ -229,8 +229,8 @@ class ImageBuilderTest extends TestCase
     public function testGetRatioReturnsCorrectRatio(?int $width, ?int $height, float|int $expectedRatio): void
     {
         $helperMock = $this->createMock(ImageHelper::class);
-        $helperMock->method('getWidth')->willReturn($width);
-        $helperMock->method('getHeight')->willReturn($height);
+        $helperMock->expects($this->once())->method('getWidth')->willReturn($width);
+        $helperMock->expects($this->once())->method('getHeight')->willReturn($height);
 
         $reflection = new ReflectionClass($this->imageBuilder);
         $method = $reflection->getMethod('getRatio');
@@ -238,7 +238,7 @@ class ImageBuilderTest extends TestCase
 
         $result = $method->invoke($this->imageBuilder, $helperMock);
 
-        $this->assertEquals($expectedRatio, $result);
+        $this->assertSame($expectedRatio, $result);
     }
 
     /**

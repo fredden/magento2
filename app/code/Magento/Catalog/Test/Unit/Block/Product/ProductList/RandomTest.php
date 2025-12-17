@@ -47,7 +47,7 @@ class RandomTest extends TestCase
     private MockObject $productCollectionMock;
 
     /**
-     * @var MockObject
+     * @var Select|MockObject
      */
     private MockObject $selectMock;
 
@@ -62,7 +62,8 @@ class RandomTest extends TestCase
         $this->productCollectionMock = $this->createMock(Collection::class);
         $this->selectMock = $this->createMock(Select::class);
 
-        $this->productCollectionMock->method('getSelect')
+        $this->productCollectionMock->expects($this->atLeastOnce())
+            ->method('getSelect')
             ->willReturn($this->selectMock);
 
         $objectManager->prepareObjectManager([
@@ -74,7 +75,8 @@ class RandomTest extends TestCase
         $this->layerMock = $this->createMock(Layer::class);
 
         $layerResolverMock = $this->createMock(Resolver::class);
-        $layerResolverMock->method('get')
+        $layerResolverMock->expects($this->atLeastOnce())
+            ->method('get')
             ->willReturn($this->layerMock);
 
         $this->block = $objectManager->getObject(
