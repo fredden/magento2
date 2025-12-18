@@ -268,10 +268,10 @@ class DynamicStorage extends BaseDbStorage
         if ($categoryFromDb !== false) {
             $productUrl = $this->getBaseName($productFromDb[UrlRewrite::REQUEST_PATH]);
             $productFromDb[UrlRewrite::REQUEST_PATH] = str_replace(
-                    $categorySuffix,
-                    '',
-                    $categoryFromDb[UrlRewrite::REQUEST_PATH] ?? ''
-                ) . '/' . $productUrl;
+                $categorySuffix,
+                '',
+                $categoryFromDb[UrlRewrite::REQUEST_PATH] ?? ''
+            ) . '/' . $productUrl;
             $productFromDb[UrlRewrite::TARGET_PATH] = $productFromDb[UrlRewrite::TARGET_PATH]
                 . '/category/' . $categoryId;
         }
