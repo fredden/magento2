@@ -71,6 +71,19 @@ class LowLevelFrontend
     }
 
     /**
+     * Get the tag adapter for advanced cache operations
+     *
+     * Provides access to tag-based operations for optimization purposes.
+     * Used by TagScope decorator to enable batch operations (SUNION) for large tag sets.
+     *
+     * @return TagAdapterInterface
+     */
+    public function getTagAdapter(): TagAdapterInterface
+    {
+        return $this->adapter;
+    }
+
+    /**
      * Get metadata for cache entry
      *
      * @param string $id
