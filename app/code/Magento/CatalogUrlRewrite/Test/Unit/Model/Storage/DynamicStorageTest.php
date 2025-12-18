@@ -802,7 +802,7 @@ class DynamicStorageTest extends TestCase
         $whereConditions = [];
         $this->selectMock->expects($this->atLeastOnce())
             ->method('where')
-            ->willReturnCallback(function ($condition, $value = null) use (&$whereConditions) {
+            ->willReturnCallback(function ($condition) use (&$whereConditions) {
                 $whereConditions[] = $condition;
                 return $this->selectMock;
             });
