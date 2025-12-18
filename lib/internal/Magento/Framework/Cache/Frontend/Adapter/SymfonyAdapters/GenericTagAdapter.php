@@ -125,7 +125,14 @@ class GenericTagAdapter implements TagAdapterInterface
             return true;
         }
 
-        return $this->cachePool->deleteItems($ids);
+        $success = $this->cachePool->deleteItems($ids);
+
+        // Ensure changes are committed immediately (matches Zend behavior)
+        if (method_exists($this->cachePool, 'commit')) {
+            $this->cachePool->commit();
+        }
+
+        return $success;
     }
 
     /**

@@ -60,41 +60,19 @@ class TagScope extends \Magento\Framework\Cache\Frontend\Decorator\Bare
      *
      * Limit the cleaning scope within a tag
      *
-     * OPTIMIZED: For MATCHING_ANY_TAG, use SUNION+scope filtering instead of loop
-     * This is 5-6× faster than the old loop approach (1 SUNION vs N SINTER calls)
-     * vendor/colinmollenhour/cache-backend-redis/Cm/Cache/Backend/Redis.php line 1001-1004
+     * This matches Zend cache implementation exactly
+     * (vendor/magento/framework/Cache/Frontend/Decorator/TagScope.php)
      */
     public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = [])
     {
         if ($mode == CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG) {
-            // OPTIMIZATION: Use cleanMatchingAnyTagsWithScope for (OR + AND) logic
-            // Logic: (tag1 OR tag2 OR ...) AND scopeTag
-            // Uses 1 SUNION + 1 SMEMBERS + array_intersect instead of N SINTER calls
-            
-            // Try to get the adapter from parent frontend
-            $frontend = $this->_getFrontend();
-            if (method_exists($frontend, 'getLowLevelFrontend')) {
-                $lowLevel = $frontend->getLowLevelFrontend();
-                if (method_exists($lowLevel, 'getBackend')) {
-                    $backend = $lowLevel->getBackend();
-                    if (method_exists($backend, 'getAdapter')) {
-                        $adapter = $backend->getAdapter();
-                        if (method_exists($adapter, 'cleanMatchingAnyTagsWithScope')) {
-                            // Use optimized method: SUNION + scope filtering
-                            return $adapter->cleanMatchingAnyTagsWithScope($tags, $this->getTag());
-                        }
-                    }
-                }
-            }
-            
-            // Fallback: Old loop approach (for non-Redis backends)
+            // Same as Zend: Loop through tags and clean each with scope
             $result = false;
             foreach ($tags as $tag) {
                 if (parent::clean(CacheConstants::CLEANING_MODE_MATCHING_TAG, [$tag, $this->getTag()])) {
                     $result = true;
                 }
             }
-            return $result;
         } else {
             if ($mode == CacheConstants::CLEANING_MODE_ALL) {
                 $mode = CacheConstants::CLEANING_MODE_MATCHING_TAG;

@@ -349,17 +349,18 @@ LUA;
             return is_array($allIds) ? $allIds : [];
         }
 
-        // Get all IDs
-        $allIds = $this->redis->smembers(self::ALL_IDS_SET);
-        if (!is_array($allIds) || empty($allIds)) {
-            return [];
-        }
-
-        // Get IDs matching any tag
-        $matchingIds = $this->getIdsMatchingAnyTags($tags);
-
-        // Return difference
-        return array_diff($allIds, $matchingIds);
+        // OPTIMIZATION: Use Redis SDIFF (Set Difference) command
+        // This is much more efficient than doing array_diff in PHP
+        // Matches Zend: sDiff(SET_IDS, tag1, tag2, ...)
+        $tagKeys = array_map([$this, 'getTagKey'], $tags);
+        
+        // Prepend the all_ids set as first argument
+        array_unshift($tagKeys, self::ALL_IDS_SET);
+        
+        // Call SDIFF: returns IDs in ALL_IDS_SET but NOT in any tag sets
+        $result = call_user_func_array([$this->redis, 'sdiff'], $tagKeys);
+        
+        return is_array($result) ? $result : [];
     }
 
     /**
@@ -391,6 +392,11 @@ LUA;
             // Use array_unshift to prepend the set key, then call_user_func_array
             array_unshift($ids, self::ALL_IDS_SET);
             call_user_func_array([$this->redis, 'sRem'], $ids);
+        }
+
+        // Ensure changes are committed immediately (important for MFTF and tests)
+        if (method_exists($this->cachePool, 'commit')) {
+            $this->cachePool->commit();
         }
 
         return $success;
@@ -535,15 +541,23 @@ LUA;
 
         // OPTIMIZATION: Use Redis pipeline for all operations
         // Reduces network round trips from N+1 to 1
+        // Matches Zend's approach: update forward indices + reverse index
         $pipeline = $this->createPipeline();
         
         // Add ID to all_ids set
         $pipeline->sadd(self::ALL_IDS_SET, $id);
 
-        // Add ID to each tag's SET in pipeline
+        // Forward index: Add ID to each tag's SET
         foreach ($tags as $tag) {
             $tagKey = $this->getTagKey($tag);
             $pipeline->sadd($tagKey, $id);
+        }
+        
+        // Reverse index: Store tags for this ID (for cleanup on delete)
+        $idTagsKey = 'cache:id_tags:' . $this->namespace . $id;
+        $pipeline->del($idTagsKey);  // Clear old tags first
+        foreach ($tags as $tag) {
+            $pipeline->sadd($idTagsKey, $tag);
         }
         
         // Execute all operations in one go

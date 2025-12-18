@@ -374,7 +374,14 @@ class Symfony implements FrontendInterface
         // Notify helper before removal (for index cleanup)
         $this->adapter->onRemove($cleanId);
 
-        return $cache->deleteItem($cleanId);
+        $success = $cache->deleteItem($cleanId);
+
+        // Ensure changes are committed immediately (matches Zend behavior)
+        if (method_exists($cache, 'commit')) {
+            $cache->commit();
+        }
+
+        return $success;
     }
 
     /**
@@ -422,7 +429,14 @@ class Symfony implements FrontendInterface
     private function cleanAll(CacheItemPoolInterface $cache): bool
     {
         $this->adapter->clearAllIndices();
-        return $cache->clear();
+        $success = $cache->clear();
+
+        // Ensure changes are committed immediately (matches Zend behavior)
+        if (method_exists($cache, 'commit')) {
+            $cache->commit();
+        }
+
+        return $success;
     }
 
     /**
@@ -638,6 +652,11 @@ class Symfony implements FrontendInterface
             if (!$cache->clear($tag)) {
                 $success = false;
             }
+        }
+
+        // Ensure changes are committed immediately (matches Zend behavior)
+        if (method_exists($cache, 'commit')) {
+            $cache->commit();
         }
 
         return $success;
