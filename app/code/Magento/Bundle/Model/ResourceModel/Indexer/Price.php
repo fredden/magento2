@@ -186,7 +186,7 @@ class Price implements DimensionalIndexerInterface
             $dimensions,
             $entityIds
         );
-// i need to filter out entity ids that are not in stock
+
         $this->calculateBundleOptionPrice($temporaryPriceTable, $dimensions);
 
         $this->basePriceModifier->modifyPrice($temporaryPriceTable, $entityIds);
@@ -445,7 +445,7 @@ class Price implements DimensionalIndexerInterface
 
         $this->prepareBundleSelectionTable();
         $this->calculateFixedBundleSelectionPrice();
-        $this->calculateDynamicBundleSelectionPrice($dimensions);//here
+        $this->calculateDynamicBundleSelectionPrice($dimensions);
 
         $this->prepareBundleOptionTable();
 
@@ -708,13 +708,12 @@ class Price implements DimensionalIndexerInterface
                 'price' => $priceExpr,
                 'tier_price' => $tierExpr,
             ]
-        );//trebuie verificat in context MSI
+        );
         $select->join(
             ['si' => $this->getTable('cataloginventory_stock_status')],
             'si.product_id = bs.product_id',
             []
         );
-        //$select->where('si.stock_status = ?', Stock::STOCK_IN_STOCK);
         $select->columns([
             'stock_status' => new \Zend_Db_Expr('MAX(si.stock_status)')
         ]);
