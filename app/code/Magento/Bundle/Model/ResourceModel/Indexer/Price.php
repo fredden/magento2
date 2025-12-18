@@ -186,7 +186,7 @@ class Price implements DimensionalIndexerInterface
             $dimensions,
             $entityIds
         );
-
+// i need to filter out entity ids that are not in stock
         $this->calculateBundleOptionPrice($temporaryPriceTable, $dimensions);
 
         $this->basePriceModifier->modifyPrice($temporaryPriceTable, $entityIds);
@@ -445,7 +445,7 @@ class Price implements DimensionalIndexerInterface
 
         $this->prepareBundleSelectionTable();
         $this->calculateFixedBundleSelectionPrice();
-        $this->calculateDynamicBundleSelectionPrice($dimensions);
+        $this->calculateDynamicBundleSelectionPrice($dimensions);//here
 
         $this->prepareBundleOptionTable();
 
@@ -708,14 +708,43 @@ class Price implements DimensionalIndexerInterface
                 'price' => $priceExpr,
                 'tier_price' => $tierExpr,
             ]
-        );
-        /*$select->join(
+        );//trebuie verificat in context MSI
+        $select->join(
             ['si' => $this->getTable('cataloginventory_stock_status')],
             'si.product_id = bs.product_id',
             []
-        );*/
-        //$select->where('si.stock_status = ?', Stock::STOCK_IN_STOCK);//here
+        );
+        //$select->where('si.stock_status = ?', Stock::STOCK_IN_STOCK);
+        $select->columns([
+            'stock_status' => new \Zend_Db_Expr('MAX(si.stock_status)')
+        ]);
+        $select->group(
+            [
+                'i.entity_id',
+                'i.customer_group_id',
+                'i.website_id',
+                'bo.option_id',
+                'bs.selection_id'
+            ]
+        );
+        $select = $connection->select()
+            ->from(
+                ['t' => $select],
+                [
+                    'entity_id',
+                    'customer_group_id',
+                    'website_id',
+                    'option_id',
+                    'selection_id',
+                    'group_type',
+                    'is_required',
+                    'price',
+                    'tier_price'
+                ]
+            )
+            ->where('stock_status = ?', Stock::STOCK_IN_STOCK);
         $query = str_replace('AS `idx`', 'AS `idx` USE INDEX (PRIMARY)', (string) $select);
+
         $insertColumns = [
             'entity_id',
             'customer_group_id',
