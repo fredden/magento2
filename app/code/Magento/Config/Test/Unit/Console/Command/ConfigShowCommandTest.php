@@ -23,6 +23,7 @@ use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 
 /**
  * Test for \Magento\Config\Console\Command\ConfigShowCommand.
@@ -261,5 +262,97 @@ class ConfigShowCommandTest extends TestCase
         $tester->execute($arguments);
 
         return $tester;
+    }
+
+    /**
+     * Test that design configuration paths are validated correctly using Theme PathValidator
+     *
+     * @return void
+     */
+    public function testExecuteWithDesignPath(): void
+    {
+        $designPath = 'design/theme/theme_id';
+        $resolvedConfigPath = 'default//design/theme/theme_id';
+
+        // Create a separate test setup with Theme PathValidator mock
+        $objectManager = new ObjectManager($this);
+
+        $valueProcessorMock = $this->createMock(ValueProcessor::class);
+        $pathResolverMock = $this->createMock(ConfigPathResolver::class);
+        $scopeValidatorMock = $this->createMock(ValidatorInterface::class);
+        $configSourceMock = $this->createMock(ConfigSourceInterface::class);
+        // Use Theme PathValidator mock instead of base PathValidator
+        $themePathValidatorMock = $this->createMock(\Magento\Theme\Model\Config\PathValidator::class);
+        $pathValidatorFactoryMock = $this->createMock(PathValidatorFactory::class);
+        $pathValidatorFactoryMock->expects($this->atMost(1))
+            ->method('create')
+            ->willReturn($themePathValidatorMock);
+
+        $emulatedAreaProcessorMock = $this->createMock(EmulatedAdminhtmlAreaProcessor::class);
+        $localeEmulatorMock = $this->createMock(LocaleEmulatorInterface::class);
+
+        $model = $objectManager->getObject(
+            ConfigShowCommand::class,
+            [
+                'scopeValidator' => $scopeValidatorMock,
+                'configSource' => $configSourceMock,
+                'pathResolver' => $pathResolverMock,
+                'valueProcessor' => $valueProcessorMock,
+                'pathValidatorFactory' => $pathValidatorFactoryMock,
+                'emulatedAreaProcessor' => $emulatedAreaProcessorMock,
+                'localeEmulator' => $localeEmulatorMock
+            ]
+        );
+
+        $scopeValidatorMock->expects($this->once())
+            ->method('isValid')
+            ->with(ScopeConfigInterface::SCOPE_TYPE_DEFAULT, '')
+            ->willReturn(true);
+
+        $themePathValidatorMock->expects($this->once())
+            ->method('validate')
+            ->with($designPath)
+            ->willReturn(true);
+
+        $pathResolverMock->expects($this->once())
+            ->method('resolve')
+            ->with($designPath, ScopeConfigInterface::SCOPE_TYPE_DEFAULT, '')
+            ->willReturn($resolvedConfigPath);
+
+        $configSourceMock->expects($this->once())
+            ->method('get')
+            ->with($resolvedConfigPath)
+            ->willReturn('3');
+
+        $valueProcessorMock->expects($this->once())
+            ->method('process')
+            ->with(ScopeConfigInterface::SCOPE_TYPE_DEFAULT, '', '3', $designPath)
+            ->willReturn('3');
+
+        $emulatedAreaProcessorMock->expects($this->once())
+            ->method('process')
+            ->willReturnCallback(function ($function) {
+                return $function();
+            });
+
+        $localeEmulatorMock->expects($this->once())
+            ->method('emulate')
+            ->willReturnCallback(function ($callback) {
+                return $callback();
+            });
+
+        $tester = new CommandTester($model);
+        $tester->execute([
+            ConfigShowCommand::INPUT_ARGUMENT_PATH => $designPath
+        ]);
+
+        $this->assertEquals(
+            Cli::RETURN_SUCCESS,
+            $tester->getStatusCode()
+        );
+        $this->assertStringContainsString(
+            '3',
+            $tester->getDisplay()
+        );
     }
 }
