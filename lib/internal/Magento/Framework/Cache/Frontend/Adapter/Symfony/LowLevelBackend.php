@@ -32,6 +32,16 @@ class LowLevelBackend
     }
 
     /**
+     * Get the tag adapter
+     *
+     * @return TagAdapterInterface
+     */
+    public function getAdapter(): TagAdapterInterface
+    {
+        return $this->adapter;
+    }
+
+    /**
      * Get IDs matching tags
      *
      * @param array $tags
