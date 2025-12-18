@@ -137,7 +137,7 @@ class Cli extends Console\Application
             $exitCode = parent::doRun($input, $output);
         } catch (\Exception $e) {
             $errorMessage = $e->getMessage() . PHP_EOL . $e->getTraceAsString();
-            
+
             if ($this->getCommandsException) {
                 // Command loading exception occurred earlier
                 if ($this->isDeveloperMode()) {
@@ -155,11 +155,11 @@ class Cli extends Console\Application
                 } else {
                     // Production mode: command loading errors were already logged
                     // The specific command user tried to run may not be available
-                    $warningMessage = "\n"
-                        . '<comment>Warning: Some commands failed to load due to errors.</comment>' . "\n"
-                        . '<comment>Check error logs (var/log/system.log) for details.</comment>' . "\n"
+                    $warningMessage = PHP_EOL
+                        . '<comment>Warning: Some commands failed to load due to errors.</comment>' . PHP_EOL
+                        . '<comment>Check error logs (var/log/system.log) for details.</comment>' . PHP_EOL
                         . '<comment>The command you tried to run may not be available. '
-                        . 'Try running: bin/magento list</comment>' . "\n";
+                        . 'Try running: bin/magento list</comment>' . PHP_EOL;
 
                     try {
                         $output->writeln($warningMessage);
@@ -257,19 +257,19 @@ class Cli extends Console\Application
             $e->getFile(),
             $e->getLine()
         );
-        
+
         // Special handling for core commands failure - this is critical
         if ($commandType === 'core Magento commands') {
-            $errorMessage .= "\n\nCRITICAL: Core Magento commands "
+            $errorMessage .= PHP_EOL . PHP_EOL . "CRITICAL: Core Magento commands "
                 . "(cache:flush, deploy:mode:set, etc.) are unavailable!";
-            $errorMessage .= "\nThis usually happens when a custom module "
+            $errorMessage .= PHP_EOL . "This usually happens when a custom module "
                 . "injects a broken command into di.xml.";
-            $errorMessage .= "\n\nTO FIX THIS IMMEDIATELY:";
-            $errorMessage .= "\n1. Run: rm -rf generated/code var/cache var/page_cache";
-            $errorMessage .= "\n2. If problem persists, check var/log/system.log for the broken class";
-            $errorMessage .= "\n3. Disable the problematic module or fix the command class";
+            $errorMessage .= PHP_EOL . PHP_EOL . "TO FIX THIS IMMEDIATELY:";
+            $errorMessage .= PHP_EOL . "1. Run: rm -rf generated/code var/cache var/page_cache";
+            $errorMessage .= PHP_EOL . "2. If problem persists, check var/log/system.log for the broken class";
+            $errorMessage .= PHP_EOL . "3. Disable the problematic module or fix the command class";
         }
-        
+
         // Ensure the error is logged to both Magento logs and PHP error log
         $this->logCommandLoadingError($errorMessage, $e);
     }
@@ -416,7 +416,7 @@ class Cli extends Console\Application
                 if ($mode && $mode !== AppState::MODE_DEVELOPER) {
                     return false;
                 }
-                
+
                 // Also check AppState as fallback
                 try {
                     /** @var AppState $appState */
@@ -427,7 +427,7 @@ class Cli extends Console\Application
                     return $mode === AppState::MODE_DEVELOPER;
                 }
             }
-            
+
             // Default to production (safer)
             return false;
         } catch (\Exception $e) {
@@ -448,13 +448,13 @@ class Cli extends Console\Application
         }
 
         $summary = sprintf(
-            "Failed to load %d command class(es). The CLI will continue with available commands:\n",
+            "Failed to load %d command class(es). The CLI will continue with available commands:" . PHP_EOL,
             count($this->failedCommands)
         );
 
         foreach ($this->failedCommands as $failure) {
             $summary .= sprintf(
-                "  - %s: %s (%s at %s)\n",
+                "  - %s: %s (%s at %s)" . PHP_EOL,
                 $failure['class'],
                 $failure['error'],
                 $failure['type'],
@@ -483,7 +483,7 @@ class Cli extends Console\Application
                     'trace' => $exception->getTraceAsString()
                 ]);
                 $loggedToMagento = true;
-                
+
                 // Also log a warning that CLI will continue
                 $this->logger->warning(
                     'Some commands failed to load. The CLI will continue with available commands. ' .
@@ -494,31 +494,31 @@ class Cli extends Console\Application
                 $loggedToMagento = false;
             }
         }
-        
+
         // Show actionable error in terminal (production mode)
-        $terminalMessage = "\n" . str_repeat('=', 80) . "\n";
-        $terminalMessage .= "⚠️  MAGENTO CLI ERROR (Production Mode)\n";
-        $terminalMessage .= str_repeat('=', 80) . "\n";
-        
+        $terminalMessage = PHP_EOL . str_repeat('=', 80) . PHP_EOL;
+        $terminalMessage .= "  MAGENTO CLI ERROR (Production Mode)" . PHP_EOL;
+        $terminalMessage .= str_repeat('=', 80) . PHP_EOL;
+
         // Extract just the first line of error
-        $errorLines = explode("\n", $errorMessage);
-        $terminalMessage .= $errorLines[0] . "\n";
-        
+        $errorLines = explode(PHP_EOL, $errorMessage);
+        $terminalMessage .= $errorLines[0] . PHP_EOL;
+
         // Check if this is a critical core commands failure
         if (strpos($errorMessage, 'CRITICAL: Core Magento commands') !== false) {
-            $terminalMessage .= "\n🚨 CRITICAL: Commands like cache:flush, deploy:mode:set are UNAVAILABLE!\n";
-            $terminalMessage .= "\nTry running the following command to see the available commands:\n";
-            $terminalMessage .= "  bin/magento list\n";
+            $terminalMessage .=  PHP_EOL . " CRITICAL: Commands like cache:flush, deploy:mode:set are UNAVAILABLE!" . PHP_EOL;
+            $terminalMessage .=  PHP_EOL . "Try running the following command to see the available commands:" . PHP_EOL;
+            $terminalMessage .= "  bin/magento list" . PHP_EOL;
         }
-        
+
         if ($loggedToMagento) {
-            $terminalMessage .= "\n📋 Full details logged to: var/log/system.log\n";
+            $terminalMessage .= PHP_EOL . " Full details logged to: var/log/system.log" . PHP_EOL;
         } else {
-            $terminalMessage .= "\n📋 Full error details shown above\n";
+            $terminalMessage .=  PHP_EOL . " Full error details shown above" . PHP_EOL;
         }
-        
-        $terminalMessage .= str_repeat('=', 80) . "\n";
-        
+
+        $terminalMessage .= str_repeat('=', 80) . PHP_EOL;
+
         error_log($terminalMessage);
     }
 }
