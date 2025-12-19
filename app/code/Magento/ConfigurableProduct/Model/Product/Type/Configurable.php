@@ -622,7 +622,7 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
         $metadata = $this->getMetadataPool()->getMetadata(ProductInterface::class);
         $productId = $product->getData($metadata->getLinkField());
 
-        $this->getCache()->clean(CacheConstants::CLEANING_MODE_MATCHING_TAG, [self::TYPE_CODE . '_' . $productId]);
+        //$this->getCache()->clean(CacheConstants::CLEANING_MODE_MATCHING_TAG, [self::TYPE_CODE . '_' . $productId]);
         parent::beforeSave($product);
 
         $product->canAffectOptions(false);
