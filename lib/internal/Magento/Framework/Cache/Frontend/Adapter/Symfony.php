@@ -10,6 +10,7 @@ namespace Magento\Framework\Cache\Frontend\Adapter;
 use Closure;
 use InvalidArgumentException;
 use Magento\Framework\Cache\CacheConstants;
+use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapterProvider;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\GenericTagAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\TagAdapterInterface;
 use Magento\Framework\Cache\FrontendInterface;
@@ -280,21 +281,32 @@ class Symfony implements FrontendInterface
     /**
      * Calculate the actual lifetime to use for cache entry
      *
+     * Enforces Redis MAX_LIFETIME limit (30 days) to prevent TTL overflow issues.
+     * Matches Zend's Cm_Cache_Backend_Redis behavior.
+     *
      * @param mixed $lifeTime
      * @return int|null
      */
     private function calculateActualLifetime($lifeTime): ?int
     {
+        $actualLifetime = null;
+
         if ($lifeTime !== null && $lifeTime !== false && $lifeTime !== 0) {
-            return (int)$lifeTime;
-        }
-
-        if ($lifeTime === 0 || $lifeTime === false) {
+            $actualLifetime = (int)$lifeTime;
+        } elseif ($lifeTime === 0 || $lifeTime === false) {
             // 0 or false means use default in Zend behavior
-            return $this->defaultLifetime;
+            $actualLifetime = $this->defaultLifetime;
+        } else {
+            $actualLifetime = $this->defaultLifetime;
         }
 
-        return $this->defaultLifetime;
+        // Enforce Redis MAX_LIFETIME limit (matches Zend behavior)
+        // Beyond 30 days, Redis may have TTL tracking issues
+        if ($actualLifetime !== null && $actualLifetime > SymfonyAdapterProvider::REDIS_MAX_LIFETIME) {
+            $actualLifetime = SymfonyAdapterProvider::REDIS_MAX_LIFETIME;
+        }
+
+        return $actualLifetime;
     }
 
     /**

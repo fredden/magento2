@@ -63,6 +63,33 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
     private ResourceConnection $resource;
 
     /**
+     * Redis backend maximum TTL limit (30 days in seconds)
+     *
+     * Redis stores TTL as 32-bit signed integer (milliseconds internally).
+     * Beyond ~30 days (2,592,000 seconds), Redis may have TTL tracking issues.
+     * This matches Zend's Cm_Cache_Backend_Redis::MAX_LIFETIME.
+     */
+    public const REDIS_MAX_LIFETIME = 2592000;
+
+    /**
+     * Default Redis connection timeout in seconds
+     *
+     * If not specified in configuration, use this default.
+     * 2.5 seconds is a good balance for production environments.
+     * Matches Zend's Cm_Cache_Backend_Redis::DEFAULT_CONNECT_TIMEOUT.
+     */
+    public const REDIS_DEFAULT_CONNECT_TIMEOUT = 2.5;
+
+    /**
+     * Default Redis connection retry attempts
+     *
+     * If not specified in configuration, use this default.
+     * 1 retry provides fast failover without excessive delays.
+     * Matches Zend's Cm_Cache_Backend_Redis::DEFAULT_CONNECT_RETRIES.
+     */
+    public const REDIS_DEFAULT_CONNECT_RETRIES = 1;
+
+    /**
      * @var Serialize PHP native serializer
      */
     private Serialize $serializer;
@@ -298,11 +325,15 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
         $persistent = $options['persistent'] ?? true;  // Enable by default
         $persistentId = $options['persistent_id'] ?? null;
 
-        // Connection tuning parameters (cast to proper types from string config)
-        $timeout = isset($options['timeout']) ? (float)$options['timeout'] : null;
+        // Connection tuning parameters with Zend-compatible defaults
+        $timeout = isset($options['timeout']) 
+            ? (float)$options['timeout'] 
+            : self::REDIS_DEFAULT_CONNECT_TIMEOUT;
         $readTimeout = isset($options['read_timeout']) ? (float)$options['read_timeout'] : null;
         $retryInterval = isset($options['retry_interval']) ? (int)$options['retry_interval'] : null;
-        $connectRetries = isset($options['connect_retries']) ? (int)$options['connect_retries'] : null;
+        $connectRetries = isset($options['connect_retries']) 
+            ? (int)$options['connect_retries'] 
+            : self::REDIS_DEFAULT_CONNECT_RETRIES;
 
         // Create connection key for pooling
         // IMPORTANT: For Predis, add unique ID to prevent connection pooling
