@@ -2,15 +2,6 @@
 /**
  * Copyright 2023 Adobe
  * All Rights Reserved.
- *
- * NOTICE: All information contained herein is, and remains
- * the property of Adobe and its suppliers, if any. The intellectual
- * and technical concepts contained herein are proprietary to Adobe
- * and its suppliers and are protected by all applicable intellectual
- * property laws, including trade secret and copyright laws.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Adobe.
  */
 declare(strict_types=1);
 
@@ -21,6 +12,7 @@ use Magento\Customer\Api\AccountManagementInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Controller\Account\EditPost;
+use Magento\Customer\Model\EmailNotificationInterface;
 use Magento\Customer\Model\Metadata\Form\File;
 use Magento\Customer\Model\Session;
 use Magento\Customer\Model\AddressRegistry;
@@ -38,6 +30,8 @@ use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Data\Form\FormKey\Validator;
 use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
 use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -46,6 +40,8 @@ use PHPUnit\Framework\TestCase;
  */
 class EditPostTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var EditPost
      */
@@ -123,36 +119,25 @@ class EditPostTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->context = $this->getMockBuilder(Context::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->customerSession = $this->getMockBuilder(Session::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->accountManagement = $this->getMockBuilder(AccountManagementInterface::class)
-            ->getMockForAbstractClass();
-        $this->customerRepository = $this->getMockBuilder(CustomerRepositoryInterface::class)
-            ->getMockForAbstractClass();
-        $this->formKeyValidator = $this->getMockBuilder(Validator::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->customerExtractor = $this->getMockBuilder(CustomerExtractor::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->escaper = $this->getMockBuilder(Escaper::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->addressRegistry = $this->getMockBuilder(AddressRegistry::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->filesystem = $this->getMockBuilder(Filesystem::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->sessionCleaner = $this->getMockBuilder(SessionCleanerInterface::class)
-            ->getMockForAbstractClass();
-        $this->accountConfirmation = $this->getMockBuilder(AccountConfirmation::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $objectManager = new ObjectManager($this);
+        $objects = [
+            [
+                EmailNotificationInterface::class,
+                $this->createMock(EmailNotificationInterface::class)
+            ]
+        ];
+        $objectManager->prepareObjectManager($objects);
+        $this->context = $this->createMock(Context::class);
+        $this->customerSession = $this->createMock(Session::class);
+        $this->accountManagement = $this->createMock(AccountManagementInterface::class);
+        $this->customerRepository = $this->createMock(CustomerRepositoryInterface::class);
+        $this->formKeyValidator = $this->createMock(Validator::class);
+        $this->customerExtractor = $this->createMock(CustomerExtractor::class);
+        $this->escaper = $this->createMock(Escaper::class);
+        $this->addressRegistry = $this->createMock(AddressRegistry::class);
+        $this->filesystem = $this->createMock(Filesystem::class);
+        $this->sessionCleaner = $this->createMock(SessionCleanerInterface::class);
+        $this->accountConfirmation = $this->createMock(AccountConfirmation::class);
         $this->customerUrl = $this->getMockBuilder(Url::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -160,9 +145,7 @@ class EditPostTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->request = $this->getMockBuilder(RequestInterface::class)
-            ->addMethods(['isPost', 'getPostValue'])
-            ->getMockForAbstractClass();
+        $this->request = $this->createMock(\Magento\Framework\App\Request\Http::class);
         $this->context->expects($this->any())
             ->method('getRequest')
             ->willReturn($this->request);
@@ -179,14 +162,12 @@ class EditPostTest extends TestCase
             ->method('create')
             ->willReturn($redirect);
 
-        $eventManager = $this->getMockBuilder(EventManagerInterface::class)
-            ->getMockForAbstractClass();
+        $eventManager = $this->createMock(EventManagerInterface::class);
         $this->context->expects($this->any())
             ->method('getEventManager')
             ->willReturn($eventManager);
 
-        $messageManager = $this->getMockBuilder(MessageManagerInterface::class)
-            ->getMockForAbstractClass();
+        $messageManager = $this->createMock(MessageManagerInterface::class);
         $this->context->expects($this->any())
             ->method('getMessageManager')
             ->willReturn($messageManager);
@@ -222,8 +203,7 @@ class EditPostTest extends TestCase
             ->method('isPost')
             ->willReturn(true);
 
-        $customer = $this->getMockBuilder(CustomerInterface::class)
-            ->getMockForAbstractClass();
+        $customer = $this->createMock(CustomerInterface::class);
         $customer->expects($this->any())
             ->method('getAddresses')
             ->willReturn([]);
@@ -239,16 +219,18 @@ class EditPostTest extends TestCase
             ->willReturn($customer);
 
         $attr = 'attr1';
-        $this->request->expects($this->exactly(5))
+        $this->request->expects($this->exactly(3))
             ->method('getParam')
-            ->withConsecutive(
-                ['change_email'],
-                [ 'delete_attribute_value'],
-                [$attr . File::UPLOADED_FILE_SUFFIX]
-            )->willReturnOnConsecutiveCalls(
-                false,
-                $attr,
-                'uploadedFileName'
+            ->willReturnCallback(
+                function ($arg) use ($attr) {
+                    if ($arg == 'change_email') {
+                        return false;
+                    } elseif ($arg == 'delete_attribute_value') {
+                        return $attr;
+                    } elseif ($arg == $attr . File::UPLOADED_FILE_SUFFIX) {
+                        return 'uploadedFileName';
+                    }
+                }
             );
 
         $this->editPost->execute();

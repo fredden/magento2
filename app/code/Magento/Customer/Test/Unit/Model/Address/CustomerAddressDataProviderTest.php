@@ -2,15 +2,6 @@
 /**
  * Copyright 2023 Adobe
  * All Rights Reserved.
- *
- * NOTICE: All information contained herein is, and remains
- * the property of Adobe and its suppliers, if any. The intellectual
- * and technical concepts contained herein are proprietary to Adobe
- * and its suppliers and are protected by all applicable intellectual
- * property laws, including trade secret and copyright laws.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Adobe.
  */
 declare(strict_types=1);
 
@@ -76,11 +67,11 @@ class CustomerAddressDataProviderTest extends TestCase
             ->willreturn([1]);
         $this->shareConfig->expects($this->any())->method('isGlobalScope')->willReturn(false);
 
-        $viableAddress = $this->getMockForAbstractClass(AddressInterface::class);
+        $viableAddress = $this->createMock(AddressInterface::class);
         $viableAddress->expects($this->once())->method('getId')->willReturn(1);
-        $faultyAddress = $this->getMockForAbstractClass(AddressInterface::class);
+        $faultyAddress = $this->createMock(AddressInterface::class);
 
-        $customer = $this->getMockForAbstractClass(CustomerInterface::class);
+        $customer = $this->createMock(CustomerInterface::class);
         $customer->expects($this->once())
             ->method('getAddresses')
             ->willReturn([$viableAddress, $faultyAddress]);

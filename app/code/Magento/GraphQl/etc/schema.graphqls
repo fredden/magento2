@@ -1,5 +1,5 @@
-# Copyright © Magento, Inc. All rights reserved.
-# See COPYING.txt for license details.
+# Copyright 2018 Adobe
+# All Rights Reserved.
 
 directive @doc(description: String="") on QUERY
     | MUTATION
@@ -40,6 +40,9 @@ directive @typeResolver(class: String="") on UNION
     | OBJECT
 
 directive @cache(cacheIdentity: String="" cacheable: Boolean=true) on QUERY
+
+directive @implementation(class: String="") on SCALAR
+    | OBJECT
 
 type Query {
 }

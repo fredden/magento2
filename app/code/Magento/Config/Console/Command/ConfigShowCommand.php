@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2024 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\Config\Console\Command;
 
@@ -170,7 +170,7 @@ class ConfigShowCommand extends Command
      * @inheritdoc
      * @since 101.0.0
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
             $this->scope = $input->getOption(self::INPUT_OPTION_SCOPE);
@@ -238,7 +238,7 @@ class ConfigShowCommand extends Command
     {
         if (!is_array($configValue)) {
             $value = $this->valueProcessor->process($this->scope, $this->scopeCode, $configValue, $configPath);
-            $output->writeln($this->inputPath === $configPath ? $value : sprintf("%s - %s", $configPath, $value));
+            $output->writeln($this->inputPath === $configPath ? [$value] : sprintf("%s - %s", $configPath, $value));
         } elseif (is_array($configValue)) {
             foreach ($configValue as $name => $value) {
                 $childPath = empty($configPath) ? $name : ($configPath . '/' . $name);
