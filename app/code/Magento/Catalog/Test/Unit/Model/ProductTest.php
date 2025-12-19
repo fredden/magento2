@@ -430,7 +430,7 @@ class ProductTest extends TestCase
         $this->eavConfig = $this->createMock(Config::class);
 
         $this->productExtAttributes = $this->getMockBuilder(ProductExtensionInterface::class)
-            ->addMethods(['getStockItem'])
+            ->addMethods(['getStockItem', 'setConfigurableProductLinks'])
             ->getMockForAbstractClass();
         $this->extensionAttributesFactory
             ->expects($this->any())
