@@ -33,11 +33,32 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
  * MATCHING_TAG(['config', 'eav']):
  * - SINTER cache:tags:69d_config cache:tags:69d_eav
  * - Returns: {config_1}  ← Only IDs in BOTH sets (true AND logic)
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class RedisTagAdapter implements TagAdapterInterface
 {
     private const TAG_INDEX_PREFIX = 'cache:tags:';
     private const ALL_IDS_SET = 'cache:all_ids';
+    
+    /**
+     * SUNION chunk size - matches Zend's $_sunionChunkSize
+     * On large data sets SUNION slows down considerably when used with too many arguments
+     * @see vendor/colinmollenhour/cache-backend-redis/Cm/Cache/Backend/Redis.php line 92
+     */
+    private const SUNION_CHUNK_SIZE = 500;
+    
+    /**
+     * Maximum number of IDs to be removed at a time - matches Zend's $_removeChunkSize
+     * @see vendor/colinmollenhour/cache-backend-redis/Cm/Cache/Backend/Redis.php line 99
+     */
+    private const REMOVE_CHUNK_SIZE = 10000;
+    
+    /**
+     * Lua's unpack() limit - matches Zend's $_luaMaxCStack
+     * @see vendor/colinmollenhour/cache-backend-redis/Cm/Cache/Backend/Redis.php line 121
+     */
+    private const LUA_MAX_CSTACK = 5000;
 
     /**
      * Lua script for cleaning cache entries matching ANY tags (OR logic)
@@ -326,7 +347,28 @@ LUA;
             return is_array($ids) ? $ids : [];
         }
 
-        // Build tag keys for Redis SUNION
+        // CRITICAL OPTIMIZATION: Chunk SUNION for large tag sets
+        // Matches Zend's implementation to prevent Redis slowdowns
+        // @see vendor/colinmollenhour/cache-backend-redis/Cm/Cache/Backend/Redis.php line 777-778
+        if (count($tags) > self::SUNION_CHUNK_SIZE) {
+            $allIds = [];
+            $chunks = array_chunk($tags, self::SUNION_CHUNK_SIZE);
+            
+            foreach ($chunks as $chunk) {
+                $tagKeys = array_map([$this, 'getTagKey'], $chunk);
+                $chunkIds = $this->redis->sUnion($tagKeys);
+                $chunkIds = is_array($chunkIds) ? $chunkIds : [];
+                
+                // Merge with previous chunks
+                // phpcs:ignore Magento2.Performance.ForeachArrayMerge
+                $allIds = array_merge($allIds, $chunkIds);
+            }
+            
+            // Remove duplicates across chunks (SUNION returns unique within chunk only)
+            return array_unique($allIds);
+        }
+
+        // Small tag count - use single SUNION
         $tagKeys = array_map([$this, 'getTagKey'], $tags);
 
         // Redis SUNION returns IDs present in ANY set
@@ -367,6 +409,8 @@ LUA;
      * @inheritDoc
      *
      * OPTIMIZED: Uses Redis pipeline for large batches
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function deleteByIds(array $ids): bool
     {
@@ -374,7 +418,36 @@ LUA;
             return true;
         }
 
-        // Delete cache items
+        // CRITICAL OPTIMIZATION: Chunk deletes for large ID sets
+        // Matches Zend's implementation to prevent Redis blocking and memory issues
+        // @see vendor/colinmollenhour/cache-backend-redis/Cm/Cache/Backend/Redis.php line 809-825
+        if (count($ids) > self::REMOVE_CHUNK_SIZE) {
+            $chunks = array_chunk($ids, self::REMOVE_CHUNK_SIZE);
+            $success = true;
+            
+            foreach ($chunks as $chunk) {
+                // Delete cache items for this chunk
+                if (!$this->cachePool->deleteItems($chunk)) {
+                    $success = false;
+                }
+                
+                // Remove IDs from all_ids set for this chunk
+                $pipeline = $this->createPipeline();
+                foreach ($chunk as $id) {
+                    $pipeline->srem(self::ALL_IDS_SET, $id);
+                }
+                $this->executePipeline($pipeline);
+                
+                // Commit each chunk separately (important for large operations)
+                if (method_exists($this->cachePool, 'commit')) {
+                    $this->cachePool->commit();
+                }
+            }
+            
+            return $success;
+        }
+
+        // Small/medium ID count - delete all at once
         $success = $this->cachePool->deleteItems($ids);
 
         // OPTIMIZATION: Use pipeline for large batches (more than 10 IDs)
@@ -469,6 +542,8 @@ LUA;
      * @param array $tags Tags to match (OR logic)
      * @param string $scopeTag Scope tag to filter by (AND logic)
      * @return bool
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function cleanMatchingAnyTagsWithScope(array $tags, string $scopeTag): bool
     {

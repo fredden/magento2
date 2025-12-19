@@ -365,13 +365,9 @@ class Symfony implements FrontendInterface
         }
 
         // Notify helper about the save (for Redis/Filesystem to maintain indices)
+        // Note: onSave() already handles reverse index, no need for separate call
         if ($success && !empty($cleanTags)) {
             $this->adapter->onSave($cleanId, $cleanTags);
-
-            // For Redis, also store reverse index
-            if (method_exists($this->adapter, 'storeReverseIndex')) {
-                $this->adapter->storeReverseIndex($cleanId, $cleanTags);
-            }
         }
     }
 

@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Backend;
 
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\Exception\CacheException;
 use Magento\Framework\Cache\FrontendInterface;
 
@@ -182,7 +183,7 @@ class SymfonyL2Cache extends AbstractBackend implements ExtendedBackendInterface
     /**
      * @inheritDoc
      */
-    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, $tags = [])
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, $tags = [])
     {
         // Clean both caches
         $this->local->clean($mode, $tags);

@@ -326,13 +326,13 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
         $persistentId = $options['persistent_id'] ?? null;
 
         // Connection tuning parameters with Zend-compatible defaults
-        $timeout = isset($options['timeout']) 
-            ? (float)$options['timeout'] 
+        $timeout = isset($options['timeout'])
+            ? (float)$options['timeout']
             : self::REDIS_DEFAULT_CONNECT_TIMEOUT;
         $readTimeout = isset($options['read_timeout']) ? (float)$options['read_timeout'] : null;
         $retryInterval = isset($options['retry_interval']) ? (int)$options['retry_interval'] : null;
-        $connectRetries = isset($options['connect_retries']) 
-            ? (int)$options['connect_retries'] 
+        $connectRetries = isset($options['connect_retries'])
+            ? (int)$options['connect_retries']
             : self::REDIS_DEFAULT_CONNECT_RETRIES;
 
         // Create connection key for pooling
