@@ -14,10 +14,9 @@ use Magento\Catalog\Model\Config;
 use Magento\Catalog\Model\Product\Gallery\ReadHandler as GalleryReadHandler;
 use Magento\ConfigurableProduct\Model\Product\Type\Collection\SalableProcessor;
 use Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable\Product\Collection;
-use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\EntityManager\MetadataPool;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\File\UploaderFactory;
 use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
 
@@ -622,7 +621,7 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
         $metadata = $this->getMetadataPool()->getMetadata(ProductInterface::class);
         $productId = $product->getData($metadata->getLinkField());
 
-        $this->getCache()->clean(CacheConstants::CLEANING_MODE_MATCHING_TAG, [self::TYPE_CODE . '_' . $productId]);
+        $this->getCache()->clean(\Zend_Cache::CLEANING_MODE_MATCHING_TAG, [self::TYPE_CODE . '_' . $productId]);
         parent::beforeSave($product);
 
         $product->canAffectOptions(false);
@@ -640,12 +639,8 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
                 }
             }
         }
-        // OPTIMIZATION: Only set null if data exists (avoid unnecessary operations)
         foreach ($this->getConfigurableAttributes($product) as $attribute) {
-            $attributeCode = $attribute->getProductAttribute()->getAttributeCode();
-            if ($product->hasData($attributeCode)) {
-                $product->setData($attributeCode, null);
-            }
+            $product->setData($attribute->getProductAttribute()->getAttributeCode(), null);
         }
 
         return $this;
@@ -696,33 +691,13 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
 
         $metadata = $this->getMetadataPool()->getMetadata(ProductInterface::class);
 
-        // OPTIMIZATION 1: Batch load existing configurable attributes to avoid N+1 queries
-        $attributeIds = array_filter(array_column($data, 'id'));
-        $existingAttributes = [];
-
-        if (!empty($attributeIds) && !$product->getIsDuplicate()) {
-            $existingCollection = $this->_attributeCollectionFactory->create()
-                ->addFieldToFilter('id', ['in' => $attributeIds]);
-            foreach ($existingCollection as $attr) {
-                $existingAttributes[$attr->getId()] = $attr;
-            }
-        }
-
-        // Process and save configurable attributes
         foreach ($data as $attributeData) {
             /** @var $configurableAttribute \Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute */
             $configurableAttribute = $this->configurableAttributeFactory->create();
             if (!$product->getIsDuplicate()) {
                 if (!empty($attributeData['id'])) {
-                    // OPTIMIZATION: Use pre-loaded attribute instead of individual load()
-                    if (isset($existingAttributes[$attributeData['id']])) {
-                        $configurableAttribute = $existingAttributes[$attributeData['id']];
-                        $attributeData['attribute_id'] = $configurableAttribute->getAttributeId();
-                    } else {
-                        // Fallback: load if not found in batch (edge case)
-                        $configurableAttribute->load($attributeData['id']);
-                        $attributeData['attribute_id'] = $configurableAttribute->getAttributeId();
-                    }
+                    $configurableAttribute->load($attributeData['id']);
+                    $attributeData['attribute_id'] = $configurableAttribute->getAttributeId();
                 } elseif (!empty($attributeData['attribute_id'])) {
                     $attribute = $this->_eavConfig->getAttribute(
                         \Magento\Catalog\Model\Product::ENTITY, $attributeData['attribute_id']
@@ -743,8 +718,6 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
                 ->setProductId($product->getData($metadata->getLinkField()))
                 ->save();
         }
-
-        // OPTIMIZATION 2: Pre-load collection before walk('delete') to reduce queries
         /** @var $configurableAttributesCollection \Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable\Attribute\Collection */
         $configurableAttributesCollection = $this->_attributeCollectionFactory->create();
         $configurableAttributesCollection->setProductFilter($product);
@@ -752,8 +725,6 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
             'attribute_id',
             ['nin' => $this->getUsedProductAttributeIds($product)]
         );
-        // Load collection first to avoid individual loads in walk()
-        $configurableAttributesCollection->load();
         $configurableAttributesCollection->walk('delete');
     }
 
