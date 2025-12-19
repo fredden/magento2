@@ -108,51 +108,42 @@ class FilterTest extends TestCase
      */
     public function testPrepareFormCreatesFormWithSelectField(array $attributeSetOptions): void
     {
-        $this->setupMocksForPrepareForm($attributeSetOptions);
-
-        $prepareFormMethod = new ReflectionMethod(Filter::class, '_prepareForm');
-        $prepareFormMethod->invoke($this->block);
-
-        $this->assertNotNull($this->block->getForm());
-    }
-
-    /**
-     * Data provider for form configuration tests
-     *
-     * @return array<string, array<string, string|bool>>
-     */
-    public static function formConfigurationDataProvider(): array
-    {
-        return [
-            'form uses POST method' => [
-                'methodName' => 'setMethod',
-                'expectedValue' => 'post'
-            ],
-            'form enables container usage' => [
-                'methodName' => 'setUseContainer',
-                'expectedValue' => true
-            ]
-        ];
-    }
-
-    /**
-     * Test that form is configured with correct settings
-     *
-     * @dataProvider formConfigurationDataProvider
-     * @param string $methodName
-     * @param string|bool $expectedValue
-     * @return void
-     */
-    public function testPrepareFormConfiguresFormCorrectly(string $methodName, string|bool $expectedValue): void
-    {
-        $formMock = $this->setupMocksForPrepareForm([]);
+        $selectElementMock = $this->createMock(Select::class);
+        $formMock = $this->getMockBuilder(Form::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['addField'])
+            ->addMethods(['setUseContainer', 'setMethod'])
+            ->getMock();
 
         $formMock->expects($this->once())
-            ->method($methodName)
-            ->with($expectedValue);
+            ->method('setUseContainer')
+            ->with(true)
+            ->willReturnSelf();
+        $formMock->expects($this->once())
+            ->method('setMethod')
+            ->with('post')
+            ->willReturnSelf();
+        $formMock->expects($this->once())
+            ->method('addField')
+            ->with(
+                'set_switcher',
+                'select',
+                $this->callback(function (array $config) use ($attributeSetOptions) {
+                    return isset($config['values']) && $config['values'] === $attributeSetOptions;
+                })
+            )
+            ->willReturn($selectElementMock);
+
+        $this->formFactoryMock->expects($this->once())
+            ->method('create')
+            ->willReturn($formMock);
+
+        $this->setupAttributeSetMocks($attributeSetOptions);
 
         $prepareFormMethod = new ReflectionMethod(Filter::class, '_prepareForm');
         $prepareFormMethod->invoke($this->block);
+
+        $this->assertSame($formMock, $this->block->getForm());
     }
 
     /**
@@ -196,8 +187,14 @@ class FilterTest extends TestCase
      */
     public function testSelectFieldHasCorrectConfiguration(string $configKey, string|bool $expectedValue): void
     {
+        $this->setupAttributeSetMocks([]);
+
         $selectElementMock = $this->createMock(Select::class);
-        $formMock = $this->setupMocksForPrepareForm([]);
+        $formMock = $this->getMockBuilder(Form::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['addField'])
+            ->addMethods(['setUseContainer', 'setMethod'])
+            ->getMock();
 
         $formMock->expects($this->once())
             ->method('addField')
@@ -209,51 +206,52 @@ class FilterTest extends TestCase
                 })
             )
             ->willReturn($selectElementMock);
+        $formMock->expects($this->once())
+            ->method('setUseContainer')
+            ->with(true)
+            ->willReturnSelf();
+        $formMock->expects($this->once())
+            ->method('setMethod')
+            ->with('post')
+            ->willReturnSelf();
+
+        $this->formFactoryMock->expects($this->once())
+            ->method('create')
+            ->willReturn($formMock);
 
         $prepareFormMethod = new ReflectionMethod(Filter::class, '_prepareForm');
         $prepareFormMethod->invoke($this->block);
     }
 
     /**
-     * Setup mocks for _prepareForm method testing
+     * Setup attribute set mocks for _prepareForm method testing
      *
-     * Creates and configures all necessary mocks for testing the protected _prepareForm method.
+     * Creates and configures attribute set related mocks for testing the protected _prepareForm method.
      *
      * @param array<int, array<string, string>> $attributeSetOptions Attribute set options to return from collection
-     * @return MockObject&Form Configured form mock
+     * @return void
      */
-    private function setupMocksForPrepareForm(array $attributeSetOptions): MockObject
+    private function setupAttributeSetMocks(array $attributeSetOptions): void
     {
         $collectionMock = $this->getMockBuilder(Collection::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $collectionMock->method('load')->willReturnSelf();
-        $collectionMock->method('toOptionArray')->willReturn($attributeSetOptions);
+        $collectionMock->expects($this->once())
+            ->method('load')
+            ->willReturnSelf();
+        $collectionMock->expects($this->once())
+            ->method('toOptionArray')
+            ->willReturn($attributeSetOptions);
 
         $attributeSetMock = $this->getMockBuilder(AttributeSet::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $attributeSetMock->method('getResourceCollection')
+        $attributeSetMock->expects($this->once())
+            ->method('getResourceCollection')
             ->willReturn($collectionMock);
 
-        $this->setFactoryMock->method('create')
+        $this->setFactoryMock->expects($this->once())
+            ->method('create')
             ->willReturn($attributeSetMock);
-
-        $selectElementMock = $this->createMock(Select::class);
-
-        $formMock = $this->getMockBuilder(Form::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['addField'])
-            ->addMethods(['setUseContainer', 'setMethod'])
-            ->getMock();
-
-        $formMock->method('addField')->willReturn($selectElementMock);
-        $formMock->method('setUseContainer')->willReturnSelf();
-        $formMock->method('setMethod')->willReturnSelf();
-
-        $this->formFactoryMock->method('create')
-            ->willReturn($formMock);
-
-        return $formMock;
     }
 }
