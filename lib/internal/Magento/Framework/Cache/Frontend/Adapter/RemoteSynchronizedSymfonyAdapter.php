@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Magento\Framework\Cache\Frontend\Adapter;
 
 use Magento\Framework\Cache\Backend\ExtendedBackendInterface;
+use Magento\Framework\Cache\CacheConstants;
 use Magento\Framework\Cache\FrontendInterface;
 
 /**
@@ -78,7 +79,7 @@ class RemoteSynchronizedSymfonyAdapter implements FrontendInterface
     /**
      * @inheritDoc
      */
-    public function clean($mode = \Zend_Cache::CLEANING_MODE_ALL, $tags = [])
+    public function clean($mode = CacheConstants::CLEANING_MODE_ALL, $tags = [])
     {
         return $this->backend->clean($mode, $tags);
     }
