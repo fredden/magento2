@@ -681,6 +681,7 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
      * @return void
      * @throws \Exception
      * @deprecated 100.1.0
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     private function saveConfigurableOptions(ProductInterface $product)
     {

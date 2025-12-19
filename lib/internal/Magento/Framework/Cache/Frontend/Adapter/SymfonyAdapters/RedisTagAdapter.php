@@ -33,6 +33,8 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
  * MATCHING_TAG(['config', 'eav']):
  * - SINTER cache:tags:69d_config cache:tags:69d_eav
  * - Returns: {config_1}  ← Only IDs in BOTH sets (true AND logic)
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class RedisTagAdapter implements TagAdapterInterface
 {
@@ -407,6 +409,8 @@ LUA;
      * @inheritDoc
      *
      * OPTIMIZED: Uses Redis pipeline for large batches
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function deleteByIds(array $ids): bool
     {
@@ -538,6 +542,8 @@ LUA;
      * @param array $tags Tags to match (OR logic)
      * @param string $scopeTag Scope tag to filter by (AND logic)
      * @return bool
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function cleanMatchingAnyTagsWithScope(array $tags, string $scopeTag): bool
     {
