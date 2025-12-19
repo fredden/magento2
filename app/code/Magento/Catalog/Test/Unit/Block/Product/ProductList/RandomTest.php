@@ -52,6 +52,11 @@ class RandomTest extends TestCase
     private MockObject $selectMock;
 
     /**
+     * @var Resolver|MockObject
+     */
+    private MockObject $layerResolverMock;
+
+    /**
      * @inheritdoc
      */
     protected function setUp(): void
@@ -62,8 +67,7 @@ class RandomTest extends TestCase
         $this->productCollectionMock = $this->createMock(Collection::class);
         $this->selectMock = $this->createMock(Select::class);
 
-        $this->productCollectionMock->expects($this->atLeastOnce())
-            ->method('getSelect')
+        $this->productCollectionMock->method('getSelect')
             ->willReturn($this->selectMock);
 
         $objectManager->prepareObjectManager([
@@ -74,15 +78,14 @@ class RandomTest extends TestCase
 
         $this->layerMock = $this->createMock(Layer::class);
 
-        $layerResolverMock = $this->createMock(Resolver::class);
-        $layerResolverMock->expects($this->atLeastOnce())
-            ->method('get')
+        $this->layerResolverMock = $this->createMock(Resolver::class);
+        $this->layerResolverMock->method('get')
             ->willReturn($this->layerMock);
 
         $this->block = $objectManager->getObject(
             Random::class,
             [
-                'layerResolver' => $layerResolverMock,
+                'layerResolver' => $this->layerResolverMock,
                 'productCollectionFactory' => $this->productCollectionFactoryMock,
             ]
         );
@@ -97,6 +100,18 @@ class RandomTest extends TestCase
     }
 
     /**
+     * Setup expectations for product collection creation
+     *
+     * @return void
+     */
+    private function setupProductCollectionExpectations(): void
+    {
+        $this->productCollectionFactoryMock->expects($this->once())
+            ->method('create')
+            ->willReturn($this->productCollectionMock);
+    }
+
+    /**
      * Test that getLoadedProductCollection creates and configures product collection
      *
      * @covers \Magento\Catalog\Block\Product\ProductList\Random::_getProductCollection
@@ -107,9 +122,7 @@ class RandomTest extends TestCase
         $numProducts = 5;
         $this->block->setData('num_products', $numProducts);
 
-        $this->productCollectionFactoryMock->expects($this->once())
-            ->method('create')
-            ->willReturn($this->productCollectionMock);
+        $this->setupProductCollectionExpectations();
 
         $this->layerMock->expects($this->once())
             ->method('prepareProductCollection')
@@ -139,9 +152,7 @@ class RandomTest extends TestCase
      */
     public function testGetLoadedProductCollectionCachesCollection(): void
     {
-        $this->productCollectionFactoryMock->expects($this->once())
-            ->method('create')
-            ->willReturn($this->productCollectionMock);
+        $this->setupProductCollectionExpectations();
 
         $firstResult = $this->block->getLoadedProductCollection();
         $secondResult = $this->block->getLoadedProductCollection();
@@ -166,9 +177,7 @@ class RandomTest extends TestCase
             $this->block->setData('num_products', $numProducts);
         }
 
-        $this->productCollectionFactoryMock->expects($this->once())
-            ->method('create')
-            ->willReturn($this->productCollectionMock);
+        $this->setupProductCollectionExpectations();
 
         $this->productCollectionMock->expects($this->once())
             ->method('setPage')
