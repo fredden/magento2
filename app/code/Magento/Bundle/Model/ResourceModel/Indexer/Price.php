@@ -12,11 +12,13 @@ use Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\BasePriceModifier;
 use Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\IndexTableStructure;
 use Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\IndexTableStructureFactory;
 use Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\Query\JoinAttributeProcessor;
-use Magento\CatalogInventory\Model\Stock;
 use Magento\Customer\Model\Indexer\CustomerGroupDimensionProvider;
+use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Select;
 use Magento\Framework\EntityManager\MetadataPool;
+use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Indexer\DimensionalIndexerInterface;
+use Magento\Framework\Module\Manager;
 use Magento\Store\Model\Indexer\WebsiteDimensionProvider;
 
 /**
@@ -107,14 +109,20 @@ class Price implements DimensionalIndexerInterface
     private $tmpBundleOptionTable;
 
     /**
+     * @var StockStatusQueryProcessorInterface
+     */
+    private StockStatusQueryProcessorInterface $stockStatusQueryProcessor;
+
+    /**
      * @param IndexTableStructureFactory $indexTableStructureFactory
      * @param TableMaintainer $tableMaintainer
      * @param MetadataPool $metadataPool
-     * @param \Magento\Framework\App\ResourceConnection $resource
+     * @param ResourceConnection $resource
      * @param BasePriceModifier $basePriceModifier
      * @param JoinAttributeProcessor $joinAttributeProcessor
-     * @param \Magento\Framework\Event\ManagerInterface $eventManager
-     * @param \Magento\Framework\Module\Manager $moduleManager
+     * @param ManagerInterface $eventManager
+     * @param Manager $moduleManager
+     * @param StockStatusQueryProcessorInterface|null $stockStatusQueryProcessor
      * @param bool $fullReindexAction
      * @param string $connectionName
      *
@@ -129,6 +137,7 @@ class Price implements DimensionalIndexerInterface
         JoinAttributeProcessor $joinAttributeProcessor,
         \Magento\Framework\Event\ManagerInterface $eventManager,
         \Magento\Framework\Module\Manager $moduleManager,
+        ?StockStatusQueryProcessorInterface $stockStatusQueryProcessor = null,
         $fullReindexAction = false,
         $connectionName = 'indexer'
     ) {
@@ -142,6 +151,9 @@ class Price implements DimensionalIndexerInterface
         $this->joinAttributeProcessor = $joinAttributeProcessor;
         $this->eventManager = $eventManager;
         $this->moduleManager = $moduleManager;
+        $this->stockStatusQueryProcessor = $stockStatusQueryProcessor ??
+            \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(StockStatusQueryProcessorInterface::class);
     }
 
     /**
@@ -709,39 +721,7 @@ class Price implements DimensionalIndexerInterface
                 'tier_price' => $tierExpr,
             ]
         );
-        $select->join(
-            ['si' => $this->getTable('cataloginventory_stock_status')],
-            'si.product_id = bs.product_id',
-            []
-        );
-        $select->columns([
-            'stock_status' => new \Zend_Db_Expr('MAX(si.stock_status)')
-        ]);
-        $select->group(
-            [
-                'i.entity_id',
-                'i.customer_group_id',
-                'i.website_id',
-                'bo.option_id',
-                'bs.selection_id'
-            ]
-        );
-        $select = $connection->select()
-            ->from(
-                ['t' => $select],
-                [
-                    'entity_id',
-                    'customer_group_id',
-                    'website_id',
-                    'option_id',
-                    'selection_id',
-                    'group_type',
-                    'is_required',
-                    'price',
-                    'tier_price'
-                ]
-            )
-            ->where('stock_status = ?', Stock::STOCK_IN_STOCK);
+        $select = $this->stockStatusQueryProcessor->execute($select);
         $query = str_replace('AS `idx`', 'AS `idx` USE INDEX (PRIMARY)', (string) $select);
 
         $insertColumns = [
