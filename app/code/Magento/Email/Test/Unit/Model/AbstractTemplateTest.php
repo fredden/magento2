@@ -191,9 +191,7 @@ class AbstractTemplateTest extends TestCase
     {
         while ($reflection) {
             if ($reflection->hasProperty($propertyName)) {
-                $property = $reflection->getProperty($propertyName);
-                $property->setAccessible(true);
-                $property->setValue($object, $value);
+                $reflection->getProperty($propertyName)->setValue($object, $value);
                 return;
             }
             $reflection = $reflection->getParentClass();

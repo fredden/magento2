@@ -14,11 +14,9 @@ use Magento\Widget\Model\Widget\Instance;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class PropertiesTest extends TestCase
 {
-    use MockCreationTrait;
     /**
      * @var MockObject
      */
@@ -39,25 +37,26 @@ class PropertiesTest extends TestCase
         $this->widget = $this->createMock(Instance::class);
         $this->registry = $this->createMock(Registry::class);
 
-        $this->propertiesBlock = $this->createPartialMockWithReflection(
-            Properties::class,
-            ['isHidden', 'getWidgetInstance']
-        );
-        
         $this->propertiesBlock = $this->getMockBuilder(Properties::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['_construct'])
             ->getMock();
         
-        $reflection = new \ReflectionClass($this->propertiesBlock);
-        $parent = $reflection->getParentClass();
-        while ($parent && !$parent->hasProperty('_coreRegistry')) {
-            $parent = $parent->getParentClass();
-        }
-        if ($parent) {
-            $property = $parent->getProperty('_coreRegistry');
-            $property->setAccessible(true);
-            $property->setValue($this->propertiesBlock, $this->registry);
+        $this->setPropertyValue($this->propertiesBlock, '_coreRegistry', $this->registry);
+    }
+    
+    /**
+     * Set property value searching through class hierarchy
+     */
+    private function setPropertyValue(object $object, string $propertyName, mixed $value): void
+    {
+        $class = new \ReflectionClass($object);
+        while ($class) {
+            if ($class->hasProperty($propertyName)) {
+                $class->getProperty($propertyName)->setValue($object, $value);
+                return;
+            }
+            $class = $class->getParentClass();
         }
     }
 

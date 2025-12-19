@@ -11,6 +11,7 @@ use Magento\Directory\Model\Config\Source\Allregion;
 use Magento\Directory\Model\Region;
 use Magento\Directory\Model\ResourceModel\Country\Collection;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
+use Magento\Directory\Model\ResourceModel\Region\CollectionFactory as RegionCollectionFactory;
 use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -57,7 +58,7 @@ class AllRegionTest extends TestCase
             ->willReturnSelf();
 
         $regionCollectionFactory = $this->createPartialMockWithReflection(
-            \Magento\Directory\Model\ResourceModel\Region\CollectionFactory::class,
+            RegionCollectionFactory::class,
             ['__wakeup', '__sleep', 'create']
         );
         $this->regionCollection = $this->getMockBuilder(\Magento\Directory\Model\ResourceModel\Region\Collection::class)

@@ -38,6 +38,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Magento\Email\Model\ResourceModel\Template as TemplateResourceModel;
 use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
+use Magento\Framework\Filter\Template as TemplateFilter;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
@@ -217,36 +218,25 @@ class TemplateTest extends TestCase
         ];
         
         foreach ($properties as $propertyName => $value) {
-            try {
-                $property = $this->getPropertyFromHierarchy($reflection, $propertyName);
-                if ($property) {
-                    $property->setAccessible(true);
-                    $property->setValue($mock, $value);
-                }
-            } catch (\ReflectionException $e) {
-                // Property not found, skip
-            }
+            $this->setPropertyValue($mock, $propertyName, $value);
         }
         
         return $mock;
     }
     
     /**
-     * Get property from class hierarchy
-     *
-     * @param \ReflectionClass $reflection
-     * @param string $propertyName
-     * @return \ReflectionProperty|null
+     * Set property value searching through class hierarchy
      */
-    private function getPropertyFromHierarchy(\ReflectionClass $reflection, string $propertyName): ?\ReflectionProperty
+    private function setPropertyValue(object $object, string $propertyName, mixed $value): void
     {
-        while ($reflection) {
-            if ($reflection->hasProperty($propertyName)) {
-                return $reflection->getProperty($propertyName);
+        $class = new \ReflectionClass($object);
+        while ($class) {
+            if ($class->hasProperty($propertyName)) {
+                $class->getProperty($propertyName)->setValue($object, $value);
+                return;
             }
-            $reflection = $reflection->getParentClass();
+            $class = $class->getParentClass();
         }
-        return null;
     }
 
     public function testSetAndGetIsChildTemplate()
@@ -272,7 +262,7 @@ class TemplateTest extends TestCase
     public function testGetTemplateFilterWithEmptyValue()
     {
         $filterTemplate = $this->createPartialMockWithReflection(
-            \Magento\Framework\Filter\Template::class,
+            TemplateFilter::class,
             ['setUseAbsoluteLinks', 'setStoreId', 'setUrlModel']
         );
         $filterTemplate->expects($this->once())
@@ -558,7 +548,7 @@ class TemplateTest extends TestCase
 
         class_exists(Template::class, true);
         $filterTemplate = $this->createPartialMockWithReflection(
-            \Magento\Framework\Filter\Template::class,
+            TemplateFilter::class,
             ['setStoreId', 'setVariables', 'filter']
         );
         $model->expects($this->once())
