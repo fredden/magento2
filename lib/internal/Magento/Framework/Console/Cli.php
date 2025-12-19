@@ -506,7 +506,8 @@ class Cli extends Console\Application
 
         // Check if this is a critical core commands failure
         if (strpos($errorMessage, 'CRITICAL: Core Magento commands') !== false) {
-            $terminalMessage .=  PHP_EOL . " CRITICAL: Commands like cache:flush, deploy:mode:set are UNAVAILABLE!" . PHP_EOL;
+            $terminalMessage .= PHP_EOL
+                . " CRITICAL: Commands like cache:flush, deploy:mode:set are UNAVAILABLE!" . PHP_EOL;
             $terminalMessage .=  PHP_EOL . "Try running the following command to see the available commands:" . PHP_EOL;
             $terminalMessage .= "  bin/magento list" . PHP_EOL;
         }
