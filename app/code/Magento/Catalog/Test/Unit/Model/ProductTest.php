@@ -430,7 +430,7 @@ class ProductTest extends TestCase
         $this->eavConfig = $this->createMock(Config::class);
 
         $this->productExtAttributes = $this->getMockBuilder(ProductExtensionInterface::class)
-            ->onlyMethods(['getStockItem'])
+            ->addMethods(['getStockItem'])
             ->getMockForAbstractClass();
         $this->extensionAttributesFactory
             ->expects($this->any())
@@ -2460,7 +2460,9 @@ class ProductTest extends TestCase
                 'metadataService' => $this->metadataServiceMock,
                 'url' => $this->createMock(\Magento\Catalog\Model\Product\Url::class),
                 'productLink' => $this->createMock(\Magento\Catalog\Model\Product\Link::class),
-                'itemOptionFactory' => $this->createMock(\Magento\Catalog\Model\Product\Configuration\Item\OptionFactory::class),
+                'itemOptionFactory' => $this->createMock(
+                    \Magento\Catalog\Model\Product\Configuration\Item\OptionFactory::class
+                ),
                 'stockItemFactory' => $this->stockItemFactoryMock,
                 'catalogProductOptionFactory' => $this->createMock(\Magento\Catalog\Model\Product\OptionFactory::class),
                 'catalogProductVisibility' => $this->createMock(\Magento\Catalog\Model\Product\Visibility::class),
@@ -2470,22 +2472,32 @@ class ProductTest extends TestCase
                 'moduleManager' => $this->moduleManager,
                 'catalogProduct' => $this->_catalogProduct,
                 'resource' => $this->resource,
-                'resourceCollection' => $this->createMock(\Magento\Catalog\Model\ResourceModel\Product\Collection::class),
+                'resourceCollection' => $this->createMock(
+                    \Magento\Catalog\Model\ResourceModel\Product\Collection::class
+                ),
                 'collectionFactory' => $this->collectionFactoryMock,
                 'filesystem' => $this->filesystemMock,
                 'indexerRegistry' => $this->indexerRegistryMock,
                 'productFlatIndexerProcessor' => $this->productFlatProcessor,
                 'productPriceIndexerProcessor' => $this->productPriceProcessor,
-                'productEavIndexerProcessor' => $this->createMock(\Magento\Catalog\Model\Indexer\Product\Eav\Processor::class),
+                'productEavIndexerProcessor' => $this->createMock(
+                    \Magento\Catalog\Model\Indexer\Product\Eav\Processor::class
+                ),
                 'categoryRepository' => $this->categoryRepository,
                 'imageCacheFactory' => $this->imageCacheFactory,
-                'entityCollectionProvider' => $this->createMock(\Magento\Catalog\Model\ProductLink\CollectionProvider::class),
+                'entityCollectionProvider' => $this->createMock(
+                    \Magento\Catalog\Model\ProductLink\CollectionProvider::class
+                ),
                 'linkTypeProvider' => $this->createMock(\Magento\Catalog\Model\Product\LinkTypeProvider::class),
                 'productLinkFactory' => $this->createMock(\Magento\Catalog\Api\Data\ProductLinkInterfaceFactory::class),
-                'productLinkExtensionFactory' => $this->createMock(\Magento\Catalog\Api\Data\ProductLinkExtensionFactory::class),
+                'productLinkExtensionFactory' => $this->createMock(
+                    \Magento\Catalog\Api\Data\ProductLinkExtensionFactory::class
+                ),
                 'mediaGalleryEntryConverterPool' => $this->mediaGalleryEntryConverterPoolMock,
                 'dataObjectHelper' => $this->dataObjectHelperMock,
-                'joinProcessor' => $this->createMock(\Magento\Framework\Api\ExtensionAttribute\JoinProcessorInterface::class),
+                'joinProcessor' => $this->createMock(
+                    \Magento\Framework\Api\ExtensionAttribute\JoinProcessorInterface::class
+                ),
                 'data' => [],
                 'config' => null,  // Pass null to trigger ObjectManager fallback
                 'filterCustomAttribute' => null  // Pass null to trigger ObjectManager fallback
