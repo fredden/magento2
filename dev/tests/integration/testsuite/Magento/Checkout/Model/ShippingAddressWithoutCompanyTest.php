@@ -417,62 +417,88 @@ class ShippingAddressWithoutCompanyTest extends TestCase
     }
 
     /**
+     * Restore Show Company configuration to original value
+     *
+     * @return void
+     */
+    private function restoreShowCompanyConfig(): void
+    {
+        if (!isset($this->configWriter, $this->reinitableConfig)) {
+            return;
+        }
+
+        try {
+            if ($this->originalShowCompanyConfig !== null) {
+                $this->configWriter->save('customer/address/company_show', $this->originalShowCompanyConfig);
+            } else {
+                // If original config was null, delete the config entry (restore to default)
+                $this->configWriter->delete('customer/address/company_show');
+            }
+            $this->reinitableConfig->reinit();
+        } catch (Exception $e) {
+            // Continue cleanup even if config restore fails
+        }
+    }
+
+    /**
+     * Delete customer created during test
+     *
+     * @return void
+     */
+    private function deleteCreatedCustomer(): void
+    {
+        if ($this->createdCustomerId === null || !isset($this->customerRepository, $this->registry)) {
+            return;
+        }
+
+        try {
+            // Set secure area for deletion
+            $isSecureArea = $this->registry->registry('isSecureArea');
+            $this->registry->unregister('isSecureArea');
+            $this->registry->register('isSecureArea', true);
+
+            // Delete customer and all associated data (addresses, orders, etc.)
+            try {
+                $customer = $this->customerRepository->getById($this->createdCustomerId);
+                $this->customerRepository->delete($customer);
+            } catch (NoSuchEntityException $e) {
+                // Customer already deleted
+            }
+
+            // Restore secure area flag
+            $this->registry->unregister('isSecureArea');
+            $this->registry->register('isSecureArea', $isSecureArea);
+        } catch (Exception $e) {
+            // Continue cleanup even if customer deletion fails
+        }
+    }
+
+    /**
+     * Clean up customer registry cache
+     *
+     * @return void
+     */
+    private function cleanupCustomerRegistry(): void
+    {
+        if (!isset($this->customerRegistry) || $this->createdCustomerId === null) {
+            return;
+        }
+
+        try {
+            $this->customerRegistry->remove($this->createdCustomerId);
+        } catch (Exception $e) {
+            // Continue cleanup
+        }
+    }
+
+    /**
      * @inheritdoc
      */
     protected function tearDown(): void
     {
-        // Restore Show Company configuration to original value
-        if ($this->originalShowCompanyConfig !== null && isset($this->configWriter, $this->reinitableConfig)) {
-            try {
-                $this->configWriter->save('customer/address/company_show', $this->originalShowCompanyConfig);
-                $this->reinitableConfig->reinit();
-            } catch (Exception $e) {
-                // Continue cleanup even if config restore fails
-            }
-        } elseif ($this->originalShowCompanyConfig === null && isset($this->configWriter, $this->reinitableConfig)) {
-            // If original config was null, delete the config entry (restore to default)
-            try {
-                $this->configWriter->delete('customer/address/company_show');
-                $this->reinitableConfig->reinit();
-            } catch (Exception $e) {
-                // Continue cleanup even if config delete fails
-            }
-        }
-
-        // Delete customer created during test
-        if ($this->createdCustomerId !== null && isset($this->customerRepository, $this->registry)) {
-            try {
-                // Set secure area for deletion
-                $isSecureArea = $this->registry->registry('isSecureArea');
-                $this->registry->unregister('isSecureArea');
-                $this->registry->register('isSecureArea', true);
-
-                // Delete customer and all associated data (addresses, orders, etc.)
-                try {
-                    $customer = $this->customerRepository->getById($this->createdCustomerId);
-                    $this->customerRepository->delete($customer);
-                } catch (NoSuchEntityException $e) {
-                    // Customer already deleted
-                }
-
-                // Restore secure area flag
-                $this->registry->unregister('isSecureArea');
-                $this->registry->register('isSecureArea', $isSecureArea);
-            } catch (Exception $e) {
-                // Continue cleanup even if customer deletion fails
-            }
-        }
-
-        // Clean up customer registry
-        if (isset($this->customerRegistry)) {
-            try {
-                if ($this->createdCustomerId !== null) {
-                    $this->customerRegistry->remove($this->createdCustomerId);
-                }
-            } catch (Exception $e) {
-                // Continue cleanup
-            }
-        }
+        $this->restoreShowCompanyConfig();
+        $this->deleteCreatedCustomer();
+        $this->cleanupCustomerRegistry();
 
         parent::tearDown();
     }
