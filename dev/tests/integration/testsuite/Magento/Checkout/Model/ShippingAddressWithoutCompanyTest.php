@@ -11,22 +11,21 @@ use Exception;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Customer\Api\AddressRepositoryInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
-use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Customer\Api\Data\AddressInterfaceFactory;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Api\Data\CustomerInterfaceFactory;
 use Magento\Customer\Model\CustomerRegistry;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\Config\ConfigResource\ConfigInterface;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\State\InputMismatchException;
+use Magento\Framework\Registry;
 use Magento\Quote\Api\CartManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\Data\AddressInterface as QuoteAddressInterface;
 use Magento\Quote\Model\QuoteFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -74,11 +73,6 @@ class ShippingAddressWithoutCompanyTest extends TestCase
     private AddressInterfaceFactory $addressFactory;
 
     /**
-     * @var ProductRepositoryInterface
-     */
-    private ProductRepositoryInterface $productRepository;
-
-    /**
      * @var QuoteFactory
      */
     private QuoteFactory $quoteFactory;
@@ -99,11 +93,6 @@ class ShippingAddressWithoutCompanyTest extends TestCase
     private OrderRepositoryInterface $orderRepository;
 
     /**
-     * @var SearchCriteriaBuilder
-     */
-    private SearchCriteriaBuilder $searchCriteriaBuilder;
-
-    /**
      * @var ResourceConnection
      */
     private ResourceConnection $resourceConnection;
@@ -112,6 +101,31 @@ class ShippingAddressWithoutCompanyTest extends TestCase
      * @var CustomerRegistry
      */
     private CustomerRegistry $customerRegistry;
+
+    /**
+     * @var Registry
+     */
+    private Registry $registry;
+
+    /**
+     * @var WriterInterface
+     */
+    private WriterInterface $configWriter;
+
+    /**
+     * @var ReinitableConfigInterface
+     */
+    private ReinitableConfigInterface $reinitableConfig;
+
+    /**
+     * @var int|null
+     */
+    private ?int $createdCustomerId = null;
+
+    /**
+     * @var string|null
+     */
+    private ?string $originalShowCompanyConfig = null;
 
     /**
      * @inheritdoc
@@ -123,14 +137,15 @@ class ShippingAddressWithoutCompanyTest extends TestCase
         $this->customerRepository = $objectManager->get(CustomerRepositoryInterface::class);
         $this->addressRepository = $objectManager->get(AddressRepositoryInterface::class);
         $this->addressFactory = $objectManager->get(AddressInterfaceFactory::class);
-        $this->productRepository = $objectManager->get(ProductRepositoryInterface::class);
         $this->quoteFactory = $objectManager->get(QuoteFactory::class);
         $this->cartManagement = $objectManager->get(CartManagementInterface::class);
         $this->cartRepository = $objectManager->get(CartRepositoryInterface::class);
         $this->orderRepository = $objectManager->get(OrderRepositoryInterface::class);
-        $this->searchCriteriaBuilder = $objectManager->get(SearchCriteriaBuilder::class);
         $this->resourceConnection = $objectManager->get(ResourceConnection::class);
         $this->customerRegistry = $objectManager->get(CustomerRegistry::class);
+        $this->registry = $objectManager->get(Registry::class);
+        $this->configWriter = $objectManager->get(WriterInterface::class);
+        $this->reinitableConfig = $objectManager->get(ReinitableConfigInterface::class);
     }
 
     /**
@@ -155,6 +170,7 @@ class ShippingAddressWithoutCompanyTest extends TestCase
         // Step 1: Create customer with addresses containing company names (Show Company = Optional)
         $customer = $this->createCustomerWithAddresses();
         $customerId = $customer->getId();
+        $this->createdCustomerId = (int) $customerId; // Store for cleanup
 
         // Step 2: Verify initial addresses have company names
         $initialAddresses = $this->getCustomerAddressesFromDatabase((int) $customerId);
@@ -165,6 +181,9 @@ class ShippingAddressWithoutCompanyTest extends TestCase
                 'Initial addresses should have company names when Show Company is Optional'
             );
         }
+
+        // Get current config value before changing it (for cleanup)
+        $this->originalShowCompanyConfig = $this->getShowCompanyConfig();
 
         // Step 3: Change Show Company configuration to No
         $this->setShowCompanyConfig('0');
@@ -325,6 +344,26 @@ class ShippingAddressWithoutCompanyTest extends TestCase
     }
 
     /**
+     * Get Show Company configuration value
+     *
+     * @return string|null Current config value
+     */
+    private function getShowCompanyConfig(): ?string
+    {
+        $connection = $this->resourceConnection->getConnection();
+        $tableName = $this->resourceConnection->getTableName('core_config_data');
+
+        $select = $connection->select()
+            ->from($tableName, ['value'])
+            ->where('path = ?', 'customer/address/company_show')
+            ->where('scope = ?', 'default')
+            ->where('scope_id = ?', 0);
+
+        $result = $connection->fetchOne($select);
+        return $result !== false ? $result : null;
+    }
+
+    /**
      * Set Show Company configuration
      *
      * @param string $value '0' = No, 'opt' = Optional, 'req' = Required
@@ -332,12 +371,10 @@ class ShippingAddressWithoutCompanyTest extends TestCase
      */
     private function setShowCompanyConfig(string $value): void
     {
-        $objectManager = Bootstrap::getObjectManager();
-        $configWriter = $objectManager->get(WriterInterface::class);
-        $configWriter->save('customer/address/company_show', $value);
+        $this->configWriter->save('customer/address/company_show', $value);
 
         // Reinitialize config
-        $objectManager->get(ReinitableConfigInterface::class)->reinit();
+        $this->reinitableConfig->reinit();
     }
 
     /**
@@ -384,21 +421,56 @@ class ShippingAddressWithoutCompanyTest extends TestCase
      */
     protected function tearDown(): void
     {
+        // Restore Show Company configuration to original value
+        if ($this->originalShowCompanyConfig !== null && isset($this->configWriter, $this->reinitableConfig)) {
+            try {
+                $this->configWriter->save('customer/address/company_show', $this->originalShowCompanyConfig);
+                $this->reinitableConfig->reinit();
+            } catch (Exception $e) {
+                // Continue cleanup even if config restore fails
+            }
+        } elseif ($this->originalShowCompanyConfig === null && isset($this->configWriter, $this->reinitableConfig)) {
+            // If original config was null, delete the config entry (restore to default)
+            try {
+                $this->configWriter->delete('customer/address/company_show');
+                $this->reinitableConfig->reinit();
+            } catch (Exception $e) {
+                // Continue cleanup even if config delete fails
+            }
+        }
+
+        // Delete customer created during test
+        if ($this->createdCustomerId !== null && isset($this->customerRepository, $this->registry)) {
+            try {
+                // Set secure area for deletion
+                $isSecureArea = $this->registry->registry('isSecureArea');
+                $this->registry->unregister('isSecureArea');
+                $this->registry->register('isSecureArea', true);
+
+                // Delete customer and all associated data (addresses, orders, etc.)
+                try {
+                    $customer = $this->customerRepository->getById($this->createdCustomerId);
+                    $this->customerRepository->delete($customer);
+                } catch (NoSuchEntityException $e) {
+                    // Customer already deleted
+                }
+
+                // Restore secure area flag
+                $this->registry->unregister('isSecureArea');
+                $this->registry->register('isSecureArea', $isSecureArea);
+            } catch (Exception $e) {
+                // Continue cleanup even if customer deletion fails
+            }
+        }
+
         // Clean up customer registry
         if (isset($this->customerRegistry)) {
-            $connection = $this->resourceConnection->getConnection();
-            $customerTable = $this->resourceConnection->getTableName('customer_entity');
-
-            $customerIds = $connection->fetchCol(
-                $connection->select()->from($customerTable, ['entity_id'])
-            );
-
-            foreach ($customerIds as $customerId) {
-                try {
-                    $this->customerRegistry->remove((int)$customerId);
-                } catch (Exception $e) {
-                    // Continue cleanup
+            try {
+                if ($this->createdCustomerId !== null) {
+                    $this->customerRegistry->remove($this->createdCustomerId);
                 }
+            } catch (Exception $e) {
+                // Continue cleanup
             }
         }
 
