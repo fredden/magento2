@@ -2336,6 +2336,14 @@ class ProductTest extends TestCase
     {
         $file = '/path/to/image.jpg';
 
+        // Save original ObjectManager instance if it exists
+        $originalObjectManager = null;
+        try {
+            $originalObjectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        } catch (\RuntimeException $e) {
+            // ObjectManager not initialized yet
+        }
+
         // Create a mock for Gallery Processor
         $processorMock = $this->createMock(\Magento\Catalog\Model\Product\Gallery\Processor::class);
         $processorMock->expects($this->once())
@@ -2367,10 +2375,10 @@ class ProductTest extends TestCase
         // This should trigger lazy loading of mediaGalleryProcessor
         $this->model->addImageToMediaGallery($file);
 
-        // Reset ObjectManager
-        $resetObjectManager = new \ReflectionProperty(\Magento\Framework\App\ObjectManager::class, '_instance');
-        $resetObjectManager->setAccessible(true);
-        $resetObjectManager->setValue(null, null);
+        // Restore original ObjectManager if it existed
+        if ($originalObjectManager !== null) {
+            \Magento\Framework\App\ObjectManager::setInstance($originalObjectManager);
+        }
     }
 
     /**
@@ -2383,6 +2391,14 @@ class ProductTest extends TestCase
         $sku = 'test-sku';
         $productId = 123;
         $links = [];
+
+        // Save original ObjectManager instance if it exists
+        $originalObjectManager = null;
+        try {
+            $originalObjectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        } catch (\RuntimeException $e) {
+            // ObjectManager not initialized yet
+        }
 
         $this->model->setData('sku', $sku);
         $this->model->setId($productId);
@@ -2422,10 +2438,10 @@ class ProductTest extends TestCase
 
         $this->assertEquals($links, $result);
 
-        // Reset ObjectManager
-        $resetObjectManager = new \ReflectionProperty(\Magento\Framework\App\ObjectManager::class, '_instance');
-        $resetObjectManager->setAccessible(true);
-        $resetObjectManager->setValue(null, null);
+        // Restore original ObjectManager if it existed
+        if ($originalObjectManager !== null) {
+            \Magento\Framework\App\ObjectManager::setInstance($originalObjectManager);
+        }
     }
 
     /**
@@ -2435,6 +2451,14 @@ class ProductTest extends TestCase
      */
     public function testConstructorObjectManagerFallback(): void
     {
+        // Save original ObjectManager instance if it exists
+        $originalObjectManager = null;
+        try {
+            $originalObjectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        } catch (\RuntimeException $e) {
+            // ObjectManager not initialized yet
+        }
+
         // Mock ObjectManager to return mocks for optional parameters
         $eavConfigMock = $this->createMock(\Magento\Eav\Model\Config::class);
         $filterCustomAttributeMock = $this->createMock(FilterProductCustomAttribute::class);
@@ -2506,9 +2530,9 @@ class ProductTest extends TestCase
 
         $this->assertInstanceOf(\Magento\Catalog\Model\Product::class, $product);
 
-        // Reset ObjectManager
-        $resetObjectManager = new \ReflectionProperty(\Magento\Framework\App\ObjectManager::class, '_instance');
-        $resetObjectManager->setAccessible(true);
-        $resetObjectManager->setValue(null, null);
+        // Restore original ObjectManager if it existed
+        if ($originalObjectManager !== null) {
+            \Magento\Framework\App\ObjectManager::setInstance($originalObjectManager);
+        }
     }
 }
