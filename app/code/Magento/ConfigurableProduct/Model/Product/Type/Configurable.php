@@ -92,6 +92,20 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
     private $usedSalableProducts = '_cache_instance_salable_products';
 
     /**
+     * Cache for attribute codes to avoid repeated collection loads
+     *
+     * @var array
+     */
+    private $attributeCodeCache = [];
+
+    /**
+     * Track cache cleans to avoid duplicates in same request
+     *
+     * @var array
+     */
+    private $cleanedCacheIds = [];
+
+    /**
      * Product is composite
      *
      * @var bool
@@ -622,7 +636,13 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
         $metadata = $this->getMetadataPool()->getMetadata(ProductInterface::class);
         $productId = $product->getData($metadata->getLinkField());
 
-        $this->getCache()->clean(CacheConstants::CLEANING_MODE_MATCHING_TAG, [self::TYPE_CODE . '_' . $productId]);
+        // OPTIMIZATION: Only clean cache once per request for same product
+        $cacheKey = self::TYPE_CODE . '_' . $productId;
+        if (!isset($this->cleanedCacheIds[$cacheKey])) {
+            $this->getCache()->clean(CacheConstants::CLEANING_MODE_MATCHING_TAG, [$cacheKey]);
+            $this->cleanedCacheIds[$cacheKey] = true;
+        }
+
         parent::beforeSave($product);
 
         $product->canAffectOptions(false);
@@ -640,10 +660,9 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
                 }
             }
         }
-        // OPTIMIZATION: Only set attribute data to null if it actually has data
-        // Avoids unnecessary setData() calls and internal event dispatches
-        foreach ($this->getConfigurableAttributes($product) as $attribute) {
-            $attributeCode = $attribute->getProductAttribute()->getAttributeCode();
+        // OPTIMIZATION: Use lightweight attribute code lookup instead of full collection
+        // Only set attribute data to null if it actually has data
+        foreach ($this->getConfigurableAttributeCodes($product) as $attributeCode) {
             if ($product->hasData($attributeCode)) {
                 $product->setData($attributeCode, null);
             }
@@ -1554,11 +1573,56 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
     }
 
     /**
+     * Get configurable attribute codes (lightweight - no collection loading)
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     * @return array
+     */
+    private function getConfigurableAttributeCodes($product): array
+    {
+        $productId = $product->getId();
+        
+        if ($productId && !isset($this->attributeCodeCache[$productId])) {
+            $codes = [];
+            // Use existing configurable attributes if already loaded
+            if ($product->hasData($this->_configurableAttributes)) {
+                foreach ($product->getData($this->_configurableAttributes) as $attribute) {
+                    $codes[] = $attribute->getProductAttribute()->getAttributeCode();
+                }
+            } else {
+                // Lightweight: Get attribute IDs without loading full collection
+                $connection = $this->_catalogProductTypeConfigurable->getConnection();
+                $select = $connection->select()
+                    ->from(
+                        $this->_catalogProductTypeConfigurable->getTable('catalog_product_super_attribute'),
+                        ['attribute_id']
+                    )
+                    ->where('product_id = ?', $productId);
+                
+                $attributeIds = $connection->fetchCol($select);
+                
+                foreach ($attributeIds as $attrId) {
+                    $attribute = $this->_eavConfig->getAttribute(\Magento\Catalog\Model\Product::ENTITY, $attrId);
+                    if ($attribute) {
+                        $codes[] = $attribute->getAttributeCode();
+                    }
+                }
+            }
+            
+            $this->attributeCodeCache[$productId] = $codes;
+        }
+        
+        return $this->attributeCodeCache[$productId] ?? [];
+    }
+
+    /**
      * @inheritDoc
      */
     public function _resetState(): void
     {
         $this->isSaleableBySku = [];
+        $this->attributeCodeCache = [];
+        $this->cleanedCacheIds = [];
     }
 
 }
