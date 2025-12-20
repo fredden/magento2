@@ -6,7 +6,6 @@
 namespace Magento\CatalogRule\Plugin\Indexer\Product\Save;
 
 use Magento\CatalogRule\Model\Indexer\Product\ProductRuleProcessor;
-use Magento\CatalogRule\Model\Indexer\Rule\RuleProductProcessor as RuleProcessor;
 use Magento\Catalog\Model\ResourceModel\Product as ResourceProduct;
 use Magento\Framework\Model\AbstractModel;
 
@@ -18,18 +17,11 @@ class ApplyRules
     protected $productRuleProcessor;
 
     /**
-     * @var RuleProcessor
-     */
-    protected $ruleProductProcessor;
-
-    /**
      * @param ProductRuleProcessor $productRuleProcessor
-     * @param RuleProcessor $ruleProductProcessor
      */
-    public function __construct(ProductRuleProcessor $productRuleProcessor, RuleProcessor $ruleProductProcessor)
+    public function __construct(ProductRuleProcessor $productRuleProcessor)
     {
         $this->productRuleProcessor = $productRuleProcessor;
-        $this->ruleProductProcessor = $ruleProductProcessor;
     }
 
     /**
@@ -57,7 +49,7 @@ class ApplyRules
             if (!$product->getIsMassupdate()) {
                 $productResource->addCommitCallback(function () use ($product) {
                     // Force reindex to ensure prices are written to catalogrule_product_price
-                    $this->ruleProductProcessor->reindexList([$product->getId()], true);
+                    $this->productRuleProcessor->reindexRow($product->getId());
                 });
             }
             return $proceed($product);
@@ -104,7 +96,7 @@ class ApplyRules
             if (!$product->getIsMassupdate()) {
                 $productResource->addCommitCallback(function () use ($product) {
                     // Force reindex to ensure prices are written to catalogrule_product_price
-                    $this->ruleProductProcessor->reindexList([$product->getId()], true);
+                    $this->productRuleProcessor->reindexRow($product->getId());
                 });
             }
             $productResource->commit();
