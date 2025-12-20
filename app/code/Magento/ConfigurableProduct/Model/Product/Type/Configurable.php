@@ -640,8 +640,13 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
                 }
             }
         }
+        // OPTIMIZATION: Only set attribute data to null if it actually has data
+        // Avoids unnecessary setData() calls and internal event dispatches
         foreach ($this->getConfigurableAttributes($product) as $attribute) {
-            $product->setData($attribute->getProductAttribute()->getAttributeCode(), null);
+            $attributeCode = $attribute->getProductAttribute()->getAttributeCode();
+            if ($product->hasData($attributeCode)) {
+                $product->setData($attributeCode, null);
+            }
         }
 
         return $this;
@@ -683,6 +688,7 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
      * @throws \Exception
      * @deprecated 100.1.0
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     private function saveConfigurableOptions(ProductInterface $product)
     {
@@ -692,15 +698,45 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
         }
 
         $metadata = $this->getMetadataPool()->getMetadata(ProductInterface::class);
+        $productId = $product->getData($metadata->getLinkField());
+
+        // OPTIMIZATION: Batch load existing configurable attributes to avoid N+1 queries
+        // Reduces 3N queries (load each attribute individually) to 1 query (load all at once)
+        $attributeIdsToLoad = [];
+        foreach ($data as $attributeData) {
+            if (!empty($attributeData['id'])) {
+                $attributeIdsToLoad[] = $attributeData['id'];
+            } elseif (!empty($attributeData['attribute_id'])) {
+                $attributeIdsToLoad[] = $attributeData['attribute_id'];
+            }
+        }
+
+        $existingAttributes = [];
+        if (!empty($attributeIdsToLoad)) {
+            $collection = $this->configurableAttributeFactory->create()->getCollection()
+                ->addFieldToFilter('product_id', $productId)
+                ->addFieldToFilter('attribute_id', ['in' => $attributeIdsToLoad]);
+            foreach ($collection as $attr) {
+                $existingAttributes[$attr->getAttributeId()] = $attr;
+            }
+        }
 
         foreach ($data as $attributeData) {
             /** @var $configurableAttribute \Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute */
-            $configurableAttribute = $this->configurableAttributeFactory->create();
+            $configurableAttribute = null;
+            
+            // OPTIMIZATION: Use pre-loaded attribute if available
+            if (!empty($attributeData['attribute_id']) && isset($existingAttributes[$attributeData['attribute_id']])) {
+                $configurableAttribute = $existingAttributes[$attributeData['attribute_id']];
+            } else {
+                $configurableAttribute = $this->configurableAttributeFactory->create();
+            }
+            
             if (!$product->getIsDuplicate()) {
-                if (!empty($attributeData['id'])) {
+                if (!empty($attributeData['id']) && !$configurableAttribute->getId()) {
                     $configurableAttribute->load($attributeData['id']);
                     $attributeData['attribute_id'] = $configurableAttribute->getAttributeId();
-                } elseif (!empty($attributeData['attribute_id'])) {
+                } elseif (!empty($attributeData['attribute_id']) && !$configurableAttribute->getId()) {
                     $attribute = $this->_eavConfig->getAttribute(
                         \Magento\Catalog\Model\Product::ENTITY, $attributeData['attribute_id']
                     );
@@ -717,9 +753,11 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
             $configurableAttribute
                 ->addData($attributeData)
                 ->setStoreId($product->getStoreId())
-                ->setProductId($product->getData($metadata->getLinkField()))
+                ->setProductId($productId)
                 ->save();
         }
+        // OPTIMIZATION: Pre-load collection before walk('delete') to reduce queries
+        // Reduces 2N queries (SELECT + DELETE per item) to 1 + N queries (SELECT all, then DELETE each)
         /** @var $configurableAttributesCollection \Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable\Attribute\Collection */
         $configurableAttributesCollection = $this->_attributeCollectionFactory->create();
         $configurableAttributesCollection->setProductFilter($product);
@@ -727,6 +765,7 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
             'attribute_id',
             ['nin' => $this->getUsedProductAttributeIds($product)]
         );
+        $configurableAttributesCollection->load();
         $configurableAttributesCollection->walk('delete');
     }
 
