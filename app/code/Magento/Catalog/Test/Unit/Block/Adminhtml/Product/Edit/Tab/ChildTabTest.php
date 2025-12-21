@@ -30,7 +30,7 @@ class ChildTabTest extends TestCase
     /**
      * Mock for tab interface
      *
-     * @var TabInterface&MockObject
+     * @var TabInterface|MockObject
      */
     private TabInterface&MockObject $tabMock;
 

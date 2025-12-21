@@ -33,28 +33,28 @@ class OptionsTest extends TestCase
     /**
      * Mock for layout interface
      *
-     * @var LayoutInterface&MockObject
+     * @var LayoutInterface|MockObject
      */
     private LayoutInterface&MockObject $layoutMock;
 
     /**
      * Mock for add button widget
      *
-     * @var Button&MockObject
+     * @var Button|MockObject
      */
     private Button&MockObject $addButtonMock;
 
     /**
      * Mock for import button widget
      *
-     * @var Button&MockObject
+     * @var Button|MockObject
      */
     private Button&MockObject $importButtonMock;
 
     /**
      * Mock for options box block
      *
-     * @var Option&MockObject
+     * @var Option|MockObject
      */
     private Option&MockObject $optionsBoxMock;
 
