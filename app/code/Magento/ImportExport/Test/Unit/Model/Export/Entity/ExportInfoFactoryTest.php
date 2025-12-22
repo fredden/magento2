@@ -1,4 +1,8 @@
 <?php
+/**
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
+ */
 declare(strict_types=1);
 
 namespace Magento\ImportExport\Test\Unit\Model\Export\Entity;
@@ -16,6 +20,9 @@ use Magento\ImportExport\Model\Export\Entity\Factory as EntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class ExportInfoFactoryTest extends TestCase
 {
     public function testCreateBuildsExportInfoAndAdapterParameters(): void
@@ -50,7 +57,13 @@ class ExportInfoFactoryTest extends TestCase
         $entityAdapter->expects($this->once())
             ->method('setParameters')
             ->with($this->callback(function (array $params) use ($entity, $fileFormat, $exportFilter, $skipAttr) {
-                return isset($params['fileFormat'], $params['entity'], $params['exportFilter'], $params['skipAttr'], $params['contentType'])
+                return isset(
+                        $params['fileFormat'],
+                        $params['entity'],
+                        $params['exportFilter'],
+                        $params['skipAttr'],
+                        $params['contentType']
+                    )
                     && $params['fileFormat'] === $fileFormat
                     && $params['entity'] === $entity
                     && $params['exportFilter'] === $exportFilter
@@ -468,5 +481,3 @@ class ExportInfoFactoryTest extends TestCase
         $this->assertTrue(true);
     }
 }
-
-
