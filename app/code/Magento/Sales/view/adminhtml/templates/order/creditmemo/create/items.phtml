@@ -151,8 +151,9 @@ require(['jquery'], function(jQuery){
 var submitButtons = jQuery('.submit-button');
 var updateButtons = jQuery('.update-button, .update-totals-button');
 var fields = jQuery('.qty-input, .order-subtotal-table input[type="text"]');
-var extraFields = jQuery('#edit_form input, #edit_form select, #edit_form textarea').not(fields);
+var requiredFields = jQuery('input[required], textarea[required], select[required]');
 var hasValidationErrors = false;
+
 function enableButtons(buttons) {
     buttons.removeClass('disabled').prop('disabled', false);
 }
@@ -163,8 +164,28 @@ function disableButtons(buttons) {
 
 disableButtons(updateButtons);
 
+function checkRequiredFieldsStatus() {
+    var allRequiredFieldsFilled = true;
+    requiredFields.each(function() {
+        var fieldValue = jQuery(this).val();
+        if (!fieldValue || fieldValue.trim() === '') {
+            allRequiredFieldsFilled = false;
+            return false; // Break out of the loop
+        }
+    });
 
-extraFields.on('change', checkExtraFields);
+    if (allRequiredFieldsFilled) {
+        enableButtons(submitButtons);
+    } else {
+        disableButtons(submitButtons);
+    }
+}
+
+// Monitor all required fields for changes
+requiredFields.on('input change', function() {
+    checkRequiredFieldsStatus();
+});
+
 fields.on('change', checkButtonsRelation);
 fields.each(function (i, elem) {
     elem.baseValue = elem.value;
@@ -178,43 +199,42 @@ function checkButtonsRelation() {
         }
     }.bind(this));
     if (hasChanges) {
-        disableButtons(submitButtons);
         enableButtons(updateButtons);
+        // When quantity changes, check if all required fields are still filled
+        checkRequiredFieldsStatus();
     }
     else {
-        enableButtons(submitButtons);
         disableButtons(updateButtons);
-    }
-}
-
-function checkExtraFields() {
-    if(hasValidationErrors && jQuery('#edit_form').valid()) {
-        enableButtons(submitButtons);
-        hasValidationErrors = false;
+        // Make sure buttons are enabled if no quantity changes and required fields are filled
+        checkRequiredFieldsStatus();
     }
 }
 
 submitCreditMemo = function() {
-    var creditMemoOffline = jQuery('#creditmemo_do_offline');
-    if (creditMemoOffline.length) {
-        creditMemoOffline.prop('value', 0);
-    }
-    // Temporary solution will be replaced after refactoring order functionality
-    jQuery('#edit_form').triggerHandler('save');
-    if(!jQuery('#edit_form').valid()) {
+    if (jQuery('#edit_form').valid()) {
+        var creditMemoOffline = jQuery('#creditmemo_do_offline');
+        if (creditMemoOffline.length) {
+            creditMemoOffline.prop('value', 0);
+        }
+        // Temporary solution will be replaced after refactoring order functionality
+        jQuery('#edit_form').triggerHandler('save');
+    } else {
         hasValidationErrors = true;
+        disableButtons(submitButtons);
     }
 };
 
 submitCreditMemoOffline = function() {
-    var creditMemoOffline = jQuery('#creditmemo_do_offline');
-    if (creditMemoOffline.length) {
-        creditMemoOffline.prop('value', 1);
-    }
-    // Temporary solution will be replaced after refactoring order functionality
-    jQuery('#edit_form').triggerHandler('save');
-    if(!jQuery('#edit_form').valid()) {
+    if (jQuery('#edit_form').valid()) {
+        var creditMemoOffline = jQuery('#creditmemo_do_offline');
+        if (creditMemoOffline.length) {
+            creditMemoOffline.prop('value', 1);
+        }
+        // Temporary solution will be replaced after refactoring order functionality
+        jQuery('#edit_form').triggerHandler('save');
+    } else {
         hasValidationErrors = true;
+        disableButtons(submitButtons);
     }
 };
 
