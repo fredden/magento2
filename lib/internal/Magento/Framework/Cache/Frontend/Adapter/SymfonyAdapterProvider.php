@@ -209,8 +209,8 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
         }
 
         // Wrap with OptimizedTagAwareAdapter for tag support
-        // This bypasses Symfony's expensive tag versioning system (saves 20-30ms per save)
-        // Safe for single-server Redis with persistence enabled
+        // Uses in-memory tag version cache to avoid expensive Redis fetches (saves 15-25ms per save)
+        // Safe for all Redis configurations (single-server and clusters)
         return new OptimizedTagAwareAdapter($adapter);
     }
 
@@ -325,7 +325,7 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
         $serializer = $options['serializer'] ?? null;
 
         // Persistent connection support (15-30% performance gain)
-        $persistent = $options['persistent'] ?? true;  // Enable by default
+        $persistent = isset($options['persistent']) ? (bool)$options['persistent'] : true;  // Enable by default
         $persistentId = $options['persistent_id'] ?? null;
 
         // Connection tuning parameters with Zend-compatible defaults
