@@ -78,7 +78,7 @@
         </actionGroup>
         <actionGroup ref="CheckoutSelectCheckMoneyOrderPaymentActionGroup" stepKey="selectCheckmoSimple"/>
         <actionGroup ref="ClickPlaceOrderActionGroup" stepKey="placeOrderSimple"/>
-        <seeElement selector="{{StorefrontMinicartSection.emptyMiniCart}}" stepKey="assertEmptyCartAfterSimple"/>
+        <waitForElementVisible selector="{{StorefrontMinicartSection.emptyMiniCart}}" stepKey="assertEmptyCartAfterSimple"/>
         <grabTextFrom selector="{{CheckoutSuccessMainSection.orderNumberWithoutLink}}" stepKey="grabOrderIdSimple"/>
         <!-- Step-5/6: Open Admin and newly created order -->
         <actionGroup ref="AdminLoginActionGroup" stepKey="loginAsAdminForSimple"/>
@@ -127,7 +127,7 @@
         </actionGroup>
         <actionGroup ref="CheckoutSelectCheckMoneyOrderPaymentActionGroup" stepKey="selectCheckmoConfig"/>
         <actionGroup ref="ClickPlaceOrderActionGroup" stepKey="placeOrderConfig"/>
-        <seeElement selector="{{StorefrontMinicartSection.emptyMiniCart}}" stepKey="assertEmptyCartAfterConfig"/>
+        <waitForElementVisible selector="{{StorefrontMinicartSection.emptyMiniCart}}" stepKey="assertEmptyCartAfterConfig"/>
         <grabTextFrom selector="{{CheckoutSuccessMainSection.orderNumberWithoutLink}}" stepKey="grabOrderIdConfig"/>
         <!-- Open Admin and newly created configurable order -->
         <actionGroup ref="OpenOrderByIdActionGroup" stepKey="openOrderByIdConfig">
