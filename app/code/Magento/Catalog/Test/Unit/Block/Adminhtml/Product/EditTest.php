@@ -739,7 +739,7 @@ class EditTest extends TestCase
         $blockName = str_replace('-', '_', $alias) . '_block';
         $this->layoutMock->expects($this->once())
             ->method('getChildName')
-            ->willReturnCallback(function ($parentName, $childAlias) use ($alias, $blockName) {
+            ->willReturnCallback(function ($_, $childAlias) use ($alias, $blockName) {
                 return $childAlias === $alias ? $blockName : '';
             });
         $this->layoutMock->expects($this->once())
