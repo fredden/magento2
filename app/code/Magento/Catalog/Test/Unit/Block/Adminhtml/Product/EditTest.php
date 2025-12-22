@@ -556,8 +556,8 @@ class EditTest extends TestCase
      */
     public function testGetHeaderEscapesSpecialCharactersInProductName(): void
     {
-        $productName = 'Product <script>alert("XSS")</script>';
-        $escapedName = 'Product &lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;';
+        $productName = 'Product <b>"Special"</b> & \'Test\'';
+        $escapedName = 'Product &lt;b&gt;&quot;Special&quot;&lt;/b&gt; &amp; \'Test\'';
 
         $this->productMock->expects($this->once())
             ->method('getId')
