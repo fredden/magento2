@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Magento\Catalog\Test\Unit\Block\Adminhtml\Product;
 
 use Magento\Catalog\Block\Adminhtml\Product\Price;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Store\Model\Website;
@@ -45,7 +46,6 @@ class PriceTest extends TestCase
 
         $reflection = new \ReflectionClass($this->block);
         $storeManagerProperty = $reflection->getProperty('_storeManager');
-        $storeManagerProperty->setAccessible(true);
         $storeManagerProperty->setValue($this->block, $this->storeManagerMock);
     }
 
@@ -98,5 +98,77 @@ class PriceTest extends TestCase
         $result = $this->block->getWebsite($storeId);
 
         $this->assertSame($websiteMock, $result);
+    }
+
+    /**
+     * Test getWebsite throws NoSuchEntityException for invalid store ID
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Price::getWebsite
+     * @return void
+     */
+    public function testGetWebsiteThrowsExceptionForInvalidStoreId(): void
+    {
+        $invalidStoreId = 99999;
+
+        $this->storeManagerMock->expects($this->once())
+            ->method('getStore')
+            ->with($invalidStoreId)
+            ->willThrowException(new NoSuchEntityException(__('Store with ID "%1" not found.', $invalidStoreId)));
+
+        $this->expectException(NoSuchEntityException::class);
+        $this->expectExceptionMessage('Store with ID "99999" not found.');
+
+        $this->block->getWebsite($invalidStoreId);
+    }
+
+    /**
+     * Test getWebsite returns null when store has no website
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Price::getWebsite
+     * @return void
+     */
+    public function testGetWebsiteReturnsNullWhenStoreHasNoWebsite(): void
+    {
+        $storeId = 1;
+        $storeMock = $this->createMock(Store::class);
+
+        $storeMock->expects($this->once())
+            ->method('getWebsite')
+            ->willReturn(null);
+
+        $this->storeManagerMock->expects($this->once())
+            ->method('getStore')
+            ->with($storeId)
+            ->willReturn($storeMock);
+
+        $result = $this->block->getWebsite($storeId);
+
+        $this->assertNull($result);
+    }
+
+    /**
+     * Test getWebsite propagates exception when getWebsite call fails
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Price::getWebsite
+     * @return void
+     */
+    public function testGetWebsitePropagatesExceptionFromStoreGetWebsite(): void
+    {
+        $storeId = 1;
+        $storeMock = $this->createMock(Store::class);
+
+        $storeMock->expects($this->once())
+            ->method('getWebsite')
+            ->willThrowException(new \RuntimeException('Unable to load website'));
+
+        $this->storeManagerMock->expects($this->once())
+            ->method('getStore')
+            ->with($storeId)
+            ->willReturn($storeMock);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Unable to load website');
+
+        $this->block->getWebsite($storeId);
     }
 }

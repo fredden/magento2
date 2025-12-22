@@ -440,6 +440,189 @@ class EditTest extends TestCase
     }
 
     /**
+     * Test getAttributeSetName handles invalid/non-existent attribute set ID
+     *
+     * When an invalid attribute set ID is loaded, the attribute set name will be null.
+     * The method returns this null value directly without conversion.
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::getAttributeSetName
+     * @return void
+     */
+    public function testGetAttributeSetNameHandlesInvalidSetId(): void
+    {
+        $invalidSetId = 99999;
+
+        $this->productMock->expects($this->once())
+            ->method('getAttributeSetId')
+            ->willReturn($invalidSetId);
+
+        $attributeSetMock = $this->createMock(Set::class);
+        $attributeSetMock->expects($this->once())
+            ->method('load')
+            ->with($invalidSetId)
+            ->willReturnSelf();
+        $attributeSetMock->expects($this->once())
+            ->method('getAttributeSetName')
+            ->willReturn(null);
+
+        $this->attributeSetFactoryMock->expects($this->once())
+            ->method('create')
+            ->willReturn($attributeSetMock);
+
+        $this->assertNull($this->block->getAttributeSetName());
+    }
+
+    /**
+     * Test getAttributeSetName handles empty string attribute set name
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::getAttributeSetName
+     * @return void
+     */
+    public function testGetAttributeSetNameHandlesEmptyName(): void
+    {
+        $setId = 4;
+
+        $this->productMock->expects($this->once())
+            ->method('getAttributeSetId')
+            ->willReturn($setId);
+
+        $attributeSetMock = $this->createMock(Set::class);
+        $attributeSetMock->expects($this->once())
+            ->method('load')
+            ->with($setId)
+            ->willReturnSelf();
+        $attributeSetMock->expects($this->once())
+            ->method('getAttributeSetName')
+            ->willReturn('');
+
+        $this->attributeSetFactoryMock->expects($this->once())
+            ->method('create')
+            ->willReturn($attributeSetMock);
+
+        $this->assertSame('', $this->block->getAttributeSetName());
+    }
+
+    /**
+     * Test getSelectedTabId returns empty string when tab param is null
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::getSelectedTabId
+     * @return void
+     */
+    public function testGetSelectedTabIdReturnsEmptyStringWhenTabIsNull(): void
+    {
+        $this->requestMock->expects($this->once())
+            ->method('getParam')
+            ->with('tab')
+            ->willReturn(null);
+
+        $this->escaperMock->expects($this->once())
+            ->method('escapeHtml')
+            ->with(null)
+            ->willReturn('');
+
+        $this->assertSame('', $this->block->getSelectedTabId());
+    }
+
+    /**
+     * Test getHeader handles product with empty name
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::getHeader
+     * @return void
+     */
+    public function testGetHeaderHandlesEmptyProductName(): void
+    {
+        $this->productMock->expects($this->once())
+            ->method('getId')
+            ->willReturn(1);
+
+        $this->productMock->expects($this->once())
+            ->method('getName')
+            ->willReturn('');
+
+        $this->escaperMock->expects($this->once())
+            ->method('escapeHtml')
+            ->with('')
+            ->willReturn('');
+
+        $result = $this->block->getHeader();
+        $this->assertSame('', (string)$result);
+    }
+
+    /**
+     * Test getHeader handles product with special characters in name
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::getHeader
+     * @return void
+     */
+    public function testGetHeaderEscapesSpecialCharactersInProductName(): void
+    {
+        $productName = 'Product <script>alert("XSS")</script>';
+        $escapedName = 'Product &lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;';
+
+        $this->productMock->expects($this->once())
+            ->method('getId')
+            ->willReturn(1);
+
+        $this->productMock->expects($this->once())
+            ->method('getName')
+            ->willReturn($productName);
+
+        $this->escaperMock->expects($this->once())
+            ->method('escapeHtml')
+            ->with($productName)
+            ->willReturn($escapedName);
+
+        $result = $this->block->getHeader();
+        $this->assertSame($escapedName, (string)$result);
+    }
+
+    /**
+     * Test getProductSetId returns null when both product and request have no set ID
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::getProductSetId
+     * @return void
+     */
+    public function testGetProductSetIdReturnsNullWhenNoSetIdAvailable(): void
+    {
+        $this->productMock->expects($this->once())
+            ->method('getAttributeSetId')
+            ->willReturn(null);
+
+        $this->requestMock->expects($this->once())
+            ->method('getParam')
+            ->with('set', null)
+            ->willReturn(null);
+
+        $this->assertNull($this->block->getProductSetId());
+    }
+
+    /**
+     * Test _getAttributes handles attributes with null applyTo values
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::_getAttributes
+     * @return void
+     */
+    public function testGetAttributesHandlesNullApplyToValues(): void
+    {
+        $attributeMock = $this->createMock(EavAttribute::class);
+        $attributeMock->expects($this->once())
+            ->method('getApplyTo')
+            ->willReturn(null);
+
+        $attributes = ['test_attribute' => $attributeMock];
+
+        $this->productMock->expects($this->once())
+            ->method('getAttributes')
+            ->willReturn($attributes);
+
+        $result = $this->invokeProtectedMethod('_getAttributes');
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('test_attribute', $result);
+        $this->assertNull($result['test_attribute']);
+    }
+
+    /**
      * Test getSelectedTabId returns escaped tab ID from request
      *
      * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::getSelectedTabId
