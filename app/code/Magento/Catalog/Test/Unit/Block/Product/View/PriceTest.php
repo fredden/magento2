@@ -121,4 +121,22 @@ class PriceTest extends TestCase
             ]
         ];
     }
+
+    /**
+     * Test getPrice throws error when product is not in registry
+     *
+     * @covers \Magento\Catalog\Block\Product\View\Price::getPrice
+     * @return void
+     */
+    public function testGetPriceThrowsErrorWhenProductIsNull(): void
+    {
+        $this->registryMock->expects($this->once())
+            ->method('registry')
+            ->with('product')
+            ->willReturn(null);
+
+        $this->expectException(\Error::class);
+
+        $this->block->getPrice();
+    }
 }
