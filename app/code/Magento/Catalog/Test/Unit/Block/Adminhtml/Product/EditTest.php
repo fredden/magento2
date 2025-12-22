@@ -733,13 +733,14 @@ class EditTest extends TestCase
      * @param string $alias
      * @param string $expectedHtml
      * @return void
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function testButtonHtmlReturnsChildHtml(string $method, string $alias, string $expectedHtml): void
     {
         $blockName = str_replace('-', '_', $alias) . '_block';
         $this->layoutMock->expects($this->once())
             ->method('getChildName')
-            ->willReturnCallback(function ($_, $childAlias) use ($alias, $blockName) {
+            ->willReturnCallback(function ($parentName, $childAlias) use ($alias, $blockName) {
                 return $childAlias === $alias ? $blockName : '';
             });
         $this->layoutMock->expects($this->once())
