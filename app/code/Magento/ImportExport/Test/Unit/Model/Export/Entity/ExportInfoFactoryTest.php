@@ -58,12 +58,12 @@ class ExportInfoFactoryTest extends TestCase
             ->method('setParameters')
             ->with($this->callback(function (array $params) use ($entity, $fileFormat, $exportFilter, $skipAttr) {
                 return isset(
-                        $params['fileFormat'],
-                        $params['entity'],
-                        $params['exportFilter'],
-                        $params['skipAttr'],
-                        $params['contentType']
-                    )
+                    $params['fileFormat'],
+                    $params['entity'],
+                    $params['exportFilter'],
+                    $params['skipAttr'],
+                    $params['contentType']
+                )
                     && $params['fileFormat'] === $fileFormat
                     && $params['entity'] === $entity
                     && $params['exportFilter'] === $exportFilter
