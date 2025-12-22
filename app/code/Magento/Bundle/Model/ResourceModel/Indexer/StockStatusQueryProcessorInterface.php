@@ -9,7 +9,7 @@ namespace Magento\Bundle\Model\ResourceModel\Indexer;
 
 use Magento\Framework\DB\Select;
 
-Interface StockStatusQueryProcessorInterface
+interface StockStatusQueryProcessorInterface
 {
     /**
      * Process stock status select query for bundle products

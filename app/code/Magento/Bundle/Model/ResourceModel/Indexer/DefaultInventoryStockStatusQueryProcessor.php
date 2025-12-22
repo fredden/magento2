@@ -21,6 +21,8 @@ class DefaultInventoryStockStatusQueryProcessor implements StockStatusQueryProce
     }
 
     /**
+     * Apply stock status filter to the Select
+     *
      * @param Select $select
      * @return Select
      */
