@@ -45,6 +45,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * Covers \Magento\Email\Model\Template
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.UnusedLocalVariable)
  */
 class TemplateTest extends TestCase
 {
