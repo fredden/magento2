@@ -123,63 +123,6 @@ class ChildTabTest extends TestCase
     }
 
     /**
-     * Test that isTabOpened returns true when tab has opened data set to true
-     *
-     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab::isTabOpened
-     * @return void
-     */
-    public function testIsTabOpenedReturnsTrueWhenTabIsOpened(): void
-    {
-        $this->tabMock->expects($this->once())
-            ->method('getData')
-            ->with('opened')
-            ->willReturn(true);
-
-        $this->block->setTab($this->tabMock);
-        $result = $this->block->isTabOpened();
-
-        $this->assertTrue($result);
-    }
-
-    /**
-     * Test that isTabOpened returns false when tab has opened data set to false
-     *
-     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab::isTabOpened
-     * @return void
-     */
-    public function testIsTabOpenedReturnsFalseWhenTabIsClosed(): void
-    {
-        $this->tabMock->expects($this->once())
-            ->method('getData')
-            ->with('opened')
-            ->willReturn(false);
-
-        $this->block->setTab($this->tabMock);
-        $result = $this->block->isTabOpened();
-
-        $this->assertFalse($result);
-    }
-
-    /**
-     * Test that isTabOpened returns false when tab has no opened data
-     *
-     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab::isTabOpened
-     * @return void
-     */
-    public function testIsTabOpenedReturnsFalseWhenOpenedDataIsNull(): void
-    {
-        $this->tabMock->expects($this->once())
-            ->method('getData')
-            ->with('opened')
-            ->willReturn(null);
-
-        $this->block->setTab($this->tabMock);
-        $result = $this->block->isTabOpened();
-
-        $this->assertFalse($result);
-    }
-
-    /**
      * Test that isTabOpened returns boolean for various truthy/falsy values
      *
      * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\ChildTab::isTabOpened
@@ -209,10 +152,13 @@ class ChildTabTest extends TestCase
     public static function openedDataProvider(): array
     {
         return [
+            'boolean_true' => [true, true],
+            'boolean_false' => [false, false],
+            'null_value' => [null, false],
             'integer_1' => [1, true],
             'integer_0' => [0, false],
             'string_true' => ['true', true],
-            'string_false' => ['false', true], // Non-empty string is truthy
+            'string_false' => ['false', true],
             'string_empty' => ['', false],
             'string_1' => ['1', true],
             'string_0' => ['0', false],

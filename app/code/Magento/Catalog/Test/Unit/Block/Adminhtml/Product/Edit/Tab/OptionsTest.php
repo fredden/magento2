@@ -99,7 +99,6 @@ class OptionsTest extends TestCase
         // Use reflection to call protected _prepareLayout method
         $reflection = new \ReflectionClass($this->block);
         $method = $reflection->getMethod('_prepareLayout');
-        $method->setAccessible(true);
         $result = $method->invoke($this->block);
 
         $this->assertInstanceOf(Options::class, $result);
@@ -123,7 +122,6 @@ class OptionsTest extends TestCase
 
         $reflection = new \ReflectionClass($this->block);
         $method = $reflection->getMethod('_prepareLayout');
-        $method->setAccessible(true);
         $method->invoke($this->block);
 
         $result = $this->block->getAddButtonHtml();
@@ -146,7 +144,6 @@ class OptionsTest extends TestCase
 
         $reflection = new \ReflectionClass($this->block);
         $method = $reflection->getMethod('_prepareLayout');
-        $method->setAccessible(true);
         $method->invoke($this->block);
 
         $result = $this->block->getOptionsBoxHtml();
