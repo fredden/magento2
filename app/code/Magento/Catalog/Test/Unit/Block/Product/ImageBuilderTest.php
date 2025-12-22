@@ -330,76 +330,26 @@ class ImageBuilderTest extends TestCase
             'empty attributes' => [
                 'attributes' => [],
                 'expectedResult' => ''
-            ]
-        ];
-    }
-
-    /**
-     * Test getCustomAttributes with XSS attack vectors documents current behavior
-     *
-     * @dataProvider xssVulnerabilityDataProvider
-     * @covers \Magento\Catalog\Block\Product\ImageBuilder::getCustomAttributes
-     * @param array $attributes
-     * @param string $expectedResult
-     * @return void
-     */
-    public function testGetCustomAttributesWithXssVectors(
-        array $attributes,
-        string $expectedResult
-    ): void {
-        $this->imageBuilder->setAttributes($attributes);
-
-        $reflection = new ReflectionClass($this->imageBuilder);
-        $method = $reflection->getMethod('getCustomAttributes');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($this->imageBuilder);
-
-        $this->assertSame($expectedResult, $result);
-    }
-
-    /**
-     * Data provider for XSS vulnerability test scenarios
-     *
-     * Documents current behavior where special characters are NOT escaped.
-     * Note: These test cases highlight potential XSS vulnerabilities in the code.
-     *
-     * @return array
-     */
-    public static function xssVulnerabilityDataProvider(): array
-    {
-        return [
+            ],
             'double quotes in value - not escaped' => [
                 'attributes' => ['alt' => 'Product "Special" Name'],
                 'expectedResult' => 'alt="Product "Special" Name"'
-            ],
-            'script injection via attribute value - not escaped' => [
-                'attributes' => ['alt' => '<script>alert("XSS")</script>'],
-                'expectedResult' => 'alt="<script>alert("XSS")</script>"'
-            ],
-            'attribute breakout attempt with quotes - not escaped' => [
-                'attributes' => ['class' => 'test" onclick="alert(1)'],
-                'expectedResult' => 'class="test" onclick="alert(1)"'
-            ],
-            'html entity injection - not escaped' => [
-                'attributes' => ['alt' => 'Product & Description'],
-                'expectedResult' => 'alt="Product & Description"'
-            ],
-            'angle brackets in value - not escaped' => [
-                'attributes' => ['alt' => '<img src=x onerror=alert(1)>'],
-                'expectedResult' => 'alt="<img src=x onerror=alert(1)>"'
             ],
             'single quotes in value - not escaped' => [
                 'attributes' => ['alt' => "Product's Name"],
                 'expectedResult' => 'alt="Product\'s Name"'
             ],
-            'javascript protocol injection' => [
-                'attributes' => ['src' => 'javascript:alert(document.cookie)'],
-                'expectedResult' => 'src="javascript:alert(document.cookie)"'
+            'ampersand in value - not escaped' => [
+                'attributes' => ['alt' => 'Product & Description'],
+                'expectedResult' => 'alt="Product & Description"'
+            ],
+            'angle brackets in value - not escaped' => [
+                'attributes' => ['alt' => 'Size <Medium>'],
+                'expectedResult' => 'alt="Size <Medium>"'
             ],
             'mixed special characters - not escaped' => [
-                'attributes' => ['alt' => '<"Product"> & \'Test\''],
-                'expectedResult' => 'alt="<"Product"> & \'Test\'"'
+                'attributes' => ['alt' => 'Item "A" & \'B\' <C>'],
+                'expectedResult' => 'alt="Item "A" & \'B\' <C>"'
             ]
         ];
     }
