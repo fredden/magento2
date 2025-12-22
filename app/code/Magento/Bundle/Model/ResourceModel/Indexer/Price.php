@@ -25,6 +25,7 @@ use Magento\Store\Model\Indexer\WebsiteDimensionProvider;
  * Bundle products Price indexer resource model
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.TooManyFields)
  */
 class Price implements DimensionalIndexerInterface
 {
