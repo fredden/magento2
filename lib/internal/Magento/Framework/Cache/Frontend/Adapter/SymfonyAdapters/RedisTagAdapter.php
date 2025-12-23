@@ -521,7 +521,7 @@ LUA;
         // Batch delete - exactly like Zend's _removeByIds (line 751-768)
         $success = $this->deleteByIds($ids);
         
-        // Ensure changes are committed (important for TagAwareAdapter)
+        // Ensure changes are committed to underlying pool
         if (method_exists($this->cachePool, 'commit')) {
             $this->cachePool->commit();
         }
@@ -594,7 +594,7 @@ LUA;
         // Step 4: Batch delete filtered IDs
         $success = $this->deleteByIds($filteredIds);
         
-        // Step 5: Ensure changes are committed (important for TagAwareAdapter)
+        // Step 5: Ensure changes are committed to underlying pool
         if (method_exists($this->cachePool, 'commit')) {
             $this->cachePool->commit();
         }

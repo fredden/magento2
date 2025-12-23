@@ -175,6 +175,11 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
     private $cache;
 
     /**
+     * @var bool
+     */
+    private $isBatchingActive = false;
+
+    /**
      * @var MetadataPool
      */
     private $metadataPool;
@@ -634,6 +639,13 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
      */
     public function beforeSave($product)
     {
+        // OPTIMIZATION: Start batching BEFORE any cache operations
+        // This captures the cache clean operation that was previously outside batching
+        if (!$this->isBatchingActive && $this->cache && method_exists($this->cache, 'beginBatch')) {
+            $this->cache->beginBatch();
+            $this->isBatchingActive = true;
+        }
+
         $metadata = $this->getMetadataPool()->getMetadata(ProductInterface::class);
         $productId = $product->getData($metadata->getLinkField());
 
@@ -683,9 +695,13 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
     public function save($product)
     {
         // OPTIMIZATION: Batch cache operations for performance
-        // Reduces 79 × commit() to 1 × commit() = ~45ms saved per product save
-        if ($this->cache && method_exists($this->cache, 'beginBatch')) {
+        // Note: Batching may have already started in beforeSave()
+        // Don't start it again to avoid nested batching
+        $batchStartedHere = false;
+        if (!$this->isBatchingActive && $this->cache && method_exists($this->cache, 'beginBatch')) {
             $this->cache->beginBatch();
+            $this->isBatchingActive = true;
+            $batchStartedHere = true;
         }
 
         try {
@@ -706,13 +722,16 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
             }
 
             // OPTIMIZATION: End batch and commit all deferred cache operations
-            if ($this->cache && method_exists($this->cache, 'endBatch')) {
+            // Always end batching here (whether started in beforeSave or save)
+            if ($this->isBatchingActive && $this->cache && method_exists($this->cache, 'endBatch')) {
                 $this->cache->endBatch();
+                $this->isBatchingActive = false;
             }
         } catch (\Exception $e) {
             // Ensure batch mode is ended on error
-            if ($this->cache && method_exists($this->cache, 'endBatch')) {
+            if ($this->isBatchingActive && $this->cache && method_exists($this->cache, 'endBatch')) {
                 $this->cache->endBatch();
+                $this->isBatchingActive = false;
             }
             throw $e;
         }
