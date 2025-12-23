@@ -2030,16 +2030,6 @@
     </type>
     <preference for="Magento\Framework\Filter\Input\PurifierInterface" type="Magento\Framework\Filter\Input\Purifier"/>
     <preference for="Magento\Framework\App\PageCache\IdentifierInterface" type="Magento\Framework\App\PageCache\Identifier"/>
-    <!-- Step 1: Testing DI preference with minimal override (just parent::commit()) -->
-    <preference for="Symfony\Component\Cache\Adapter\TagAwareAdapter" type="Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\OptimizedTagAwareAdapter"/>
-    
-    <!-- Inject OptimizedTagAwareAdapter class name into SymfonyAdapterProvider -->
-    <type name="Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapterProvider">
-        <arguments>
-            <argument name="tagAwareAdapterClass" xsi:type="string">Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\OptimizedTagAwareAdapter</argument>
-        </arguments>
-    </type>
-    
     <preference for="Magento\Framework\App\State\ReloadProcessorInterface" type="Magento\Framework\App\State\ReloadProcessorComposite" />
     <preference for="Magento\Framework\Indexer\Config\Converter\SortingAdjustmentInterface" type="Magento\Framework\Indexer\Config\Converter\SortingAdjustment" />
 

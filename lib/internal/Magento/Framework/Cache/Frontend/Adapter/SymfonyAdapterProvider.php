@@ -95,11 +95,6 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
     private Serialize $serializer;
 
     /**
-     * @var TagAwareAdapter Factory for creating TagAwareAdapter instances (DI injected)
-     */
-    private $tagAwareAdapterFactory;
-
-    /**
      * Connection pool cache for reusing connections
      *
      * @var array<string, mixed>
@@ -145,14 +140,11 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
     public function __construct(
         Filesystem $filesystem,
         ResourceConnection $resource,
-        Serialize $serializer,
-        ?string $tagAwareAdapterClass = null
+        Serialize $serializer
     ) {
         $this->filesystem = $filesystem;
         $this->resource = $resource;
         $this->serializer = $serializer;
-        // Store the class name for TagAwareAdapter (will be resolved via DI preference)
-        $this->tagAwareAdapterFactory = $tagAwareAdapterClass ?: TagAwareAdapter::class;
     }
 
     /**
@@ -215,10 +207,7 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
             $adapter = $this->createFilesystemAdapter($backendOptions, $namespace, $defaultLifetime);
         }
 
-        // Use DI-aware instantiation to respect TagAwareAdapter preference
-        // The class will be resolved via DI preference in di.xml
-        $tagAwareAdapterClass = $this->tagAwareAdapterFactory;
-        return new $tagAwareAdapterClass($adapter);
+        return new TagAwareAdapter($adapter);
     }
 
     /**
