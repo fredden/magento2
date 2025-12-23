@@ -148,9 +148,7 @@ class AbstractTemplateTest extends TestCase
         $allMethods = array_merge($mockedMethods, ['__wakeup', '__sleep', '_init']);
         $mock = $this->createPartialMockWithReflection(Template::class, $allMethods);
         
-        $reflection = new \ReflectionClass($mock);
-        
-        $properties = [
+        $this->addPropertyValue($mock, [
             'design' => $this->design,
             'appEmulation' => $this->appEmulation,
             'storeManager' => $this->storeManager,
@@ -161,41 +159,18 @@ class AbstractTemplateTest extends TestCase
             'filterFactory' => $this->filterFactory,
             'templateFactory' => $this->templateFactory,
             'urlModel' => $this->urlModel,
-        ];
-        
-        foreach ($properties as $propertyName => $value) {
-            $this->setPropertyValue($reflection, $mock, $propertyName, $value);
-        }
+        ], Template::class);
         
         if (!empty($data)) {
             foreach ($data as $key => $value) {
                 $mock->setData($key, $value);
                 if ($key === 'area') {
-                    $this->setPropertyValue($reflection, $mock, 'area', $value);
+                    $this->addPropertyValue($mock, ['area' => $value], Template::class);
                 }
             }
         }
         
         return $mock;
-    }
-    
-    /**
-     * Set property value via reflection
-     *
-     * @param \ReflectionClass $reflection
-     * @param object $object
-     * @param string $propertyName
-     * @param mixed $value
-     */
-    private function setPropertyValue(\ReflectionClass $reflection, $object, string $propertyName, $value): void
-    {
-        while ($reflection) {
-            if ($reflection->hasProperty($propertyName)) {
-                $reflection->getProperty($propertyName)->setValue($object, $value);
-                return;
-            }
-            $reflection = $reflection->getParentClass();
-        }
     }
 
     /**
@@ -467,9 +442,10 @@ class AbstractTemplateTest extends TestCase
 
         $model = $this->createPartialMockWithReflection(Template::class, ['__wakeup', '__sleep', '_init']);
 
-        $reflection = new \ReflectionClass($model);
-        $this->setPropertyValue($reflection, $model, 'design', $designMock);
-        $this->setPropertyValue($reflection, $model, 'storeManager', $storeManagerMock);
+        $this->addPropertyValue($model, [
+            'design' => $designMock,
+            'storeManager' => $storeManagerMock,
+        ], Template::class);
 
         $expectedConfig = ['area' => 'test_area', 'store' => 2];
         $this->assertEquals($expectedConfig, $model->getDesignConfig()->getData());

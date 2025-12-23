@@ -12,16 +12,18 @@ use Magento\Directory\Block\Adminhtml\Frontend\Currency\Base;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Data\Form\Element\AbstractElement;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Store\Model\Store;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
 
 /**
  * Unit test for \Magento\Directory\Block\Adminhtml\Frontend\Currency\Base
  */
 class BaseTest extends TestCase
 {
+    use MockCreationTrait;
+
     private const STUB_WEBSITE_PARAM = 'website';
 
     /**
@@ -58,13 +60,10 @@ class BaseTest extends TestCase
             ->onlyMethods([])
             ->getMock();
 
-        $reflection = new ReflectionClass(Base::class);
-
-        $requestProperty = $reflection->getProperty('_request');
-        $requestProperty->setValue($this->baseCurrency, $this->requestMock);
-
-        $scopeConfigProperty = $reflection->getProperty('_scopeConfig');
-        $scopeConfigProperty->setValue($this->baseCurrency, $this->scopeConfigMock);
+        $this->addPropertyValue($this->baseCurrency, [
+            '_request' => $this->requestMock,
+            '_scopeConfig' => $this->scopeConfigMock,
+        ], Base::class);
     }
 
     /**

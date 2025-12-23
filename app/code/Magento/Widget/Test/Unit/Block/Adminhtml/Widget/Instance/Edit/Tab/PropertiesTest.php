@@ -11,12 +11,15 @@ use Magento\Framework\Registry;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Widget\Block\Adminhtml\Widget\Instance\Edit\Tab\Properties;
 use Magento\Widget\Model\Widget\Instance;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 class PropertiesTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var MockObject
      */
@@ -42,22 +45,9 @@ class PropertiesTest extends TestCase
             ->onlyMethods(['_construct'])
             ->getMock();
         
-        $this->setPropertyValue($this->propertiesBlock, '_coreRegistry', $this->registry);
-    }
-    
-    /**
-     * Set property value searching through class hierarchy
-     */
-    private function setPropertyValue(object $object, string $propertyName, mixed $value): void
-    {
-        $class = new \ReflectionClass($object);
-        while ($class) {
-            if ($class->hasProperty($propertyName)) {
-                $class->getProperty($propertyName)->setValue($object, $value);
-                return;
-            }
-            $class = $class->getParentClass();
-        }
+        $this->addPropertyValue($this->propertiesBlock, [
+            '_coreRegistry' => $this->registry,
+        ], Properties::class);
     }
 
     /**

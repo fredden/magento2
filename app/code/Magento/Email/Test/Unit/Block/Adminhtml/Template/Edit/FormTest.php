@@ -12,15 +12,17 @@ use Magento\Email\Model\Template;
 use Magento\Variable\Model\Source\Variables;
 use Magento\Variable\Model\Variable;
 use Magento\Variable\Model\VariableFactory;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
 
 /**
  * @covers \Magento\Email\Block\Adminhtml\Template\Edit\Form
  */
 class FormTest extends TestCase
 {
+    use MockCreationTrait;
+
     /** @var Form */
     protected $form;
 
@@ -60,13 +62,10 @@ class FormTest extends TestCase
             ->onlyMethods([])
             ->getMock();
 
-        $reflection = new ReflectionClass(Form::class);
-
-        $variableFactoryProperty = $reflection->getProperty('_variableFactory');
-        $variableFactoryProperty->setValue($this->form, $this->variableFactoryMock);
-
-        $variablesProperty = $reflection->getProperty('_variables');
-        $variablesProperty->setValue($this->form, $this->variablesMock);
+        $this->addPropertyValue($this->form, [
+            '_variableFactory' => $this->variableFactoryMock,
+            '_variables' => $this->variablesMock,
+        ], Form::class);
     }
 
     /**

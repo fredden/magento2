@@ -111,4 +111,68 @@ trait MockCreationTrait
             )
         );
     }
+
+    /**
+     * Set a property value on an object via reflection.
+     *
+     * Use this to inject mock dependencies into objects when the constructor cannot be called
+     * (e.g., when constructor calls ObjectManager::getInstance()).
+     *
+     * Automatically searches through the class hierarchy to find the property.
+     * PHP 8.1+ compatible - no setAccessible() needed.
+     *
+     * @param object $object The object to set the property on
+     * @param string $propertyName The name of the property
+     * @param mixed $value The value to set
+     * @param string|null $className Optional: specify the class where the property is defined
+     *                               (useful when property exists in multiple parent classes)
+     * @return void
+     * @throws \ReflectionException If the property cannot be found in the class hierarchy
+     */
+    protected function setPropertyValue(
+        object $object,
+        string $propertyName,
+        mixed $value,
+        ?string $className = null
+    ): void {
+        $class = $className !== null
+            ? new ReflectionClass($className)
+            : new ReflectionClass($object);
+
+        while ($class) {
+            if ($class->hasProperty($propertyName)) {
+                $class->getProperty($propertyName)->setValue($object, $value);
+                return;
+            }
+            $class = $class->getParentClass();
+        }
+
+        throw new \ReflectionException(
+            sprintf(
+                'Property "%s" not found in class "%s" or its parent classes.',
+                $propertyName,
+                get_class($object)
+            )
+        );
+    }
+
+    /**
+     * Set multiple property values on an object via reflection.
+     *
+     * Convenience method for setting multiple properties at once.
+     *
+     * @param object $object The object to set properties on
+     * @param array<string, mixed> $properties Associative array of property name => value
+     * @param string|null $className Optional: specify the class where properties are defined
+     * @return void
+     */
+    protected function addPropertyValue(
+        object $object,
+        array $properties,
+        ?string $className = null
+    ): void {
+        foreach ($properties as $propertyName => $value) {
+            $this->setPropertyValue($object, $propertyName, $value, $className);
+        }
+    }
 }
