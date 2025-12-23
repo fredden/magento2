@@ -12,7 +12,6 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony\MagentoDatabaseAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\FilesystemTagAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\GenericTagAdapter;
-use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\OptimizedTagAwareAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\RedisTagAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\TagAdapterInterface;
 use Magento\Framework\Filesystem;
@@ -96,6 +95,11 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
     private Serialize $serializer;
 
     /**
+     * @var TagAwareAdapter Factory for creating TagAwareAdapter instances (DI injected)
+     */
+    private $tagAwareAdapterFactory;
+
+    /**
      * Connection pool cache for reusing connections
      *
      * @var array<string, mixed>
@@ -141,11 +145,14 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
     public function __construct(
         Filesystem $filesystem,
         ResourceConnection $resource,
-        Serialize $serializer
+        Serialize $serializer,
+        ?string $tagAwareAdapterClass = null
     ) {
         $this->filesystem = $filesystem;
         $this->resource = $resource;
         $this->serializer = $serializer;
+        // Store the class name for TagAwareAdapter (will be resolved via DI preference)
+        $this->tagAwareAdapterFactory = $tagAwareAdapterClass ?: TagAwareAdapter::class;
     }
 
     /**
@@ -208,10 +215,10 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
             $adapter = $this->createFilesystemAdapter($backendOptions, $namespace, $defaultLifetime);
         }
 
-        // Wrap with OptimizedTagAwareAdapter for tag support
-        // Uses in-memory tag version cache to avoid expensive Redis fetches (saves 15-25ms per save)
-        // Safe for all Redis configurations (single-server and clusters)
-        return new OptimizedTagAwareAdapter($adapter);
+        // Use DI-aware instantiation to respect TagAwareAdapter preference
+        // The class will be resolved via DI preference in di.xml
+        $tagAwareAdapterClass = $this->tagAwareAdapterFactory;
+        return new $tagAwareAdapterClass($adapter);
     }
 
     /**

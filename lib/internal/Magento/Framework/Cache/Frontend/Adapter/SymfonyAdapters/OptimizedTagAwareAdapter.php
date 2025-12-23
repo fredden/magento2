@@ -105,149 +105,18 @@ class OptimizedTagAwareAdapter extends TagAwareAdapter implements ResetAfterRequ
     }
 
     /**
-     * Initialize reflection cache (only once)
-     *
-     * @return void
-     */
-    private function initializeReflectionCache(): void
-    {
-        if ($this->reflectionCache !== null) {
-            return;
-        }
-
-        try {
-            $reflection = new \ReflectionClass(TagAwareAdapter::class);
-
-            $deferredProperty = $reflection->getProperty('deferred');
-            $deferredProperty->setAccessible(true);
-
-            $knownTagVersionsProperty = $reflection->getProperty('knownTagVersions');
-            $knownTagVersionsProperty->setAccessible(true);
-
-            $tagsPoolProperty = $reflection->getProperty('tagsPool');
-            $tagsPoolProperty->setAccessible(true);
-
-            $getTagsByKeyProperty = $reflection->getProperty('getTagsByKey');
-            $getTagsByKeyProperty->setAccessible(true);
-
-            $this->reflectionCache = [
-                'deferred' => $deferredProperty,
-                'knownTagVersions' => $knownTagVersionsProperty,
-                'tagsPool' => $tagsPoolProperty,
-                'getTagsByKey' => $getTagsByKeyProperty,
-            ];
-        } catch (\ReflectionException $e) {
-            // If reflection fails, set to empty array to avoid retry
-            $this->reflectionCache = [];
-        }
-    }
-
-    /**
-     * Optimized commit with in-memory tag version cache
-     *
-     * Instead of bypassing tag versioning (which breaks invalidation),
-     * we cache tag versions in memory to avoid expensive Redis fetches
-     * on every commit.
-     *
-     * Flow:
-     * 1. Check memory cache for tag versions
-     * 2. If not cached, fetch from Redis and cache in memory
-     * 3. Use cached versions for this commit
-     * 4. Let parent handle the rest (versions stored in Redis normally)
-     *
-     * Savings: 15-25ms per commit (after first commit)
+     * Simplified commit - just call parent (for testing DI preference)
      *
      * @return bool
      */
     public function commit(): bool
     {
-        // Initialize reflection cache once
-        $this->initializeReflectionCache();
-
-        // If reflection cache is empty, fallback to parent
-        if (empty($this->reflectionCache)) {
-            return parent::commit();
-        }
-
-        try {
-            // Use cached reflection properties (no repeated reflection!)
-            $items = $this->reflectionCache['deferred']->getValue($this);
-
-            if (!$items) {
-                return true;
-            }
-
-            // Get the tags pool and getTagsByKey closure
-            $tagsPool = $this->reflectionCache['tagsPool']->getValue($this);
-            $getTagsByKey = $this->reflectionCache['getTagsByKey']->getValue($this);
-
-            // Extract tags from items
-            $tagsByKey = $getTagsByKey($items);
-            $allTags = [];
-            foreach ($tagsByKey as $tags) {
-                foreach ($tags as $tag => $_) {
-                    $allTags[$tag] = true;
-                }
-            }
-
-            // Populate tag version cache if needed
-            if (!empty($allTags) && $tagsPool) {
-                $tagsToFetch = [];
-                foreach (array_keys($allTags) as $tag) {
-                    if (!isset($this->tagVersionCache[$tag])) {
-                        $tagsToFetch[] = $tag;
-                    }
-                }
-
-                // Fetch missing tag versions from Redis (only once per request)
-                if (!empty($tagsToFetch)) {
-                    $tagItems = $tagsPool->getItems($tagsToFetch);
-                    foreach ($tagItems as $tag => $item) {
-                        if ($item->isHit()) {
-                            $this->tagVersionCache[$tag] = $item->get();
-                        } else {
-                            // Generate new version for new tags
-                            $this->tagVersionCache[$tag] = bin2hex(random_bytes(8));
-                        }
-                    }
-                }
-
-                // Inject cached versions into parent's knownTagVersions
-                // This makes parent skip the expensive getTagVersions() call
-                $currentKnown = $this->reflectionCache['knownTagVersions']->getValue($this);
-                $this->reflectionCache['knownTagVersions']->setValue(
-                    $this,
-                    array_merge($currentKnown, $this->tagVersionCache)
-                );
-            }
-
-            // Let parent handle the rest (it will use our injected versions)
-            return parent::commit();
-
-        } catch (\ReflectionException $e) {
-            // Fallback to parent if reflection fails
-            return parent::commit();
-        }
+        // Just call parent - no optimization yet
+        return parent::commit();
     }
 
     /**
      * Reset state after request (ResetAfterRequestInterface)
-     *
-     * This is CRITICAL for correctness. Without this:
-     * - PHP-FPM worker handles request A (caches tag versions)
-     * - Admin invalidates tags in a different process
-     * - Same PHP-FPM worker handles request B (uses stale cached versions)
-     * - Result: Request B doesn't see invalidation ❌
-     *
-     * With this:
-     * - Request A ends → _resetState() clears tag version cache
-     * - Request B starts → fetches fresh tag versions from Redis
-     * - Result: Request B sees latest data ✅
-     *
-     * Performance Impact:
-     * - Cache is still beneficial WITHIN a request (multiple commits)
-     * - Prevents cross-request stale data issues
-     * - Ensures admin changes appear immediately on frontend
      *
      * @return void
      */
