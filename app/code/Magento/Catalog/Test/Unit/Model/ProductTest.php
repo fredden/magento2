@@ -72,6 +72,7 @@ use PHPUnit\Framework\TestCase;
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class ProductTest extends TestCase
 {
