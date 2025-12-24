@@ -29,24 +29,7 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Component\Cache\Marshaller\DefaultMarshaller;
 
 /**
- * Provider for creating Symfony Cache adapters and tag adapters
- *
- * This class is responsible for:
- * - Creating PSR-6 cache pool adapters (RedisAdapter, FilesystemAdapter, etc.)
- * - Creating backend-specific tag adapters (RedisTagAdapter, FilesystemTagAdapter, etc.)
- * - Managing connection pooling and optimization
- * - Parsing and applying cache configuration from env.php
- *
- * Performance optimizations:
- * - Connection pooling for Redis/Memcached
- * - Cached adapter type resolution
- * - Optimized string operations
- * - Lazy initialization where possible
- *
- * Application Server Support:
- * - Implements ResetAfterRequestInterface for proper state management
- * - Clears connection pool between Swoole worker requests
- * - Prevents stale connection reuse and state pollution
+ * Symfony cache adapter factory
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -62,41 +45,16 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
      */
     private ResourceConnection $resource;
 
-    /**
-     * Redis backend maximum TTL limit (30 days in seconds)
-     *
-     * Redis stores TTL as 32-bit signed integer (milliseconds internally).
-     * Beyond ~30 days (2,592,000 seconds), Redis may have TTL tracking issues.
-     * This matches Zend's Cm_Cache_Backend_Redis::MAX_LIFETIME.
-     */
     public const REDIS_MAX_LIFETIME = 2592000;
-
-    /**
-     * Default Redis connection timeout in seconds
-     *
-     * If not specified in configuration, use this default.
-     * 2.5 seconds is a good balance for production environments.
-     * Matches Zend's Cm_Cache_Backend_Redis::DEFAULT_CONNECT_TIMEOUT.
-     */
     public const REDIS_DEFAULT_CONNECT_TIMEOUT = 2.5;
-
-    /**
-     * Default Redis connection retry attempts
-     *
-     * If not specified in configuration, use this default.
-     * 1 retry provides fast failover without excessive delays.
-     * Matches Zend's Cm_Cache_Backend_Redis::DEFAULT_CONNECT_RETRIES.
-     */
     public const REDIS_DEFAULT_CONNECT_RETRIES = 1;
 
     /**
-     * @var Serialize PHP native serializer
+     * @var Serialize
      */
     private Serialize $serializer;
 
     /**
-     * Connection pool cache for reusing connections
-     *
      * @var array<string, mixed>
      */
     private array $connectionPool = [];
@@ -207,22 +165,11 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
             $adapter = $this->createFilesystemAdapter($backendOptions, $namespace, $defaultLifetime);
         }
 
-        // OPTIMIZATION: Skip TagAwareAdapter wrapping for backends with native tag support
-        // Redis and Filesystem have specialized tag adapters (RedisTagAdapter, FilesystemTagAdapter)
-        // that provide better performance without tag version overhead (~3.5-4.5ms saved per request).
-        //
-        // Benefits:
-        // - Redis cache: 70% faster (5ms → 1.5ms per operation)
-        // - Filesystem cache: 70% faster
-        // - No tag version fetching/validation overhead
-        //
-        // Other backends (Database, APCu, Memcached) still use TagAwareAdapter because they
-        // rely on GenericTagAdapter which needs tag versioning for proper invalidation.
+        // Skip TagAwareAdapter for Redis/Filesystem (native tag support)
         if (in_array($resolvedType, ['redis', 'filesystem'], true)) {
-            return $adapter;  // Return unwrapped adapter (no tag version overhead)
+            return $adapter;
         }
 
-        // Wrap with TagAwareAdapter for backends without native tag support
         return new TagAwareAdapter($adapter);
     }
 

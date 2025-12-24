@@ -20,47 +20,13 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 use Symfony\Component\Cache\CacheItem;
 
 /**
- * Symfony Cache adapter for Magento - FRESH IMPLEMENTATION
- *
- * This is a complete rewrite that uses tag adapters for backend-specific operations.
- *
- * Supported cleaning modes:
- * - CLEANING_MODE_ALL: Clear all cache (native Symfony)
- * - CLEANING_MODE_OLD: Remove expired items (native Symfony)
- * - CLEANING_MODE_MATCHING_TAG: AND logic (uses tag adapters)
- * - CLEANING_MODE_NOT_MATCHING_TAG: Inverse logic (uses tag adapters)
- * - CLEANING_MODE_MATCHING_ANY_TAG: OR logic (native Symfony)
- *
- * Architecture:
- * - RedisTagAdapter: Uses Redis SINTER for true AND logic
- * - FilesystemTagAdapter: Uses file indices with array_intersect for AND logic
- * - GenericTagAdapter: Fallback using namespace tags for other adapters
- *
- * @see Symfony\BackendWrapper
- * @see Symfony\LowLevelFrontend
- * @see Symfony\LowLevelBackend
+ * Symfony Cache adapter for Magento
  */
 class Symfony implements FrontendInterface
 {
-    /**
-     * Default cache ID prefix (must match Factory configuration)
-     */
     public const DEFAULT_CACHE_PREFIX = '69d_';
-
-    /**
-     * Default cache lifetime in seconds (2 hours)
-     */
     public const DEFAULT_LIFETIME = 7200;
-
-    /**
-     * Fallback expiry for items without explicit lifetime (24 hours)
-     */
     public const FALLBACK_EXPIRY = 86400;
-
-    /**
-     * Assumed lifetime for mtime calculation (2 hours)
-     * Used when calculating modification time from expiry timestamp
-     */
     public const ASSUMED_LIFETIME = 7200;
 
     /**
@@ -116,7 +82,7 @@ class Symfony implements FrontendInterface
     /**
      * @var bool
      */
-    private bool $alwaysDeferSaves = false;  // Opt-in via beginBatch()
+    private bool $alwaysDeferSaves = false;
 
     /**
      * @var bool
@@ -140,14 +106,10 @@ class Symfony implements FrontendInterface
         $this->cache = $cacheFactory();
         $this->defaultLifetime = $defaultLifetime;
         $this->idPrefix = $idPrefix;
-
-        // Use provided adapter or create generic fallback
         $this->adapter = $adapter ?? new GenericTagAdapter($this->cache);
     }
 
     /**
-     * Get cache pool (with fork detection)
-     *
      * @return CacheItemPoolInterface
      */
     private function getCache(): CacheItemPoolInterface
@@ -155,19 +117,16 @@ class Symfony implements FrontendInterface
         $currentPid = getmypid();
 
         if ($currentPid !== $this->pid) {
-            // Fork detected - create new cache pool
-            $this->parentCachePools[] = $this->cache; // Prevent destruction
+            $this->parentCachePools[] = $this->cache;
             $this->cache = ($this->cacheFactory)();
             $this->pid = $currentPid;
-            $this->isTagAware = null; // Reset cache
+            $this->isTagAware = null;
         }
 
         return $this->cache;
     }
 
     /**
-     * Check if cache supports tag-aware operations
-     *
      * @return bool
      */
     private function isTagAware(): bool
@@ -179,8 +138,6 @@ class Symfony implements FrontendInterface
     }
 
     /**
-     * Clean cache identifier (remove invalid characters)
-     *
      * @param string|null $identifier
      * @return string|null
      */
@@ -190,17 +147,12 @@ class Symfony implements FrontendInterface
             return null;
         }
 
-        // Uppercase to match Zend's _unifyId behavior
         $identifier = strtoupper($identifier);
-
-        // Replace periods and invalid characters
         $cleaned = str_replace('.', '__', $identifier);
         return preg_replace('/[^a-zA-Z0-9_]/', '_', $cleaned);
     }
 
     /**
-     * Clean multiple identifiers
-     *
      * @param array $identifiers
      * @return array
      */
