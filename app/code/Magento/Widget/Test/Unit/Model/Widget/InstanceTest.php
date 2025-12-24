@@ -22,7 +22,6 @@ use Magento\Widget\Model\Widget;
 use Magento\Widget\Model\Widget\Instance;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionProperty;
 
 /**
@@ -78,7 +77,7 @@ class InstanceTest extends TestCase
             NamespaceResolver::class
         )->disableOriginalConstructor()
             ->getMock();
-        $this->_cacheTypesListMock = $this->createMock(TypeListInterface::class);
+        $this->_cacheTypesListMock = $this->getMockForAbstractClass(TypeListInterface::class);
         $this->_readerMock = $this->getMockBuilder(
             Reader::class
         )->disableOriginalConstructor()
@@ -406,11 +405,11 @@ class InstanceTest extends TestCase
     /**
      * Test case for beforeSave method with updated page groups with layout handles
      *
+     * @dataProvider beforeSavePageGroupDataProvider
      * @param array $pageGroups
      * @param array $expectedData
      * @return void
      */
-    #[DataProvider('beforeSavePageGroupDataProvider')]
     public function testBeforeSaveWithUpdatedLayoutHandles(array $pageGroups, array $expectedData): void
     {
         $this->setLayoutHandles();

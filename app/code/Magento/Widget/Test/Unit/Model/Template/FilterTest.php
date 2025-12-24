@@ -19,12 +19,9 @@ use Magento\Widget\Model\ResourceModel\Widget;
 use Magento\Widget\Model\Template\Filter;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\DataProvider;
-use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class FilterTest extends TestCase
 {
-    use MockCreationTrait;
     /**
      * @var Filter
      */
@@ -67,10 +64,10 @@ class FilterTest extends TestCase
     {
         $this->objectManagerHelper = new ObjectManagerHelper($this);
         $this->storeMock = $this->createMock(Store::class);
-        $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
+        $this->storeManagerMock = $this->getMockForAbstractClass(StoreManagerInterface::class);
         $this->widgetResourceMock = $this->createMock(Widget::class);
         $this->widgetMock = $this->createMock(\Magento\Widget\Model\Widget::class);
-        $this->layoutMock = $this->createMock(LayoutInterface::class);
+        $this->layoutMock = $this->getMockForAbstractClass(LayoutInterface::class);
 
         $objects = [
             [
@@ -106,8 +103,8 @@ class FilterTest extends TestCase
      * @param \Closure|null $widgetBlock
      * @param string $expectedResult
      * @return void
+     * @dataProvider generateWidgetDataProvider
      */
-    #[DataProvider('generateWidgetDataProvider')]
     public function testGenerateWidget(
         $construction,
         $name,
@@ -137,8 +134,8 @@ class FilterTest extends TestCase
      * @param \Closure|null $widgetBlock
      * @param string $expectedResult
      * @return void
+     * @dataProvider generateWidgetDataProvider
      */
-    #[DataProvider('generateWidgetDataProvider')]
     public function testWidgetDirective(
         $construction,
         $name,
@@ -273,7 +270,9 @@ class FilterTest extends TestCase
     protected function getBlockMock($returnedResult = '')
     {
         /** @var BlockInterface|MockObject $blockMock */
-        $blockMock = $this->createPartialMockWithReflection(BlockInterface::class, ['addData', 'setData', 'toHtml']);
+        $blockMock = $this->getMockBuilder(BlockInterface::class)
+            ->addMethods(['toHtml'])
+            ->getMockForAbstractClass();
         $blockMock->expects($this->any())
             ->method('toHtml')
             ->willReturn($returnedResult);

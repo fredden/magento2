@@ -21,14 +21,12 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Widget\Block\Adminhtml\Widget\Catalog\Category\Chooser;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class ChooserTest extends TestCase
 {
-    use MockCreationTrait;
     /**
      * @var Collection|MockObject
      */
@@ -83,20 +81,22 @@ class ChooserTest extends TestCase
     {
         $this->collection = $this->createMock(Collection::class);
 
-        $this->childNode = $this->createPartialMockWithReflection(
-            Node::class,
-            ['getLevel', 'hasChildren', 'getIdField']
-        );
-        $this->rootNode = $this->createPartialMockWithReflection(
-            Node::class,
-            ['getLevel', 'hasChildren', 'getChildren', 'getIdField']
-        );
+        $this->childNode = $this->getMockBuilder(Node::class)
+            ->addMethods(['getLevel'])
+            ->onlyMethods(['hasChildren', 'getIdField'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->rootNode = $this->getMockBuilder(Node::class)
+            ->addMethods(['getLevel'])
+            ->onlyMethods(['hasChildren', 'getChildren', 'getIdField'])
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->categoryTree = $this->createMock(Tree::class);
         $this->store = $this->createMock(Store::class);
-        $this->storeManager = $this->createMock(StoreManagerInterface::class);
-        $this->request = $this->createMock(RequestInterface::class);
+        $this->storeManager = $this->getMockForAbstractClass(StoreManagerInterface::class);
+        $this->request = $this->getMockForAbstractClass(RequestInterface::class);
         $this->escaper = $this->createMock(Escaper::class);
-        $this->eventManager = $this->createMock(ManagerInterface::class);
+        $this->eventManager = $this->getMockForAbstractClass(ManagerInterface::class);
         $this->context = $this->createMock(Context::class);
     }
 
@@ -140,19 +140,15 @@ class ChooserTest extends TestCase
         $this->context->expects($this->once())->method('getEscaper')->willReturn($this->escaper);
         $this->context->expects($this->once())->method('getEventManager')->willReturn($this->eventManager);
 
-        $objectManager = new ObjectManager($this);
-        
-        // Prepare ObjectManager for dependencies
-        $objectManager->prepareObjectManager([]);
-        
         /** @var Chooser $chooser */
-        $chooser = $objectManager->getObject(
-            Chooser::class,
-            [
-                'categoryTree' => $this->categoryTree,
-                'context' => $this->context
-            ]
-        );
+        $chooser = (new ObjectManager($this))
+            ->getObject(
+                Chooser::class,
+                [
+                    'categoryTree' => $this->categoryTree,
+                    'context' => $this->context
+                ]
+            );
         $chooser->setData('category_collection', $this->collection);
         $result = $chooser->getTree();
         $this->assertEquals($level, $result[0]['level']);

@@ -12,7 +12,6 @@ use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Widget\Model\NamespaceResolver;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\DataProvider;
 
 class NamespaceResolverTest extends TestCase
 {
@@ -29,7 +28,8 @@ class NamespaceResolverTest extends TestCase
     protected function setUp(): void
     {
         $objectManager = new ObjectManager($this);
-        $this->moduleListMock = $this->createMock(ModuleListInterface::class);
+        $this->moduleListMock = $this->getMockBuilder(ModuleListInterface::class)
+            ->getMockForAbstractClass();
 
         $this->namespaceResolver = $objectManager->getObject(
             NamespaceResolver::class,
@@ -44,8 +44,9 @@ class NamespaceResolverTest extends TestCase
      * @param array $modules
      * @param string $expected
      * @param bool $asFullModuleName
+     *
+     * @dataProvider determineOmittedNamespaceDataProvider
      */
-    #[DataProvider('determineOmittedNamespaceDataProvider')]
     public function testDetermineOmittedNamespace($namespace, $modules, $expected, $asFullModuleName)
     {
         $this->moduleListMock->expects($this->once())

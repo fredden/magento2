@@ -11,15 +11,11 @@ use Magento\Framework\Registry;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Widget\Block\Adminhtml\Widget\Instance\Edit\Tab\Properties;
 use Magento\Widget\Model\Widget\Instance;
-use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\DataProvider;
 
 class PropertiesTest extends TestCase
 {
-    use MockCreationTrait;
-
     /**
      * @var MockObject
      */
@@ -40,21 +36,21 @@ class PropertiesTest extends TestCase
         $this->widget = $this->createMock(Instance::class);
         $this->registry = $this->createMock(Registry::class);
 
-        $this->propertiesBlock = $this->getMockBuilder(Properties::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['_construct'])
-            ->getMock();
-        
-        $this->addPropertyValue($this->propertiesBlock, [
-            '_coreRegistry' => $this->registry,
-        ], Properties::class);
+        $objectManager = new ObjectManager($this);
+        $this->propertiesBlock = $objectManager->getObject(
+            Properties::class,
+            [
+                'registry' => $this->registry
+            ]
+        );
     }
 
     /**
      * @param array $widgetConfig
      * @param boolean $isHidden
+     *
+     * @dataProvider isHiddenDataProvider
      */
-    #[DataProvider('isHiddenDataProvider')]
     public function testIsHidden($widgetConfig, $isHidden)
     {
         $this->widget->expects($this->atLeastOnce())->method('getWidgetConfigAsArray')->willReturn($widgetConfig);

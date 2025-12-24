@@ -18,11 +18,9 @@ use Magento\Widget\Block\Adminhtml\Widget\Catalog\Category\Chooser;
 use Magento\Widget\Controller\Adminhtml\Widget\Instance\Categories;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class CategoriesTest extends TestCase
 {
-    use MockCreationTrait;
     /**
      * @var RequestInterface|MockObject
      */
@@ -70,12 +68,13 @@ class CategoriesTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->request = $this->createMock(RequestInterface::class);
+        $this->request = $this->getMockForAbstractClass(RequestInterface::class);
         $this->mathRandom = $this->createMock(Random::class);
-        $this->chooser = $this->createPartialMockWithReflection(
-            $this->blockClass,
-            ['setUseMassaction', 'setId', 'setIsAnchorOnly', 'setSelectedCategories', 'toHtml']
-        );
+        $this->chooser = $this->getMockBuilder($this->blockClass)
+            ->disableOriginalConstructor()
+            ->addMethods(['setUseMassaction', 'setId', 'setIsAnchorOnly'])
+            ->onlyMethods(['setSelectedCategories', 'toHtml'])
+            ->getMock();
         $this->layout = $this->createMock(Layout::class);
         $this->resultRaw = $this->createMock(Raw::class);
         $this->resultFactory = $this->createMock(ResultFactory::class);

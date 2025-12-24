@@ -16,14 +16,13 @@ use Magento\Widget\Model\ResourceModel\Layout\Link\Collection;
 use Magento\Widget\Test\Unit\Model\ResourceModel\Layout\AbstractTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
-use PHPUnit\Framework\Attributes\DataProvider;
 
 class CollectionTest extends AbstractTestCase
 {
     /**
      * Name of test table
      */
-    protected const TEST_TABLE = 'layout_update';
+    const TEST_TABLE = 'layout_update';
 
     /**
      * Name of main table alias
@@ -38,30 +37,23 @@ class CollectionTest extends AbstractTestCase
      */
     protected function _getCollection(Select $select)
     {
-        $eventManager = $this->createMock(ManagerInterface::class);
-        
-        $dateTime = $this->createMock(DateTime::class);
-        $dateTime->method('formatDate')->willReturnCallback(
-            function ($timestamp) {
-                return date('Y-m-d H:i:s', $timestamp);
-            }
-        );
+        $eventManager = $this->getMockForAbstractClass(ManagerInterface::class);
 
         return new Collection(
             $this->createMock(EntityFactory::class),
-            $this->createMock(LoggerInterface::class),
-            $this->createMock(FetchStrategyInterface::class),
+            $this->getMockForAbstractClass(LoggerInterface::class),
+            $this->getMockForAbstractClass(FetchStrategyInterface::class),
             $eventManager,
-            $dateTime,
+            $this->createPartialMock(DateTime::class, []),
             null,
             $this->_getResource($select)
         );
     }
 
     /**
+     * @dataProvider filterFlagDataProvider
      * @param bool $flag
      */
-    #[DataProvider('filterFlagDataProvider')]
     public function testAddTemporaryFilter($flag)
     {
         $select = $this->getMockBuilder(Select::class)

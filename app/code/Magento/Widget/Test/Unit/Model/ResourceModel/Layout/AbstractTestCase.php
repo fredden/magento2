@@ -20,12 +20,12 @@ abstract class AbstractTestCase extends TestCase
     /**
      * Test 'where' condition for assertion
      */
-    protected const TEST_WHERE_CONDITION = 'condition = 1';
+    const TEST_WHERE_CONDITION = 'condition = 1';
 
     /**
      * Test interval in days
      */
-    protected const TEST_DAYS_BEFORE = 3;
+    const TEST_DAYS_BEFORE = 3;
 
     /**
      * @var Collection
@@ -69,10 +69,17 @@ abstract class AbstractTestCase extends TestCase
         $connection->expects($this->once())->method('select')->willReturn($select);
         $connection->expects($this->any())->method('quoteIdentifier')->willReturnArgument(0);
 
-        $resource = $this->createMock(AbstractDb::class);
+        $resource = $this->getMockForAbstractClass(
+            AbstractDb::class,
+            [],
+            '',
+            false,
+            true,
+            true,
+            ['getConnection', 'getMainTable', 'getTable', '__wakeup']
+        );
         $resource->expects($this->any())->method('getConnection')->willReturn($connection);
         $resource->expects($this->any())->method('getTable')->willReturnArgument(0);
-        $resource->expects($this->any())->method('getMainTable')->willReturn('main_table');
 
         return $resource;
     }

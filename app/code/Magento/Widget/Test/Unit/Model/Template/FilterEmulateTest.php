@@ -9,8 +9,6 @@ namespace Magento\Widget\Test\Unit\Model\Template;
 
 use Magento\Framework\App\State;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
-use Magento\Framework\Translate\Inline\StateInterface;
-use Magento\Store\Model\Information as StoreInformation;
 use Magento\Widget\Model\Template\FilterEmulate;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -39,13 +37,6 @@ class FilterEmulateTest extends TestCase
     {
         $this->objectManagerHelper = new ObjectManagerHelper($this);
         $this->appStateMock = $this->createMock(State::class);
-
-        // Prepare ObjectManager for classes that need it
-        $objects = [
-            [StoreInformation::class, $this->createMock(StoreInformation::class)],
-            [StateInterface::class, $this->createMock(StateInterface::class)]
-        ];
-        $this->objectManagerHelper->prepareObjectManager($objects);
 
         $this->filterEmulate = $this->objectManagerHelper->getObject(
             FilterEmulate::class,

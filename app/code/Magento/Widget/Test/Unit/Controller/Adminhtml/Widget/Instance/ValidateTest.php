@@ -9,7 +9,7 @@ namespace Magento\Widget\Test\Unit\Controller\Adminhtml\Widget\Instance;
 
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\App\Response\Http as HttpResponse;
+use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\App\ViewInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
@@ -21,7 +21,6 @@ use Magento\Widget\Model\Widget\Instance;
 use Magento\Widget\Model\Widget\InstanceFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * Test for \Magento\Widget\Controller\Adminhtml\Widget\Instance\Validate.
@@ -29,11 +28,6 @@ use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
  */
 class ValidateTest extends TestCase
 {
-    use MockCreationTrait;
-
-    /**
-     * @var string
-     */
     private $errorMessage = 'We cannot create the widget instance because it is missing required information.';
 
     /**
@@ -73,14 +67,20 @@ class ValidateTest extends TestCase
     {
         $objectManager = new ObjectManager($this);
 
-        $request = $this->createMock(RequestInterface::class);
+        $request = $this->getMockForAbstractClass(RequestInterface::class);
         $this->messageManagerMock = $this->createMock(ManagerInterface::class);
         $viewMock = $this->createMock(ViewInterface::class);
-        $layoutMock = $this->createPartialMockWithReflection(Layout::class, ['initMessages', 'getMessagesBlock']);
+        $layoutMock = $this->getMockBuilder(LayoutInterface::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['initMessages'])
+            ->getMockForAbstractClass();
         $this->messagesBlock = $this->createMock(Messages::class);
         $layoutMock->method('getMessagesBlock')->willReturn($this->messagesBlock);
         $viewMock->method('getLayout')->willReturn($layoutMock);
-        $this->responseMock = $this->createMock(HttpResponse::class);
+        $this->responseMock = $this->getMockBuilder(ResponseInterface::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['representJson'])
+            ->getMockForAbstractClass();
 
         $context = $this->createMock(Context::class);
         $context->method('getRequest')->willReturn($request);
@@ -88,10 +88,11 @@ class ValidateTest extends TestCase
         $context->method('getView')->willReturn($viewMock);
         $context->method('getResponse')->willReturn($this->responseMock);
 
-        $this->widgetMock = $this->createPartialMockWithReflection(
-            Instance::class,
-            ['setType', 'setCode', 'getType', 'setThemeId', 'getThemeId']
-        );
+        $this->widgetMock = $this->getMockBuilder(Instance::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['setType', 'setCode', 'getType'])
+            ->addMethods(['setThemeId', 'getThemeId'])
+            ->getMock();
         $this->widgetMock->method('setType')->willReturnSelf();
         $this->widgetMock->method('setCode')->willReturnSelf();
         $this->widgetMock->method('setThemeId')->willReturnSelf();

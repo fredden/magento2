@@ -9,7 +9,7 @@ namespace Magento\Widget\Test\Unit\Controller\Adminhtml\Widget;
 
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\App\Response\Http as HttpResponse;
+use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\App\ViewInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Json\Helper\Data;
@@ -21,7 +21,6 @@ use Magento\Widget\Controller\Adminhtml\Widget\LoadOptions;
 use Magento\Widget\Helper\Conditions as ConditionsHelper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * Test class for \Magento\Widget\Controller\Adminhtml\Widget\LoadOptions
@@ -29,7 +28,6 @@ use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
  */
 class LoadOptionsTest extends TestCase
 {
-    use MockCreationTrait;
     /**
      * @var ObjectManagerHelper
      */
@@ -76,11 +74,15 @@ class LoadOptionsTest extends TestCase
     protected function setUp(): void
     {
         $this->objectManagerHelper = new ObjectManagerHelper($this);
-        $this->objectManagerMock = $this->createMock(ObjectManagerInterface::class);
-        $this->viewMock = $this->createMock(ViewInterface::class);
-        $this->requestMock = $this->createMock(RequestInterface::class);
-        $this->responseMock = $this->createMock(HttpResponse::class);
-        $this->contextMock = $this->createMock(Context::class);
+        $this->objectManagerMock = $this->getMockForAbstractClass(ObjectManagerInterface::class);
+        $this->viewMock = $this->getMockForAbstractClass(ViewInterface::class);
+        $this->requestMock = $this->getMockForAbstractClass(RequestInterface::class);
+        $this->responseMock = $this->getMockBuilder(ResponseInterface::class)
+            ->addMethods(['representJson'])
+            ->getMockForAbstractClass();
+        $this->contextMock = $this->getMockBuilder(Context::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->contextMock->expects($this->once())
             ->method('getView')
             ->willReturn($this->viewMock);
@@ -190,10 +192,9 @@ class LoadOptionsTest extends TestCase
             ->willReturn($jsonDataHelperMock);
 
         /** @var BlockInterface|MockObject $blockMock */
-        $blockMock = $this->createPartialMockWithReflection(
-            BlockInterface::class,
-            ['setWidgetType', 'setWidgetValues', 'toHtml']
-        );
+        $blockMock = $this->getMockBuilder(BlockInterface::class)
+            ->addMethods(['setWidgetType', 'setWidgetValues'])
+            ->getMockForAbstractClass();
         $blockMock->expects($this->once())
             ->method('setWidgetType')
             ->with($widgetType)
@@ -204,7 +205,7 @@ class LoadOptionsTest extends TestCase
             ->willReturnSelf();
 
         /** @var LayoutInterface|MockObject $layoutMock */
-        $layoutMock = $this->createMock(LayoutInterface::class);
+        $layoutMock = $this->getMockForAbstractClass(LayoutInterface::class);
         $layoutMock->expects($this->once())
             ->method('getBlock')
             ->with('wysiwyg_widget.options')

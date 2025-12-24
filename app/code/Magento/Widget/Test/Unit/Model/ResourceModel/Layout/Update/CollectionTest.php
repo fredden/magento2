@@ -27,21 +27,14 @@ class CollectionTest extends AbstractTestCase
      */
     protected function _getCollection(Select $select)
     {
-        $eventManager = $this->createMock(ManagerInterface::class);
-        
-        $dateTime = $this->createMock(DateTime::class);
-        $dateTime->method('formatDate')->willReturnCallback(
-            function ($timestamp) {
-                return date('Y-m-d H:i:s', $timestamp);
-            }
-        );
+        $eventManager = $this->getMockForAbstractClass(ManagerInterface::class);
 
         return new Collection(
             $this->createMock(EntityFactory::class),
-            $this->createMock(LoggerInterface::class),
-            $this->createMock(FetchStrategyInterface::class),
+            $this->getMockForAbstractClass(LoggerInterface::class),
+            $this->getMockForAbstractClass(FetchStrategyInterface::class),
             $eventManager,
-            $dateTime,
+            $this->createPartialMock(DateTime::class, []),
             null,
             $this->_getResource($select)
         );
