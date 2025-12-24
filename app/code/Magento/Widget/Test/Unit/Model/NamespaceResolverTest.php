@@ -10,6 +10,7 @@ namespace Magento\Widget\Test\Unit\Model;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Widget\Model\NamespaceResolver;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -41,7 +42,7 @@ class NamespaceResolverTest extends TestCase
 
     /**
      * @param string $namespace
-     * @param array $modules
+     * @param array  $modules
      * @param string $expected
      * @param bool $asFullModuleName
      */

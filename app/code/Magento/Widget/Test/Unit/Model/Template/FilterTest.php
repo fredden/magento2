@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\Widget\Test\Unit\Model\Template;
 
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 use Magento\Framework\Translate\Inline\StateInterface;
 use Magento\Framework\UrlInterface;
@@ -17,6 +18,8 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Widget\Block\BlockInterface;
 use Magento\Widget\Model\ResourceModel\Widget;
 use Magento\Widget\Model\Template\Filter;
+use Magento\Widget\Model\Widget as WidgetModel;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -51,7 +54,7 @@ class FilterTest extends TestCase
     protected $widgetResourceMock;
 
     /**
-     * @var \Magento\Widget\Model\Widget|MockObject
+     * @var WidgetModel|MockObject
      */
     protected $widgetMock;
 

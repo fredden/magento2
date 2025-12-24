@@ -14,6 +14,7 @@ use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Stdlib\DateTime;
 use Magento\Widget\Model\ResourceModel\Layout\Link\Collection;
 use Magento\Widget\Test\Unit\Model\ResourceModel\Layout\AbstractTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -30,13 +31,13 @@ class CollectionTest extends AbstractTestCase
      *
      * @var string
      */
-    protected $_tableAlias = 'update';
+    protected $tableAlias = 'update';
 
     /**
-     * @param Select $select
+     * @param  Select $select
      * @return Collection
      */
-    protected function _getCollection(Select $select)
+    protected function getCollection(Select $select)
     {
         $eventManager = $this->createMock(ManagerInterface::class);
         
@@ -54,7 +55,7 @@ class CollectionTest extends AbstractTestCase
             $eventManager,
             $dateTime,
             null,
-            $this->_getResource($select)
+            $this->getResource($select)
         );
     }
 
@@ -64,13 +65,10 @@ class CollectionTest extends AbstractTestCase
     #[DataProvider('filterFlagDataProvider')]
     public function testAddTemporaryFilter($flag)
     {
-        $select = $this->getMockBuilder(Select::class)
-            ->setConstructorArgs(['where'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $select = $this->createMock(Select::class);
         $select->expects($this->once())->method('where')->with(self::TEST_WHERE_CONDITION);
 
-        $collection = $this->_getCollection($select);
+        $collection = $this->getCollection($select);
 
         /** @var MockObject $connection */
         $connection = $collection->getResource()->getConnection();
@@ -112,10 +110,10 @@ class CollectionTest extends AbstractTestCase
         )->with(
             ['update' => self::TEST_TABLE],
             'update.layout_update_id = main_table.layout_update_id',
-            $this->isType('array')
+            $this->callback('is_array')
         );
 
-        $collection = $this->_getCollection($select);
+        $collection = $this->getCollection($select);
 
         /** @var $resource \PHPUnit\Framework\MockObject\MockObject */
         $resource = $collection->getResource();

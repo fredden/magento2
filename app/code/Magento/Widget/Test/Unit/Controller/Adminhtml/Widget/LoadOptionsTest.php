@@ -14,6 +14,7 @@ use Magento\Framework\App\ViewInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Json\Helper\Data;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 use Magento\Framework\View\Element\BlockInterface;
 use Magento\Framework\View\LayoutInterface;
@@ -93,9 +94,7 @@ class LoadOptionsTest extends TestCase
         $this->contextMock->expects($this->once())
             ->method('getObjectManager')
             ->willReturn($this->objectManagerMock);
-        $this->conditionsHelperMock = $this->getMockBuilder(ConditionsHelper::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->conditionsHelperMock = $this->createMock(ConditionsHelper::class);
 
         $this->loadOptions = $this->objectManagerHelper->getObject(
             LoadOptions::class,
@@ -117,9 +116,7 @@ class LoadOptionsTest extends TestCase
         $errorMessage = 'Some error';
 
         /** @var Data|MockObject $jsonDataHelperMock */
-        $jsonDataHelperMock = $this->getMockBuilder(Data::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $jsonDataHelperMock = $this->createMock(Data::class);
         $jsonDataHelperMock->expects($this->once())
             ->method('jsonEncode')
             ->with(['error' => true, 'message' => $errorMessage])
@@ -170,9 +167,7 @@ class LoadOptionsTest extends TestCase
         ];
 
         /** @var Data|MockObject $jsonDataHelperMock */
-        $jsonDataHelperMock = $this->getMockBuilder(Data::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $jsonDataHelperMock = $this->createMock(Data::class);
         $jsonDataHelperMock->expects($this->once())
             ->method('jsonDecode')
             ->with($widgetJsonParams)

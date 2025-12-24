@@ -20,6 +20,7 @@ use Magento\Widget\Model\Config\Reader;
 use Magento\Widget\Model\NamespaceResolver;
 use Magento\Widget\Model\Widget;
 use Magento\Widget\Model\Widget\Instance;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -40,7 +41,9 @@ class InstanceTest extends TestCase
      */
     protected $_viewFileSystemMock;
 
-    /** @var  NamespaceResolver|MockObject */
+    /**
+     * @var NamespaceResolver|MockObject
+     */
     protected $_namespaceResolver;
 
     /**
@@ -48,7 +51,9 @@ class InstanceTest extends TestCase
      */
     protected $_model;
 
-    /** @var  Reader */
+    /**
+     * @var Reader
+     */
     protected $_readerMock;
 
     /**
@@ -61,7 +66,9 @@ class InstanceTest extends TestCase
      */
     protected $_directoryMock;
 
-    /** @var Json|MockObject */
+    /**
+     * @var Json|MockObject
+     */
     private $serializer;
 
     protected function setUp(): void
@@ -112,10 +119,27 @@ class InstanceTest extends TestCase
         );
 
         /** @var Instance _model */
-        $this->_model = $this->getMockBuilder(Instance::class)
-            ->onlyMethods(['_construct'])
-            ->setConstructorArgs($args)
-            ->getMock();
+        $this->_model = $this->createPartialMock(Instance::class, ['_construct']);
+        $this->_model->__construct(
+            $args['context'],
+            $args['registry'],
+            $args['escaper'],
+            $args['viewFileSystem'],
+            $args['cacheTypeList'],
+            $args['productType'],
+            $args['reader'],
+            $args['widgetModel'],
+            $args['namespaceResolver'],
+            $args['mathRandom'],
+            $args['filesystem'],
+            $args['conditionsHelper'],
+            $args['resource'],
+            $args['resourceCollection'],
+            $args['relatedCacheTypes'] ?? [],
+            $args['data'] ?? [],
+            $args['serializer'],
+            $args['xmlValidatorFactory']
+        );
     }
 
     public function testGetWidgetConfigAsArray()

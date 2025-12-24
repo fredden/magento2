@@ -13,9 +13,11 @@ use Magento\Catalog\Model\ResourceModel\Category\Collection;
 use Magento\Catalog\Model\ResourceModel\Category\Tree;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Data\Tree\Node;
+use Magento\Framework\Data\Tree\Node\Collection as NodeCollection;
 use Magento\Framework\Escaper;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Widget\Block\Adminhtml\Widget\Catalog\Category\Chooser;
@@ -29,6 +31,7 @@ use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 class ChooserTest extends TestCase
 {
     use MockCreationTrait;
+
     /**
      * @var Collection|MockObject
      */
@@ -81,12 +84,16 @@ class ChooserTest extends TestCase
 
     protected function setUp(): void
     {
+        $objectManager = new ObjectManager($this);
+        $objectManager->prepareObjectManager();
+
         $this->collection = $this->createMock(Collection::class);
 
         $this->childNode = $this->createPartialMockWithReflection(
             Node::class,
             ['getLevel', 'hasChildren', 'getIdField']
         );
+
         $this->rootNode = $this->createPartialMockWithReflection(
             Node::class,
             ['getLevel', 'hasChildren', 'getChildren', 'getIdField']

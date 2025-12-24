@@ -15,6 +15,9 @@ use Magento\Widget\Model\ResourceModel\Layout\Update\Collection;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Abstract test case for layout resource model tests
+ */
 abstract class AbstractTestCase extends TestCase
 {
     /**
@@ -28,31 +31,38 @@ abstract class AbstractTestCase extends TestCase
     protected const TEST_DAYS_BEFORE = 3;
 
     /**
+     * Collection instance
+     *
      * @var Collection
      */
-    protected $_collection;
+    protected $collection;
 
     /**
      * Name of main table alias
      *
      * @var string
      */
-    protected $_tableAlias = 'main_table';
+    protected $tableAlias = 'main_table';
 
     /**
      * Expected conditions for testAddUpdatedDaysBeforeFilter
      *
      * @var array
      */
-    protected $_expectedConditions = [];
+    protected $expectedConditions = [];
 
+    /**
+     * Set up test environment
+     *
+     * @return void
+     */
     protected function setUp(): void
     {
-        $this->_expectedConditions = [
+        $this->expectedConditions = [
             'counter' => 0,
             'data' => [
-                0 => [$this->_tableAlias . '.updated_at', ['notnull' => true]],
-                1 => [$this->_tableAlias . '.updated_at', ['lt' => 'date']],
+                0 => [$this->tableAlias . '.updated_at', ['notnull' => true]],
+                1 => [$this->tableAlias . '.updated_at', ['lt' => 'date']],
             ],
         ];
     }
@@ -60,10 +70,11 @@ abstract class AbstractTestCase extends TestCase
     /**
      * Retrieve resource model instance
      *
-     * @param Select $select
+     * @param Select $select Select object
+     *
      * @return MockObject
      */
-    protected function _getResource(Select $select)
+    protected function getResource(Select $select)
     {
         $connection = $this->createMock(Mysql::class);
         $connection->expects($this->once())->method('select')->willReturn($select);
@@ -78,28 +89,39 @@ abstract class AbstractTestCase extends TestCase
     }
 
     /**
-     * @abstract
-     * @param Select $select
+     * Get collection instance
+     *
+     * @param Select $select Select object
+     *
      * @return AbstractCollection
      */
-    abstract protected function _getCollection(Select $select);
+    abstract protected function getCollection(Select $select);
 
+    /**
+     * Test add updated days before filter
+     *
+     * @return void
+     */
     public function testAddUpdatedDaysBeforeFilter()
     {
         $select = $this->createMock(Select::class);
-        $select->expects($this->any())->method('where')->with(self::TEST_WHERE_CONDITION);
+        $select->expects($this->any())
+            ->method('where')
+            ->with(self::TEST_WHERE_CONDITION);
 
-        $collection = $this->_getCollection($select);
+        $collection = $this->getCollection($select);
 
-        /** @var \PHPUnit\Framework\MockObject\MockObject $connection */
+        /**
+         * Mock connection object
+         *
+         * @var \PHPUnit\Framework\MockObject\MockObject $connection
+         */
         $connection = $collection->getResource()->getConnection();
-        $connection->expects(
-            $this->any()
-        )->method(
-            'prepareSqlCondition'
-        )->willReturnCallback(
-            [$this, 'verifyPrepareSqlCondition']
-        );
+        $connection->expects($this->any())
+            ->method('prepareSqlCondition')
+            ->willReturnCallback(
+                [$this, 'verifyPrepareSqlCondition']
+            );
 
         // expected date without time
         $datetime = new \DateTime('now', new \DateTimeZone('UTC'));
@@ -107,7 +129,7 @@ abstract class AbstractTestCase extends TestCase
         $datetime->sub($storeInterval);
         $dateTimeLib = new \Magento\Framework\Stdlib\DateTime();
         $expectedDate = $dateTimeLib->formatDate($datetime->getTimestamp());
-        $this->_expectedConditions['data'][1][1]['lt'] = $expectedDate;
+        $this->expectedConditions['data'][1][1]['lt'] = $expectedDate;
 
         $collection->addUpdatedDaysBeforeFilter(self::TEST_DAYS_BEFORE);
     }
@@ -115,15 +137,16 @@ abstract class AbstractTestCase extends TestCase
     /**
      * Assert SQL condition
      *
-     * @param string $fieldName
-     * @param array $condition
+     * @param string $fieldName Field name
+     * @param array  $condition Condition array
+     *
      * @return string
      */
     public function verifyPrepareSqlCondition($fieldName, $condition)
     {
-        $counter = $this->_expectedConditions['counter'];
-        $data = $this->_expectedConditions['data'][$counter];
-        $this->_expectedConditions['counter']++;
+        $counter = $this->expectedConditions['counter'];
+        $data = $this->expectedConditions['data'][$counter];
+        $this->expectedConditions['counter']++;
 
         $this->assertEquals($data[0], $fieldName);
 

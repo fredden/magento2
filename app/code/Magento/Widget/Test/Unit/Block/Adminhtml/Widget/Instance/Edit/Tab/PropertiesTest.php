@@ -37,6 +37,9 @@ class PropertiesTest extends TestCase
 
     protected function setUp(): void
     {
+        $objectManager = new ObjectManager($this);
+        $objectManager->prepareObjectManager();
+
         $this->widget = $this->createMock(Instance::class);
         $this->registry = $this->createMock(Registry::class);
 
