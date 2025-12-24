@@ -57,7 +57,7 @@ trait MockCreationTrait
     /**
      * This is useful in data providers where you cannot call PHPUnit matcher methods
      * directly (since they are non-static). Instead, pass a string representation
-     * and convert it to the actual matcher in your test method. Supported string formats: 
+     * and convert it to the actual matcher in your test method. Supported string formats:
      * 'never', 'once', 'any', 'atLeastOnce', 'exactly_N', 'atLeast_N', 'atMost_N`
      *
      * @param string $matcherSpec The string specification of the matcher
@@ -126,14 +126,16 @@ trait MockCreationTrait
      * @param mixed $value The value to set
      * @param string|null $className Optional: specify the class where the property is defined
      *                               (useful when property exists in multiple parent classes)
+     * @param bool $strict If true, throws exception when property not found; if false, silently skips
      * @return void
-     * @throws \ReflectionException If the property cannot be found in the class hierarchy
+     * @throws \ReflectionException If strict mode and property cannot be found in the class hierarchy
      */
     protected function setPropertyValue(
         object $object,
         string $propertyName,
         mixed $value,
-        ?string $className = null
+        ?string $className = null,
+        bool $strict = true
     ): void {
         $class = $className !== null
             ? new ReflectionClass($className)
@@ -147,13 +149,15 @@ trait MockCreationTrait
             $class = $class->getParentClass();
         }
 
-        throw new \ReflectionException(
-            sprintf(
-                'Property "%s" not found in class "%s" or its parent classes.',
-                $propertyName,
-                get_class($object)
-            )
-        );
+        if ($strict) {
+            throw new \ReflectionException(
+                sprintf(
+                    'Property "%s" not found in class "%s" or its parent classes.',
+                    $propertyName,
+                    get_class($object)
+                )
+            );
+        }
     }
 
     /**
@@ -162,17 +166,19 @@ trait MockCreationTrait
      * Convenience method for setting multiple properties at once.
      *
      * @param object $object The object to set properties on
-     * @param array<string, mixed> $properties Associative array of property name => value
+     * @param array $properties Associative array of property name => value
      * @param string|null $className Optional: specify the class where properties are defined
+     * @param bool $strict If true, throws exception when property not found; if false, silently skips
      * @return void
      */
     protected function addPropertyValue(
         object $object,
         array $properties,
-        ?string $className = null
+        ?string $className = null,
+        bool $strict = true
     ): void {
         foreach ($properties as $propertyName => $value) {
-            $this->setPropertyValue($object, $propertyName, $value, $className);
+            $this->setPropertyValue($object, $propertyName, $value, $className, $strict);
         }
     }
 }

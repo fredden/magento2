@@ -199,9 +199,7 @@ class TemplateTest extends TestCase
         $allMethods = array_merge($mockedMethods, $addMockedMethods, ['__wakeup', '__sleep', '_init']);
         $mock = $this->createPartialMockWithReflection(Template::class, $allMethods);
         
-        $reflection = new \ReflectionClass($mock);
-        
-        $properties = [
+        $this->addPropertyValue($mock, [
             'context' => $this->context,
             'design' => $this->design,
             '_registry' => $this->registry,
@@ -215,29 +213,10 @@ class TemplateTest extends TestCase
             '_filterManager' => $this->filterManager,
             'urlModel' => $this->urlModel,
             'filterFactory' => $this->filterFactory,
-            'serializer' => $this->serializerMock
-        ];
-        
-        foreach ($properties as $propertyName => $value) {
-            $this->setPropertyValue($mock, $propertyName, $value);
-        }
+            'serializer' => $this->serializerMock,
+        ], null, false);
         
         return $mock;
-    }
-    
-    /**
-     * Set property value searching through class hierarchy
-     */
-    private function setPropertyValue(object $object, string $propertyName, mixed $value): void
-    {
-        $class = new \ReflectionClass($object);
-        while ($class) {
-            if ($class->hasProperty($propertyName)) {
-                $class->getProperty($propertyName)->setValue($object, $value);
-                return;
-            }
-            $class = $class->getParentClass();
-        }
     }
 
     public function testSetAndGetIsChildTemplate()
