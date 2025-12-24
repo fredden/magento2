@@ -13,6 +13,7 @@ use Magento\Catalog\Model\Product\Price\Validation\InvalidSkuProcessor;
 use Magento\Catalog\Model\Product\Price\Validation\Result;
 use Magento\Catalog\Model\ProductIdLocatorInterface;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Catalog\Helper\Data;
 use Magento\Store\Api\StoreRepositoryInterface;
@@ -122,7 +123,7 @@ class SpecialPriceStorage implements SpecialPriceStorageInterface
     /**
      * @inheritdoc
      */
-    public function update(array $prices)
+    public function update($prices)
     {
         $prices = $this->retrieveValidPrices($prices);
         $this->specialPriceResource->update($prices);
@@ -133,8 +134,14 @@ class SpecialPriceStorage implements SpecialPriceStorageInterface
     /**
      * @inheritdoc
      */
-    public function delete(array $prices)
+    public function delete($prices)
     {
+        if ($prices === null || !is_array($prices)) {
+            throw new InputException(
+                __('Invalid input data format. Expected an array of prices.')
+            );
+        }
+
         $prices = $this->retrieveValidPrices($prices);
         $this->specialPriceResource->delete($prices);
 
