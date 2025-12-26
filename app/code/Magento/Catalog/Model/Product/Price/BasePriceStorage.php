@@ -17,6 +17,7 @@ use Magento\Catalog\Model\ProductIdLocatorInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Api\StoreRepositoryInterface;
+use Magento\Framework\Exception\InputException;
 use Magento\Store\Model\Store;
 
 /**
@@ -153,8 +154,13 @@ class BasePriceStorage implements BasePriceStorageInterface
     /**
      * @inheritdoc
      */
-    public function update(array $prices)
+    public function update($prices)
     {
+        if ($prices === null || !is_array($prices)) {
+            throw new InputException(
+                __('Invalid input data format. Expected an array of prices.')
+            );
+        }
         $prices = $this->retrieveValidPrices($prices);
         $formattedPrices = [];
         $productIds = [];
