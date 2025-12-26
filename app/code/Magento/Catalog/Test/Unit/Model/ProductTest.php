@@ -2416,59 +2416,44 @@ class ProductTest extends TestCase
         \Magento\Framework\App\ObjectManager::setInstance($objectManagerMock);
 
         // Create Product without optional parameters to trigger ObjectManager fallback
-        $product = $this->objectManagerHelper->getObject(
-            \Magento\Catalog\Model\Product::class,
-            [
-                'context' => $this->createMock(\Magento\Framework\Model\Context::class),
-                'registry' => $this->createMock(\Magento\Framework\Registry::class),
-                'extensionFactory' => $this->extensionAttributesFactory,
-                'customAttributeFactory' => $this->attributeValueFactory,
-                'storeManager' => $this->storeManager,
-                'metadataService' => $this->metadataServiceMock,
-                'url' => $this->createMock(\Magento\Catalog\Model\Product\Url::class),
-                'productLink' => $this->createMock(\Magento\Catalog\Model\Product\Link::class),
-                'itemOptionFactory' => $this->createMock(
-                    \Magento\Catalog\Model\Product\Configuration\Item\OptionFactory::class
-                ),
-                'stockItemFactory' => $this->stockItemFactoryMock,
-                'catalogProductOptionFactory' => $this->createMock(\Magento\Catalog\Model\Product\OptionFactory::class),
-                'catalogProductVisibility' => $this->createMock(\Magento\Catalog\Model\Product\Visibility::class),
-                'catalogProductStatus' => $this->createMock(Status::class),
-                'catalogProductMediaConfig' => $this->mediaConfig,
-                'catalogProductType' => $this->productTypeInstanceMock,
-                'moduleManager' => $this->moduleManager,
-                'catalogProduct' => $this->_catalogProduct,
-                'resource' => $this->resource,
-                'resourceCollection' => $this->createMock(
-                    \Magento\Catalog\Model\ResourceModel\Product\Collection::class
-                ),
-                'collectionFactory' => $this->collectionFactoryMock,
-                'filesystem' => $this->filesystemMock,
-                'indexerRegistry' => $this->indexerRegistryMock,
-                'productFlatIndexerProcessor' => $this->productFlatProcessor,
-                'productPriceIndexerProcessor' => $this->productPriceProcessor,
-                'productEavIndexerProcessor' => $this->createMock(
-                    \Magento\Catalog\Model\Indexer\Product\Eav\Processor::class
-                ),
-                'categoryRepository' => $this->categoryRepository,
-                'imageCacheFactory' => $this->imageCacheFactory,
-                'entityCollectionProvider' => $this->createMock(
-                    \Magento\Catalog\Model\ProductLink\CollectionProvider::class
-                ),
-                'linkTypeProvider' => $this->createMock(\Magento\Catalog\Model\Product\LinkTypeProvider::class),
-                'productLinkFactory' => $this->createMock(\Magento\Catalog\Api\Data\ProductLinkInterfaceFactory::class),
-                'productLinkExtensionFactory' => $this->createMock(
-                    \Magento\Catalog\Api\Data\ProductLinkExtensionFactory::class
-                ),
-                'mediaGalleryEntryConverterPool' => $this->mediaGalleryEntryConverterPoolMock,
-                'dataObjectHelper' => $this->dataObjectHelperMock,
-                'joinProcessor' => $this->createMock(
-                    \Magento\Framework\Api\ExtensionAttribute\JoinProcessorInterface::class
-                ),
-                'data' => [],
-                'config' => null,  // Pass null to trigger ObjectManager fallback
-                'filterCustomAttribute' => null  // Pass null to trigger ObjectManager fallback
-            ]
+        $product = new Product(
+            $this->createMock(\Magento\Framework\Model\Context::class),
+            $this->createMock(\Magento\Framework\Registry::class),
+            $this->extensionAttributesFactory,
+            $this->attributeValueFactory,
+            $this->storeManager,
+            $this->metadataServiceMock,
+            $this->createMock(ProductUrl::class),
+            $this->createMock(ProductLink::class),
+            $this->createMock(ItemOptionFactory::class),
+            $this->stockItemFactoryMock,
+            $this->createMock(OptionFactory::class),
+            $this->createMock(Visibility::class),
+            $this->createMock(Status::class),
+            $this->createMock(MediaConfig::class),
+            $this->productTypeInstanceMock,
+            $this->moduleManager,
+            $this->_catalogProduct,
+            $this->resource,
+            $this->createMock(ProductCollection::class),
+            $this->collectionFactoryMock,
+            $this->filesystemMock,
+            $this->indexerRegistryMock,
+            $this->productFlatProcessor,
+            $this->productPriceProcessor,
+            $this->createMock(EavProcessor::class),
+            $this->categoryRepository,
+            $this->imageCacheFactory,
+            $this->createMock(ProductLinkCollectionProvider::class),
+            $this->createMock(LinkTypeProvider::class),
+            $this->createMock(ProductLinkInterfaceFactory::class),
+            $this->createMock(ProductLinkExtensionFactory::class),
+            $this->mediaGalleryEntryConverterPoolMock,
+            $this->dataObjectHelperMock,
+            $this->createMock(JoinProcessorInterface::class),
+            [],
+            null,  // Pass null to trigger ObjectManager fallback for eavConfig
+            null   // Pass null to trigger ObjectManager fallback for filterCustomAttribute
         );
 
         $this->assertInstanceOf(\Magento\Catalog\Model\Product::class, $product);
