@@ -9,8 +9,9 @@ namespace Magento\Bundle\Test\Unit\Ui\DataProvider\Product\Form\Modifier;
 
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\Locator\LocatorInterface;
-use Magento\Catalog\Test\Unit\Helper\ProductTestHelper;
+use Magento\Catalog\Model\Product;
 use Magento\Framework\Stdlib\ArrayManager;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Ui\DataProvider\Modifier\ModifierInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -18,6 +19,8 @@ use PHPUnit\Framework\TestCase;
 
 abstract class AbstractModifierTestCase extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var ModifierInterface
      */
@@ -34,7 +37,7 @@ abstract class AbstractModifierTestCase extends TestCase
     protected $locatorMock;
 
     /**
-     * @var ProductInterface|MockObject
+     * @var Product|MockObject
      */
     protected $productMock;
 
@@ -47,16 +50,11 @@ abstract class AbstractModifierTestCase extends TestCase
     {
         $this->objectManager = new ObjectManager($this);
         $this->locatorMock = $this->createMock(LocatorInterface::class);
-        
-        // Use ProductTestHelper to support custom methods like getPriceType
-        $this->productMock = new ProductTestHelper();
-
+        $this->productMock = $this->createMock(Product::class);
         $this->locatorMock->method('getProduct')->willReturn($this->productMock);
 
         $this->arrayManagerMock = $this->createMock(ArrayManager::class);
-        $this->arrayManagerMock->expects($this->any())
-            ->method('get')
-            ->willReturnArgument(3);
+        $this->arrayManagerMock->method('get')->willReturnArgument(3);
     }
 
     /**

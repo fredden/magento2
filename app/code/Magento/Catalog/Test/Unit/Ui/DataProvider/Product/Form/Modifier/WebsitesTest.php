@@ -160,7 +160,7 @@ class WebsitesTest extends AbstractModifierTestCase
      */
     private function init()
     {
-        $this->productMock->setId($this->productId);
+        $this->productMock->method('getId')->willReturn($this->productId);
         $this->locatorMock->expects($this->any())
             ->method('getWebsiteIds')
             ->willReturn($this->assignedWebsites);

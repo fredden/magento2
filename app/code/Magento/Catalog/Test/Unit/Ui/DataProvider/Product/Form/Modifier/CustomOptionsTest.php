@@ -13,9 +13,8 @@ use Magento\Catalog\Model\ProductOptions\ConfigInterface;
 use Magento\Catalog\Ui\DataProvider\Product\Form\Modifier\CustomOptions;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
-use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Store\Test\Unit\Helper\StoreTestHelper;
 use PHPUnit\Framework\MockObject\MockObject;
 
 class CustomOptionsTest extends AbstractModifierTestCase
@@ -36,7 +35,7 @@ class CustomOptionsTest extends AbstractModifierTestCase
     protected $storeManagerMock;
 
     /**
-     * @var StoreInterface|MockObject
+     * @var Store|MockObject
      */
     protected $storeMock;
 
@@ -53,11 +52,11 @@ class CustomOptionsTest extends AbstractModifierTestCase
             ->disableOriginalConstructor()
             ->getMock();
         $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
-        $this->storeMock = new StoreTestHelper();
+        $this->storeMock = $this->createPartialMock(Store::class, ['getBaseCurrency']);
         $this->priceCurrency = $this->createMock(PriceCurrencyInterface::class);
 
         $this->storeManagerMock->method('getStore')->willReturn($this->storeMock);
-        $this->storeMock->setBaseCurrency($this->priceCurrency);
+        $this->storeMock->method('getBaseCurrency')->willReturn($this->priceCurrency);
     }
 
     /**
@@ -127,8 +126,8 @@ class CustomOptionsTest extends AbstractModifierTestCase
             ]
         ];
 
-        $this->productMock->setId($productId);
-        $this->productMock->setOptions($options);
+        $this->productMock->method('getId')->willReturn($productId);
+        $this->productMock->method('getOptions')->willReturn($options);
 
         $this->assertSame($resultData, $this->getModel()->modifyData($originalData));
     }
