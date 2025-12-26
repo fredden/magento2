@@ -350,6 +350,54 @@ class ImageBuilderTest extends TestCase
             'mixed special characters - not escaped' => [
                 'attributes' => ['alt' => 'Item "A" & \'B\' <C>'],
                 'expectedResult' => 'alt="Item "A" & \'B\' <C>"'
+            ],
+            'x-magento-init script injection - not escaped' => [
+                'attributes' => [
+                    'alt' => '<script type="text/x-magento-init">{"test":"xss"}</script>'
+                ],
+                'expectedResult' => 'alt="<script type="text/x-magento-init">{"test":"xss"}</script>"'
+            ],
+            'x-magento-template injection - not escaped' => [
+                'attributes' => [
+                    'class' => 'test"><script type="text/x-magento-template">xss</script><div class="'
+                ],
+                'expectedResult' => 'class="test"><script type="text/x-magento-template">xss</script><div class=""'
+            ],
+            'event handler onclick - not escaped' => [
+                'attributes' => [
+                    'onclick' => 'doSomething("param")'
+                ],
+                'expectedResult' => 'onclick="doSomething("param")"'
+            ],
+            'breaking out of quotes - not escaped' => [
+                'attributes' => [
+                    'alt' => 'test" onload="handleLoad(1)"'
+                ],
+                'expectedResult' => 'alt="test" onload="handleLoad(1)""'
+            ],
+            'breaking out with closing tag - not escaped' => [
+                'attributes' => [
+                    'class' => '"><img src=x onerror="handleError()"><div class="'
+                ],
+                'expectedResult' => 'class=""><img src=x onerror="handleError()"><div class=""'
+            ],
+            'HTML entities in value - not escaped' => [
+                'attributes' => [
+                    'alt' => 'Test & "quotes" <brackets>'
+                ],
+                'expectedResult' => 'alt="Test & "quotes" <brackets>"'
+            ],
+            'single quote injection - not escaped' => [
+                'attributes' => [
+                    'alt' => "test' onload='handleLoad(1)'"
+                ],
+                'expectedResult' => "alt=\"test' onload='handleLoad(1)'\""
+            ],
+            'data attribute with json - not escaped' => [
+                'attributes' => [
+                    'data-mage-init' => '{"component":{"config":"<value>"}}'
+                ],
+                'expectedResult' => 'data-mage-init="{"component":{"config":"<value>"}}"'
             ]
         ];
     }
