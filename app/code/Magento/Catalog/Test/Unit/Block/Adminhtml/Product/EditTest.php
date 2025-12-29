@@ -137,7 +137,6 @@ class EditTest extends TestCase
             ->willReturn($this->layoutMock);
         $this->contextMock->method('getEscaper')
             ->willReturn($this->escaperMock);
-
         $this->registryMock->method('registry')
             ->with('current_product')
             ->willReturn($this->productMock);
@@ -342,12 +341,30 @@ class EditTest extends TestCase
                 'productName' => null,
                 'escapedName' => null,
                 'expectedHeader' => 'New Product'
+            ],
+            'product with empty name returns empty string' => [
+                'productId' => 1,
+                'productName' => '',
+                'escapedName' => '',
+                'expectedHeader' => ''
+            ],
+            'product name with special characters is escaped' => [
+                'productId' => 1,
+                'productName' => 'Product <b>"Special"</b> & \'Test\'',
+                'escapedName' => 'Product &lt;b&gt;&quot;Special&quot;&lt;/b&gt; &amp; \'Test\'',
+                'expectedHeader' => 'Product &lt;b&gt;&quot;Special&quot;&lt;/b&gt; &amp; \'Test\''
             ]
         ];
     }
 
     /**
      * Test getHeader returns correct header based on product state
+     *
+     * Tests various scenarios including:
+     * - Existing product with normal name
+     * - New product (no ID)
+     * - Product with empty name
+     * - Product name with special characters requiring escaping
      *
      * @dataProvider headerDataProvider
      * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::getHeader
@@ -398,6 +415,16 @@ class EditTest extends TestCase
                 'setId' => null,
                 'setName' => null,
                 'expectedName' => ''
+            ],
+            'invalid attribute set ID returns null' => [
+                'setId' => 99999,
+                'setName' => null,
+                'expectedName' => null
+            ],
+            'empty attribute set name' => [
+                'setId' => 4,
+                'setName' => '',
+                'expectedName' => ''
             ]
         ];
     }
@@ -405,17 +432,23 @@ class EditTest extends TestCase
     /**
      * Test getAttributeSetName returns correct attribute set name
      *
+     * Tests various scenarios including:
+     * - Valid attribute set ID with name
+     * - No attribute set (null ID)
+     * - Invalid/non-existent attribute set ID
+     * - Empty attribute set name
+     *
      * @dataProvider attributeSetNameDataProvider
      * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::getAttributeSetName
      * @param int|null $setId
      * @param string|null $setName
-     * @param string $expectedName
+     * @param string|null $expectedName
      * @return void
      */
     public function testGetAttributeSetNameReturnsCorrectName(
         ?int $setId,
         ?string $setName,
-        string $expectedName
+        ?string $expectedName
     ): void {
         $this->productMock->expects($this->once())
             ->method('getAttributeSetId')
@@ -426,7 +459,6 @@ class EditTest extends TestCase
             $attributeSetMock->expects($this->once())
                 ->method('getAttributeSetName')
                 ->willReturn($setName);
-
             $this->attributeSetFactoryMock->expects($this->once())
                 ->method('create')
                 ->willReturn($attributeSetMock);
@@ -437,69 +469,6 @@ class EditTest extends TestCase
         }
 
         $this->assertSame($expectedName, $this->block->getAttributeSetName());
-    }
-
-    /**
-     * Test getAttributeSetName handles invalid/non-existent attribute set ID
-     *
-     * When an invalid attribute set ID is loaded, the attribute set name will be null.
-     * The method returns this null value directly without conversion.
-     *
-     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::getAttributeSetName
-     * @return void
-     */
-    public function testGetAttributeSetNameHandlesInvalidSetId(): void
-    {
-        $invalidSetId = 99999;
-
-        $this->productMock->expects($this->once())
-            ->method('getAttributeSetId')
-            ->willReturn($invalidSetId);
-
-        $attributeSetMock = $this->createMock(Set::class);
-        $attributeSetMock->expects($this->once())
-            ->method('load')
-            ->with($invalidSetId)
-            ->willReturnSelf();
-        $attributeSetMock->expects($this->once())
-            ->method('getAttributeSetName')
-            ->willReturn(null);
-
-        $this->attributeSetFactoryMock->expects($this->once())
-            ->method('create')
-            ->willReturn($attributeSetMock);
-
-        $this->assertNull($this->block->getAttributeSetName());
-    }
-
-    /**
-     * Test getAttributeSetName handles empty string attribute set name
-     *
-     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::getAttributeSetName
-     * @return void
-     */
-    public function testGetAttributeSetNameHandlesEmptyName(): void
-    {
-        $setId = 4;
-
-        $this->productMock->expects($this->once())
-            ->method('getAttributeSetId')
-            ->willReturn($setId);
-
-        $attributeSetMock = $this->createMock(Set::class);
-        $attributeSetMock->expects($this->once())
-            ->method('load')
-            ->with($setId)
-            ->willReturnSelf();
-        $attributeSetMock->expects($this->once())
-            ->method('getAttributeSetName')
-            ->willReturn('');
-
-        $this->attributeSetFactoryMock->expects($this->once())
-            ->method('create')
-            ->willReturn($attributeSetMock);
-
-        $this->assertSame('', $this->block->getAttributeSetName());
     }
 
     /**
@@ -521,79 +490,6 @@ class EditTest extends TestCase
             ->willReturn('');
 
         $this->assertSame('', $this->block->getSelectedTabId());
-    }
-
-    /**
-     * Test getHeader handles product with empty name
-     *
-     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::getHeader
-     * @return void
-     */
-    public function testGetHeaderHandlesEmptyProductName(): void
-    {
-        $this->productMock->expects($this->once())
-            ->method('getId')
-            ->willReturn(1);
-
-        $this->productMock->expects($this->once())
-            ->method('getName')
-            ->willReturn('');
-
-        $this->escaperMock->expects($this->once())
-            ->method('escapeHtml')
-            ->with('')
-            ->willReturn('');
-
-        $result = $this->block->getHeader();
-        $this->assertSame('', (string)$result);
-    }
-
-    /**
-     * Test getHeader handles product with special characters in name
-     *
-     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::getHeader
-     * @return void
-     */
-    public function testGetHeaderEscapesSpecialCharactersInProductName(): void
-    {
-        $productName = 'Product <b>"Special"</b> & \'Test\'';
-        $escapedName = 'Product &lt;b&gt;&quot;Special&quot;&lt;/b&gt; &amp; \'Test\'';
-
-        $this->productMock->expects($this->once())
-            ->method('getId')
-            ->willReturn(1);
-
-        $this->productMock->expects($this->once())
-            ->method('getName')
-            ->willReturn($productName);
-
-        $this->escaperMock->expects($this->once())
-            ->method('escapeHtml')
-            ->with($productName)
-            ->willReturn($escapedName);
-
-        $result = $this->block->getHeader();
-        $this->assertSame($escapedName, (string)$result);
-    }
-
-    /**
-     * Test getProductSetId returns null when both product and request have no set ID
-     *
-     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit::getProductSetId
-     * @return void
-     */
-    public function testGetProductSetIdReturnsNullWhenNoSetIdAvailable(): void
-    {
-        $this->productMock->expects($this->once())
-            ->method('getAttributeSetId')
-            ->willReturn(null);
-
-        $this->requestMock->expects($this->once())
-            ->method('getParam')
-            ->with('set', null)
-            ->willReturn(null);
-
-        $this->assertNull($this->block->getProductSetId());
     }
 
     /**
