@@ -1196,7 +1196,7 @@ class CustomOptions extends AbstractModifier
             return '';
         }
 
-        $stringVal = (string)$value;
+        $stringVal = (string)(float)$value;
         $dotIndex = strpos($stringVal, '.');
         $decimals = $dotIndex === false ? 0 : strlen(substr($stringVal, $dotIndex + 1));
 
