@@ -412,6 +412,7 @@ class CustomOptionsTest extends AbstractModifierTestCase
      * Data provider for testGetProductOptionTypes
      *
      * @return array
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public static function getProductOptionTypesDataProvider(): array
     {
