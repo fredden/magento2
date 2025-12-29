@@ -24,7 +24,6 @@ use Magento\Framework\Indexer\ActionInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Magento\Catalog\Test\Unit\Helper\ProductExtensionTestHelper;
 use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Catalog\Api\Data\ProductExtensionInterface;
 
