@@ -66,6 +66,7 @@ class RandomTest extends TestCase
         $this->productCollectionFactoryMock = $this->createMock(CollectionFactory::class);
         $this->productCollectionMock = $this->createMock(Collection::class);
         $this->selectMock = $this->createMock(Select::class);
+        $this->layerMock = $this->createMock(Layer::class);
 
         $this->productCollectionMock->method('getSelect')
             ->willReturn($this->selectMock);
@@ -75,8 +76,6 @@ class RandomTest extends TestCase
             [Output::class, $this->createMock(Output::class)],
             [CollectionFactory::class, $this->productCollectionFactoryMock],
         ]);
-
-        $this->layerMock = $this->createMock(Layer::class);
 
         $this->layerResolverMock = $this->createMock(Resolver::class);
         $this->layerResolverMock->method('get')
@@ -183,7 +182,9 @@ class RandomTest extends TestCase
             ->method('setPage')
             ->with(1, $expectedPageSize);
 
-        $this->block->getLoadedProductCollection();
+        $result = $this->block->getLoadedProductCollection();
+
+        $this->assertSame($this->productCollectionMock, $result);
     }
 
     /**
