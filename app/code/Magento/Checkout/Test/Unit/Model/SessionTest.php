@@ -29,7 +29,6 @@ use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Magento\Quote\Test\Unit\Helper\QuoteIdMaskTestHelper;
 
 /**
  * Test class for \Magento\Checkout\Model\Session
@@ -320,7 +319,12 @@ class SessionTest extends TestCase
         $storage->expects($this->any())
             ->method('setData');
 
-        $quoteIdMask = new QuoteIdMaskTestHelper($replaceQuoteId);
+        $quoteIdMask = $this->getMockBuilder(QuoteIdMask::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['load'])
+            ->getMock();
+        $quoteIdMask->method('load')->willReturnSelf();
+        $quoteIdMask->setData('masked_id', $replaceQuoteId);
 
         $quoteIdMaskFactoryMock = $this->createMock(QuoteIdMaskFactory::class);
         $quoteIdMaskFactoryMock->expects($this->once())->method('create')->willReturn($quoteIdMask);

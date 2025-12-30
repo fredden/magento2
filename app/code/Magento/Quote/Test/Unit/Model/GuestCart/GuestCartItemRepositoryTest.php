@@ -66,7 +66,10 @@ class GuestCartItemRepositoryTest extends TestCase
         $this->cartId = 33;
 
         // Create QuoteIdMask mock
-        $this->quoteIdMaskMock = $this->createPartialMockWithReflection(QuoteIdMask::class, ["load", "getQuoteId", "getMaskedId"]);
+        $this->quoteIdMaskMock = $this->createPartialMockWithReflection(
+            QuoteIdMask::class,
+            ["load", "getQuoteId", "getMaskedId"]
+        );
         $this->quoteIdMaskMock->method('load')->with($this->maskedCartId)->willReturnSelf();
         $this->quoteIdMaskMock->method('getQuoteId')->willReturn($this->cartId);
         $this->quoteIdMaskMock->method('getMaskedId')->willReturn($this->maskedCartId);

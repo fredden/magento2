@@ -12,7 +12,7 @@ use Magento\Catalog\Test\Unit\Ui\DataProvider\Product\Form\Modifier\AbstractModi
 use Magento\CatalogInventory\Api\Data\StockItemInterface;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
-use Magento\CatalogInventory\Test\Unit\Helper\ItemTestHelper;
+use Magento\CatalogInventory\Model\Stock\Item;
 use Magento\CatalogInventory\Ui\DataProvider\Product\Form\Modifier\AdvancedInventory;
 use Magento\Framework\Serialize\JsonValidator;
 use Magento\Framework\Serialize\Serializer\Json;
@@ -27,7 +27,7 @@ class AdvancedInventoryTest extends AbstractModifierTestCase
     private $stockRegistryMock;
 
     /**
-     * @var ItemTestHelper
+     * @var StockItemInterface|MockObject
      */
     private $stockItemMock;
 
@@ -50,14 +50,25 @@ class AdvancedInventoryTest extends AbstractModifierTestCase
     {
         parent::setUp();
         $this->stockRegistryMock = $this->createMock(StockRegistryInterface::class);
-        $this->stockItemMock = new ItemTestHelper();
+        $this->stockItemMock = $this->createPartialMockWithReflection(
+            Item::class,
+            [
+                'getManageStock', 'getQty', 'getMinQty', 'getMinSaleQty', 'getMaxSaleQty',
+                'getIsQtyDecimal', 'getBackorders', 'getNotifyStockQty', 'getEnableQtyIncrements',
+                'getQtyIncrements', 'getIsDecimalDivided', 'getStockStatusChangedAuto',
+                'getUseConfigManageStock', 'getUseConfigMinQty', 'getUseConfigMinSaleQty',
+                'getUseConfigMaxSaleQty', 'getUseConfigBackorders', 'getUseConfigNotifyStockQty',
+                'getUseConfigQtyIncrements', 'getUseConfigEnableQtyInc'
+            ]
+        );
 
         $this->stockConfigurationMock = $this->createMock(StockConfigurationInterface::class);
 
         $this->stockRegistryMock->method('getStockItem')->willReturn($this->stockItemMock);
-        // Use setter instead of expects for the anonymous class
-        $this->storeMock->setWebsiteId(1);
-        $this->productMock->setStore($this->storeMock);
+        // Configure the storeMock to return websiteId
+        $this->storeMock->method('getWebsiteId')->willReturn(1);
+        $this->productMock->method('getStore')->willReturn($this->storeMock);
+        $this->productMock->method('getId')->willReturn(1);
         $this->serializerMock = $this->createMock(Json::class);
         $this->jsonValidatorMock = $this->createMock(JsonValidator::class);
     }
