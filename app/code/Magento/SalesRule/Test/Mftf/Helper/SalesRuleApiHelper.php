@@ -155,7 +155,8 @@ class SalesRuleApiHelper extends Helper
             } catch (\Exception $e) {
                 $stats['total_failed']++;
                 $ruleName = $rule['name'] ?? 'Unknown';
-                $this->logMessage($enableLog, "Failed to delete rule '{$ruleName}' (ID: {$ruleId}): " . $e->getMessage());
+                $errorMsg = "Failed to delete rule '{$ruleName}' (ID: {$ruleId}): " . $e->getMessage();
+                $this->logMessage($enableLog, $errorMsg);
             }
         }
     }
@@ -256,4 +257,3 @@ class SalesRuleApiHelper extends Helper
         }
     }
 }
-
