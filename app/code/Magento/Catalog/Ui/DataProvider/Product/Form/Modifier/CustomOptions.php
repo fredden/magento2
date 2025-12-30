@@ -94,10 +94,12 @@ class CustomOptions extends AbstractModifier
     public const CUSTOM_OPTIONS_LISTING = 'product_custom_options_listing';
     /**#@-*/
 
-    /**
+    /**#@+
      * Precision for price value
      */
     private const MAX_PRECISION = 6;
+    private const MIN_PRECISION = 2;
+    /**#@-*/
 
     /**
      * @var LocatorInterface
@@ -1202,7 +1204,7 @@ class CustomOptions extends AbstractModifier
 
         return number_format(
             (float)$value,
-            $decimals > self::MAX_PRECISION ? self::MAX_PRECISION : $decimals,
+            max(self::MIN_PRECISION, min(self::MAX_PRECISION, $decimals)),
             '.',
             ''
         );

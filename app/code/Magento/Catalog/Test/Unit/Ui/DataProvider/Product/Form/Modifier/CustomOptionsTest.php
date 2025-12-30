@@ -274,11 +274,11 @@ class CustomOptionsTest extends AbstractModifierTestCase
             ],
             'one_decimal' => [
                 'inputValue' => 5.5,
-                'expectedValue' => '5.5'
+                'expectedValue' => '5.50'
             ],
             'integer_value' => [
                 'inputValue' => 10,
-                'expectedValue' => '10'
+                'expectedValue' => '10.00'
             ],
             'string_numeric' => [
                 'inputValue' => '2.334',
@@ -298,11 +298,11 @@ class CustomOptionsTest extends AbstractModifierTestCase
             ],
             'zero_value' => [
                 'inputValue' => 0,
-                'expectedValue' => '0'
+                'expectedValue' => '0.00'
             ],
             'zero_with_decimals' => [
                 'inputValue' => 0.00,
-                'expectedValue' => '0'
+                'expectedValue' => '0.00'
             ],
             'negative_value' => [
                 'inputValue' => -2.334,
@@ -558,7 +558,7 @@ class CustomOptionsTest extends AbstractModifierTestCase
             ],
             'integer_value' => [
                 'inputValue' => 10,
-                'expectedValue' => '10'
+                'expectedValue' => '10.00'
             ],
             'float_with_decimals' => [
                 'inputValue' => 2.334,
@@ -570,7 +570,7 @@ class CustomOptionsTest extends AbstractModifierTestCase
             ],
             'zero_value' => [
                 'inputValue' => 0,
-                'expectedValue' => '0'
+                'expectedValue' => '0.00'
             ],
             'string_numeric' => [
                 'inputValue' => '5.25',
