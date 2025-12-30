@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright 2015 Adobe
  * All Rights Reserved.
  */
+
 declare(strict_types=1);
 
 namespace Magento\Catalog\Test\Unit\Block\Adminhtml\Product\Helper\Form;
@@ -24,9 +26,15 @@ use Magento\Framework\View\Helper\SecureHtmlRenderer;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Unit test for Weight class
+ *
+ * @covers \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Weight
+ */
 class WeightTest extends TestCase
 {
     use MockCreationTrait;
+
     /**
      * @var Weight
      */
@@ -67,6 +75,11 @@ class WeightTest extends TestCase
      */
     protected $secureRenderer;
 
+    /**
+     * Set up test environment
+     *
+     * @return void
+     */
     protected function setUp(): void
     {
         // Create minimal ObjectManager mock
@@ -108,14 +121,26 @@ class WeightTest extends TestCase
         );
     }
 
-    public function testSetForm()
+    /**
+     * Test setForm method
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Weight::setForm
+     * @return void
+     */
+    public function testSetForm(): void
     {
         $form = $this->createMock(Form::class);
         // The anonymous class already returns $this for setForm, so no need for expectations
         $this->_model->setForm($form);
     }
 
-    public function testGetEscapedValue()
+    /**
+     * Test getEscapedValue returns properly formatted value
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Weight::getEscapedValue
+     * @return void
+     */
+    public function testGetEscapedValue(): void
     {
         $this->localeFormat->method(
             'getPriceFormat'

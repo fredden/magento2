@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright 2025 Adobe
  * All Rights Reserved.
  */
+
 declare(strict_types=1);
 
 namespace Magento\Catalog\Test\Unit\Block\Adminhtml\Product\Helper\Form;
@@ -19,8 +21,33 @@ use Magento\Framework\View\Helper\SecureHtmlRenderer;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Unit test for Image class
+ *
+ * @covers \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Image
+ */
 class ImageTest extends TestCase
 {
+    /**
+     * Base URL for media files
+     */
+    private const BASE_URL = 'http://example.com/pub/media/';
+
+    /**
+     * Test image path
+     */
+    private const TEST_IMAGE = 'test/image.jpg';
+
+    /**
+     * Short test filename
+     */
+    private const TEST_FILENAME = 'test.jpg';
+
+    /**
+     * HTML ID for test elements
+     */
+    private const TEST_HTML_ID = 'test_image';
+
     /**
      * @var Image
      */
@@ -56,7 +83,12 @@ class ImageTest extends TestCase
      */
     private ObjectManager $objectManager;
 
-    private function createFormMock(): Form
+    /**
+     * Create a mock Form object for testing
+     *
+     * @return Form|MockObject
+     */
+    private function createFormMock(): Form|MockObject
     {
         $form = $this->getMockBuilder(Form::class)
             ->disableOriginalConstructor()
@@ -68,6 +100,12 @@ class ImageTest extends TestCase
         return $form;
     }
 
+    /**
+     * Invoke a protected method for testing purposes
+     *
+     * @param string $methodName
+     * @return mixed
+     */
     private function invokeProtected(string $methodName)
     {
         $reflection = new \ReflectionClass($this->model);
@@ -77,6 +115,11 @@ class ImageTest extends TestCase
         return $method->invoke($this->model);
     }
 
+    /**
+     * Set up test environment
+     *
+     * @return void
+     */
     protected function setUp(): void
     {
         $this->factoryElement = $this->createMock(Factory::class);
@@ -86,7 +129,7 @@ class ImageTest extends TestCase
         $this->secureRenderer = $this->createMock(SecureHtmlRenderer::class);
 
         $this->objectManager = new ObjectManager($this);
-        
+
         // Prepare ObjectManager for the parent class (Image) that uses ObjectManager::getInstance()
         $objects = [
             [
@@ -95,7 +138,7 @@ class ImageTest extends TestCase
             ]
         ];
         $this->objectManager->prepareObjectManager($objects);
-        
+
         $this->model = $this->objectManager->getObject(
             Image::class,
             [
@@ -110,114 +153,180 @@ class ImageTest extends TestCase
     }
 
     /**
-     * Test _getUrl returns proper URL when value is set
+     * Test _getUrl method with various scenarios
+     *
+     * @param mixed $value
+     * @param bool $shouldCallGetBaseUrl
+     * @param mixed $expectedResult
+     * @dataProvider getUrlDataProvider
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Image::_getUrl
+     * @return void
      */
-    public function testGetUrlWithValue()
+    public function testGetUrl($value, bool $shouldCallGetBaseUrl, $expectedResult): void
     {
-        $imageValue = 'test/image.jpg';
-        $baseUrl = 'http://example.com/pub/media/';
-        $expectedUrl = $baseUrl . 'catalog/product/' . $imageValue;
+        $this->model->setValue($value);
 
-        $this->model->setValue($imageValue);
+        if ($shouldCallGetBaseUrl) {
+            $this->urlBuilder->expects($this->once())
+                ->method('getBaseUrl')
+                ->with(['_type' => UrlInterface::URL_TYPE_MEDIA])
+                ->willReturn(self::BASE_URL);
 
-        $this->urlBuilder->expects($this->once())
-            ->method('getBaseUrl')
-            ->with(['_type' => UrlInterface::URL_TYPE_MEDIA])
-            ->willReturn($baseUrl);
+            $expectedUrl = self::BASE_URL . 'catalog/product/' . $value;
+            $result = $this->invokeProtected('_getUrl');
+            $this->assertSame($expectedUrl, $result);
+        } else {
+            $this->urlBuilder->expects($this->never())
+                ->method('getBaseUrl');
 
-        $result = $this->invokeProtected('_getUrl');
-        $this->assertSame($expectedUrl, $result);
+            $result = $this->invokeProtected('_getUrl');
+            $this->assertSame($expectedResult, $result);
+        }
     }
 
     /**
-     * Test _getUrl returns false when no value is set
+     * Data provider for testGetUrl
+     *
+     * @return array
      */
-    public function testGetUrlWithoutValue()
+    public static function getUrlDataProvider(): array
     {
-        $this->model->setValue(null);
-
-        $this->urlBuilder->expects($this->never())
-            ->method('getBaseUrl');
-
-        $result = $this->invokeProtected('_getUrl');
-        $this->assertSame(false, $result);
+        return [
+            'with_value' => [
+                'value' => self::TEST_IMAGE,
+                'shouldCallGetBaseUrl' => true,
+                'expectedResult' => null // result will be calculated in test
+            ],
+            'without_value' => [
+                'value' => null,
+                'shouldCallGetBaseUrl' => false,
+                'expectedResult' => false
+            ],
+            'empty_value' => [
+                'value' => '',
+                'shouldCallGetBaseUrl' => false,
+                'expectedResult' => false
+            ],
+            'nested_path' => [
+                'value' => 'a/b/image.jpg',
+                'shouldCallGetBaseUrl' => true,
+                'expectedResult' => null // result will be calculated in test
+            ]
+        ];
     }
 
     /**
-     * Test _getUrl returns false when value is empty string
+     * Test _getDeleteCheckbox method with various scenarios
+     *
+     * @param bool|null $isRequired
+     * @param string|null $htmlId
+     * @param string|null $imageValue
+     * @param bool $expectsHiddenField
+     * @param array $expectedContains
+     * @dataProvider getDeleteCheckboxDataProvider
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Image::_getDeleteCheckbox
+     * @return void
      */
-    public function testGetUrlWithEmptyValue()
-    {
-        $this->model->setValue('');
+    public function testGetDeleteCheckbox(
+        ?bool $isRequired,
+        ?string $htmlId,
+        ?string $imageValue,
+        bool $expectsHiddenField,
+        array $expectedContains
+    ): void {
+        if ($isRequired !== null) {
+            $attribute = $this->createMock(Attribute::class);
+            $attribute->expects($this->once())
+                ->method('getIsRequired')
+                ->willReturn($isRequired);
+            $this->model->setEntityAttribute($attribute);
+        } else {
+            $this->model->setEntityAttribute(null);
+        }
 
-        $this->urlBuilder->expects($this->never())
-            ->method('getBaseUrl');
+        if ($htmlId !== null) {
+            $this->model->setForm($this->createFormMock());
+            $this->model->setId($htmlId);
+        }
 
-        $result = $this->invokeProtected('_getUrl');
-        $this->assertSame(false, $result);
-    }
+        if ($imageValue !== null) {
+            $this->model->setValue($imageValue);
+        }
 
-    /**
-     * Test _getDeleteCheckbox returns parent checkbox when attribute is not required
-     */
-    public function testGetDeleteCheckboxWithNonRequiredAttribute()
-    {
-        $attribute = $this->createMock(Attribute::class);
-        $attribute->expects($this->once())
-            ->method('getIsRequired')
-            ->willReturn(false);
-
-        $this->model->setEntityAttribute($attribute);
+        if ($expectsHiddenField) {
+            $this->secureRenderer->expects($this->once())
+                ->method('renderTag')
+                ->with('script', [], $this->anything(), false)
+                ->willReturn('<script type="text/x-magento-template">test_script</script>');
+        }
 
         $result = $this->invokeProtected('_getDeleteCheckbox');
 
-        // Should return parent's delete checkbox (empty string in this test scenario)
         $this->assertIsString($result);
+
+        foreach ($expectedContains as $expected) {
+            $this->assertStringContainsString($expected, $result);
+        }
     }
 
     /**
-     * Test _getDeleteCheckbox returns hidden input when attribute is required
+     * Data provider for testGetDeleteCheckbox
+     *
+     * @return array
      */
-    public function testGetDeleteCheckboxWithRequiredAttribute()
+    public static function getDeleteCheckboxDataProvider(): array
     {
-        $htmlId = 'test_image';
-        $imageValue = 'test/image.jpg';
-
-        $attribute = $this->createMock(Attribute::class);
-        $attribute->expects($this->once())
-            ->method('getIsRequired')
-            ->willReturn(true);
-
-        $this->model->setForm($this->createFormMock());
-        $this->model->setEntityAttribute($attribute);
-        $this->model->setId($htmlId);
-        $this->model->setValue($imageValue);
-
-        $this->secureRenderer->expects($this->once())
-            ->method('renderTag')
-            ->with('script', [], $this->anything(), false)
-            ->willReturn('<script type="text/x-magento-template">test_script</script>');
-
-        $result = $this->invokeProtected('_getDeleteCheckbox');
-
-        $this->assertStringContainsString('type="hidden"', $result);
-        $this->assertStringContainsString('class="required-entry"', $result);
-        $this->assertStringContainsString('_hidden', $result);
-        $this->assertStringContainsString($imageValue, $result);
-        $this->assertStringContainsString('text/x-magento-template', $result);
-    }
-
-    /**
-     * Test _getDeleteCheckbox returns parent checkbox when no attribute is set
-     */
-    public function testGetDeleteCheckboxWithoutAttribute()
-    {
-        $this->model->setEntityAttribute(null);
-
-        $result = $this->invokeProtected('_getDeleteCheckbox');
-
-        // Should return parent's delete checkbox
-        $this->assertIsString($result);
+        return [
+            'non_required_attribute' => [
+                'isRequired' => false,
+                'htmlId' => null,
+                'imageValue' => null,
+                'expectsHiddenField' => false,
+                'expectedContains' => []
+            ],
+            'no_attribute' => [
+                'isRequired' => null,
+                'htmlId' => null,
+                'imageValue' => null,
+                'expectsHiddenField' => false,
+                'expectedContains' => []
+            ],
+            'required_with_value' => [
+                'isRequired' => true,
+                'htmlId' => self::TEST_HTML_ID,
+                'imageValue' => self::TEST_IMAGE,
+                'expectsHiddenField' => true,
+                'expectedContains' => [
+                    'type="hidden"',
+                    'class="required-entry"',
+                    '_hidden',
+                    self::TEST_IMAGE,
+                    'text/x-magento-template'
+                ]
+            ],
+            'required_with_empty_value' => [
+                'isRequired' => true,
+                'htmlId' => self::TEST_HTML_ID,
+                'imageValue' => '',
+                'expectsHiddenField' => true,
+                'expectedContains' => [
+                    'type="hidden"',
+                    '_hidden',
+                    'text/x-magento-template'
+                ]
+            ],
+            'required_different_html_id' => [
+                'isRequired' => true,
+                'htmlId' => 'product_image_field',
+                'imageValue' => self::TEST_FILENAME,
+                'expectsHiddenField' => true,
+                'expectedContains' => [
+                    '_hidden"',
+                    'type="hidden"',
+                    'text/x-magento-template'
+                ]
+            ]
+        ];
     }
 
     /**
@@ -225,8 +334,11 @@ class ImageTest extends TestCase
      *
      * Uses pattern-based assertions to verify JavaScript functionality
      * without triggering static analysis inline JS warnings
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Image::_getDeleteCheckbox
+     * @return void
      */
-    public function testGetDeleteCheckboxIncludesJavaScriptForRequiredAttribute()
+    public function testGetDeleteCheckboxIncludesJavaScriptForRequiredAttribute(): void
     {
         $htmlId = 'test_image';
 
@@ -257,8 +369,11 @@ class ImageTest extends TestCase
 
     /**
      * Test that constructor properly initializes the object
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Image::__construct
+     * @return void
      */
-    public function testConstructorInitializesObject()
+    public function testConstructorInitializesObject(): void
     {
         $model = $this->objectManager->getObject(
             Image::class,
@@ -273,81 +388,5 @@ class ImageTest extends TestCase
         );
 
         $this->assertInstanceOf(Image::class, $model);
-    }
-
-    /**
-     * Test _getUrl constructs proper catalog product media URL
-     */
-    public function testGetUrlConstructsProperMediaPath()
-    {
-        $imageValue = 'a/b/image.jpg';
-        $baseUrl = 'http://example.com/pub/media/';
-
-        $this->model->setValue($imageValue);
-
-        $this->urlBuilder->expects($this->once())
-            ->method('getBaseUrl')
-            ->with(['_type' => UrlInterface::URL_TYPE_MEDIA])
-            ->willReturn($baseUrl);
-
-        $result = $this->invokeProtected('_getUrl');
-        $this->assertSame($baseUrl . 'catalog/product/' . $imageValue, $result);
-    }
-
-    /**
-     * Test _getDeleteCheckbox with required attribute and empty value
-     */
-    public function testGetDeleteCheckboxWithRequiredAttributeAndEmptyValue()
-    {
-        $htmlId = 'test_image';
-
-        $attribute = $this->createMock(Attribute::class);
-        $attribute->expects($this->once())
-            ->method('getIsRequired')
-            ->willReturn(true);
-
-        $this->model->setForm($this->createFormMock());
-        $this->model->setEntityAttribute($attribute);
-        $this->model->setId($htmlId);
-        $this->model->setValue('');
-
-        $this->secureRenderer->expects($this->once())
-            ->method('renderTag')
-            ->willReturn('<script type="text/x-magento-template">test</script>');
-
-        $result = $this->invokeProtected('_getDeleteCheckbox');
-
-        $this->assertStringContainsString('type="hidden"', $result);
-        $this->assertStringContainsString('_hidden', $result);
-        $this->assertStringContainsString('text/x-magento-template', $result);
-    }
-
-    /**
-     * Test _getDeleteCheckbox includes correct hidden field ID
-     */
-    public function testGetDeleteCheckboxHiddenFieldId()
-    {
-        $htmlId = 'product_image_field';
-
-        $attribute = $this->createMock(Attribute::class);
-        $attribute->expects($this->once())
-            ->method('getIsRequired')
-            ->willReturn(true);
-
-        $this->model->setForm($this->createFormMock());
-        $this->model->setEntityAttribute($attribute);
-        $this->model->setId($htmlId);
-        $this->model->setValue('test.jpg');
-
-        $this->secureRenderer->expects($this->once())
-            ->method('renderTag')
-            ->willReturn('<script type="text/x-magento-template">test</script>');
-
-        $result = $this->invokeProtected('_getDeleteCheckbox');
-
-        // Test that hidden field is created with _hidden suffix
-        $this->assertStringContainsString('_hidden"', $result);
-        $this->assertStringContainsString('type="hidden"', $result);
-        $this->assertStringContainsString('text/x-magento-template', $result);
     }
 }

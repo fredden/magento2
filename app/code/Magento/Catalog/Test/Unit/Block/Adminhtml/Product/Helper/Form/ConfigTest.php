@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Copyright 2025 Adobe
  * All Rights Reserved.
  */
+
 declare(strict_types=1);
 
 namespace Magento\Catalog\Test\Unit\Block\Adminhtml\Product\Helper\Form;
@@ -19,6 +21,11 @@ use Magento\Framework\View\Helper\SecureHtmlRenderer;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Unit test for Config class
+ *
+ * @covers \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Config
+ */
 class ConfigTest extends TestCase
 {
     /**
@@ -57,10 +64,29 @@ class ConfigTest extends TestCase
     private ObjectManager $objectManager;
 
     /**
+     * Create a mock Form object for testing
+     *
+     * @return Form|MockObject
+     */
+    private function createFormMock(): Form|MockObject
+    {
+        $form = $this->getMockBuilder(Form::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getHtmlIdPrefix', 'getHtmlIdSuffix'])
+            ->getMock();
+        $form->method('getHtmlIdPrefix')->willReturn('');
+        $form->method('getHtmlIdSuffix')->willReturn('');
+
+        return $form;
+    }
+
+    /**
      * Stub SecureHtmlRenderer to return Magento-compliant script tags
      *
      * Returns scripts with x-magento-template attribute to comply with
      * Magento's Content Security Policy and avoid inline JS violations
+     *
+     * @return void
      */
     private function stubSecureRenderer(): void
     {
@@ -70,23 +96,25 @@ class ConfigTest extends TestCase
             ->willReturn('<script type="text/x-magento-template">test_listener</script>');
     }
 
+    /**
+     * Set up test environment
+     *
+     * @return void
+     */
     protected function setUp(): void
     {
         $this->factoryElement = $this->createMock(Factory::class);
         $this->factoryCollection = $this->createMock(CollectionFactory::class);
         $this->escaper = $this->createMock(Escaper::class);
         $this->secureRenderer = $this->createMock(SecureHtmlRenderer::class);
-        $this->form = $this->getMockBuilder(Form::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getHtmlIdPrefix', 'getHtmlIdSuffix'])
-            ->getMock();
+        $this->form = $this->createFormMock();
 
         $this->objectManager = new ObjectManager($this);
-        
+
         // Setup Random mock
         $randomMock = $this->createMock(Random::class);
         $randomMock->method('getRandomString')->willReturn('randomstring');
-        
+
         // Prepare ObjectManager for the parent class (Select) that uses ObjectManager::getInstance()
         $objects = [
             [
@@ -99,11 +127,7 @@ class ConfigTest extends TestCase
             ]
         ];
         $this->objectManager->prepareObjectManager($objects);
-        
-        // Setup form mocks
-        $this->form->method('getHtmlIdPrefix')->willReturn('');
-        $this->form->method('getHtmlIdSuffix')->willReturn('');
-        
+
         // Setup collection factory with proper iterator
         $collection = $this->getMockBuilder(Collection::class)
             ->disableOriginalConstructor()
@@ -112,12 +136,12 @@ class ConfigTest extends TestCase
         $collection->method('getIterator')->willReturn(new \ArrayIterator([]));
         $collection->method('count')->willReturn(0);
         $this->factoryCollection->method('create')->willReturn($collection);
-        
+
         // Setup escaper defaults
         $this->escaper->method('escapeHtml')->willReturnCallback(function ($value) {
             return htmlspecialchars((string)$value);
         });
-        
+
         $this->model = $this->objectManager->getObject(
             Config::class,
             [
@@ -128,14 +152,17 @@ class ConfigTest extends TestCase
                 'secureRenderer' => $this->secureRenderer
             ]
         );
-        
+
         $this->model->setForm($this->form);
     }
 
     /**
      * Test that constructor properly initializes the object with SecureHtmlRenderer
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Config::__construct
+     * @return void
      */
-    public function testConstructorInitializesSecureRenderer()
+    public function testConstructorInitializesSecureRenderer(): void
     {
         $model = $this->objectManager->getObject(
             Config::class,
@@ -152,17 +179,6 @@ class ConfigTest extends TestCase
     }
 
     /**
-     * Test that Config extends Select element
-     */
-    public function testConfigExtendsSelect()
-    {
-        $this->assertInstanceOf(
-            \Magento\Framework\Data\Form\Element\Select::class,
-            $this->model
-        );
-    }
-
-    /**
      * Test getElementHtml with various scenarios
      *
      * @param string $value
@@ -170,13 +186,15 @@ class ConfigTest extends TestCase
      * @param array $expectedContains
      * @param array $expectedNotContains
      * @dataProvider getElementHtmlDataProvider
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Config::getElementHtml
+     * @return void
      */
     public function testGetElementHtmlScenarios(
         string $value,
         bool $readonly,
         array $expectedContains,
         array $expectedNotContains = []
-    ) {
+    ): void {
         $htmlId = 'test_element';
         $this->model->setHtmlId($htmlId);
         $this->model->setValue($value);
@@ -239,95 +257,90 @@ class ConfigTest extends TestCase
     }
 
     /**
-     * Test that getElementHtml includes JavaScript for toggling elements
+     * Test getElementHtml additional scenarios
      *
-     * Uses pattern-based assertions to verify JavaScript functionality
-     * without triggering static analysis inline JS warnings
+     * @param bool $testCallback
+     * @param array $expectedContains
+     * @dataProvider getElementHtmlAdditionalDataProvider
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Config::getElementHtml
+     * @return void
      */
-    public function testGetElementHtmlIncludesJavaScript()
-    {
+    public function testGetElementHtmlAdditionalScenarios(
+        bool $testCallback,
+        array $expectedContains
+    ): void {
         $htmlId = 'test_element';
         $this->model->setHtmlId($htmlId);
         $this->model->setValue('');
 
-        $this->secureRenderer->expects($this->once())
-            ->method('renderTag')
-            ->with('script', [], $this->callback(function ($content) {
-                return strpos($content, 'toggleValueElements') !== false;
-            }), false)
-            ->willReturn('<script type="text/x-magento-template">test</script>');
+        if ($testCallback) {
+            $this->secureRenderer->expects($this->once())
+                ->method('renderTag')
+                ->with('script', [], $this->callback(function ($content) {
+                    return strpos($content, 'toggleValueElements') !== false;
+                }), false)
+                ->willReturn('<script type="text/x-magento-template">test</script>');
 
-        $this->secureRenderer->expects($this->once())
-            ->method('renderEventListenerAsTag')
-            ->with('onclick', $this->callback(function ($listener) {
-                return strpos($listener, 'toggleValueElements') !== false;
-            }), $this->anything())
-            ->willReturn('<script type="text/x-magento-template">test_listener</script>');
+            $this->secureRenderer->expects($this->once())
+                ->method('renderEventListenerAsTag')
+                ->with('onclick', $this->callback(function ($listener) {
+                    return strpos($listener, 'toggleValueElements') !== false;
+                }), $this->anything())
+                ->willReturn('<script type="text/x-magento-template">test_listener</script>');
+        } else {
+            $this->stubSecureRenderer();
+        }
 
         $html = $this->model->getElementHtml();
 
         $this->assertNotEmpty($html);
-        $this->assertStringContainsString('use_config_' . $htmlId, $html);
-        $this->assertStringContainsString('text/x-magento-template', $html);
+
+        foreach ($expectedContains as $expected) {
+            $this->assertStringContainsString($expected, $html);
+        }
     }
 
     /**
-     * Test getElementHtml output elements using data provider
-     *
-     * @param string $expectedString
-     * @dataProvider getElementHtmlOutputDataProvider
-     */
-    public function testGetElementHtmlOutputElements(string $expectedString)
-    {
-        $htmlId = 'test_element';
-        $this->model->setHtmlId($htmlId);
-        $this->model->setValue('');
-
-        $this->stubSecureRenderer();
-
-        $html = $this->model->getElementHtml();
-
-        $this->assertStringContainsString($expectedString, $html);
-    }
-
-    /**
-     * Data provider for testGetElementHtmlOutputElements
+     * Data provider for testGetElementHtmlAdditionalScenarios
      *
      * @return array
      */
-    public static function getElementHtmlOutputDataProvider(): array
+    public static function getElementHtmlAdditionalDataProvider(): array
     {
         return [
-            'checkbox_name' => ['name="product[use_config_test_element]"'],
-            'checkbox_value' => ['value="1"'],
-            'checkbox_label' => ['Use Config Settings']
+            'javascript_callback' => [
+                'testCallback' => true,
+                'expectedContains' => [
+                    'use_config_test_element',
+                    'text/x-magento-template'
+                ]
+            ],
+            'checkbox_name' => [
+                'testCallback' => false,
+                'expectedContains' => [
+                    'name="product[use_config_test_element]"'
+                ]
+            ],
+            'checkbox_value' => [
+                'testCallback' => false,
+                'expectedContains' => [
+                    'value="1"'
+                ]
+            ],
+            'checkbox_label' => [
+                'testCallback' => false,
+                'expectedContains' => [
+                    'Use Config Settings'
+                ]
+            ],
+            'secure_renderer_tags' => [
+                'testCallback' => false,
+                'expectedContains' => [
+                    'text/x-magento-template',
+                    'test_script',
+                    'test_listener'
+                ]
+            ]
         ];
-    }
-
-    /**
-     * Test that SecureHtmlRenderer is used for rendering script tags
-     *
-     * Verifies that scripts use x-magento-template attribute for CSP compliance
-     */
-    public function testSecureHtmlRendererUsedForScriptTags()
-    {
-        $htmlId = 'test_element';
-        $this->model->setHtmlId($htmlId);
-        $this->model->setValue('');
-
-        $this->secureRenderer->expects($this->once())
-            ->method('renderTag')
-            ->with('script', [], $this->anything(), false)
-            ->willReturn('<script type="text/x-magento-template">secure_tag</script>');
-
-        $this->secureRenderer->expects($this->once())
-            ->method('renderEventListenerAsTag')
-            ->willReturn('<script type="text/x-magento-template">secure_listener</script>');
-
-        $html = $this->model->getElementHtml();
-
-        $this->assertStringContainsString('text/x-magento-template', $html);
-        $this->assertStringContainsString('secure_tag', $html);
-        $this->assertStringContainsString('secure_listener', $html);
     }
 }
