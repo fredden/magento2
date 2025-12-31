@@ -12,6 +12,7 @@ use Magento\Framework\Mview\View;
 use Magento\Framework\Mview\View\Changelog;
 use Magento\Indexer\Console\Command\IndexerStatusCommand;
 use Magento\Indexer\Model\Mview\View\State;
+use Magento\Framework\Event\ManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\Console\Tester\CommandTester;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -71,7 +72,7 @@ class IndexerStatusCommandTest extends AbstractIndexerCommandCommonSetup
     private function getStateMock()
     {
         $contextMock = $this->createPartialMock(\Magento\Framework\Model\Context::class, ['getEventDispatcher']);
-        $eventManagerMock = $this->createMock(\Magento\Framework\Event\ManagerInterface::class);
+        $eventManagerMock = $this->createMock(ManagerInterface::class);
         $contextMock->expects($this->any())->method('getEventDispatcher')->willReturn($eventManagerMock);
         $registryMock = $this->createMock(\Magento\Framework\Registry::class);
         $resourceMock = $this->createMock(\Magento\Indexer\Model\ResourceModel\Mview\View\State::class);
