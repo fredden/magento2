@@ -16,7 +16,9 @@ use Magento\Framework\Data\Form;
 use Magento\Framework\Data\Form\Element\Select;
 use Magento\Framework\Data\FormFactory;
 use Magento\Framework\Json\Helper\Data as JsonHelper;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
@@ -28,6 +30,8 @@ use ReflectionMethod;
  */
 class FilterTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var Filter
      */
@@ -102,18 +106,17 @@ class FilterTest extends TestCase
     /**
      * Test that _prepareForm creates form with select field for given attribute set options
      *
-     * @dataProvider attributeSetOptionsDataProvider
      * @param array<int, array<string, string>> $attributeSetOptions
      * @return void
      */
+    #[DataProvider('attributeSetOptionsDataProvider')]
     public function testPrepareFormCreatesFormWithSelectField(array $attributeSetOptions): void
     {
         $selectElementMock = $this->createMock(Select::class);
-        $formMock = $this->getMockBuilder(Form::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['addField'])
-            ->addMethods(['setUseContainer', 'setMethod'])
-            ->getMock();
+        $formMock = $this->createPartialMockWithReflection(
+            Form::class,
+            ['addField', 'setUseContainer', 'setMethod']
+        );
 
         $formMock->expects($this->once())
             ->method('setUseContainer')
@@ -180,21 +183,20 @@ class FilterTest extends TestCase
     /**
      * Test that select field has correct configuration
      *
-     * @dataProvider selectFieldConfigurationDataProvider
      * @param string $configKey
      * @param string|bool $expectedValue
      * @return void
      */
+    #[DataProvider('selectFieldConfigurationDataProvider')]
     public function testSelectFieldHasCorrectConfiguration(string $configKey, string|bool $expectedValue): void
     {
         $this->setupAttributeSetMocks([]);
 
         $selectElementMock = $this->createMock(Select::class);
-        $formMock = $this->getMockBuilder(Form::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['addField'])
-            ->addMethods(['setUseContainer', 'setMethod'])
-            ->getMock();
+        $formMock = $this->createPartialMockWithReflection(
+            Form::class,
+            ['addField', 'setUseContainer', 'setMethod']
+        );
 
         $formMock->expects($this->once())
             ->method('addField')
