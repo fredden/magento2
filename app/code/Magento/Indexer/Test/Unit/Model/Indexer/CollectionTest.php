@@ -17,6 +17,7 @@ use Magento\Indexer\Model\ResourceModel\Indexer\State\Collection as StateCollect
 use Magento\Indexer\Model\ResourceModel\Indexer\State\CollectionFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class CollectionTest extends TestCase
 {
@@ -52,8 +53,7 @@ class CollectionTest extends TestCase
     {
         $this->objectManagerHelper = new ObjectManagerHelper($this);
 
-        $this->configMock = $this->getMockBuilder(ConfigInterface::class)
-            ->getMockForAbstractClass();
+        $this->configMock = $this->createMock(ConfigInterface::class);
 
         $this->statesFactoryMock = $this->getMockBuilder(CollectionFactory::class)
             ->onlyMethods(['create'])
@@ -76,8 +76,8 @@ class CollectionTest extends TestCase
     /**
      * @param array $indexersData
      * @param array $states
-     * @dataProvider loadDataDataProvider
      */
+    #[DataProvider('loadDataDataProvider')]
     public function testLoadData(array $indexersData, array $states)
     {
         $finalStates = [];
@@ -157,8 +157,8 @@ class CollectionTest extends TestCase
 
     /**
      * @param array $indexersData
-     * @dataProvider getAllIdsDataProvider
      */
+    #[DataProvider('getAllIdsDataProvider')]
     public function testGetAllIds(array $indexersData)
     {
         $statesCollection = $this->getMockBuilder(StateCollection::class)
@@ -210,8 +210,8 @@ class CollectionTest extends TestCase
     /**
      * @param string $methodName
      * @param array $arguments
-     * @dataProvider stubMethodsDataProvider
      */
+    #[DataProvider('stubMethodsDataProvider')]
     public function testStubMethods(string $methodName, array $arguments)
     {
         $this->statesFactoryMock
@@ -269,8 +269,8 @@ class CollectionTest extends TestCase
     /**
      * @param string $methodName
      * @param array $arguments
-     * @dataProvider stubMethodsWithReturnSelfDataProvider
      */
+    #[DataProvider('stubMethodsWithReturnSelfDataProvider')]
     public function testStubMethodsWithReturnSelf(string $methodName, array $arguments)
     {
         $this->statesFactoryMock
@@ -311,8 +311,7 @@ class CollectionTest extends TestCase
     private function getIndexerMock(array $data = [])
     {
         /** @var MockObject|IndexerInterface $indexer */
-        $indexer = $this->getMockBuilder(IndexerInterface::class)
-            ->getMockForAbstractClass();
+        $indexer = $this->createMock(IndexerInterface::class);
         if (isset($data['indexer_id'])) {
             $indexer->method('getId')
                 ->willReturn($data['indexer_id']);

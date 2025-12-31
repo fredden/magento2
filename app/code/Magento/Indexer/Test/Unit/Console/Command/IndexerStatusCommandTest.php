@@ -14,6 +14,7 @@ use Magento\Indexer\Console\Command\IndexerStatusCommand;
 use Magento\Indexer\Model\Mview\View\State;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\Console\Tester\CommandTester;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class IndexerStatusCommandTest extends AbstractIndexerCommandCommonSetup
 {
@@ -70,7 +71,7 @@ class IndexerStatusCommandTest extends AbstractIndexerCommandCommonSetup
     private function getStateMock()
     {
         $contextMock = $this->createPartialMock(\Magento\Framework\Model\Context::class, ['getEventDispatcher']);
-        $eventManagerMock = $this->getMockForAbstractClass(\Magento\Framework\Event\ManagerInterface::class);
+        $eventManagerMock = $this->createMock(\Magento\Framework\Event\ManagerInterface::class);
         $contextMock->expects($this->any())->method('getEventDispatcher')->willReturn($eventManagerMock);
         $registryMock = $this->createMock(\Magento\Framework\Registry::class);
         $resourceMock = $this->createMock(\Magento\Indexer\Model\ResourceModel\Mview\View\State::class);
@@ -93,9 +94,8 @@ class IndexerStatusCommandTest extends AbstractIndexerCommandCommonSetup
 
     /**
      * @param array $indexers
-     *
-     * @dataProvider executeAllDataProvider
      */
+    #[DataProvider('executeAllDataProvider')]
     public function testExecuteAll(array $indexers)
     {
         $this->configureAdminArea();
