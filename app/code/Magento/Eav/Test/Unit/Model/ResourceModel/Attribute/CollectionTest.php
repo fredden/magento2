@@ -22,6 +22,7 @@ use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -92,11 +93,11 @@ class CollectionTest extends TestCase
     protected function setUp(): void
     {
         $this->entityFactoryMock = $this->createMock(EntityFactory::class);
-        $this->loggerMock = $this->getMockForAbstractClass(LoggerInterface::class);
+        $this->loggerMock = $this->createMock(LoggerInterface::class);
         $this->fetchStrategyMock = $this->createMock(
             FetchStrategyInterface::class
         );
-        $this->eventManagerMock = $this->getMockForAbstractClass(ManagerInterface::class);
+        $this->eventManagerMock = $this->createMock(ManagerInterface::class);
 
         $this->eavConfigMock = $this->createMock(Config::class);
         $this->entityTypeMock = $this->createPartialMock(Type::class, ['__wakeup']);
@@ -105,7 +106,7 @@ class CollectionTest extends TestCase
             ->method('getEntityType')
             ->willReturn($this->entityTypeMock);
 
-        $this->storeManagerMock = $this->getMockForAbstractClass(StoreManagerInterface::class);
+        $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
         $this->storeManagerMock->expects($this->any())->method('getStore')->willReturnSelf();
 
         $this->connectionMock = $this->createPartialMock(
@@ -118,7 +119,7 @@ class CollectionTest extends TestCase
 
         $this->select = new Select($this->connectionMock, $this->selectRenderer);
 
-        $this->resourceMock = $this->getMockForAbstractClass(
+        $this->resourceMock = $this->createMock(
             AbstractDb::class,
             [],
             '',
@@ -165,9 +166,7 @@ class CollectionTest extends TestCase
         $this->resourceMock->expects($this->any())->method('getTable')->willReturn('some_extra_table');
     }
 
-    /**
-     * @dataProvider initSelectDataProvider
-     */
+    #[DataProvider('initSelectDataProvider')]
     public function testInitSelect($column, $value)
     {
         $helper = new ObjectManager($this);

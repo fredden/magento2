@@ -16,6 +16,7 @@ use Magento\Framework\Stdlib\StringUtils;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Unit test class for \Magento\Eav\Model\TypeLocator
@@ -61,9 +62,8 @@ class TypeLocatorTest extends TestCase
      * @param StringUtils $stringUtility ,
      * @param array $serviceEntityTypeMapData
      * @param array $serviceBackendModelDataInterfaceMapData
-     * @param string $expected
-     * @dataProvider getTypeDataProvider
-     */
+     * @param string $expected     */
+    #[DataProvider('getTypeDataProvider')]
     public function testGetType(
         $attributeCode,
         $serviceClass,

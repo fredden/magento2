@@ -20,6 +20,7 @@ use Magento\MediaStorage\Model\File\Validator\NotProtectedExtension;
 use Psr\Log\LoggerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Test for Magento\Eav\Model\Attribute\Data\File class.
@@ -48,10 +49,10 @@ class FileTest extends TestCase
      */
     protected function setUp(): void
     {
-        $timezoneMock = $this->getMockForAbstractClass(TimezoneInterface::class);
-        $loggerMock = $this->getMockForAbstractClass(LoggerInterface::class);
-        $localeResolverMock = $this->getMockForAbstractClass(ResolverInterface::class);
-        $this->urlEncoder = $this->getMockForAbstractClass(EncoderInterface::class);
+        $timezoneMock = $this->createMock(TimezoneInterface::class);
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $localeResolverMock = $this->createMock(ResolverInterface::class);
+        $this->urlEncoder = $this->createMock(EncoderInterface::class);
         $this->fileValidatorMock = $this->createPartialMock(
             NotProtectedExtension::class,
             ['isValid', 'getMessages']
@@ -76,9 +77,8 @@ class FileTest extends TestCase
      * @param string $format
      * @param mixed $value
      * @param mixed $expectedResult
-     * @param int $callTimes
-     * @dataProvider outputValueDataProvider
-     */
+     * @param int $callTimes     */
+    #[DataProvider('outputValueDataProvider')]
     public function testOutputValue($format, $value, $callTimes, $expectedResult)
     {
         $entityMock = $this->createMock(AbstractModel::class);
@@ -131,9 +131,8 @@ class FileTest extends TestCase
      * @param bool $isAjaxRequest
      * @param array $rules
      * @param bool $fileIsValid
-     * @param array $expectedResult
-     * @dataProvider validateValueDataProvider
-     */
+     * @param array $expectedResult     */
+    #[DataProvider('validateValueDataProvider')]
     public function testValidateValue(
         $value,
         $originalValue,

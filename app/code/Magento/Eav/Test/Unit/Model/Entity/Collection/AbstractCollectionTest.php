@@ -22,6 +22,7 @@ use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Validator\UniversalFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -94,11 +95,11 @@ class AbstractCollectionTest extends TestCase
     protected function setUp(): void
     {
         $this->coreEntityFactoryMock = $this->createMock(EntityFactory::class);
-        $this->loggerMock = $this->getMockForAbstractClass(LoggerInterface::class);
+        $this->loggerMock = $this->createMock(LoggerInterface::class);
         $this->fetchStrategyMock = $this->createMock(
             FetchStrategyInterface::class
         );
-        $this->eventManagerMock = $this->getMockForAbstractClass(ManagerInterface::class);
+        $this->eventManagerMock = $this->createMock(ManagerInterface::class);
         $this->configMock = $this->createMock(Config::class);
         $this->coreResourceMock = $this->createMock(ResourceConnection::class);
         $this->resourceHelperMock = $this->createMock(Helper::class);
@@ -195,8 +196,8 @@ class AbstractCollectionTest extends TestCase
     }
 
     /**
-     * @dataProvider getItemsDataProvider
      */
+    #[DataProvider('getItemsDataProvider')]
     public function testClear($values, $count)
     {
         $this->fetchStrategyMock->expects($this->once())->method('fetchAll')->willReturn($values);
@@ -209,8 +210,8 @@ class AbstractCollectionTest extends TestCase
     }
 
     /**
-     * @dataProvider getItemsDataProvider
      */
+    #[DataProvider('getItemsDataProvider')]
     public function testRemoveAllItems($values, $count)
     {
         $this->fetchStrategyMock->expects($this->once())->method('fetchAll')->willReturn($values);
@@ -223,8 +224,8 @@ class AbstractCollectionTest extends TestCase
     }
 
     /**
-     * @dataProvider getItemsDataProvider
      */
+    #[DataProvider('getItemsDataProvider')]
     public function testRemoveItemByKey($values, $count)
     {
         $this->fetchStrategyMock->expects($this->once())->method('fetchAll')->willReturn($values);
@@ -238,8 +239,8 @@ class AbstractCollectionTest extends TestCase
     }
 
     /**
-     * @dataProvider getItemsDataProviderWithoutCount
      */
+    #[DataProvider('getItemsDataProviderWithoutCount')]
     public function testAttributeIdIsInt($values)
     {
         $this->markTestSkipped('Skipped in #27500 due to testing protected/private methods and properties');

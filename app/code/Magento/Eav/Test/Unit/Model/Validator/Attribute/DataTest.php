@@ -20,12 +20,16 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Stdlib\StringUtils;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * Test for \Magento\Eav\Model\Validator\Attribute\Data
  */
 class DataTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var AttributeDataFactory|MockObject
      */
@@ -50,25 +54,23 @@ class DataTest extends TestCase
             ->onlyMethods(['create'])
             ->setConstructorArgs(
                 [
-                    'objectManager' => $this->getMockForAbstractClass(ObjectManagerInterface::class),
+                    'objectManager' => $this->createMock(ObjectManagerInterface::class),
                     'string' => $this->createMock(StringUtils::class)
                 ]
             )
             ->getMock();
         $this->createMock(ObjectManagerInterface::class);
         ObjectManager::setInstance($this->createMock(ObjectManagerInterface::class));
-        $this->eavConfigMock = $this->getMockBuilder(\Magento\Eav\Model\Config::class)
-            ->onlyMethods(['getEntityType'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->eavConfigMock = $this->createPartialMockWithReflection(
+            \Magento\Eav\Model\Config::class,
+            ['getEntityType']
+        );
         $this->model = new Data($this->attrDataFactory);
     }
 
     /**
      * Testing  \Magento\Eav\Model\Validator\Attribute\Data::isValid
-     *
-     * @dataProvider isValidDataProvider
-     *
+     *     *
      * @param array $attributeData
      * @param array|bool $result
      * @param bool $expected
@@ -77,6 +79,7 @@ class DataTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('isValidDataProvider')]
     public function testIsValid(
         $attributeData,
         $result,
@@ -84,8 +87,7 @@ class DataTest extends TestCase
         $messages,
         $data = ['attribute' => 'new_test']
     ): void {
-        if(!empty($attributeData['data_model']))
-        {
+        if (!empty($attributeData['data_model'])) {
             $attributeData['data_model'] = $attributeData['data_model']($this);
         }
         $entity = $this->_getEntityMock();
@@ -94,7 +96,7 @@ class DataTest extends TestCase
             ->onlyMethods(['create'])
             ->setConstructorArgs(
                 [
-                    'objectManager' => $this->getMockForAbstractClass(ObjectManagerInterface::class),
+                    'objectManager' => $this->createMock(ObjectManagerInterface::class),
                     'string' => $this->createMock(StringUtils::class)
                 ]
             )
@@ -211,7 +213,7 @@ class DataTest extends TestCase
     public function testIsValidAttributesFromCollection(): void
     {
         /** @var AbstractEntity $resource */
-        $resource = $this->getMockForAbstractClass(AbstractEntity::class, [], '', false);
+        $resource = $this->createMock(AbstractEntity::class, [], '', false);
         $attribute = $this->_getAttributeMock(
             [
                 'attribute_code' => 'attribute',
@@ -221,12 +223,15 @@ class DataTest extends TestCase
             ]
         );
         $entityTypeCode = 'entity_type_code';
-        $collection = $this->getMockBuilder(DataObject::class)
-            ->addMethods(['getItems'])->getMock();
+        $collection = $this->createPartialMockWithReflection(
+            DataObject::class,
+            ['getItems']
+        );
         $collection->expects($this->once())->method('getItems')->willReturn([$attribute]);
-        $entityType = $this->getMockBuilder(DataObject::class)
-            ->addMethods(['getAttributeCollection','getEntityTypeCode'])
-            ->getMock();
+        $entityType = $this->createPartialMockWithReflection(
+            DataObject::class,
+            ['getAttributeCollection', 'getEntityTypeCode']
+        );
         $entityType->expects($this->atMost(2))->method('getEntityTypeCode')->willReturn($entityTypeCode);
         $entityType->expects($this->once())->method('getAttributeCollection')->willReturn($collection);
         $this->eavConfigMock->expects($this->once())->method('getEntityType')
@@ -239,7 +244,7 @@ class DataTest extends TestCase
             ->onlyMethods(['create'])
             ->setConstructorArgs(
                 [
-                    'objectManager' => $this->getMockForAbstractClass(ObjectManagerInterface::class),
+                    'objectManager' => $this->createMock(ObjectManagerInterface::class),
                     'string' => $this->createMock(StringUtils::class)
                 ]
             )
@@ -263,9 +268,8 @@ class DataTest extends TestCase
     /**
      * @param callable $callback
      *
-     * @return void
-     * @dataProvider allowDenyListProvider
-     */
+     * @return void     */
+    #[DataProvider('allowDenyListProvider')]
     public function testIsValidExclusionInclusionListChecks($callback): void
     {
         $attribute = $this->_getAttributeMock(
@@ -291,7 +295,7 @@ class DataTest extends TestCase
             ->onlyMethods(['create'])
             ->setConstructorArgs(
                 [
-                    'objectManager' => $this->getMockForAbstractClass(ObjectManagerInterface::class),
+                    'objectManager' => $this->createMock(ObjectManagerInterface::class),
                     'string' => $this->createMock(StringUtils::class)
                 ]
             )
@@ -339,7 +343,7 @@ class DataTest extends TestCase
         $attrDataFactory = $this->getMockBuilder(AttributeDataFactory::class)
             ->setConstructorArgs(
                 [
-                    'objectManager' => $this->getMockForAbstractClass(ObjectManagerInterface::class),
+                    'objectManager' => $this->createMock(ObjectManagerInterface::class),
                     'string' => $this->createMock(StringUtils::class)
                 ]
             )
@@ -363,7 +367,7 @@ class DataTest extends TestCase
         $attrDataFactory = $this->getMockBuilder(AttributeDataFactory::class)
             ->setConstructorArgs(
                 [
-                    'objectManager' => $this->getMockForAbstractClass(ObjectManagerInterface::class),
+                    'objectManager' => $this->createMock(ObjectManagerInterface::class),
                     'string' => $this->createMock(StringUtils::class)
                 ]
             )
@@ -404,7 +408,7 @@ class DataTest extends TestCase
             ->onlyMethods(['create'])
             ->setConstructorArgs(
                 [
-                    'objectManager' => $this->getMockForAbstractClass(ObjectManagerInterface::class),
+                    'objectManager' => $this->createMock(ObjectManagerInterface::class),
                     'string' => $this->createMock(StringUtils::class)
                 ]
             )
@@ -446,18 +450,10 @@ class DataTest extends TestCase
      */
     protected function _getAttributeMock($attributeData): MockObject
     {
-        $attribute = $this->getMockBuilder(Attribute::class)
-            ->onlyMethods(
-                [
-                    'getAttributeCode',
-                    'getFrontendInput',
-                    '__wakeup',
-                    'getIsVisible'
-                ]
-            )
-            ->addMethods(['getDataModel'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $attribute = $this->createPartialMockWithReflection(
+            Attribute::class,
+            ['getDataModel', 'getAttributeCode', 'getFrontendInput', 'getIsVisible']
+        );
 
         if (isset($attributeData['attribute_code'])) {
             $attribute->expects(
@@ -502,8 +498,10 @@ class DataTest extends TestCase
      */
     protected function _getDataModelMock($returnValue, $argument = null): MockObject
     {
-        $dataModel = $this->getMockBuilder(AbstractData::class)->disableOriginalConstructor()
-            ->onlyMethods(['setExtractedData', 'validateValue'])->getMockForAbstractClass();
+        $dataModel = $this->createPartialMock(
+            AbstractData::class,
+            ['setExtractedData', 'validateValue', 'extractValue', 'compactValue', 'restoreValue', 'outputValue']
+        );
         if ($argument) {
             $dataModel->expects(
                 $this->once()
@@ -525,11 +523,10 @@ class DataTest extends TestCase
      */
     protected function _getEntityMock(): MockObject
     {
-        $entity = $this->getMockBuilder(AbstractModel::class)
-            ->onlyMethods(['getResource', '__wakeup'])
-            ->addMethods(['getAttribute', 'getEntityType'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $entity = $this->createPartialMockWithReflection(
+            AbstractModel::class,
+            ['getAttribute', 'getEntityType', 'getResource', '__wakeup']
+        );
 
         return $entity;
     }
@@ -544,7 +541,7 @@ class DataTest extends TestCase
         $attributeData = ['attribute_code' => 'attribute', 'frontend_input' => 'text', 'is_visible' => true];
         $entity = $this->_getEntityMock();
         $attribute = $this->_getAttributeMock($attributeData);
-        $dataModel = $this->_getDataModelMock(true, $this->logicalAnd($this->isEmpty(), $this->isType('string')));
+        $dataModel = $this->_getDataModelMock(true, $this->logicalAnd($this->isEmpty(), $this->callback('is_string')));
         $dataModel->expects($this->once())->method('setExtractedData')->with([])->willReturnSelf();
         $this->attrDataFactory->expects($this->once())
             ->method('create')

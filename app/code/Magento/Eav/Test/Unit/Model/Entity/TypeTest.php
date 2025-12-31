@@ -16,6 +16,7 @@ use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Framework\Registry;
 use Magento\Framework\Validator\UniversalFactory;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class TypeTest extends TestCase
@@ -68,7 +69,7 @@ class TypeTest extends TestCase
         $this->attrSetFactoryMock = $this->createMock(SetFactory::class);
         $this->storeFactoryMock = $this->createPartialMock(StoreFactory::class, ['create']);
         $this->universalFactoryMock = $this->createMock(UniversalFactory::class);
-        $this->resourceMock = $this->getMockForAbstractClass(
+        $this->resourceMock = $this->createMock(
             AbstractDb::class,
             [],
             '',

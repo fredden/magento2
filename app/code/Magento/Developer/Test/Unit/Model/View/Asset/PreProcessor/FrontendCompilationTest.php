@@ -57,13 +57,11 @@ class FrontendCompilationTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->lockerProcessMock = $this->getMockBuilder(LockerProcessInterface::class)
-            ->getMockForAbstractClass();
+        $this->lockerProcessMock = $this->createMock(LockerProcessInterface::class);
         $this->assetBuilderMock = $this->getMockBuilder(AssetBuilder::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->alternativeSourceMock = $this->getMockBuilder(AlternativeSourceInterface::class)
-            ->getMockForAbstractClass();
+        $this->alternativeSourceMock = $this->createMock(AlternativeSourceInterface::class);
         $this->assetSourceMock = $this->getMockBuilder(Source::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -76,7 +74,7 @@ class FrontendCompilationTest extends TestCase
     {
         $this->lockerProcessMock->expects(self::once())
             ->method('lockProcess')
-            ->with(self::isType('string'));
+            ->with(self::isString());
         $this->lockerProcessMock->expects(self::once())
             ->method('unlockProcess');
 
@@ -135,7 +133,7 @@ class FrontendCompilationTest extends TestCase
 
         $this->lockerProcessMock->expects(self::once())
             ->method('lockProcess')
-            ->with(self::isType('string'));
+            ->with(self::isString());
         $this->lockerProcessMock->expects(self::once())
             ->method('unlockProcess');
 
@@ -241,9 +239,7 @@ class FrontendCompilationTest extends TestCase
      */
     private function getAssetMock()
     {
-        $assetMock = $this->getMockBuilder(LocalInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $assetMock = $this->createMock(LocalInterface::class);
 
         return $assetMock;
     }

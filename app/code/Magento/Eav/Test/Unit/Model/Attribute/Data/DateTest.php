@@ -15,10 +15,14 @@ use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class DateTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var Date
      */
@@ -31,9 +35,9 @@ class DateTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->timezoneMock = $this->getMockForAbstractClass(TimezoneInterface::class);
-        $loggerMock = $this->getMockForAbstractClass(LoggerInterface::class);
-        $localeResolverMock = $this->getMockForAbstractClass(ResolverInterface::class);
+        $this->timezoneMock = $this->createMock(TimezoneInterface::class);
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $localeResolverMock = $this->createMock(ResolverInterface::class);
 
         $this->model = new Date(
             $this->timezoneMock,
@@ -48,19 +52,17 @@ class DateTest extends TestCase
      * @param string $format
      * @param mixed $value
      * @param mixed $expectedResult
-     * @param int $callTimes
-     * @dataProvider outputValueDataProvider
-     */
+     * @param int $callTimes     */
+    #[DataProvider('outputValueDataProvider')]
     public function testOutputValue($format, $value, $callTimes, $expectedResult)
     {
         $entityMock = $this->createMock(AbstractModel::class);
         $entityMock->expects($this->once())->method('getData')->willReturn($value);
 
-        $attributeMock = $this->getMockBuilder(Attribute::class)
-            ->addMethods(['getInputFilter'])
-            ->onlyMethods(['__wakeup'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $attributeMock = $this->createPartialMockWithReflection(
+            Attribute::class,
+            ['getInputFilter', '__wakeup']
+        );
         $attributeMock->expects($this->exactly($callTimes))->method('getInputFilter')->willReturn(false);
 
         $this->model->setEntity($entityMock);
@@ -97,9 +99,8 @@ class DateTest extends TestCase
      * @param mixed $originalValue
      * @param bool $isRequired
      * @param bool $skipRequiredValidation
-     * @param array $expectedResult
-     * @dataProvider validateValueDataProvider
-     */
+     * @param array $expectedResult     */
+    #[DataProvider('validateValueDataProvider')]
     public function testValidateValue(
         $value,
         $rules,
@@ -108,11 +109,10 @@ class DateTest extends TestCase
         $skipRequiredValidation,
         $expectedResult
     ) {
-        $entityMock = $this->getMockBuilder(AbstractModel::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getDataUsingMethod'])
-            ->addMethods(['getSkipRequiredValidation'])
-            ->getMock();
+        $entityMock = $this->createPartialMockWithReflection(
+            AbstractModel::class,
+            ['getSkipRequiredValidation', 'getDataUsingMethod']
+        );
         $entityMock->expects($this->any())->method('getDataUsingMethod')->willReturn($originalValue);
         $entityMock->expects($this->any())
             ->method('getSkipRequiredValidation')
@@ -196,9 +196,8 @@ class DateTest extends TestCase
      * @covers \Magento\Eav\Model\Attribute\Data\Date::compactValue
      *
      * @param string $value
-     * @param string $expectedResult
-     * @dataProvider compactValueDataProvider
-     */
+     * @param string $expectedResult     */
+    #[DataProvider('compactValueDataProvider')]
     public function testCompactValue($value, $expectedResult)
     {
         $entityMock = $this->createMock(AbstractModel::class);

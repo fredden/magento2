@@ -42,7 +42,7 @@ class MinifyTemplatesTest extends TestCase
     {
         $this->filesUtils = $this->createPartialMock(Files::class, ['getPhtmlFiles']);
 
-        $this->htmlMinifier = $this->getMockForAbstractClass(
+        $this->htmlMinifier = $this->createMock(
             MinifierInterface::class,
             ['minify'],
             '',

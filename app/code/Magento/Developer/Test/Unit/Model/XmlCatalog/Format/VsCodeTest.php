@@ -17,6 +17,7 @@ use Magento\Framework\Filesystem\File\Read;
 use Magento\Framework\Filesystem\File\Write;
 use Magento\Framework\Filesystem\File\WriteFactory;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -54,7 +55,7 @@ class VsCodeTest extends TestCase
     {
         $this->objectManagerHelper = new ObjectManager($this);
 
-        $currentDirReadMock = $this->getMockForAbstractClass(ReadInterface::class);
+        $currentDirReadMock = $this->createMock(ReadInterface::class);
         $currentDirReadMock->expects($this->any())
             ->method('getRelativePath')
             ->willReturnCallback(function ($xsdPath) {
@@ -89,9 +90,9 @@ class VsCodeTest extends TestCase
      * @param array $dictionary
      *
      * @return void
-     * @dataProvider dictionaryDataProvider
      */
-    public function testGenerateNewValidCatalog($content, $dictionary): void
+    #[DataProvider('dictionaryDataProvider')]
+    public function testGenerateNewValidCatalog($content, $dictionary, $invalidContent = null): void
     {
         $configFile = 'test';
 
@@ -122,9 +123,9 @@ class VsCodeTest extends TestCase
      * @param array $dictionary
      *
      * @return void
-     * @dataProvider dictionaryDataProvider
      */
-    public function testGenerateExistingValidCatalog($content, $dictionary): void
+    #[DataProvider('dictionaryDataProvider')]
+    public function testGenerateExistingValidCatalog($content, $dictionary, $invalidContent = null): void
     {
         $configFile = 'test';
 
@@ -159,9 +160,9 @@ class VsCodeTest extends TestCase
      * @param array $dictionary
      *
      * @return void
-     * @dataProvider dictionaryDataProvider
      */
-    public function testGenerateExistingEmptyValidCatalog($content, $dictionary): void
+    #[DataProvider('dictionaryDataProvider')]
+    public function testGenerateExistingEmptyValidCatalog($content, $dictionary, $invalidContent = null): void
     {
         $configFile = 'test';
 
@@ -196,8 +197,8 @@ class VsCodeTest extends TestCase
      * @param array $dictionary
      *
      * @return void
-     * @dataProvider dictionaryDataProvider
      */
+    #[DataProvider('dictionaryDataProvider')]
     public function testGenerateExistingInvalidValidCatalog($content, $dictionary, $invalidContent): void
     {
         $configFile = 'test';

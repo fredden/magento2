@@ -93,7 +93,7 @@ class DeployTranslationsDictionaryTest extends TestCase
                 }
             );
 
-        $this->logger = $this->getMockForAbstractClass(
+        $this->logger = $this->createMock(
             LoggerInterface::class,
             [],
             '',
