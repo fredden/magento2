@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters;
 
+use Magento\Framework\Cache\Frontend\Adapter\OptimizedPredisClient;
+use Magento\Framework\Cache\Frontend\Adapter\UltraOptimizedPredisClient;
 use Predis\Client as PredisClient;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
@@ -170,9 +172,9 @@ return deleted
 LUA;
 
     /**
-     * @var \Redis|\RedisCluster|PredisClient
+     * @var \Redis|\RedisCluster|PredisClient|OptimizedPredisClient
      */
-    private \Redis|\RedisCluster|PredisClient $redis;
+    private \Redis|\RedisCluster|PredisClient|OptimizedPredisClient|UltraOptimizedPredisClient $redis;
 
     /**
      * @var string
@@ -215,8 +217,7 @@ LUA;
         $this->namespace = $namespace;
         $this->redis = $this->extractRedisClient($cachePool);
         
-        // Disable Lua for Predis (only works with phpredis)
-        if ($this->redis instanceof PredisClient) {
+        if ($this->isPredisClient()) {
             $this->useLua = false;
             $this->useLuaOnGc = false;
         } else {
@@ -224,8 +225,7 @@ LUA;
             $this->useLuaOnGc = $useLuaOnGc;
         }
         
-        // Initialize Lua helper if either flag is enabled (phpredis only)
-        if (($this->useLua || $this->useLuaOnGc) && !($this->redis instanceof PredisClient)) {
+        if (($this->useLua || $this->useLuaOnGc) && !$this->isPredisClient()) {
             $this->luaHelper = new RedisLuaHelper($this->redis, true);
         }
     }
@@ -237,7 +237,7 @@ LUA;
      * @return \Redis|\RedisCluster|PredisClient
      * @throws \RuntimeException If Redis client cannot be extracted
      */
-    private function extractRedisClient(CacheItemPoolInterface $cachePool): \Redis|\RedisCluster|PredisClient
+    private function extractRedisClient(CacheItemPoolInterface $cachePool): \Redis|\RedisCluster|PredisClient|OptimizedPredisClient|UltraOptimizedPredisClient
     {
         // Unwrap TagAwareAdapter if present
         $adapter = $cachePool;
@@ -255,7 +255,8 @@ LUA;
             $redisProperty->setAccessible(true);
             $redis = $redisProperty->getValue($adapter);
 
-            if ($redis instanceof \Redis || $redis instanceof \RedisCluster || $redis instanceof PredisClient) {
+            if ($redis instanceof \Redis || $redis instanceof \RedisCluster || 
+                $redis instanceof PredisClient || $redis instanceof OptimizedPredisClient) {
                 return $redis;
             }
         }
@@ -275,18 +276,24 @@ LUA;
     }
 
     /**
+     * @return bool
+     */
+    private function isPredisClient(): bool
+    {
+        return $this->redis instanceof PredisClient || $this->redis instanceof OptimizedPredisClient;
+    }
+
+    /**
      * Create Redis pipeline compatible with both phpredis and Predis
      *
      * @return \Redis|object Predis pipeline object
      */
     private function createPipeline()
     {
-        if ($this->redis instanceof PredisClient) {
-            // Predis uses pipeline() method
+        if ($this->isPredisClient()) {
             return $this->redis->pipeline();
         }
         
-        // phpredis uses multi(PIPELINE)
         return $this->redis->multi(\Redis::PIPELINE);
     }
 
