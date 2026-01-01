@@ -19,6 +19,7 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\LoginAsCustomerApi\Api\AuthenticateCustomerBySecretInterface;
 use Magento\LoginAsCustomerFrontendUi\Controller\Login\Index;
 use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -30,6 +31,8 @@ use Psr\Log\LoggerInterface;
  */
 class IndexTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var Index
      */
@@ -92,24 +95,24 @@ class IndexTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->requestMock = $this->getMockForAbstractClass(RequestInterface::class);
+        $this->requestMock = $this->createMock(RequestInterface::class);
         $this->resultFactoryMock = $this->createMock(ResultFactory::class);
-        $this->authenticateCustomerBySecretMock = $this->getMockForAbstractClass(
+        $this->authenticateCustomerBySecretMock = $this->createMock(
             AuthenticateCustomerBySecretInterface::class
         );
-        $this->messageManagerMock = $this->getMockForAbstractClass(ManagerInterface::class);
-        $this->loggerMock = $this->getMockForAbstractClass(LoggerInterface::class);
+        $this->messageManagerMock = $this->createMock(ManagerInterface::class);
+        $this->loggerMock = $this->createMock(LoggerInterface::class);
         $this->customerSessionMock = $this->createMock(Session::class);
         $this->checkoutSessionMock = $this->createMock(CheckoutSession::class);
-        $this->customerMock = $this->getMockBuilder(Customer::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getFirstname', 'getLastname'])
-            ->getMock();
+        $this->customerMock = $this->createPartialMockWithReflection(
+            Customer::class,
+            ['getFirstname', 'getLastname']
+        );
         $this->redirectMock = $this->createMock(Redirect::class);
-        $this->resultPageMock = $this->getMockBuilder(ResultInterface::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getConfig', 'getTitle', 'set'])
-            ->getMockForAbstractClass();
+        $this->resultPageMock = $this->createPartialMockWithReflection(
+            \Magento\Framework\View\Result\Page::class,
+            ['getConfig', 'getTitle', 'set']
+        );
         $this->redirectFactoryMock = $this->createMock(RedirectFactory::class);
         $this->controller = new Index(
             $this->resultFactoryMock,

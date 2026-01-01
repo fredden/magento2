@@ -184,7 +184,6 @@ class ProcessorTest extends TestCase
 
             $indexerMock = $this->createPartialMock(Indexer::class, ['load', 'getState', 'reindexAll']);
             $indexerMock->expects($this->any())->method('getState')->willReturn($stateMock);
-            // Convert string matcher to actual matcher
             $matcher = $expectedReindexAllCalls[$indexerData['indexer_id']];
             $indexerMock->expects($this->{$matcher}())->method('reindexAll');
             $indexerMocks[] = $indexerMock;
@@ -254,7 +253,6 @@ class ProcessorTest extends TestCase
 
             $indexerMock = $this->createPartialMock(Indexer::class, ['load', 'getState', 'reindexAll']);
             $indexerMock->expects($this->any())->method('getState')->willReturn($stateMock);
-            // Convert string matcher to actual matcher
             $matcher = $expectedReindexAllCalls[$indexerData['indexer_id']];
             $indexerMock->expects($this->{$matcher}())->method('reindexAll');
             $indexerMocks[] = $indexerMock;
