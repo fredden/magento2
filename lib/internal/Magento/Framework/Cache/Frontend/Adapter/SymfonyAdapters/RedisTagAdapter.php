@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters;
 
-use Magento\Framework\Cache\Frontend\Adapter\OptimizedPredisClient;
 use Magento\Framework\Cache\Frontend\Adapter\UltraOptimizedPredisClient;
 use Predis\Client as PredisClient;
 use Psr\Cache\CacheItemPoolInterface;
@@ -37,6 +36,7 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
  * - Returns: {config_1}  ← Only IDs in BOTH sets (true AND logic)
  *
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class RedisTagAdapter implements TagAdapterInterface
 {
@@ -172,9 +172,9 @@ return deleted
 LUA;
 
     /**
-     * @var \Redis|\RedisCluster|PredisClient|OptimizedPredisClient
+     * @var \Redis|\RedisCluster|PredisClient|UltraOptimizedPredisClient
      */
-    private \Redis|\RedisCluster|PredisClient|OptimizedPredisClient|UltraOptimizedPredisClient $redis;
+    private \Redis|\RedisCluster|PredisClient|UltraOptimizedPredisClient $redis;
 
     /**
      * @var string
@@ -234,11 +234,12 @@ LUA;
      * Extract Redis client from Symfony cache adapter
      *
      * @param CacheItemPoolInterface $cachePool
-     * @return \Redis|\RedisCluster|PredisClient
+     * @return \Redis|\RedisCluster|PredisClient|UltraOptimizedPredisClient
      * @throws \RuntimeException If Redis client cannot be extracted
      */
-    private function extractRedisClient(CacheItemPoolInterface $cachePool): \Redis|\RedisCluster|PredisClient|OptimizedPredisClient|UltraOptimizedPredisClient
-    {
+    private function extractRedisClient(
+        CacheItemPoolInterface $cachePool
+    ): \Redis|\RedisCluster|PredisClient|UltraOptimizedPredisClient {
         // Unwrap TagAwareAdapter if present
         $adapter = $cachePool;
         if ($adapter instanceof TagAwareAdapter) {
@@ -255,8 +256,8 @@ LUA;
             $redisProperty->setAccessible(true);
             $redis = $redisProperty->getValue($adapter);
 
-            if ($redis instanceof \Redis || $redis instanceof \RedisCluster || 
-                $redis instanceof PredisClient || $redis instanceof OptimizedPredisClient) {
+            if ($redis instanceof \Redis || $redis instanceof \RedisCluster ||
+                $redis instanceof PredisClient || $redis instanceof UltraOptimizedPredisClient) {
                 return $redis;
             }
         }
@@ -276,11 +277,13 @@ LUA;
     }
 
     /**
+     * Check if using Predis client (vs phpredis extension)
+     *
      * @return bool
      */
     private function isPredisClient(): bool
     {
-        return $this->redis instanceof PredisClient || $this->redis instanceof OptimizedPredisClient;
+        return $this->redis instanceof PredisClient || $this->redis instanceof UltraOptimizedPredisClient;
     }
 
     /**

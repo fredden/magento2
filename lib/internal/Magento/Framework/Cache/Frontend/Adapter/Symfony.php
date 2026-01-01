@@ -90,6 +90,26 @@ class Symfony implements FrontendInterface
     private bool $hasPendingWrites = false;
 
     /**
+     * @var array
+     */
+    private array $responseCache = [];
+
+    /**
+     * @var int
+     */
+    private const RESPONSE_CACHE_MAX_SIZE = 500;
+
+    /**
+     * @var int Response cache TTL in seconds
+     *
+     * Set to 0 to disable (safer for multi-instance scenarios)
+     * Can be increased in single-instance production environments
+     */
+    private const RESPONSE_CACHE_TTL = 0;
+
+    /**
+     * Constructor
+     *
      * @param Closure $cacheFactory Factory that creates the cache pool
      * @param TagAdapterInterface|null $adapter Backend-specific tag adapter
      * @param int $defaultLifetime Default cache lifetime in seconds
@@ -110,6 +130,8 @@ class Symfony implements FrontendInterface
     }
 
     /**
+     * Get cache pool instance (with process ID check)
+     *
      * @return CacheItemPoolInterface
      */
     private function getCache(): CacheItemPoolInterface
@@ -127,6 +149,8 @@ class Symfony implements FrontendInterface
     }
 
     /**
+     * Check if cache supports tag-aware operations
+     *
      * @return bool
      */
     private function isTagAware(): bool
@@ -138,6 +162,8 @@ class Symfony implements FrontendInterface
     }
 
     /**
+     * Clean and normalize cache identifier
+     *
      * @param string|null $identifier
      * @return string|null
      */
@@ -153,6 +179,8 @@ class Symfony implements FrontendInterface
     }
 
     /**
+     * Clean multiple cache identifiers
+     *
      * @param array $identifiers
      * @return array
      */
@@ -166,14 +194,24 @@ class Symfony implements FrontendInterface
      */
     public function test($identifier)
     {
-        // AUTO-COMMIT: Flush pending writes before testing
-        // Ensures we test against current state including pending writes
+        $cleanId = $this->cleanIdentifier($identifier);
+        $cacheKey = 'test:' . $cleanId;
+
+        // OPTIMIZATION: Check response cache first (Predis optimization)
+        if (isset($this->responseCache[$cacheKey])) {
+            $cached = $this->responseCache[$cacheKey];
+            if ((time() - $cached['time']) < self::RESPONSE_CACHE_TTL) {
+                return $cached['result'];
+            }
+            unset($this->responseCache[$cacheKey]);
+        }
+
         if ($this->hasPendingWrites) {
             $this->commitPendingWrites();
         }
 
         $cache = $this->getCache();
-        $item = $cache->getItem($this->cleanIdentifier($identifier));
+        $item = $cache->getItem($cleanId);
 
         if (!$item->isHit()) {
             return false;
@@ -181,14 +219,19 @@ class Symfony implements FrontendInterface
 
         $value = $item->get();
 
-        // Return stored mtime from wrapper for consistent timestamps
-        if (is_array($value) && isset($value['mtime'])) {
-            return (int)$value['mtime'];
+        $result = is_array($value) && isset($value['mtime'])
+            ? (int)$value['mtime']
+            : time();
+
+        // Cache result in memory
+        if (count($this->responseCache) < self::RESPONSE_CACHE_MAX_SIZE) {
+            $this->responseCache[$cacheKey] = [
+                'result' => $result,
+                'time' => time()
+            ];
         }
 
-        // OPTIMIZATION: For unwrapped data (fast path), return current time
-        // This matches Zend behavior for cache entries without metadata
-        return time();
+        return $result;
     }
 
     /**
@@ -196,14 +239,24 @@ class Symfony implements FrontendInterface
      */
     public function load($identifier)
     {
-        // AUTO-COMMIT: Flush pending writes before ANY read
-        // This ensures read-after-write consistency (save → load pattern)
+        $cleanId = $this->cleanIdentifier($identifier);
+        $cacheKey = 'load:' . $cleanId;
+
+        // OPTIMIZATION: Check response cache first (Predis optimization)
+        if (isset($this->responseCache[$cacheKey])) {
+            $cached = $this->responseCache[$cacheKey];
+            if ((time() - $cached['time']) < self::RESPONSE_CACHE_TTL) {
+                return $cached['result'];
+            }
+            unset($this->responseCache[$cacheKey]);
+        }
+
         if ($this->hasPendingWrites) {
             $this->commitPendingWrites();
         }
 
         $cache = $this->getCache();
-        $item = $cache->getItem($this->cleanIdentifier($identifier));
+        $item = $cache->getItem($cleanId);
 
         if (!$item->isHit()) {
             return false;
@@ -211,15 +264,19 @@ class Symfony implements FrontendInterface
 
         $wrappedData = $item->get();
 
-        // Unwrap data from metadata wrapper
-        // CRITICAL: Use array_key_exists instead of isset for 'data' key
-        // because isset returns false when value is null!
-        if (is_array($wrappedData) && array_key_exists('data', $wrappedData)) {
-            return $wrappedData['data'];
+        $result = (is_array($wrappedData) && array_key_exists('data', $wrappedData))
+            ? $wrappedData['data']
+            : $wrappedData;
+
+        // Cache result in memory (only cache hits, not misses)
+        if ($result !== false && count($this->responseCache) < self::RESPONSE_CACHE_MAX_SIZE) {
+            $this->responseCache[$cacheKey] = [
+                'result' => $result,
+                'time' => time()
+            ];
         }
 
-        // Fallback for non-wrapped data (shouldn't happen)
-        return $wrappedData;
+        return $result;
     }
 
     /**
@@ -231,6 +288,11 @@ class Symfony implements FrontendInterface
     {
         $cache = $this->getCache();
         $cleanId = $this->cleanIdentifier($identifier);
+        
+        // Clear response cache for this key (important for concurrent access)
+        unset($this->responseCache['test:' . $cleanId]);
+        unset($this->responseCache['load:' . $cleanId]);
+        
         $item = $cache->getItem($cleanId);
 
         // Calculate actual lifetime to use
@@ -299,8 +361,9 @@ class Symfony implements FrontendInterface
         if ($this->hasPendingWrites) {
             try {
                 $this->commitPendingWrites();
+            // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
             } catch (\Exception $e) {
-                // Silently fail in destructor (request is ending anyway)
+                // Intentional no-op: Silently fail in destructor (request is ending anyway)
                 // In production, this would be logged
             }
         }
@@ -484,8 +547,6 @@ class Symfony implements FrontendInterface
      */
     public function remove($identifier)
     {
-        // AUTO-COMMIT: Flush pending writes before removing
-        // Ensures deferred saves are committed before we try to delete
         if ($this->hasPendingWrites) {
             $this->commitPendingWrites();
         }
@@ -493,12 +554,14 @@ class Symfony implements FrontendInterface
         $cache = $this->getCache();
         $cleanId = $this->cleanIdentifier($identifier);
 
-        // Notify helper before removal (for index cleanup)
+        // Clear from response cache
+        unset($this->responseCache['test:' . $cleanId]);
+        unset($this->responseCache['load:' . $cleanId]);
+
         $this->adapter->onRemove($cleanId);
 
         $success = $cache->deleteItem($cleanId);
 
-        // Ensure changes are committed immediately (matches Zend behavior)
         if (method_exists($cache, 'commit')) {
             $cache->commit();
         }
@@ -511,8 +574,8 @@ class Symfony implements FrontendInterface
      */
     public function clean($mode = CacheConstants::CLEANING_MODE_ALL, array $tags = [])
     {
-        // AUTO-COMMIT: Flush pending writes before cleaning
-        // Ensures we don't clean items that haven't been written yet
+        $this->responseCache = [];
+
         if ($this->hasPendingWrites) {
             $this->commitPendingWrites();
         }
@@ -556,10 +619,10 @@ class Symfony implements FrontendInterface
      */
     private function cleanAll(CacheItemPoolInterface $cache): bool
     {
+        $this->responseCache = [];
         $this->adapter->clearAllIndices();
         $success = $cache->clear();
 
-        // Ensure changes are committed immediately (matches Zend behavior)
         if (method_exists($cache, 'commit')) {
             $cache->commit();
         }

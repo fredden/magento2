@@ -12,18 +12,31 @@ use Predis\ClientInterface;
 
 /**
  * Ultra-Optimized Predis wrapper - minimal intervention approach
- * 
+ *
  * Only optimizes GET operations with response caching. All other operations
  * are passed through directly to maintain 100% compatibility with Predis.
  */
 class UltraOptimizedPredisClient extends PredisClient
 {
+    /**
+     * @var array
+     */
     private array $cache = [];
+
+    /**
+     * @var bool
+     */
     private bool $cachingEnabled = true;
-    
+
     private const CACHE_TTL = 1;
     private const CACHE_MAX = 200;
 
+    /**
+     * Constructor
+     *
+     * @param mixed $parameters
+     * @param mixed $options
+     */
     public function __construct($parameters = null, $options = null)
     {
         parent::__construct($parameters, $options);
@@ -36,6 +49,9 @@ class UltraOptimizedPredisClient extends PredisClient
 
     /**
      * Optimized GET with response caching
+     *
+     * @param string $key
+     * @return mixed
      */
     public function get($key)
     {
@@ -65,6 +81,13 @@ class UltraOptimizedPredisClient extends PredisClient
 
     /**
      * Clear cache on SET
+     *
+     * @param string $key
+     * @param mixed $value
+     * @param string|null $expireResolution
+     * @param int|null $expireTTL
+     * @param string|null $flag
+     * @return mixed
      */
     public function set($key, $value, $expireResolution = null, $expireTTL = null, $flag = null)
     {
@@ -74,6 +97,9 @@ class UltraOptimizedPredisClient extends PredisClient
 
     /**
      * Clear cache on DEL
+     *
+     * @param string|array $keys
+     * @return mixed
      */
     public function del($keys)
     {
@@ -83,6 +109,8 @@ class UltraOptimizedPredisClient extends PredisClient
 
     /**
      * Clear cache on FLUSHDB
+     *
+     * @return mixed
      */
     public function flushdb()
     {
@@ -92,6 +120,9 @@ class UltraOptimizedPredisClient extends PredisClient
 
     /**
      * Clear cache on SELECT (database switch)
+     *
+     * @param int $database
+     * @return mixed
      */
     public function select($database)
     {

@@ -9,8 +9,6 @@ namespace Magento\Framework\Cache\Frontend\Adapter;
 
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\Cache\Frontend\Adapter\OptimizedPredisClient;
-use Magento\Framework\Cache\Frontend\Adapter\OptimizedPredisClientCredisStyle;
 use Magento\Framework\Cache\Frontend\Adapter\UltraOptimizedPredisClient;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony\MagentoDatabaseAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\FilesystemTagAdapter;
@@ -481,104 +479,6 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
         ];
 
         return new UltraOptimizedPredisClient($params, $options);
-    }
-
-    /**
-     * Create optimized Predis connection (Credis-style pure PHP)
-     *
-     * Uses direct stream socket connection like Credis standalone for better performance.
-     * This is 13% faster than Credis standalone and 21% faster than vanilla Predis.
-     *
-     * @param string $host
-     * @param int $port
-     * @param string|null $password
-     * @param int $database
-     * @param bool $persistent
-     * @param float|null $timeout
-     * @param float|null $readTimeout
-     * @return OptimizedPredisClientCredisStyle
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    private function createOptimizedPredisConnection(
-        string $host,
-        int $port,
-        ?string $password,
-        int $database,
-        bool $persistent,
-        ?float $timeout,
-        ?float $readTimeout
-    ) {
-        $params = [
-            'host' => $host,
-            'port' => $port,
-            'database' => $database,
-            'password' => $password,
-        ];
-
-        return new OptimizedPredisClientCredisStyle($params);
-    }
-
-    /**
-     * Create Predis connection (pure PHP fallback)
-     *
-     * This is a fallback when phpredis extension is not available.
-     * Performance is ~2-3x slower than phpredis, but requires no PHP extensions.
-     *
-     * @param string $host
-     * @param int $port
-     * @param string|null $password
-     * @param int $database
-     * @param bool $persistent Intentionally unused - Predis doesn't support true persistence
-     * @param float|null $timeout
-     * @param float|null $readTimeout
-     * @return mixed Predis client instance (type hint removed for PHPStan compatibility)
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    private function createPredisConnection(
-        string $host,
-        int $port,
-        ?string $password,
-        int $database,
-        bool $persistent,
-        ?float $timeout,
-        ?float $readTimeout
-    ) {
-        $connectionParams = [
-            'scheme' => 'tcp',
-            'host' => $host,
-            'port' => $port,
-            'database' => $database,
-        ];
-
-        // Add optional parameters
-        if ($password) {
-            $connectionParams['password'] = $password;
-        }
-
-        if ($timeout !== null) {
-            $connectionParams['timeout'] = $timeout;
-        }
-
-        if ($readTimeout !== null) {
-            $connectionParams['read_write_timeout'] = $readTimeout;
-        }
-
-        // IMPORTANT: Disable persistent connections for Predis
-        // Predis doesn't support true persistent connections like phpredis.
-        // Persistent connections in Predis can cause database isolation issues
-        // where connections are shared between different cache types (databases).
-        // For proper cache isolation, each Predis connection must be independent.
-        // This ensures the correct database is selected for each cache type.
-        // Performance impact is minimal since Predis is already slower than phpredis.
-        // For production, use phpredis extension for better performance and persistence.
-        // Note: $persistent parameter is ignored for Predis
-
-        $options = [];
-
-        $baseClient = new PredisClient($connectionParams, $options);
-        $baseClient->select($database);
-
-        return new OptimizedPredisClient($baseClient);
     }
 
     /**
