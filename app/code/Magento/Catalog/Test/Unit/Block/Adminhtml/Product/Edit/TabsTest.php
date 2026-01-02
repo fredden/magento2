@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 
@@ -17,21 +17,24 @@ use Magento\Catalog\Block\Adminhtml\Product\Edit\Tabs;
 use Magento\Catalog\Helper\Catalog;
 use Magento\Catalog\Helper\Data;
 use Magento\Catalog\Model\Product;
+use Magento\Directory\Helper\Data as DirectoryHelper;
 use Magento\Eav\Model\Entity\Attribute\AbstractAttribute;
 use Magento\Eav\Model\Entity\Attribute\Group;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\Group\Collection;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\Group\CollectionFactory;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\DataObject;
 use Magento\Framework\Json\EncoderInterface;
+use Magento\Framework\Json\Helper\Data as JsonHelper;
 use Magento\Framework\Module\Manager;
 use Magento\Framework\Registry;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\Translate\InlineInterface;
 use Magento\Framework\View\Element\AbstractBlock;
-use Magento\Framework\View\LayoutInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 /**
  * Unit test for Tabs class
@@ -69,7 +72,7 @@ class TabsTest extends TestCase
     /**
      * @var CollectionFactory|MockObject
      */
-    private $collectionFactoryMock;
+    private $collectionFactory;
 
     /**
      * @var Catalog|MockObject
@@ -102,11 +105,6 @@ class TabsTest extends TestCase
     private $requestMock;
 
     /**
-     * @var LayoutInterface|MockObject
-     */
-    private $layoutMock;
-
-    /**
      * @var Product|MockObject
      */
     private $productMock;
@@ -118,16 +116,16 @@ class TabsTest extends TestCase
     {
         $objectManager = new ObjectManager($this);
 
-        $jsonHelperMock = $this->createMock(\Magento\Framework\Json\Helper\Data::class);
-        $directoryHelperMock = $this->createMock(\Magento\Directory\Helper\Data::class);
+        $jsonHelperMock = $this->createMock(JsonHelper::class);
+        $directoryHelperMock = $this->createMock(DirectoryHelper::class);
 
         $objects = [
             [
-                \Magento\Framework\Json\Helper\Data::class,
+                JsonHelper::class,
                 $jsonHelperMock
             ],
             [
-                \Magento\Directory\Helper\Data::class,
+                DirectoryHelper::class,
                 $directoryHelperMock
             ]
         ];
@@ -137,14 +135,13 @@ class TabsTest extends TestCase
         $this->jsonEncoderMock = $this->getMockForAbstractClass(EncoderInterface::class);
         $this->authSessionMock = $this->createMock(Session::class);
         $this->moduleManagerMock = $this->createMock(Manager::class);
-        $this->collectionFactoryMock = $this->createMock(CollectionFactory::class);
+        $this->collectionFactory = $this->createMock(CollectionFactory::class);
         $this->helperCatalogMock = $this->createMock(Catalog::class);
         $this->catalogDataMock = $this->createMock(Data::class);
         $this->registryMock = $this->createMock(Registry::class);
         $this->translateInlineMock = $this->getMockForAbstractClass(InlineInterface::class);
         $this->storeManagerMock = $this->getMockForAbstractClass(StoreManagerInterface::class);
         $this->requestMock = $this->getMockForAbstractClass(RequestInterface::class);
-        $this->layoutMock = $this->getMockForAbstractClass(LayoutInterface::class);
         $this->productMock = $this->createMock(Product::class);
 
         $this->contextMock->expects($this->any())
@@ -161,7 +158,7 @@ class TabsTest extends TestCase
                 'jsonEncoder' => $this->jsonEncoderMock,
                 'authSession' => $this->authSessionMock,
                 'moduleManager' => $this->moduleManagerMock,
-                'collectionFactory' => $this->collectionFactoryMock,
+                'collectionFactory' => $this->collectionFactory,
                 'helperCatalog' => $this->helperCatalogMock,
                 'catalogData' => $this->catalogDataMock,
                 'registry' => $this->registryMock,
@@ -185,7 +182,7 @@ class TabsTest extends TestCase
         $attributeSetId = 5;
         $collectionMock = $this->createMock(Collection::class);
 
-        $this->collectionFactoryMock->expects($this->once())
+        $this->collectionFactory->expects($this->once())
             ->method('create')
             ->willReturn($collectionMock);
 
@@ -203,7 +200,7 @@ class TabsTest extends TestCase
             ->willReturnSelf();
 
         $result = $this->tabs->getGroupCollection($attributeSetId);
-        $this->assertEquals($collectionMock, $result);
+        $this->assertSame($collectionMock, $result);
     }
 
     /**
@@ -216,7 +213,7 @@ class TabsTest extends TestCase
     {
         $this->tabs->setData('product', $this->productMock);
         $result = $this->tabs->getProduct();
-        $this->assertEquals($this->productMock, $result);
+        $this->assertSame($this->productMock, $result);
     }
 
     /**
@@ -233,7 +230,7 @@ class TabsTest extends TestCase
             ->willReturn($this->productMock);
 
         $result = $this->tabs->getProduct();
-        $this->assertEquals($this->productMock, $result);
+        $this->assertSame($this->productMock, $result);
     }
 
     /**
@@ -302,9 +299,9 @@ class TabsTest extends TestCase
      */
     public function testIsAdvancedTabGroupActive(): void
     {
-        $reflection = new \ReflectionClass($this->tabs);
+        $reflection = new ReflectionClass($this->tabs);
 
-        $tabDataObjectMock = $this->getMockBuilder(\Magento\Framework\DataObject::class)
+        $tabDataObjectMock = $this->getMockBuilder(DataObject::class)
             ->disableOriginalConstructor()
             ->addMethods(['getGroupCode'])
             ->getMock();
@@ -332,9 +329,9 @@ class TabsTest extends TestCase
      */
     public function testIsAdvancedTabGroupActiveFalse(): void
     {
-        $reflection = new \ReflectionClass($this->tabs);
+        $reflection = new ReflectionClass($this->tabs);
 
-        $tabDataObjectMock = $this->getMockBuilder(\Magento\Framework\DataObject::class)
+        $tabDataObjectMock = $this->getMockBuilder(DataObject::class)
             ->disableOriginalConstructor()
             ->addMethods(['getGroupCode'])
             ->getMock();
@@ -355,12 +352,12 @@ class TabsTest extends TestCase
     }
 
     /**
-     * Test getAccordion method
+     * Test getAccordion method with matching parent tab
      *
      * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tabs::getAccordion
      * @return void
      */
-    public function testGetAccordion(): void
+    public function testGetAccordionWithMatchingParentTab(): void
     {
         $parentTabMock = $this->getMockBuilder(Tab::class)
             ->disableOriginalConstructor()
@@ -391,7 +388,7 @@ class TabsTest extends TestCase
             ->method('toHtml')
             ->willReturn('<div>child tab html</div>');
 
-        $reflection = new \ReflectionClass($this->tabs);
+        $reflection = new ReflectionClass($this->tabs);
         $tabsProperty = $reflection->getProperty('_tabs');
         $tabsProperty->setAccessible(true);
         $tabsProperty->setValue($this->tabs, [$childTabMock]);
@@ -402,13 +399,13 @@ class TabsTest extends TestCase
                 $this->jsonEncoderMock,
                 $this->authSessionMock,
                 $this->moduleManagerMock,
-                $this->collectionFactoryMock,
+                $this->collectionFactory,
                 $this->helperCatalogMock,
                 $this->catalogDataMock,
                 $this->registryMock,
                 $this->translateInlineMock,
-                ['jsonHelper' => $this->createMock(\Magento\Framework\Json\Helper\Data::class),
-                'directoryHelper' => $this->createMock(\Magento\Directory\Helper\Data::class)]
+                ['jsonHelper' => $this->createMock(JsonHelper::class),
+                'directoryHelper' => $this->createMock(DirectoryHelper::class)]
             ])
             ->onlyMethods(['getChildBlock'])
             ->getMock();
@@ -422,5 +419,690 @@ class TabsTest extends TestCase
 
         $result = $tabsMock->getAccordion($parentTabMock);
         $this->assertEquals('<div>child tab html</div>', $result);
+    }
+
+    /**
+     * Test getAccordion method with no matching child tabs
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tabs::getAccordion
+     * @return void
+     */
+    public function testGetAccordionWithNoMatchingChildTabs(): void
+    {
+        $parentTabMock = $this->getMockBuilder(Tab::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getId'])
+            ->getMock();
+        $parentTabMock->expects($this->any())
+            ->method('getId')
+            ->willReturn('parent-tab');
+
+        $childTabMock = $this->getMockBuilder(Tab::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getParentTab'])
+            ->getMock();
+        $childTabMock->expects($this->any())
+            ->method('getParentTab')
+            ->willReturn('different-parent-tab');
+
+        $reflection = new ReflectionClass($this->tabs);
+        $tabsProperty = $reflection->getProperty('_tabs');
+        $tabsProperty->setAccessible(true);
+
+        $tabsMock = $this->getMockBuilder(Tabs::class)
+            ->setConstructorArgs([
+                $this->contextMock,
+                $this->jsonEncoderMock,
+                $this->authSessionMock,
+                $this->moduleManagerMock,
+                $this->collectionFactory,
+                $this->helperCatalogMock,
+                $this->catalogDataMock,
+                $this->registryMock,
+                $this->translateInlineMock,
+                ['jsonHelper' => $this->createMock(JsonHelper::class),
+                'directoryHelper' => $this->createMock(DirectoryHelper::class)]
+            ])
+            ->onlyMethods(['getChildBlock'])
+            ->getMock();
+
+        $tabsMock->expects($this->never())
+            ->method('getChildBlock');
+
+        $tabsProperty->setValue($tabsMock, [$childTabMock]);
+
+        $result = $tabsMock->getAccordion($parentTabMock);
+        $this->assertEquals('', $result);
+    }
+
+    /**
+     * Test getAccordion method with multiple child tabs
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tabs::getAccordion
+     * @return void
+     */
+    public function testGetAccordionWithMultipleChildTabs(): void
+    {
+        $parentTabMock = $this->getMockBuilder(Tab::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getId'])
+            ->getMock();
+        $parentTabMock->expects($this->any())
+            ->method('getId')
+            ->willReturn('parent-tab');
+
+        $childTab1Mock = $this->getMockBuilder(Tab::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getParentTab'])
+            ->getMock();
+        $childTab1Mock->expects($this->any())
+            ->method('getParentTab')
+            ->willReturn('parent-tab');
+
+        $childTab2Mock = $this->getMockBuilder(Tab::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getParentTab'])
+            ->getMock();
+        $childTab2Mock->expects($this->any())
+            ->method('getParentTab')
+            ->willReturn('parent-tab');
+
+        $childTab3Mock = $this->getMockBuilder(Tab::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getParentTab'])
+            ->getMock();
+        $childTab3Mock->expects($this->any())
+            ->method('getParentTab')
+            ->willReturn('different-parent');
+
+        $childBlockMock = $this->getMockBuilder(AbstractBlock::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['setTab'])
+            ->onlyMethods(['toHtml'])
+            ->getMock();
+        $childBlockMock->expects($this->exactly(2))
+            ->method('setTab')
+            ->willReturnSelf();
+        $childBlockMock->expects($this->exactly(2))
+            ->method('toHtml')
+            ->willReturnOnConsecutiveCalls('<div>child1 html</div>', '<div>child2 html</div>');
+
+        $reflection = new ReflectionClass($this->tabs);
+        $tabsProperty = $reflection->getProperty('_tabs');
+        $tabsProperty->setAccessible(true);
+
+        $tabsMock = $this->getMockBuilder(Tabs::class)
+            ->setConstructorArgs([
+                $this->contextMock,
+                $this->jsonEncoderMock,
+                $this->authSessionMock,
+                $this->moduleManagerMock,
+                $this->collectionFactory,
+                $this->helperCatalogMock,
+                $this->catalogDataMock,
+                $this->registryMock,
+                $this->translateInlineMock,
+                ['jsonHelper' => $this->createMock(JsonHelper::class),
+                'directoryHelper' => $this->createMock(DirectoryHelper::class)]
+            ])
+            ->onlyMethods(['getChildBlock'])
+            ->getMock();
+
+        $tabsMock->expects($this->exactly(2))
+            ->method('getChildBlock')
+            ->with('child-tab')
+            ->willReturn($childBlockMock);
+
+        $tabsProperty->setValue($tabsMock, [$childTab1Mock, $childTab2Mock, $childTab3Mock]);
+
+        $result = $tabsMock->getAccordion($parentTabMock);
+        $this->assertEquals('<div>child1 html</div><div>child2 html</div>', $result);
+    }
+
+    /**
+     * Test getAccordion method with empty tabs array
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tabs::getAccordion
+     * @return void
+     */
+    public function testGetAccordionWithEmptyTabs(): void
+    {
+        $parentTabMock = $this->getMockBuilder(Tab::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getId'])
+            ->getMock();
+        $parentTabMock->expects($this->any())
+            ->method('getId')
+            ->willReturn('parent-tab');
+
+        $reflection = new ReflectionClass($this->tabs);
+        $tabsProperty = $reflection->getProperty('_tabs');
+        $tabsProperty->setAccessible(true);
+
+        $tabsMock = $this->getMockBuilder(Tabs::class)
+            ->setConstructorArgs([
+                $this->contextMock,
+                $this->jsonEncoderMock,
+                $this->authSessionMock,
+                $this->moduleManagerMock,
+                $this->collectionFactory,
+                $this->helperCatalogMock,
+                $this->catalogDataMock,
+                $this->registryMock,
+                $this->translateInlineMock,
+                ['jsonHelper' => $this->createMock(JsonHelper::class),
+                'directoryHelper' => $this->createMock(DirectoryHelper::class)]
+            ])
+            ->onlyMethods(['getChildBlock'])
+            ->getMock();
+
+        $tabsMock->expects($this->never())
+            ->method('getChildBlock');
+
+        $tabsProperty->setValue($tabsMock, []);
+
+        $result = $tabsMock->getAccordion($parentTabMock);
+        $this->assertEquals('', $result);
+    }
+
+    /**
+     * Test _construct method
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tabs::_construct
+     * @return void
+     */
+    public function testConstruct(): void
+    {
+        $this->assertEquals('product_info_tabs', $this->tabs->getId());
+        $this->assertEquals('product-edit-form-tabs', $this->tabs->getDestElementId());
+    }
+
+    /**
+     * Test _translateHtml method
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tabs::_translateHtml
+     * @return void
+     */
+    public function testTranslateHtml(): void
+    {
+        $html = '<div>Test HTML</div>';
+        $expectedHtml = '<div>Test HTML</div>';
+
+        $this->translateInlineMock->expects($this->once())
+            ->method('processResponseBody')
+            ->with($this->identicalTo($html));
+
+        $reflection = new ReflectionClass($this->tabs);
+        $method = $reflection->getMethod('_translateHtml');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->tabs, $html);
+        $this->assertEquals($expectedHtml, $result);
+    }
+
+    /**
+     * Test _prepareLayout with no attribute set ID
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tabs::_prepareLayout
+     * @return void
+     */
+    public function testPrepareLayoutWithNoAttributeSetId(): void
+    {
+        $objectManager = new ObjectManager($this);
+        $layoutMock = $this->getMockBuilder(\Magento\Framework\View\LayoutInterface::class)
+            ->getMockForAbstractClass();
+
+        $this->contextMock->expects($this->any())
+            ->method('getLayout')
+            ->willReturn($layoutMock);
+
+        $this->productMock->expects($this->once())
+            ->method('getAttributeSetId')
+            ->willReturn(null);
+
+        $this->requestMock->expects($this->once())
+            ->method('getParam')
+            ->with('set', null)
+            ->willReturn(null);
+
+        $tabsMock = $this->getMockBuilder(Tabs::class)
+            ->setConstructorArgs([
+                $this->contextMock,
+                $this->jsonEncoderMock,
+                $this->authSessionMock,
+                $this->moduleManagerMock,
+                $this->collectionFactory,
+                $this->helperCatalogMock,
+                $this->catalogDataMock,
+                $this->registryMock,
+                $this->translateInlineMock,
+                ['jsonHelper' => $this->createMock(JsonHelper::class),
+                'directoryHelper' => $this->createMock(DirectoryHelper::class)]
+            ])
+            ->onlyMethods(['getProduct', 'getLayout'])
+            ->getMock();
+
+        $tabsMock->expects($this->once())
+            ->method('getProduct')
+            ->willReturn($this->productMock);
+
+        $tabsMock->expects($this->any())
+            ->method('getLayout')
+            ->willReturn($layoutMock);
+
+        $reflection = new ReflectionClass($tabsMock);
+        $method = $reflection->getMethod('_prepareLayout');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($tabsMock);
+        $this->assertSame($tabsMock, $result);
+    }
+
+    /**
+     * Test _prepareLayout in single store mode
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tabs::_prepareLayout
+     * @return void
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
+    public function testPrepareLayoutInSingleStoreMode(): void
+    {
+        $attributeSetId = 5;
+        $layoutMock = $this->getMockBuilder(\Magento\Framework\View\LayoutInterface::class)
+            ->getMockForAbstractClass();
+
+        $this->contextMock->expects($this->any())
+            ->method('getLayout')
+            ->willReturn($layoutMock);
+
+        $this->productMock->expects($this->once())
+            ->method('getAttributeSetId')
+            ->willReturn($attributeSetId);
+
+        $this->productMock->expects($this->any())
+            ->method('getTypeId')
+            ->willReturn('simple');
+
+        $this->storeManagerMock->expects($this->once())
+            ->method('isSingleStoreMode')
+            ->willReturn(true);
+
+        // Mock attribute group
+        $groupMock = $this->getMockBuilder(Group::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getAttributeGroupCode', 'getTabGroupCode'])
+            ->onlyMethods(['getId', 'getAttributeGroupName'])
+            ->getMock();
+        $groupMock->expects($this->any())
+            ->method('getId')
+            ->willReturn(1);
+        $groupMock->expects($this->any())
+            ->method('getAttributeGroupName')
+            ->willReturn('General');
+        $groupMock->expects($this->any())
+            ->method('getAttributeGroupCode')
+            ->willReturn('general');
+        $groupMock->expects($this->any())
+            ->method('getTabGroupCode')
+            ->willReturn('basic');
+
+        // Mock attribute
+        $attributeMock = $this->getMockBuilder(AbstractAttribute::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getIsVisible', 'getApplyTo'])
+            ->getMockForAbstractClass();
+        $attributeMock->expects($this->any())
+            ->method('getIsVisible')
+            ->willReturn(true);
+        $attributeMock->expects($this->any())
+            ->method('getApplyTo')
+            ->willReturn([]);
+
+        $this->productMock->expects($this->once())
+            ->method('getAttributes')
+            ->with(1, true)
+            ->willReturn(['attr1' => $attributeMock]);
+
+        // Mock collection
+        $collectionMock = $this->createMock(Collection::class);
+        $collectionMock->expects($this->once())
+            ->method('setAttributeSetFilter')
+            ->with($attributeSetId)
+            ->willReturnSelf();
+        $collectionMock->expects($this->once())
+            ->method('setSortOrder')
+            ->willReturnSelf();
+        $collectionMock->expects($this->once())
+            ->method('load')
+            ->willReturnSelf();
+
+        $this->collectionFactory->expects($this->once())
+            ->method('create')
+            ->willReturn($collectionMock);
+
+        $collectionMock->expects($this->any())
+            ->method('getIterator')
+            ->willReturn(new \ArrayIterator([$groupMock]));
+
+        // Mock attribute tab block
+        $attributeTabBlockMock = $this->getMockBuilder(Attributes::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['setGroup', 'setGroupAttributes'])
+            ->onlyMethods(['toHtml'])
+            ->getMock();
+        $attributeTabBlockMock->expects($this->once())
+            ->method('setGroup')
+            ->with($groupMock)
+            ->willReturnSelf();
+        $attributeTabBlockMock->expects($this->once())
+            ->method('setGroupAttributes')
+            ->willReturnSelf();
+        $attributeTabBlockMock->expects($this->once())
+            ->method('toHtml')
+            ->willReturn('<div>attributes</div>');
+
+        $this->helperCatalogMock->expects($this->any())
+            ->method('getAttributeTabBlock')
+            ->willReturn(null);
+
+        $layoutMock->expects($this->once())
+            ->method('createBlock')
+            ->willReturn($attributeTabBlockMock);
+
+        $this->translateInlineMock->expects($this->atLeastOnce())
+            ->method('processResponseBody');
+
+        $this->moduleManagerMock->expects($this->any())
+            ->method('isEnabled')
+            ->willReturn(false);
+
+        $tabsMock = $this->getMockBuilder(Tabs::class)
+            ->setConstructorArgs([
+                $this->contextMock,
+                $this->jsonEncoderMock,
+                $this->authSessionMock,
+                $this->moduleManagerMock,
+                $this->collectionFactory,
+                $this->helperCatalogMock,
+                $this->catalogDataMock,
+                $this->registryMock,
+                $this->translateInlineMock,
+                ['jsonHelper' => $this->createMock(JsonHelper::class),
+                'directoryHelper' => $this->createMock(DirectoryHelper::class)]
+            ])
+            ->onlyMethods([
+                'getProduct',
+                'getLayout',
+                'getNameInLayout',
+                'getAttributeTabBlock',
+                'addTab',
+                'getChildBlock',
+                'getUrl'
+            ])
+            ->getMock();
+
+        $tabsMock->expects($this->any())
+            ->method('getProduct')
+            ->willReturn($this->productMock);
+
+        $tabsMock->expects($this->any())
+            ->method('getLayout')
+            ->willReturn($layoutMock);
+
+        $tabsMock->expects($this->any())
+            ->method('getNameInLayout')
+            ->willReturn('product_tabs');
+
+        $tabsMock->expects($this->any())
+            ->method('getAttributeTabBlock')
+            ->willReturn(Attributes::class);
+
+        $tabsMock->expects($this->any())
+            ->method('getChildBlock')
+            ->willReturn(null);
+
+        $tabsMock->expects($this->atLeastOnce())
+            ->method('addTab');
+
+        $tabsMock->expects($this->any())
+            ->method('getUrl')
+            ->willReturn('http://example.com');
+
+        $reflection = new ReflectionClass($tabsMock);
+        $method = $reflection->getMethod('_prepareLayout');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($tabsMock);
+        $this->assertSame($tabsMock, $result);
+    }
+
+    /**
+     * Test _prepareLayout in multi-store mode with advanced tabs
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tabs::_prepareLayout
+     * @return void
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
+    public function testPrepareLayoutInMultiStoreMode(): void
+    {
+        $attributeSetId = 5;
+        $layoutMock = $this->getMockBuilder(\Magento\Framework\View\LayoutInterface::class)
+            ->getMockForAbstractClass();
+
+        $this->contextMock->expects($this->any())
+            ->method('getLayout')
+            ->willReturn($layoutMock);
+
+        $this->productMock->expects($this->once())
+            ->method('getAttributeSetId')
+            ->willReturn($attributeSetId);
+
+        $this->productMock->expects($this->any())
+            ->method('getTypeId')
+            ->willReturn('simple');
+
+        $this->storeManagerMock->expects($this->once())
+            ->method('isSingleStoreMode')
+            ->willReturn(false);
+
+        // Mock basic group
+        $groupMock = $this->getMockBuilder(Group::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getAttributeGroupCode', 'getTabGroupCode'])
+            ->onlyMethods(['getId', 'getAttributeGroupName'])
+            ->getMock();
+        $groupMock->expects($this->any())
+            ->method('getId')
+            ->willReturn(1);
+        $groupMock->expects($this->any())
+            ->method('getAttributeGroupName')
+            ->willReturn('General');
+        $groupMock->expects($this->any())
+            ->method('getAttributeGroupCode')
+            ->willReturn('general');
+        $groupMock->expects($this->any())
+            ->method('getTabGroupCode')
+            ->willReturn('basic');
+
+        // Mock advanced pricing group
+        $advancedPricingGroupMock = $this->getMockBuilder(Group::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getAttributeGroupCode', 'getTabGroupCode'])
+            ->onlyMethods(['getId', 'getAttributeGroupName'])
+            ->getMock();
+        $advancedPricingGroupMock->expects($this->any())
+            ->method('getId')
+            ->willReturn(2);
+        $advancedPricingGroupMock->expects($this->any())
+            ->method('getAttributeGroupName')
+            ->willReturn('Advanced Pricing');
+        $advancedPricingGroupMock->expects($this->any())
+            ->method('getAttributeGroupCode')
+            ->willReturn('advanced-pricing');
+        $advancedPricingGroupMock->expects($this->any())
+            ->method('getTabGroupCode')
+            ->willReturn('advanced');
+
+        // Mock design group
+        $designGroupMock = $this->getMockBuilder(Group::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getAttributeGroupCode', 'getTabGroupCode'])
+            ->onlyMethods(['getId', 'getAttributeGroupName'])
+            ->getMock();
+        $designGroupMock->expects($this->any())
+            ->method('getId')
+            ->willReturn(3);
+        $designGroupMock->expects($this->any())
+            ->method('getAttributeGroupName')
+            ->willReturn('Design');
+        $designGroupMock->expects($this->any())
+            ->method('getAttributeGroupCode')
+            ->willReturn('design');
+        $designGroupMock->expects($this->any())
+            ->method('getTabGroupCode')
+            ->willReturn('advanced');
+
+        // Mock attribute
+        $attributeMock = $this->getMockBuilder(AbstractAttribute::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getIsVisible', 'getApplyTo'])
+            ->getMockForAbstractClass();
+        $attributeMock->expects($this->any())
+            ->method('getIsVisible')
+            ->willReturn(true);
+        $attributeMock->expects($this->any())
+            ->method('getApplyTo')
+            ->willReturn([]);
+
+        $this->productMock->expects($this->any())
+            ->method('getAttributes')
+            ->willReturnCallback(function ($groupId) use ($attributeMock) {
+                return ['attr' . $groupId => $attributeMock];
+            });
+
+        // Mock collection
+        $collectionMock = $this->createMock(Collection::class);
+        $collectionMock->expects($this->once())
+            ->method('setAttributeSetFilter')
+            ->with($attributeSetId)
+            ->willReturnSelf();
+        $collectionMock->expects($this->once())
+            ->method('setSortOrder')
+            ->willReturnSelf();
+        $collectionMock->expects($this->once())
+            ->method('load')
+            ->willReturnSelf();
+
+        $this->collectionFactory->expects($this->once())
+            ->method('create')
+            ->willReturn($collectionMock);
+
+        $collectionMock->expects($this->any())
+            ->method('getIterator')
+            ->willReturn(new \ArrayIterator([$groupMock, $advancedPricingGroupMock, $designGroupMock]));
+
+        // Mock attribute tab block
+        $attributeTabBlockMock = $this->getMockBuilder(Attributes::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['setGroup', 'setGroupAttributes'])
+            ->onlyMethods(['toHtml'])
+            ->getMock();
+        $attributeTabBlockMock->expects($this->any())
+            ->method('setGroup')
+            ->willReturnSelf();
+        $attributeTabBlockMock->expects($this->any())
+            ->method('setGroupAttributes')
+            ->willReturnSelf();
+        $attributeTabBlockMock->expects($this->any())
+            ->method('toHtml')
+            ->willReturn('<div>attributes</div>');
+
+        // Mock websites block
+        $websitesBlockMock = $this->getMockBuilder(AbstractBlock::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['toHtml'])
+            ->getMock();
+        $websitesBlockMock->expects($this->any())
+            ->method('toHtml')
+            ->willReturn('<div>websites</div>');
+
+        $this->helperCatalogMock->expects($this->any())
+            ->method('getAttributeTabBlock')
+            ->willReturn(null);
+
+        $layoutMock->expects($this->any())
+            ->method('createBlock')
+            ->willReturnOnConsecutiveCalls(
+                $attributeTabBlockMock,
+                $attributeTabBlockMock,
+                $attributeTabBlockMock,
+                $websitesBlockMock
+            );
+
+        $this->translateInlineMock->expects($this->atLeastOnce())
+            ->method('processResponseBody');
+
+        $this->moduleManagerMock->expects($this->any())
+            ->method('isEnabled')
+            ->willReturn(false);
+
+        $tabsMock = $this->getMockBuilder(Tabs::class)
+            ->setConstructorArgs([
+                $this->contextMock,
+                $this->jsonEncoderMock,
+                $this->authSessionMock,
+                $this->moduleManagerMock,
+                $this->collectionFactory,
+                $this->helperCatalogMock,
+                $this->catalogDataMock,
+                $this->registryMock,
+                $this->translateInlineMock,
+                ['jsonHelper' => $this->createMock(JsonHelper::class),
+                'directoryHelper' => $this->createMock(DirectoryHelper::class)]
+            ])
+            ->onlyMethods([
+                'getProduct',
+                'getLayout',
+                'getNameInLayout',
+                'getAttributeTabBlock',
+                'addTab',
+                'getChildBlock',
+                'getUrl'
+            ])
+            ->getMock();
+
+        $tabsMock->expects($this->any())
+            ->method('getProduct')
+            ->willReturn($this->productMock);
+
+        $tabsMock->expects($this->any())
+            ->method('getLayout')
+            ->willReturn($layoutMock);
+
+        $tabsMock->expects($this->any())
+            ->method('getNameInLayout')
+            ->willReturn('product_tabs');
+
+        $tabsMock->expects($this->any())
+            ->method('getAttributeTabBlock')
+            ->willReturn(Attributes::class);
+
+        $tabsMock->expects($this->any())
+            ->method('getChildBlock')
+            ->willReturn(null);
+
+        $tabsMock->expects($this->atLeastOnce())
+            ->method('addTab');
+
+        $tabsMock->expects($this->any())
+            ->method('getUrl')
+            ->willReturn('http://example.com');
+
+        $reflection = new ReflectionClass($tabsMock);
+        $method = $reflection->getMethod('_prepareLayout');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($tabsMock);
+        $this->assertSame($tabsMock, $result);
     }
 }

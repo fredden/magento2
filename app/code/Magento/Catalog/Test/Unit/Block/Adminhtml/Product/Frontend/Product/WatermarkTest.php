@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 
@@ -23,6 +23,7 @@ use Magento\Framework\Data\Form\Element\Text;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
 
 /**
  * Unit test for Watermark class
@@ -45,7 +46,7 @@ class WatermarkTest extends TestCase
     /**
      * @var Position|MockObject
      */
-    private $watermarkPositionMock;
+    private $positionMock;
 
     /**
      * @var Field|MockObject
@@ -72,7 +73,7 @@ class WatermarkTest extends TestCase
         $objectManager = new ObjectManager($this);
 
         $this->contextMock = $this->createMock(Context::class);
-        $this->watermarkPositionMock = $this->createMock(Position::class);
+        $this->positionMock = $this->createMock(Position::class);
         $this->formFieldMock = $this->createMock(Field::class);
         $this->elementFactoryMock = $this->createMock(Factory::class);
         $this->requestMock = $this->getMockForAbstractClass(RequestInterface::class);
@@ -91,7 +92,7 @@ class WatermarkTest extends TestCase
             Watermark::class,
             [
                 'context' => $this->contextMock,
-                'watermarkPosition' => $this->watermarkPositionMock,
+                'watermarkPosition' => $this->positionMock,
                 'formField' => $this->formFieldMock,
                 'elementFactory' => $this->elementFactoryMock,
                 'imageTypes' => $imageTypes
@@ -220,7 +221,8 @@ class WatermarkTest extends TestCase
         array $expectedContains
     ): void {
         $elementMock = $this->createElementMock();
-        $this->watermark->setForm($this->createMock(Form::class));
+        $formMock = $this->createMock(Form::class);
+        $this->watermark->setData('form', $formMock);
 
         $this->requestMock->expects($this->atLeastOnce())
             ->method('getParam')
@@ -229,7 +231,7 @@ class WatermarkTest extends TestCase
                 ['store', null, $storeParam]
             ]);
 
-        $this->watermarkPositionMock->expects($this->exactly(3))
+        $this->positionMock->expects($this->exactly(3))
             ->method('toOptionArray')
             ->willReturn([
                 ['value' => 'stretch', 'label' => 'Stretch'],
@@ -299,7 +301,7 @@ class WatermarkTest extends TestCase
             Watermark::class,
             [
                 'context' => $this->contextMock,
-                'watermarkPosition' => $this->watermarkPositionMock,
+                'watermarkPosition' => $this->positionMock,
                 'formField' => $this->formFieldMock,
                 'elementFactory' => $this->elementFactoryMock,
                 'imageTypes' => []
@@ -307,7 +309,8 @@ class WatermarkTest extends TestCase
         );
 
         $elementMock = $this->createElementMock();
-        $watermarkEmpty->setForm($this->createMock(Form::class));
+        $formMock = $this->createMock(Form::class);
+        $watermarkEmpty->setData('form', $formMock);
 
         $this->requestMock->expects($this->atLeastOnce())
             ->method('getParam')
@@ -323,5 +326,107 @@ class WatermarkTest extends TestCase
         $this->assertStringContainsString('Watermark Settings', $result);
         $this->assertStringContainsString('</fieldset>', $result);
         $this->assertStringNotContainsString('<div>text field</div>', $result);
+    }
+
+    /**
+     * Test _getHeaderHtml method with default scope
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Frontend\Product\Watermark::_getHeaderHtml
+     * @return void
+     */
+    public function testGetHeaderHtmlDefaultScope(): void
+    {
+        $elementMock = $this->createElementMock();
+
+        $this->requestMock->expects($this->exactly(2))
+            ->method('getParam')
+            ->willReturnMap([
+                ['website', null, null],
+                ['store', null, null]
+            ]);
+
+        $method = new ReflectionMethod(Watermark::class, '_getHeaderHtml');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->watermark, $elementMock);
+
+        $this->assertStringContainsString('<h4 class="icon-head head-edit-form">Watermark Settings</h4>', $result);
+        $this->assertStringContainsString('<fieldset class="config" id="watermark_fieldset">', $result);
+        $this->assertStringContainsString('<legend>Watermark Settings</legend>', $result);
+        $this->assertStringContainsString('<table>', $result);
+        $this->assertStringContainsString('<colgroup class="label" />', $result);
+        $this->assertStringContainsString('<colgroup class="value" />', $result);
+        $this->assertStringNotContainsString('<colgroup class="use-default" />', $result);
+        $this->assertStringContainsString('<tbody>', $result);
+    }
+
+    /**
+     * Test _getHeaderHtml method with website scope
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Frontend\Product\Watermark::_getHeaderHtml
+     * @return void
+     */
+    public function testGetHeaderHtmlWebsiteScope(): void
+    {
+        $elementMock = $this->createElementMock();
+
+        $this->requestMock->expects($this->once())
+            ->method('getParam')
+            ->with('website')
+            ->willReturn('base');
+
+        $method = new ReflectionMethod(Watermark::class, '_getHeaderHtml');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->watermark, $elementMock);
+
+        $this->assertStringContainsString('<h4 class="icon-head head-edit-form">Watermark Settings</h4>', $result);
+        $this->assertStringContainsString('<fieldset class="config" id="watermark_fieldset">', $result);
+        $this->assertStringContainsString('<legend>Watermark Settings</legend>', $result);
+        $this->assertStringContainsString('<colgroup class="use-default" />', $result);
+    }
+
+    /**
+     * Test _getHeaderHtml method with store scope
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Frontend\Product\Watermark::_getHeaderHtml
+     * @return void
+     */
+    public function testGetHeaderHtmlStoreScope(): void
+    {
+        $elementMock = $this->createElementMock();
+
+        $this->requestMock->expects($this->atLeastOnce())
+            ->method('getParam')
+            ->willReturnMap([
+                ['website', null, null],
+                ['store', null, 'default']
+            ]);
+
+        $method = new ReflectionMethod(Watermark::class, '_getHeaderHtml');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->watermark, $elementMock);
+
+        $this->assertStringContainsString('<h4 class="icon-head head-edit-form">Watermark Settings</h4>', $result);
+        $this->assertStringContainsString('<colgroup class="use-default" />', $result);
+    }
+
+    /**
+     * Test _getFooterHtml method
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Frontend\Product\Watermark::_getFooterHtml
+     * @return void
+     */
+    public function testGetFooterHtml(): void
+    {
+        $elementMock = $this->createElementMock();
+
+        $method = new ReflectionMethod(Watermark::class, '_getFooterHtml');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->watermark, $elementMock);
+
+        $this->assertEquals('</tbody></table></fieldset>', $result);
     }
 }

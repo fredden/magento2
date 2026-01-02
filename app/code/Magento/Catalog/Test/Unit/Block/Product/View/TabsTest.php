@@ -65,7 +65,7 @@ class TabsTest extends TestCase
         $this->block->addTab('alias', 'title', 'block', 'template', 'header');
 
         $expectedTabs = [['alias' => 'alias', 'title' => 'title', 'header' => 'header']];
-        $this->assertEquals($expectedTabs, $this->block->getTabs());
+        $this->assertSame($expectedTabs, $this->block->getTabs());
     }
 
     /**
@@ -85,7 +85,7 @@ class TabsTest extends TestCase
         $this->block->addTab('alias', 'title', 'block', 'template');
 
         $expectedTabs = [['alias' => 'alias', 'title' => 'title', 'header' => null]];
-        $this->assertEquals($expectedTabs, $this->block->getTabs());
+        $this->assertSame($expectedTabs, $this->block->getTabs());
     }
 
     /**
@@ -150,7 +150,7 @@ class TabsTest extends TestCase
             ['alias' => 'alias1', 'title' => 'title1', 'header' => 'header1'],
             ['alias' => 'alias2', 'title' => 'title2', 'header' => 'header2']
         ];
-        $this->assertEquals($expectedTabs, $this->block->getTabs());
+        $this->assertSame($expectedTabs, $this->block->getTabs());
     }
 
     /**
