@@ -9,6 +9,7 @@ namespace Magento\Ui\Test\Unit\Config\Converter;
 
 use Magento\Ui\Config\Converter\Options;
 use Magento\Ui\Config\ConverterUtils;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class OptionsTest extends TestCase
@@ -34,9 +35,8 @@ class OptionsTest extends TestCase
     /**
      * @param array $expectedResult
      * @param string $xpath
-     * @return void
-     * @dataProvider convertDataProvider
-     */
+     * @return void     */
+    #[DataProvider('convertDataProvider')]
     public function testConvert(array $expectedResult, $xpath)
     {
         $node = $this->domXpath->query($xpath)->item(0);

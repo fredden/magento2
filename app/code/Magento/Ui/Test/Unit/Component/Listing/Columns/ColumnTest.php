@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\Ui\Test\Unit\Component\Listing\Columns;
 
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponent\DataProvider\DataProviderInterface;
@@ -14,6 +15,7 @@ use Magento\Framework\View\Element\UiComponent\Processor;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Framework\View\Element\UiComponentInterface;
 use Magento\Ui\Component\Listing\Columns\Column;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,6 +23,8 @@ use PHPUnit\Framework\TestCase;
  */
 class ColumnTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var ContextInterface|MockObject
      */
@@ -54,8 +58,9 @@ class ColumnTest extends TestCase
     protected function setUp(): void
     {
         $this->objectManager = new ObjectManager($this);
+        $this->objectManager->prepareObjectManager();
 
-        $this->contextMock = $this->getMockForAbstractClass(
+        $this->contextMock = $this->createMock(
             ContextInterface::class,
             [],
             '',
@@ -135,7 +140,7 @@ class ColumnTest extends TestCase
         );
 
         /** @var UiComponentInterface|PHPUnit\Framework\MockObject\MockObject $wrappedComponentMock */
-        $wrappedComponentMock = $this->getMockForAbstractClass(
+        $wrappedComponentMock = $this->createMock(
             UiComponentInterface::class,
             [],
             '',
@@ -143,7 +148,7 @@ class ColumnTest extends TestCase
         );
 
         if ($this->dataProviderMock === null) {
-            $this->dataProviderMock = $this->getMockForAbstractClass(
+            $this->dataProviderMock = $this->createMock(
                 DataProviderInterface::class,
                 [],
                 '',
@@ -155,9 +160,7 @@ class ColumnTest extends TestCase
                 ->with('test_name', 'ASC');
         }
 
-        $processor = $this->getMockBuilder(Processor::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $processor = $this->createMock(Processor::class);
 
         $this->contextMock->expects($this->atLeastOnce())
             ->method('getProcessor')
@@ -198,8 +201,8 @@ class ColumnTest extends TestCase
      * @param int $numOfProviderCalls
      * @throws \ReflectionException
      *
-     * @dataProvider sortingDataProvider
-     */
+     * */
+    #[DataProvider('sortingDataProvider')]
     public function testSorting(array $config, string $direction, int $numOfProviderCalls)
     {
         $data = [
@@ -207,7 +210,7 @@ class ColumnTest extends TestCase
             'config' => $config
         ];
 
-        $this->dataProviderMock = $this->getMockForAbstractClass(
+        $this->dataProviderMock = $this->createMock(
             DataProviderInterface::class,
             [],
             '',

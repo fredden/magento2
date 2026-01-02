@@ -18,6 +18,7 @@ use Magento\Framework\View\Element\UiComponentInterface;
 use Magento\Ui\Component\Filters\FilterModifier;
 use Magento\Ui\Component\Filters\Type\Select;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class SelectTest extends TestCase
@@ -47,7 +48,7 @@ class SelectTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->contextMock = $this->getMockForAbstractClass(
+        $this->contextMock = $this->createMock(
             ContextInterface::class,
             [],
             '',
@@ -90,18 +91,15 @@ class SelectTest extends TestCase
      * @param array $data
      * @param array $filterData
      * @param array|null $expectedCondition
-     * @dataProvider getPrepareDataProvider
-     * @return void
-     */
+     * */
+    #[DataProvider('getPrepareDataProvider')]
     public function testPrepare($data, $filterData, $expectedCondition)
     {
-        $processor = $this->getMockBuilder(Processor::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $processor = $this->createMock(Processor::class);
         $this->contextMock->expects($this->atLeastOnce())->method('getProcessor')->willReturn($processor);
         $name = $data['name'];
         /** @var UiComponentInterface $uiComponent */
-        $uiComponent = $this->getMockForAbstractClass(
+        $uiComponent = $this->createMock(
             UiComponentInterface::class,
             [],
             '',
@@ -122,7 +120,7 @@ class SelectTest extends TestCase
             ->method('getFiltersParams')
             ->willReturn($filterData);
         /** @var DataProviderInterface $dataProvider */
-        $dataProvider = $this->getMockForAbstractClass(
+        $dataProvider = $this->createMock(
             DataProviderInterface::class,
             ['addFilter'],
             '',
@@ -154,7 +152,7 @@ class SelectTest extends TestCase
         }
 
         /** @var OptionSourceInterface $selectOptions */
-        $selectOptions = $this->getMockForAbstractClass(
+        $selectOptions = $this->createMock(
             OptionSourceInterface::class,
             [],
             '',

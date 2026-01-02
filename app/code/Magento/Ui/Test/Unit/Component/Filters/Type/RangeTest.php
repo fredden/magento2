@@ -16,6 +16,7 @@ use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Filters\FilterModifier;
 use Magento\Ui\Component\Filters\Type\Range;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class RangeTest extends TestCase
@@ -45,7 +46,7 @@ class RangeTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->contextMock = $this->getMockForAbstractClass(
+        $this->contextMock = $this->createMock(
             ContextInterface::class,
             [],
             '',
@@ -84,14 +85,11 @@ class RangeTest extends TestCase
      * @param string $name
      * @param array $filterData
      * @param array|null $expectedCalls
-     * @dataProvider getPrepareDataProvider
-     * @return void
-     */
+     * */
+    #[DataProvider('getPrepareDataProvider')]
     public function testPrepare($name, $filterData, $expectedCalls)
     {
-        $processor = $this->getMockBuilder(Processor::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $processor = $this->createMock(Processor::class);
         $this->contextMock->expects($this->atLeastOnce())->method('getProcessor')->willReturn($processor);
         $filter = $this->createMock(Filter::class);
         $this->filterBuilderMock->expects($this->any())
@@ -118,7 +116,7 @@ class RangeTest extends TestCase
             ->willReturn($filterData);
 
         /** @var DataProviderInterface $dataProvider */
-        $dataProvider = $this->getMockForAbstractClass(
+        $dataProvider = $this->createMock(
             DataProviderInterface::class,
             [],
             '',
