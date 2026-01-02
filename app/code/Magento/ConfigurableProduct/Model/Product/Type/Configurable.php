@@ -636,6 +636,7 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
      *
      * @param  \Magento\Catalog\Model\Product $product
      * @return $this
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function beforeSave($product)
     {
@@ -691,17 +692,16 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
      * @return $this
      * @throws \InvalidArgumentException
      * @deprecated 100.1.0 the \Magento\ConfigurableProduct\Model\Product\SaveHandler::execute should be used instead
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function save($product)
     {
         // OPTIMIZATION: Batch cache operations for performance
         // Note: Batching may have already started in beforeSave()
         // Don't start it again to avoid nested batching
-        $batchStartedHere = false;
         if (!$this->isBatchingActive && $this->cache && method_exists($this->cache, 'beginBatch')) {
             $this->cache->beginBatch();
             $this->isBatchingActive = true;
-            $batchStartedHere = true;
         }
 
         try {
