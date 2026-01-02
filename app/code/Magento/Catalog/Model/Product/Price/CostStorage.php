@@ -14,8 +14,6 @@ use Magento\Framework\Exception\InputException;
 class CostStorage implements \Magento\Catalog\Api\CostStorageInterface
 {
     /**
-     * Attribute code.
-     *
      * @var string
      */
     private $attributeCode = 'cost';
@@ -46,8 +44,6 @@ class CostStorage implements \Magento\Catalog\Api\CostStorageInterface
     private $invalidSkuProcessor;
 
     /**
-     * Allowed product types.
-     *
      * @var array
      */
     private $allowedProductTypes = [];
@@ -92,7 +88,7 @@ class CostStorage implements \Magento\Catalog\Api\CostStorageInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function get(array $skus)
     {
@@ -113,7 +109,7 @@ class CostStorage implements \Magento\Catalog\Api\CostStorageInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function update($prices)
     {
@@ -143,7 +139,7 @@ class CostStorage implements \Magento\Catalog\Api\CostStorageInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function delete(array $skus)
     {

@@ -153,6 +153,7 @@ class BasePriceStorage implements BasePriceStorageInterface
 
     /**
      * @inheritdoc
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function update($prices)
     {

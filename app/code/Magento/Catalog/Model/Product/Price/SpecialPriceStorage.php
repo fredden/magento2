@@ -125,6 +125,11 @@ class SpecialPriceStorage implements SpecialPriceStorageInterface
      */
     public function update($prices)
     {
+        if ($prices === null || !is_array($prices)) {
+            throw new InputException(
+                __('Invalid input data format. Expected an array of prices.')
+            );
+        }
         $prices = $this->retrieveValidPrices($prices);
         $this->specialPriceResource->update($prices);
 
@@ -154,8 +159,13 @@ class SpecialPriceStorage implements SpecialPriceStorageInterface
      * @param array $prices
      * @return array
      */
-    private function retrieveValidPrices(array $prices)
+    private function retrieveValidPrices($prices)
     {
+        // Add null check at the beginning
+        if ($prices === null || !is_array($prices)) {
+            return [];
+        }
+
         $skus = array_unique(
             array_map(function ($price) {
                 return $price->getSku();
