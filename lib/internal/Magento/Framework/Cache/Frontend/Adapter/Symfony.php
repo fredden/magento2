@@ -21,6 +21,8 @@ use Symfony\Component\Cache\CacheItem;
 
 /**
  * Symfony Cache adapter for Magento
+ *
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class Symfony implements FrontendInterface
 {

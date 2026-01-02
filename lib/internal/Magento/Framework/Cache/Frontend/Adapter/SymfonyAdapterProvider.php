@@ -9,7 +9,7 @@ namespace Magento\Framework\Cache\Frontend\Adapter;
 
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\Cache\Frontend\Adapter\UltraOptimizedPredisClient;
+use Magento\Framework\Cache\Frontend\Adapter\OptimizedPredisClient;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony\MagentoDatabaseAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\FilesystemTagAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\GenericTagAdapter;
@@ -329,7 +329,7 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
                 );
             } elseif (class_exists(PredisClient::class)) {
                 // Fallback to Ultra-Optimized Predis (pure PHP, Symfony-compatible)
-                $this->connectionPool[$connectionKey] = $this->createUltraOptimizedPredisConnection(
+                $this->connectionPool[$connectionKey] = $this->createOptimizedPredisConnection(
                     $host,
                     $port,
                     $password,
@@ -451,10 +451,10 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
      * @param bool $persistent
      * @param float|null $timeout
      * @param float|null $readTimeout
-     * @return UltraOptimizedPredisClient
+     * @return OptimizedPredisClient
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    private function createUltraOptimizedPredisConnection(
+    private function createOptimizedPredisConnection(
         string $host,
         int $port,
         ?string $password,
@@ -478,7 +478,7 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
             'exceptions' => false,
         ];
 
-        return new UltraOptimizedPredisClient($params, $options);
+        return new OptimizedPredisClient($params, $options);
     }
 
     /**

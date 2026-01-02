@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters;
 
-use Magento\Framework\Cache\Frontend\Adapter\UltraOptimizedPredisClient;
+use Magento\Framework\Cache\Frontend\Adapter\OptimizedPredisClient;
 use Predis\Client as PredisClient;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
@@ -172,9 +172,9 @@ return deleted
 LUA;
 
     /**
-     * @var \Redis|\RedisCluster|PredisClient|UltraOptimizedPredisClient
+     * @var \Redis|\RedisCluster|PredisClient|OptimizedPredisClient
      */
-    private \Redis|\RedisCluster|PredisClient|UltraOptimizedPredisClient $redis;
+    private \Redis|\RedisCluster|PredisClient|OptimizedPredisClient $redis;
 
     /**
      * @var string
@@ -234,12 +234,12 @@ LUA;
      * Extract Redis client from Symfony cache adapter
      *
      * @param CacheItemPoolInterface $cachePool
-     * @return \Redis|\RedisCluster|PredisClient|UltraOptimizedPredisClient
+     * @return \Redis|\RedisCluster|PredisClient|OptimizedPredisClient
      * @throws \RuntimeException If Redis client cannot be extracted
      */
     private function extractRedisClient(
         CacheItemPoolInterface $cachePool
-    ): \Redis|\RedisCluster|PredisClient|UltraOptimizedPredisClient {
+    ): \Redis|\RedisCluster|PredisClient|OptimizedPredisClient {
         // Unwrap TagAwareAdapter if present
         $adapter = $cachePool;
         if ($adapter instanceof TagAwareAdapter) {
@@ -257,7 +257,7 @@ LUA;
             $redis = $redisProperty->getValue($adapter);
 
             if ($redis instanceof \Redis || $redis instanceof \RedisCluster ||
-                $redis instanceof PredisClient || $redis instanceof UltraOptimizedPredisClient) {
+                $redis instanceof PredisClient || $redis instanceof OptimizedPredisClient) {
                 return $redis;
             }
         }
@@ -283,7 +283,7 @@ LUA;
      */
     private function isPredisClient(): bool
     {
-        return $this->redis instanceof PredisClient || $this->redis instanceof UltraOptimizedPredisClient;
+        return $this->redis instanceof PredisClient || $this->redis instanceof OptimizedPredisClient;
     }
 
     /**
