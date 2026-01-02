@@ -17,6 +17,7 @@ use Magento\Theme\Model\Theme;
 use Magento\Theme\Model\Theme\Collection;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class CollectionTest extends TestCase
 {
@@ -60,9 +61,7 @@ class CollectionTest extends TestCase
             ->onlyMethods(['create'])
             ->disableOriginalConstructor()
             ->getMock();
-        $this->directory = $this->getMockBuilder(ReadInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->directory = $this->createMock(ReadInterface::class);
 
         $this->themePackageList = $this->createMock(ThemePackageList::class);
         $this->readDirFactory = $this->createMock(ReadFactory::class);
@@ -88,13 +87,10 @@ class CollectionTest extends TestCase
         $media = ['preview_image' => 'preview.jpg'];
         $themeTitle = 'Theme title';
         $themeConfigFile = 'theme.xml';
-        $themeConfig = $this->getMockBuilder(
+        $themeConfig = $this->createMock(
             \Magento\Framework\Config\Theme::class
-        )->disableOriginalConstructor()
-            ->getMock();
-        $theme = $this->getMockBuilder(Theme::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        );
+        $theme = $this->createMock(Theme::class);
         $parentTheme = ['parentThemeCode'];
         $parentThemePath = 'frontend/parent/theme';
 
@@ -173,8 +169,8 @@ class CollectionTest extends TestCase
      * @param array $inputValues
      * @param array $expected
      *
-     * @dataProvider addConstraintDataProvider
      */
+    #[DataProvider('addConstraintDataProvider')]
     public function testAddConstraint(array $inputValues, array $expected)
     {
         $this->markTestSkipped('Skipped in #27500 due to testing protected/private methods and properties');

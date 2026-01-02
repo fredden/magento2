@@ -15,6 +15,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Theme\Controller\Result\JsFooterPlugin;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Unit test for Magento\Theme\Test\Unit\Controller\Result\JsFooterPlugin.
@@ -40,10 +41,7 @@ class JsFooterPluginTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->scopeConfigMock = $this->getMockBuilder(ScopeConfigInterface::class)
-            ->onlyMethods(['isSetFlag'])
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->scopeConfigMock = $this->createMock(ScopeConfigInterface::class);
 
         $this->httpMock = $this->createMock(Http::class);
         $this->layoutMock = $this->createMock(Layout::class);
@@ -97,8 +95,8 @@ class JsFooterPluginTest extends TestCase
      * @param bool $isSetFlag
      * @param string $result
      * @return void
-     * @dataProvider renderResultDataProvider
      */
+    #[DataProvider('renderResultDataProvider')]
     public function testAfterRenderResult($content, $isSetFlag, $result): void
     {
         // Given (context)
@@ -137,8 +135,8 @@ class JsFooterPluginTest extends TestCase
      *
      * @param string $content
      * @return void
-     * @dataProvider ifGetContentIsNotAStringDataProvider
      */
+    #[DataProvider('ifGetContentIsNotAStringDataProvider')]
     public function testAfterRenderResultIfGetContentIsNotAString($content): void
     {
         $this->scopeConfigMock->method('isSetFlag')

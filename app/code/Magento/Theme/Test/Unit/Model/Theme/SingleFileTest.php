@@ -10,12 +10,15 @@ namespace Magento\Theme\Test\Unit\Model\Theme;
 use Magento\Framework\View\Design\Theme\Customization\FileInterface;
 use Magento\Framework\View\Design\Theme\CustomizationInterface;
 use Magento\Framework\View\Design\ThemeInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Theme\Model\Theme\SingleFile;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class SingleFileTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var SingleFile
      */
@@ -45,46 +48,25 @@ class SingleFileTest extends TestCase
         $fileContent = 'file content';
         $customFiles = [];
         $fileType = 'png';
-        $customCss = $this->getMockBuilder(\Magento\Framework\View\Design\Theme\FileInterface::class)
-            ->disableOriginalConstructor()
-            ->addMethods(
-                [
-                    'setData',
-                    'getType',
-                    'prepareFile'
-                ]
-            )
-            ->onlyMethods(
-                [
-                    'delete',
-                    'save',
-                    'getContent',
-                    'getFileInfo',
-                    'getFullPath',
-                    'getFileName',
-                    'setFileName',
-                    'getTheme',
-                    'setTheme',
-                    'getCustomizationService',
-                    'setCustomizationService'
-                ]
-            )
-            ->getMock();
-        $theme = $this->getMockBuilder(ThemeInterface::class)
-            ->addMethods(['getCustomization'])
-            ->onlyMethods(
-                [
-                    'getArea',
-                    'getThemePath',
-                    'getFullPath',
-                    'getParentTheme',
-                    'getCode',
-                    'isPhysical',
-                    'getInheritedThemes',
-                    'getId',
-                ]
-            )
-            ->getMockForAbstractClass();
+        $customCss = $this->createPartialMockWithReflection(
+            \Magento\Framework\View\Design\Theme\FileInterface::class,
+            [
+                'setData', 'getType', 'prepareFile',
+                'delete', 'save', 'getContent', 'getFileInfo',
+                'getFullPath', 'getFileName', 'setFileName',
+                'getTheme', 'setTheme',
+                'getCustomizationService', 'setCustomizationService'
+            ]
+        );
+        $theme = $this->createPartialMockWithReflection(
+            ThemeInterface::class,
+            [
+                'getCustomization',
+                'getArea', 'getThemePath', 'getFullPath',
+                'getParentTheme', 'getCode', 'isPhysical',
+                'getInheritedThemes', 'getId'
+            ]
+        );
         $customization = $this->getMockBuilder(CustomizationInterface::class)
             ->getMock();
 
@@ -122,44 +104,29 @@ class SingleFileTest extends TestCase
      */
     public function testUpdateWhenFileDelete()
     {
-        $customCss = $this->getMockBuilder(\Magento\Framework\View\Design\Theme\FileInterface::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['setData', 'getType', 'prepareFile'])
-            ->onlyMethods(
-                [
-                    'delete',
-                    'save',
-                    'getContent',
-                    'getFileInfo',
-                    'getFullPath',
-                    'getFileName',
-                    'setFileName',
-                    'getTheme',
-                    'setTheme',
-                    'getCustomizationService',
-                    'setCustomizationService'
-                ]
-            )
-            ->getMock();
+        $customCss = $this->createPartialMockWithReflection(
+            \Magento\Framework\View\Design\Theme\FileInterface::class,
+            [
+                'setData', 'getType', 'prepareFile',
+                'delete', 'save', 'getContent', 'getFileInfo',
+                'getFullPath', 'getFileName', 'setFileName',
+                'getTheme', 'setTheme',
+                'getCustomizationService', 'setCustomizationService'
+            ]
+        );
         $fileContent = '';
         $customFiles = [$customCss];
         $fileType = 'png';
 
-        $theme = $this->getMockBuilder(ThemeInterface::class)
-            ->addMethods(['getCustomization'])
-            ->onlyMethods(
-                [
-                    'getArea',
-                    'getThemePath',
-                    'getFullPath',
-                    'getParentTheme',
-                    'getCode',
-                    'isPhysical',
-                    'getInheritedThemes',
-                    'getId',
-                ]
-            )
-            ->getMockForAbstractClass();
+        $theme = $this->createPartialMockWithReflection(
+            ThemeInterface::class,
+            [
+                'getCustomization',
+                'getArea', 'getThemePath', 'getFullPath',
+                'getParentTheme', 'getCode', 'isPhysical',
+                'getInheritedThemes', 'getId'
+            ]
+        );
         $customization = $this->getMockBuilder(CustomizationInterface::class)
             ->getMock();
 

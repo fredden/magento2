@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace Magento\Theme\Test\Unit\Model\Config;
 
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
+use Magento\Theme\Api\Data\DesignConfigExtensionInterface;
 use Magento\Theme\Api\Data\DesignConfigInterface;
 use Magento\Theme\Model\Data\Design\Config\Data;
 use Magento\Theme\Model\Design\Config\Validator;
@@ -18,6 +20,8 @@ use PHPUnit\Framework\TestCase;
  */
 class ValidatorTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var Validator
      */
@@ -57,12 +61,11 @@ class ValidatorTest extends TestCase
         $designConfigMock = $this->getMockBuilder(DesignConfigInterface::class)
             ->getMock();
         $designConfigExtensionMock =
-            $this->getMockBuilder(\Magento\Theme\Api\Data\DesignConfigExtensionInterface::class)
-                ->addMethods(['getDesignConfigData'])
-                ->getMockForAbstractClass();
-        $designElementMock = $this->getMockBuilder(Data::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+            $this->createPartialMockWithReflection(
+                DesignConfigExtensionInterface::class,
+                ['getDesignConfigData']
+            );
+        $designElementMock = $this->createMock(Data::class);
 
         $designConfigMock->expects($this->once())
             ->method('getExtensionAttributes')
@@ -74,9 +77,14 @@ class ValidatorTest extends TestCase
         $designElementMock->expects($this->once())->method('getPath')->willReturn($fieldConfig['path']);
         $designElementMock->expects($this->once())->method('getValue')->willReturn($fieldConfig['field']);
 
-        $templateMock = $this->getMockBuilder(\Magento\Framework\Mail\TemplateInterface::class)
-            ->addMethods(['getTemplateText', 'emulateDesign', 'loadDefault', 'revertDesign', 'setForcedArea'])
-            ->getMockForAbstractClass();
+        $templateMock = $this->createPartialMockWithReflection(
+            \Magento\Framework\Mail\TemplateInterface::class,
+            [
+                'isPlain', 'getType', 'processTemplate', 'getSubject', 'setVars',
+                'setOptions', 'getTemplateText', 'emulateDesign', 'loadDefault',
+                'revertDesign', 'setForcedArea'
+            ]
+        );
 
         $this->templateFactoryMock->expects($this->once())->method('create')->willReturn($templateMock);
         $templateMock->expects($this->once())->method('getTemplateText')->willReturn(
@@ -102,12 +110,11 @@ class ValidatorTest extends TestCase
         $designConfigMock = $this->getMockBuilder(DesignConfigInterface::class)
             ->getMock();
         $designConfigExtensionMock =
-            $this->getMockBuilder(\Magento\Theme\Api\Data\DesignConfigExtensionInterface::class)
-                ->addMethods(['getDesignConfigData'])
-                ->getMockForAbstractClass();
-        $designElementMock = $this->getMockBuilder(Data::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+            $this->createPartialMockWithReflection(
+                DesignConfigExtensionInterface::class,
+                ['getDesignConfigData']
+            );
+        $designElementMock = $this->createMock(Data::class);
 
         $designConfigMock->expects($this->once())
             ->method('getExtensionAttributes')
@@ -119,9 +126,14 @@ class ValidatorTest extends TestCase
         $designElementMock->expects($this->once())->method('getPath')->willReturn($fieldConfig['path']);
         $designElementMock->expects($this->once())->method('getValue')->willReturn($fieldConfig['field']);
 
-        $templateMock = $this->getMockBuilder(\Magento\Framework\Mail\TemplateInterface::class)
-            ->addMethods(['getTemplateText', 'emulateDesign', 'loadDefault', 'revertDesign', 'setForcedArea'])
-            ->getMockForAbstractClass();
+        $templateMock = $this->createPartialMockWithReflection(
+            \Magento\Framework\Mail\TemplateInterface::class,
+            [
+                'isPlain', 'getType', 'processTemplate', 'getSubject', 'setVars',
+                'setOptions', 'getTemplateText', 'emulateDesign', 'loadDefault',
+                'revertDesign', 'setForcedArea'
+            ]
+        );
 
         $this->templateFactoryMock->expects($this->once())->method('create')->willReturn($templateMock);
         $templateMock->expects($this->once())->method('getTemplateText')->willReturn(

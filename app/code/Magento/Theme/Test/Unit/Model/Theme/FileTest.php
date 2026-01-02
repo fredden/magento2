@@ -58,35 +58,25 @@ class FileTest extends TestCase
 
     protected function setUp(): void
     {
-        $context = $this->getMockBuilder(
+        $context = $this->createMock(
             Context::class
-        )->disableOriginalConstructor()
-            ->getMock();
-        $this->registry = $this->getMockBuilder(
+        );
+        $this->registry = $this->createMock(
             Registry::class
-        )->disableOriginalConstructor()
-            ->getMock();
-        $this->themeFactory = $this->getMockBuilder(FlyweightFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->fileServiceFactory = $this->getMockBuilder(
+        );
+        $this->themeFactory = $this->createMock(FlyweightFactory::class);
+        $this->fileServiceFactory = $this->createMock(
             FileServiceFactory::class
-        )->disableOriginalConstructor()
-            ->getMock();
-        $this->resource = $this->getMockBuilder(\Magento\Theme\Model\ResourceModel\Theme\File::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->resourceCollection = $this->getMockBuilder(
+        );
+        $this->resource = $this->createMock(\Magento\Theme\Model\ResourceModel\Theme\File::class);
+        $this->resourceCollection = $this->createMock(
             Collection::class
-        )->disableOriginalConstructor()
-            ->getMock();
+        );
         $context->expects($this->once())
             ->method('getEventDispatcher')
             ->willReturn($this->getMockBuilder(ManagerInterface::class)
             ->getMock());
-        $validator = $this->getMockBuilder(RemoveAction::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $validator = $this->createMock(RemoveAction::class);
         $validator->expects($this->any())
             ->method('isAllowed')
             ->willReturn(true);

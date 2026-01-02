@@ -21,6 +21,7 @@ use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\Filesystem\Io\File;
 use Magento\Theme\Helper\Storage;
 use Magento\Theme\Model\Theme;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -119,10 +120,8 @@ class StorageTest extends TestCase
         $this->filesystem->expects($this->any())
             ->method('getDirectoryWrite')
             ->willReturn($this->directoryWrite);
-        $this->urlEncoder = $this->getMockBuilder(EncoderInterface::class)
-            ->getMock();
-        $this->urlDecoder = $this->getMockBuilder(DecoderInterface::class)
-            ->getMock();
+        $this->urlEncoder = $this->createMock(EncoderInterface::class);
+        $this->urlDecoder = $this->createMock(DecoderInterface::class);
 
         $this->initializeDefaultRequestMock();
 
@@ -295,27 +294,27 @@ class StorageTest extends TestCase
         $sourceNode = '/not/a/root';
         $node = base64_encode($sourceNode);
 
-        $withArgs = [];
-        $willReturnArg = $this->returnValueMap(
-            [
-                [
-                    Storage::PARAM_THEME_ID,
-                    null,
-                    6,
-                ],
-                [
-                    Storage::PARAM_CONTENT_TYPE,
-                    null,
-                    \Magento\Theme\Model\Wysiwyg\Storage::TYPE_IMAGE
-                ],
-                [
-                    Storage::PARAM_NODE,
-                    null,
-                    $node
-                ]
-            ]
+        $this->request = $this->createMock(Http::class);
+        $this->contextHelper = $this->createMock(Context::class);
+        $this->contextHelper->expects($this->any())->method('getUrlEncoder')->willReturn($this->urlEncoder);
+        $this->contextHelper->expects($this->any())->method('getUrlDecoder')->willReturn($this->urlDecoder);
+        $this->contextHelper->expects($this->any())->method('getRequest')->willReturn($this->request);
+        $this->request
+            ->method('getParam')
+            ->willReturnMap([
+                [Storage::PARAM_THEME_ID, null, 6],
+                [Storage::PARAM_CONTENT_TYPE, null, \Magento\Theme\Model\Wysiwyg\Storage::TYPE_IMAGE],
+                [Storage::PARAM_NODE, null, $node]
+            ]);
+        
+        $this->helper = new Storage(
+            $this->contextHelper,
+            $this->filesystem,
+            $this->session,
+            $this->themeFactory,
+            $this->file,
+            $this->filesystemDriver
         );
-        $this->resetRequestMock($withArgs, [$willReturnArg]);
 
         $this->urlDecoder->expects($this->once())
             ->method('decode')
@@ -422,8 +421,8 @@ class StorageTest extends TestCase
      * @param string $name
      *
      * @return void
-     * @dataProvider getStorageTypeForNameDataProvider
      */
+    #[DataProvider('getStorageTypeForNameDataProvider')]
     public function testGetStorageTypeName($type, $name): void
     {
         $this->resetRequestMock([[Storage::PARAM_CONTENT_TYPE]], [$type]);
@@ -467,9 +466,6 @@ class StorageTest extends TestCase
         $helper->getStorageRoot();
     }
 
-    /**
-     * @dataProvider getCurrentPathDataProvider
-     */
     public function testGetCurrentPathCachesResult(): void
     {
         $this->request->expects($this->once())
@@ -483,8 +479,8 @@ class StorageTest extends TestCase
 
     /**
      * @return void
-     * @dataProvider getCurrentPathDataProvider
      */
+    #[DataProvider('getCurrentPathDataProvider')]
     public function testGetCurrentPath(
         string $expectedPath,
         string $requestedPath,
@@ -567,7 +563,7 @@ class StorageTest extends TestCase
         $this->contextHelper->expects($this->any())->method('getRequest')->willReturn($this->request);
         $this->request
             ->method('getParam')
-            ->will($this->onConsecutiveCalls(...$willReturnArgs));
+            ->willReturnOnConsecutiveCalls(...$willReturnArgs);
 
         $this->helper = new Storage(
             $this->contextHelper,
