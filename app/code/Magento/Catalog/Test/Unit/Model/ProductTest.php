@@ -65,6 +65,8 @@ use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHe
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Store\Model\Website;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -75,6 +77,8 @@ use PHPUnit\Framework\TestCase;
  */
 class ProductTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var MockObject
      */
@@ -269,24 +273,22 @@ class ProductTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->categoryIndexerMock = $this->getMockForAbstractClass(IndexerInterface::class);
+        $this->categoryIndexerMock = $this->createMock(IndexerInterface::class);
 
         $this->moduleManager = $this->createPartialMock(
             Manager::class,
             ['isEnabled']
         );
-        $this->extensionAttributes = $this->getMockBuilder(ExtensionAttributesInterface::class)
-            ->addMethods(['getWebsiteIds', 'setWebsiteIds'])
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->extensionAttributes = $this->createPartialMockWithReflection(
+            ExtensionAttributesInterface::class,
+            ['getWebsiteIds', 'setWebsiteIds']
+        );
 
         $this->stockItemFactoryMock = $this->createPartialMock(
             StockItemInterfaceFactory::class,
             ['create']
         );
-        $this->dataObjectHelperMock = $this->getMockBuilder(DataObjectHelper::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->dataObjectHelperMock = $this->createMock(DataObjectHelper::class);
         $this->productFlatProcessor = $this->createMock(
             Processor::class
         );
@@ -305,12 +307,12 @@ class ProductTest extends TestCase
             ->method('getAreaCode')
             ->willReturn(FrontNameResolver::AREA_CODE);
 
-        $this->eventManagerMock = $this->getMockForAbstractClass(ManagerInterface::class);
+        $this->eventManagerMock = $this->createMock(ManagerInterface::class);
         $actionValidatorMock = $this->createMock(
             RemoveAction::class
         );
         $actionValidatorMock->expects($this->any())->method('isAllowed')->willReturn(true);
-        $cacheInterfaceMock = $this->getMockForAbstractClass(CacheInterface::class);
+        $cacheInterfaceMock = $this->createMock(CacheInterface::class);
 
         $contextMock = $this->createPartialMock(
             Context::class,
@@ -327,11 +329,10 @@ class ProductTest extends TestCase
             ->method('getActionValidator')
             ->willReturn($actionValidatorMock);
 
-        $this->optionInstanceMock = $this->getMockBuilder(Option::class)
-            ->onlyMethods(['setProduct', '__sleep'])
-            ->addMethods(['saveOptions'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->optionInstanceMock = $this->createPartialMockWithReflection(
+            Option::class,
+            ['setProduct', '__sleep', 'saveOptions']
+        );
 
         $optionFactory = $this->createPartialMock(
             OptionFactory::class,
@@ -339,29 +340,17 @@ class ProductTest extends TestCase
         );
         $optionFactory->expects($this->any())->method('create')->willReturn($this->optionInstanceMock);
 
-        $this->resource = $this->getMockBuilder(ProductResourceMOdel::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->resource = $this->createMock(ProductResourceMOdel::class);
 
-        $this->registry = $this->getMockBuilder(Registry::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->registry = $this->createMock(Registry::class);
 
-        $this->category = $this->getMockBuilder(Category::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->category = $this->createMock(Category::class);
 
-        $this->store = $this->getMockBuilder(Store::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->store = $this->createMock(Store::class);
 
-        $this->website = $this->getMockBuilder(Website::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->website = $this->createMock(Website::class);
 
-        $this->storeManager = $this->getMockBuilder(StoreManagerInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->storeManager = $this->createMock(StoreManagerInterface::class);
         $this->storeManager->expects($this->any())
             ->method('getStore')
             ->willReturn($this->store);
@@ -372,31 +361,26 @@ class ProductTest extends TestCase
             IndexerRegistry::class,
             ['get']
         );
-        $this->categoryRepository = $this->getMockForAbstractClass(CategoryRepositoryInterface::class);
+        $this->categoryRepository = $this->createMock(CategoryRepositoryInterface::class);
 
         $this->_catalogProduct = $this->createPartialMock(
             \Magento\Catalog\Helper\Product::class,
             ['isDataForProductCategoryIndexerWasChanged']
         );
 
-        $this->imageCache = $this->getMockBuilder(Cache::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->imageCacheFactory = $this->getMockBuilder(CacheFactory::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['create'])
-            ->getMock();
+        $this->imageCache = $this->createMock(Cache::class);
+        $this->imageCacheFactory = $this->createPartialMock(
+            CacheFactory::class,
+            ['create']
+        );
 
-        $this->mediaGalleryEntryFactoryMock =
-            $this->getMockBuilder(ProductAttributeMediaGalleryEntryInterfaceFactory::class)
-                ->onlyMethods(['create'])
-                ->disableOriginalConstructor()
-                ->getMock();
+        $this->mediaGalleryEntryFactoryMock = $this->createPartialMock(
+            ProductAttributeMediaGalleryEntryInterfaceFactory::class,
+            ['create']
+        );
 
-        $this->metadataServiceMock = $this->getMockForAbstractClass(ProductAttributeRepositoryInterface::class);
-        $this->attributeValueFactory = $this->getMockBuilder(AttributeValueFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->metadataServiceMock = $this->createMock(ProductAttributeRepositoryInterface::class);
+        $this->attributeValueFactory = $this->createMock(AttributeValueFactory::class);
 
         $this->mediaGalleryEntryConverterPoolMock =
             $this->createPartialMock(
@@ -411,35 +395,26 @@ class ProductTest extends TestCase
 
         $this->mediaGalleryEntryConverterPoolMock->expects($this->any())->method('getConverterByMediaType')
             ->willReturn($this->converterMock);
-        $this->productLinkRepositoryMock = $this->getMockBuilder(
-            ProductLinkRepositoryInterface::class
-        )
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
-        $this->extensionAttributesFactory = $this->getMockBuilder(ExtensionAttributesFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->filesystemMock = $this->getMockBuilder(Filesystem::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->collectionFactoryMock = $this->getMockBuilder(CollectionFactory::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['create'])
-            ->getMock();
+        $this->productLinkRepositoryMock = $this->createMock(ProductLinkRepositoryInterface::class);
+        $this->extensionAttributesFactory = $this->createMock(ExtensionAttributesFactory::class);
+        $this->filesystemMock = $this->createMock(Filesystem::class);
+        $this->collectionFactoryMock = $this->createPartialMock(
+            CollectionFactory::class,
+            ['create']
+        );
         $this->mediaConfig = $this->createMock(\Magento\Catalog\Model\Product\Media\Config::class);
         $this->eavConfig = $this->createMock(Config::class);
 
-        $this->productExtAttributes = $this->getMockBuilder(ProductExtensionInterface::class)
-            ->addMethods(['getStockItem'])
-            ->getMockForAbstractClass();
+        $this->productExtAttributes = $this->createPartialMockWithReflection(
+            ProductExtensionInterface::class,
+            ['getStockItem']
+        );
         $this->extensionAttributesFactory
             ->expects($this->any())
             ->method('create')
             ->willReturn($this->productExtAttributes);
 
-        $this->filterCustomAttribute = $this->createTestProxy(
-            FilterProductCustomAttribute::class
-        );
+        $this->filterCustomAttribute = new FilterProductCustomAttribute();
 
         $this->objectManagerHelper = new ObjectManagerHelper($this);
         $this->model = $this->objectManagerHelper->getObject(
@@ -481,17 +456,17 @@ class ProductTest extends TestCase
      */
     public function testGetAttributes(): void
     {
-        $productType = $this->getMockBuilder(AbstractType::class)
-            ->onlyMethods(['getSetAttributes'])
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $productType = $this->createPartialMock(
+            AbstractType::class,
+            ['getSetAttributes', 'deleteTypeSpecificData']
+        );
         $this->productTypeInstanceMock->expects($this->any())->method('factory')->willReturn(
             $productType
         );
-        $attribute = $this->getMockBuilder(AbstractAttribute::class)
-            ->onlyMethods(['isInGroup'])
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $attribute = $this->createPartialMock(
+            AbstractAttribute::class,
+            ['isInGroup']
+        );
         $attribute->expects($this->any())->method('isInGroup')->willReturn(true);
         $productType->expects($this->any())->method('getSetAttributes')->willReturn(
             [$attribute]
@@ -517,8 +492,8 @@ class ProductTest extends TestCase
      * @param bool $isObjectNew
      *
      * @return void
-     * @dataProvider getSingleStoreIds
      */
+    #[DataProvider('getSingleStoreIds')]
     public function testGetStoreSingleSiteModelIds(bool $isObjectNew): void
     {
         $websiteIDs = [0 => 2];
@@ -565,17 +540,15 @@ class ProductTest extends TestCase
      */
     public function testGetCategoryCollection(): void
     {
-        $collection = $this->getMockBuilder(Collection::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $collection = $this->createMock(Collection::class);
         $this->resource->expects($this->once())->method('getCategoryCollection')->willReturn($collection);
         $this->assertInstanceOf(Collection::class, $this->model->getCategoryCollection());
     }
 
     /**
      * @return void
-     * @dataProvider getCategoryCollectionCollectionNullDataProvider
      */
+    #[DataProvider('getCategoryCollectionCollectionNullDataProvider')]
     public function testGetCategoryCollectionCollectionNull(
         $initCategoryCollection,
         $getIdResult,
@@ -590,10 +563,10 @@ class ProductTest extends TestCase
             ]
         );
 
-        $abstractDbMock = $this->getMockBuilder(AbstractDb::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getCategoryCollection'])
-            ->getMockForAbstractClass();
+        $abstractDbMock = $this->createPartialMockWithReflection(
+            AbstractDb::class,
+            ['getCategoryCollection', '_construct']
+        );
         $getCategoryCollectionMock = $this->createMock(
             Collection::class
         );
@@ -649,9 +622,7 @@ class ProductTest extends TestCase
      */
     public function testSetCategoryCollection(): void
     {
-        $collection = $this->getMockBuilder(Collection::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $collection = $this->createMock(Collection::class);
         $this->resource->expects($this->once())->method('getCategoryCollection')->willReturn($collection);
         $this->assertSame($this->model->getCategoryCollection(), $this->model->getCategoryCollection());
     }
@@ -747,8 +718,8 @@ class ProductTest extends TestCase
      * @param $categoryIndexerCount
      *
      * @return void
-     * @dataProvider getProductReindexProvider
      */
+    #[DataProvider('getProductReindexProvider')]
     public function testReindex($productChanged, $isScheduled, $productFlatCount, $categoryIndexerCount): void
     {
         $this->model->setData('entity_id', 1);
@@ -812,8 +783,8 @@ class ProductTest extends TestCase
      * @param bool $isNew
      *
      * @return void
-     * @dataProvider getIdentitiesProvider
      */
+    #[DataProvider('getIdentitiesProvider')]
     public function testGetIdentities(
         array $expected,
         ?array $origData,
@@ -840,13 +811,11 @@ class ProductTest extends TestCase
 
     protected function getMockForExtensionAttribute()
     {
-        $extensionAttributesMock = $this->getMockBuilder(ExtensionAttributesInterface::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getStockItem'])
-            ->getMockForAbstractClass();
-        $stockItemMock = $this->getMockBuilder(StockItemInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $extensionAttributesMock = $this->createPartialMockWithReflection(
+            ExtensionAttributesInterface::class,
+            ['getStockItem']
+        );
+        $stockItemMock = $this->createMock(StockItemInterface::class);
         $extensionAttributesMock->expects($this->any())->method('getStockItem')->willReturn($stockItemMock);
         return $extensionAttributesMock;
     }
@@ -1251,9 +1220,10 @@ class ProductTest extends TestCase
      */
     protected function configureSaveTest(): void
     {
-        $productTypeMock = $this->getMockBuilder(Simple::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['beforeSave', 'save'])->getMock();
+        $productTypeMock = $this->createPartialMock(
+            Simple::class,
+            ['beforeSave', 'save']
+        );
         $productTypeMock->expects($this->once())->method('beforeSave')->willReturnSelf();
         $productTypeMock->expects($this->once())->method('save')->willReturnSelf();
 
@@ -1275,13 +1245,8 @@ class ProductTest extends TestCase
             'stock_item' => ['stock-item-data']
         ];
 
-        $stockItemMock = $this->getMockForAbstractClass(
+        $stockItemMock = $this->createPartialMockWithReflection(
             AbstractSimpleObject::class,
-            [],
-            '',
-            false,
-            true,
-            true,
             ['setProduct']
         );
 
@@ -1326,10 +1291,10 @@ class ProductTest extends TestCase
         $outputRelatedLink->setPosition(0);
         $expectedOutput = [$outputRelatedLink];
         $this->productLinkRepositoryMock->expects($this->once())->method('getList')->willReturn($expectedOutput);
-        $typeInstance = $this->getMockBuilder(AbstractType::class)
-            ->onlyMethods(['getSku'])
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $typeInstance = $this->createPartialMock(
+            AbstractType::class,
+            ['getSku', 'deleteTypeSpecificData']
+        );
         $typeInstance->method('getSku')->willReturn('model');
         $this->productTypeInstanceMock->method('factory')->willReturn($typeInstance);
         $links = $this->model->getProductLinks();
@@ -1361,31 +1326,31 @@ class ProductTest extends TestCase
      */
     protected function setupMediaAttributes(): array
     {
-        $productType = $this->getMockBuilder(AbstractType::class)
-            ->onlyMethods(['getSetAttributes'])
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $productType = $this->createPartialMock(
+            AbstractType::class,
+            ['getSetAttributes', 'deleteTypeSpecificData']
+        );
         $this->productTypeInstanceMock->expects($this->any())->method('factory')->willReturn(
             $productType
         );
 
-        $frontendMock = $this->getMockBuilder(AbstractFrontend::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getInputType'])
-            ->getMockForAbstractClass();
+        $frontendMock = $this->createPartialMock(
+            AbstractFrontend::class,
+            ['getInputType']
+        );
         $frontendMock->expects($this->any())->method('getInputType')->willReturn('media_image');
-        $attributeImage = $this->getMockBuilder(AbstractAttribute::class)
-            ->onlyMethods(['getFrontend', 'getAttributeCode'])
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $attributeImage = $this->createPartialMock(
+            AbstractAttribute::class,
+            ['getFrontend', 'getAttributeCode']
+        );
         $attributeImage->expects($this->any())
             ->method('getFrontend')
             ->willReturn($frontendMock);
         $attributeImage->expects($this->any())->method('getAttributeCode')->willReturn('image');
-        $attributeSmallImage = $this->getMockBuilder(AbstractAttribute::class)
-            ->onlyMethods(['getFrontend', 'getAttributeCode'])
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $attributeSmallImage = $this->createPartialMock(
+            AbstractAttribute::class,
+            ['getFrontend', 'getAttributeCode']
+        );
         $attributeSmallImage->expects($this->any())
             ->method('getFrontend')
             ->willReturn($frontendMock);
@@ -1504,20 +1469,7 @@ class ProductTest extends TestCase
             ]
         ];
 
-        $entryMock = $this->getMockBuilder(ProductAttributeMediaGalleryEntryInterface::class)
-            ->onlyMethods(
-                [
-                    'getId',
-                    'getFile',
-                    'getLabel',
-                    'getPosition',
-                    'isDisabled',
-                    'getContent',
-                    'getMediaType'
-                ]
-            )
-            ->addMethods(['types'])
-            ->getMockForAbstractClass();
+        $entryMock = $this->createMock(ProductAttributeMediaGalleryEntryInterface::class);
 
         $result = [
             'value_id' => 1,
@@ -1587,7 +1539,7 @@ class ProductTest extends TestCase
             ]
         );
 
-        $directoryMock = $this->getMockForAbstractClass(ReadInterface::class);
+        $directoryMock = $this->createMock(ReadInterface::class);
         $directoryMock->method('getAbsolutePath')->willReturnOnConsecutiveCalls(
             '/var/www/html/pub/imageFile.jpg',
             '/var/www/html/pub/smallImageFile.jpg'
@@ -1680,15 +1632,15 @@ class ProductTest extends TestCase
     public function testGetOptions(): void
     {
         $option1Id = 2;
-        $optionMock1 = $this->getMockBuilder(Option::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getId', 'setProduct'])
-            ->getMock();
+        $optionMock1 = $this->createPartialMock(
+            Option::class,
+            ['getId', 'setProduct']
+        );
         $option2Id = 3;
-        $optionMock2 = $this->getMockBuilder(Option::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getId', 'setProduct'])
-            ->getMock();
+        $optionMock2 = $this->createPartialMock(
+            Option::class,
+            ['getId', 'setProduct']
+        );
         $expectedOptions = [
             $option1Id => $optionMock1,
             $option2Id => $optionMock2
@@ -1786,9 +1738,7 @@ class ProductTest extends TestCase
      */
     public function testGetTypeId(): void
     {
-        $productType = $this->getMockBuilder(Virtual::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $productType = $this->createMock(Virtual::class);
 
         $this->productTypeInstanceMock->expects($this->exactly(2))->method('factory')->willReturn(
             $productType

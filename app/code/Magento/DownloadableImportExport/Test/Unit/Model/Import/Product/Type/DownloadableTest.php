@@ -540,7 +540,7 @@ class DownloadableTest extends AbstractImportTestCase
     #[DataProvider('isRowValidData')]
     public function testIsRowValid(array $rowData, $rowNum, $isNewProduct, $isDomainValid, $expectedResult): void
     {
-        // Configure MysqlTestHelper for fetchAll call
+        // Configure connection mock for fetchAll call
         $this->connectionMock->method('fetchAll')->willReturn([
             [
                 'attribute_set_name' => '1',
@@ -709,7 +709,7 @@ class DownloadableTest extends AbstractImportTestCase
     #[DataProvider('dataForUploaderDir')]
     public function testSetUploaderDirFalse($newSku, $bunch, $allowImport, $parsedOptions): void
     {
-        // Configure MysqlTestHelper for fetchAll call
+        // Configure connection mock for fetchAll call
         $this->connectionMock->method('fetchAll')->willReturn([]);
         $this->downloadableHelper->expects($this->atLeastOnce())
             ->method('fillExistOptions')->willReturn($parsedOptions['link']);
@@ -818,7 +818,7 @@ class DownloadableTest extends AbstractImportTestCase
                 . ' file=media/file_link.mp4,sortorder=1|group_title=Group Title, title=Title 2, price=10, downloads'
                 . '=unlimited, url=media/file2.mp4,sortorder=0'
         ];
-        // Configure MysqlTestHelper for fetchAll call
+        // Configure connection mock for fetchAll call
         $this->connectionMock->method('fetchAll')->willReturn([
             [
                 'attribute_set_name' => '1',

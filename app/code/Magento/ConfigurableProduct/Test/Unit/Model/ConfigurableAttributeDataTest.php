@@ -120,7 +120,7 @@ class ConfigurableAttributeDataTest extends TestCase
         $configuredValueMock = $this->createMock(DataObject::class);
         $configuredValueMock->method('getData')->willReturn($expected['defaultValues'][$attributeId]);
 
-        // Configure ProductTestHelper with expected values
+        // Configure product mock with expected values
         $this->product->setTypeInstance($configurableProduct);
         $this->product->setHasPreconfiguredValues(true);
         $this->product->setPreconfiguredValues($configuredValueMock);

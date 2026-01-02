@@ -47,12 +47,12 @@ class AttributeSetTest extends AbstractModifierTestCase
     {
         parent::setUp();
         
-        // Use the ProductTestHelper from parent, just configure the resource mock
+        // Configure the resource mock
         $this->productResourceMock = $this->createMock(ProductResource::class);
         $this->productResourceMock->method('getTypeId')->willReturn(4);
         
-        // Set the resource on the helper using the new setResource method
-        $this->productMock->setResource($this->productResourceMock);
+        // Mock getResource() on the product mock to return the resource mock
+        $this->productMock->method('getResource')->willReturn($this->productResourceMock);
         
         $this->attributeSetCollectionFactoryMock = $this->createPartialMock(
             CollectionFactory::class,
@@ -94,7 +94,10 @@ class AttributeSetTest extends AbstractModifierTestCase
     #[DataProvider('modifyMetaLockedDataProvider')]
     public function testModifyMetaLocked($locked)
     {
-        $this->productMock->setLockedAttribute('attribute_set_id', $locked);
+        $this->productMock->expects($this->once())
+            ->method('isLockedAttribute')
+            ->with('attribute_set_id')
+            ->willReturn($locked);
         $modifyMeta = $this->getModel()->modifyMeta([AbstractModifier::DEFAULT_GENERAL_PANEL => []]);
         $children = $modifyMeta[AbstractModifier::DEFAULT_GENERAL_PANEL]['children'];
         $this->assertEquals(
@@ -130,8 +133,8 @@ class AttributeSetTest extends AbstractModifierTestCase
         $productId = 1;
         $attributeSetId = 4;
 
-        $this->productMock->setId($productId);
-        $this->productMock->setAttributeSetId($attributeSetId);
+        $this->productMock->expects($this->once())->method('getId')->willReturn($productId);
+        $this->productMock->expects($this->once())->method('getAttributeSetId')->willReturn($attributeSetId);
 
         $result = $this->getModel()->modifyData([]);
         $this->assertArrayHasKey($productId, $result);

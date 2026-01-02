@@ -16,6 +16,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Message\CollectionFactory;
 use Magento\Framework\Session\SessionStartChecker;
 use Magento\Framework\Session\Storage;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
@@ -37,6 +38,8 @@ use Psr\Log\LoggerInterface;
  */
 class SessionTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var ObjectManager
      */
@@ -85,7 +88,8 @@ class SessionTest extends TestCase
             ->getMock();
         $quoteRepository = $this->createMock(CartRepositoryInterface::class);
 
-        // Removed unsupported addMethods() usage on State mock (unused in this test)
+        $appState = $this->createPartialMockWithReflection(State::class, ['isInstalled']);
+        $appState->method('isInstalled')->willReturn(true);
 
         $request = $this->createMock(Http::class);
         $request->method('getHttpHost')->willReturn([]);
@@ -319,15 +323,17 @@ class SessionTest extends TestCase
         $storage->expects($this->any())
             ->method('setData');
 
-        $quoteIdMask = $this->getMockBuilder(QuoteIdMask::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['load'])
-            ->getMock();
-        $quoteIdMask->method('load')->willReturnSelf();
-        $quoteIdMask->setData('masked_id', $replaceQuoteId);
+        $quoteIdMaskMock = $this->createPartialMockWithReflection(
+            QuoteIdMask::class,
+            ['getMaskedId', 'setQuoteId', 'load', 'save']
+        );
+        $quoteIdMaskMock->expects($this->once())->method('load')->with($replaceQuoteId, 'quote_id')->willReturnSelf();
+        $quoteIdMaskMock->expects($this->once())->method('getMaskedId')->willReturn(null);
+        $quoteIdMaskMock->expects($this->once())->method('setQuoteId')->with($replaceQuoteId)->willReturnSelf();
+        $quoteIdMaskMock->expects($this->once())->method('save');
 
-        $quoteIdMaskFactoryMock = $this->createMock(QuoteIdMaskFactory::class);
-        $quoteIdMaskFactoryMock->expects($this->once())->method('create')->willReturn($quoteIdMask);
+        $quoteIdMaskFactoryMock = $this->createPartialMock(QuoteIdMaskFactory::class, ['create']);
+        $quoteIdMaskFactoryMock->expects($this->once())->method('create')->willReturn($quoteIdMaskMock);
 
         $session = $this->helper->getObject(
             Session::class,

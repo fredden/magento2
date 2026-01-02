@@ -11,7 +11,6 @@ use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\Locator\LocatorInterface;
 use Magento\Catalog\Model\Product;
 use Magento\Framework\Stdlib\ArrayManager;
-use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Ui\DataProvider\Modifier\ModifierInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -19,8 +18,6 @@ use PHPUnit\Framework\TestCase;
 
 abstract class AbstractModifierTestCase extends TestCase
 {
-    use MockCreationTrait;
-
     /**
      * @var ModifierInterface
      */
@@ -37,7 +34,7 @@ abstract class AbstractModifierTestCase extends TestCase
     protected $locatorMock;
 
     /**
-     * @var Product|MockObject
+     * @var ProductInterface|MockObject
      */
     protected $productMock;
 
@@ -50,7 +47,9 @@ abstract class AbstractModifierTestCase extends TestCase
     {
         $this->objectManager = new ObjectManager($this);
         $this->locatorMock = $this->createMock(LocatorInterface::class);
+        
         $this->productMock = $this->createMock(Product::class);
+
         $this->locatorMock->method('getProduct')->willReturn($this->productMock);
 
         $this->arrayManagerMock = $this->createMock(ArrayManager::class);
