@@ -17,6 +17,10 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\Console\Tester\CommandTester;
 use PHPUnit\Framework\Attributes\DataProvider;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+ */
 class IndexerStatusCommandTest extends AbstractIndexerCommandCommonSetup
 {
     /**

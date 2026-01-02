@@ -26,6 +26,7 @@ use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
 class IndexerReindexCommandTest extends AbstractIndexerCommandCommonSetup
 {
