@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\Catalog\Test\Unit\Model;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Magento\Catalog\Api\CategoryAttributeRepositoryInterface;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Model\Category;
@@ -24,6 +25,7 @@ use Magento\Framework\Indexer\IndexerInterface;
 use Magento\Framework\Indexer\IndexerRegistry;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\ResourceModel\Store\CollectionFactory;
@@ -190,9 +192,7 @@ class CategoryTest extends TestCase
         $this->metadataServiceMock = $this->createMock(
             CategoryAttributeRepositoryInterface::class
         );
-        $this->attributeValueFactory = $this->getMockBuilder(AttributeValueFactory::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->attributeValueFactory = $this->createMock(AttributeValueFactory::class);
 
         $this->category = $this->getCategoryModel();
     }
@@ -225,10 +225,10 @@ class CategoryTest extends TestCase
         );
         $parentCategory->expects($this->any())->method('setStoreId')->willReturnSelf();
         $parentCategory->expects($this->any())->method('load')->willReturnSelf();
-        $this->categoryRepository->expects($this->any())->method('get')->willReturn($parentCategory);
+        $this->categoryRepository->method('get')->willReturn($parentCategory);
 
         $store = $this->createMock(Store::class);
-        $this->storeManager->expects($this->any())->method('getStore')->willReturn($store);
+        $this->storeManager->method('getStore')->willReturn($store);
 
         $this->category->move(1, 2);
     }
@@ -244,13 +244,13 @@ class CategoryTest extends TestCase
             Category::class,
             ['getId', 'setStoreId', 'load']
         );
-        $parentCategory->expects($this->any())->method('getId')->willReturn(5);
+        $parentCategory->method('getId')->willReturn(5);
         $parentCategory->expects($this->any())->method('setStoreId')->willReturnSelf();
         $parentCategory->expects($this->any())->method('load')->willReturnSelf();
-        $this->categoryRepository->expects($this->any())->method('get')->willReturn($parentCategory);
+        $this->categoryRepository->method('get')->willReturn($parentCategory);
 
         $store = $this->createMock(Store::class);
-        $this->storeManager->expects($this->any())->method('getStore')->willReturn($store);
+        $this->storeManager->method('getStore')->willReturn($store);
 
         $this->category->move(1, 2);
     }
@@ -269,13 +269,13 @@ class CategoryTest extends TestCase
             Category::class,
             ['getId', 'setStoreId', 'load']
         );
-        $parentCategory->expects($this->any())->method('getId')->willReturn(5);
+        $parentCategory->method('getId')->willReturn(5);
         $parentCategory->expects($this->any())->method('setStoreId')->willReturnSelf();
         $parentCategory->expects($this->any())->method('load')->willReturnSelf();
-        $this->categoryRepository->expects($this->any())->method('get')->willReturn($parentCategory);
+        $this->categoryRepository->method('get')->willReturn($parentCategory);
 
         $store = $this->createMock(Store::class);
-        $this->storeManager->expects($this->any())->method('getStore')->willReturn($store);
+        $this->storeManager->method('getStore')->willReturn($store);
 
         $this->category->setId(5);
         $this->category->move(1, 2);
@@ -286,10 +286,7 @@ class CategoryTest extends TestCase
      */
     public function testMovePrimaryWorkflow(): void
     {
-        $indexer = $this->createPartialMockWithReflection(
-            \stdClass::class,
-            ['isScheduled']
-        );
+        $indexer = $this->createMock(IndexerInterface::class);
         $indexer->expects($this->once())->method('isScheduled')->willReturn(true);
         $this->indexerRegistry->expects($this->once())
             ->method('get')
@@ -299,13 +296,13 @@ class CategoryTest extends TestCase
             Category::class,
             ['getId', 'setStoreId', 'load']
         );
-        $parentCategory->expects($this->any())->method('getId')->willReturn(5);
+        $parentCategory->method('getId')->willReturn(5);
         $parentCategory->expects($this->any())->method('setStoreId')->willReturnSelf();
         $parentCategory->expects($this->any())->method('load')->willReturnSelf();
-        $this->categoryRepository->expects($this->any())->method('get')->willReturn($parentCategory);
+        $this->categoryRepository->method('get')->willReturn($parentCategory);
 
         $store = $this->createMock(Store::class);
-        $this->storeManager->expects($this->any())->method('getStore')->willReturn($store);
+        $this->storeManager->method('getStore')->willReturn($store);
 
         $this->category->setId(3);
         $this->category->move(5, 7);
@@ -324,9 +321,7 @@ class CategoryTest extends TestCase
      */
     public function testGetUseFlatResourceTrue(): void
     {
-        $this->flatState->expects($this->any())
-            ->method('isAvailable')
-            ->willReturn(true);
+        $this->flatState->method('isAvailable')->willReturn(true);
 
         $category = $this->getCategoryModel();
         $this->assertTrue($category->getUseFlatResource());
@@ -397,9 +392,7 @@ class CategoryTest extends TestCase
         $this->category->setData('path_ids', $pathIds);
         $this->category->setId('123');
 
-        $this->flatState->expects($this->any())
-            ->method('isFlatEnabled')
-            ->willReturn(true);
+        $this->flatState->method('isFlatEnabled')->willReturn(true);
 
         $this->flatIndexer->expects($this->exactly(1))
             ->method('isScheduled')
@@ -471,9 +464,7 @@ class CategoryTest extends TestCase
         $this->category->setData('path_ids', $pathIds);
         $this->category->setId('123');
 
-        $this->flatState->expects($this->any())
-            ->method('isFlatEnabled')
-            ->willReturn(false);
+        $this->flatState->method('isFlatEnabled')->willReturn(false);
 
         $this->productIndexer
             ->method('isScheduled')
@@ -564,9 +555,7 @@ class CategoryTest extends TestCase
         $storeManager = $this->createPartialMock(StoreManager::class, ['getStore']);
         $store = $this->createPartialMock(Store::class, ['getBaseUrl']);
 
-        $storeManager->expects($this->any())
-            ->method('getStore')
-            ->willReturn($store);
+        $storeManager->method('getStore')->willReturn($store);
 
         $store->expects($this->any())
             ->method('getBaseUrl')
@@ -596,9 +585,7 @@ class CategoryTest extends TestCase
         $storeManager = $this->createPartialMock(StoreManager::class, ['getStore']);
         $store = $this->createPartialMock(Store::class, ['getBaseUrl']);
 
-        $storeManager->expects($this->any())
-            ->method('getStore')
-            ->willReturn($store);
+        $storeManager->method('getStore')->willReturn($store);
 
         $store->expects($this->any())
             ->method('getBaseUrl')
