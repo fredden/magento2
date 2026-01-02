@@ -105,23 +105,50 @@ class DeletedCustomOptionInCartTest extends GraphQlAbstract
     {
         $productFixture = $this->fixtures->get('product');
         $sku = $productFixture->getSku();
-        $quantity = 1;
 
         // Get the product with its customizable options
         $product = $this->productRepository->get($sku);
         $optionData = $this->getFirstOptionAndValue($product);
-        $optionId = $optionData['optionId'];
-        $optionValueId = $optionData['optionValueId'];
 
         // Get cart ID from fixture
         $quoteIdMask = $this->fixtures->get('quoteIdMask');
         $maskedQuoteId = $quoteIdMask->getMaskedId();
 
         // Step 1: Add product with customizable option to cart
+        $this->addProductToCartWithOption(
+            $maskedQuoteId,
+            $sku,
+            $optionData['optionId'],
+            $optionData['optionValueId']
+        );
+
+        // Step 2: Delete the customizable option from the product
+        $this->deleteProductOptionAndVerify($product, $sku);
+
+        // Step 3 & 4: Query the cart and verify response
+        $this->verifyCartQueryAfterOptionDeletion($maskedQuoteId, $sku);
+    }
+
+    /**
+     * Add product with customizable option to cart and verify
+     *
+     * @param string $maskedQuoteId
+     * @param string $sku
+     * @param int $optionId
+     * @param int $optionValueId
+     * @return void
+     * @throws \Exception
+     */
+    private function addProductToCartWithOption(
+        string $maskedQuoteId,
+        string $sku,
+        int $optionId,
+        int $optionValueId
+    ): void {
         $mutation = $this->getAddProductToCartMutation(
             $maskedQuoteId,
             $sku,
-            $quantity,
+            1,
             $optionId,
             $optionValueId
         );
@@ -144,8 +171,18 @@ class DeletedCustomOptionInCartTest extends GraphQlAbstract
         $customizableOption = $customizableOptions[0];
         $this->assertArrayHasKey('label', $customizableOption);
         $this->assertNotNull($customizableOption['label'], 'Option label should not be null initially');
+    }
 
-        // Step 2: Delete the customizable option from the product
+    /**
+     * Delete product option and verify deletion
+     *
+     * @param \Magento\Catalog\Api\Data\ProductInterface $product
+     * @param string $sku
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    private function deleteProductOptionAndVerify($product, string $sku): void
+    {
         $firstOption = $product->getOptions()[0];
         $this->optionRepository->delete($firstOption);
 
@@ -157,14 +194,23 @@ class DeletedCustomOptionInCartTest extends GraphQlAbstract
             $remainingOptions,
             'Product should have no customizable options after deletion'
         );
+    }
 
-        // Step 3: Query the cart - this should NOT throw an error
+    /**
+     * Verify cart query works after option deletion
+     *
+     * @param string $maskedQuoteId
+     * @param string $sku
+     * @return void
+     */
+    private function verifyCartQueryAfterOptionDeletion(string $maskedQuoteId, string $sku): void
+    {
         $cartQuery = $this->getCartQuery($maskedQuoteId);
 
         try {
             $cartResponse = $this->graphQlQuery($cartQuery);
 
-            // Step 4: Verify cart is returned successfully
+            // Verify cart is returned successfully
             $this->assertArrayHasKey('cart', $cartResponse);
             $this->assertArrayHasKey('items', $cartResponse['cart']);
             $responseCartItems = $cartResponse['cart']['items'];
