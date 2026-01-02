@@ -10,11 +10,15 @@ namespace Magento\Store\Test\Unit\Model\Address;
 use Magento\Framework\DataObject;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Filter\FilterManager;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Store\Model\Address\Renderer;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class RendererTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var Renderer
      */
@@ -30,14 +34,11 @@ class RendererTest extends TestCase
         $eventManager = $this->getMockBuilder(ManagerInterface::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['dispatch'])
-            ->getMockForAbstractClass();
+            ->getMock();
 
         $eventManager->expects($this->once())->method('dispatch')->with('store_address_format');
 
-        $filterManager = $this->getMockBuilder(FilterManager::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['template'])
-            ->getMock();
+        $filterManager = $this->createPartialMockWithReflection(FilterManager::class, ['template']);
 
         $filterManager->expects($this->once())
             ->method('template')
@@ -51,8 +52,8 @@ class RendererTest extends TestCase
     /**
      * @param DataObject $storeInfo
      * @param $type
-     * @dataProvider formatDataProvider
      */
+    #[DataProvider('formatDataProvider')]
     public function testFormat(DataObject $storeInfo, $type)
     {
         $expected = implode("\n", $storeInfo->getData());

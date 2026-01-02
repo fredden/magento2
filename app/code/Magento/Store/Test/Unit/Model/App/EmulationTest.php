@@ -12,6 +12,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Phrase;
 use Magento\Framework\Phrase\RendererInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\Translate\Inline\ConfigInterface;
 use Magento\Framework\Translate\Inline\StateInterface;
@@ -30,6 +31,8 @@ use Psr\Log\LoggerInterface;
  */
 class EmulationTest extends TestCase
 {
+    use MockCreationTrait;
+
     private const STUB_NEW_STORE_ID = 9;
 
     /**
@@ -99,24 +102,14 @@ class EmulationTest extends TestCase
         $this->designMock = $this->getMockBuilder(Design::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['loadChange', 'getData'])->getMock();
-        $this->storeManagerMock = $this->getMockBuilder(StoreManagerInterface::class)
-            ->disableOriginalConstructor()->getMockForAbstractClass();
-        $this->translateMock = $this->getMockBuilder(TranslateInterface::class)
-            ->disableOriginalConstructor()->getMockForAbstractClass();
-        $this->scopeConfigMock = $this->getMockBuilder(ScopeConfigInterface::class)
-            ->disableOriginalConstructor()->getMockForAbstractClass();
-        $this->localeResolverMock = $this->getMockBuilder(ResolverInterface::class)
-            ->disableOriginalConstructor()->getMockForAbstractClass();
-        $this->inlineConfigMock = $this->getMockBuilder(ConfigInterface::class)
-            ->disableOriginalConstructor()->getMockForAbstractClass();
-        $this->inlineTranslationMock = $this->getMockBuilder(StateInterface::class)
-            ->disableOriginalConstructor()->getMockForAbstractClass();
-        $this->viewDesignMock = $this->getMockForAbstractClass(DesignInterface::class);
-        $this->storeMock = $this->getMockBuilder(Store::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getStoreId'])
-            ->onlyMethods(['__wakeup'])
-            ->getMock();
+        $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
+        $this->translateMock = $this->createMock(TranslateInterface::class);
+        $this->scopeConfigMock = $this->createMock(ScopeConfigInterface::class);
+        $this->localeResolverMock = $this->createMock(ResolverInterface::class);
+        $this->inlineConfigMock = $this->createMock(ConfigInterface::class);
+        $this->inlineTranslationMock = $this->createMock(StateInterface::class);
+        $this->viewDesignMock = $this->createMock(DesignInterface::class);
+        $this->storeMock = $this->createPartialMockWithReflection(Store::class, ['getStoreId', '__wakeup']);
         $this->rendererMock = $this->createMock(RendererInterface::class);
 
         // Stubs

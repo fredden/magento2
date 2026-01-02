@@ -10,6 +10,7 @@ namespace Magento\Store\Test\Unit\Model\Config\Importer\Processor;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\RuntimeException;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Store\Model\Config\Importer\DataDifferenceCalculator;
 use Magento\Store\Model\Config\Importer\Processor\Create;
 use Magento\Store\Model\Group;
@@ -28,6 +29,8 @@ use PHPUnit\Framework\TestCase;
  */
 class CreateTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var DataDifferenceCalculator|MockObject
      */
@@ -135,12 +138,11 @@ class CreateTest extends TestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['create'])
             ->getMock();
-        $this->eventManagerMock = $this->getMockBuilder(ManagerInterface::class)
-            ->getMockForAbstractClass();
+        $this->eventManagerMock = $this->createMock(ManagerInterface::class);
         $this->abstractDbMock = $this->getMockBuilder(AbstractDb::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['save', 'load', 'addCommitCallback'])
-            ->getMockForAbstractClass();
+            ->onlyMethods(['save', 'load', 'addCommitCallback', '_construct'])
+            ->getMock();
         $this->websiteMock = $this->getMockBuilder(Website::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['setData', 'getResource', 'setDefaultGroupId'])
@@ -152,11 +154,10 @@ class CreateTest extends TestCase
                 'getDefaultStoreId', 'setDefaultStoreId', 'setWebsite'
             ])
             ->getMock();
-        $this->storeMock = $this->getMockBuilder(Store::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getStoreId'])
-            ->onlyMethods(['setData', 'getResource', 'setGroup', 'setWebsite'])
-            ->getMock();
+        $this->storeMock = $this->createPartialMockWithReflection(
+            Store::class,
+            ['getStoreId', 'setData', 'getResource', 'setGroup', 'setWebsite']
+        );
         $this->websiteFactoryMock->expects($this->any())
             ->method('create')
             ->willReturn($this->websiteMock);
