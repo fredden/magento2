@@ -7,12 +7,12 @@ declare(strict_types=1);
 
 namespace Magento\Catalog\Test\Unit\Ui\DataProvider\Product\Form\Modifier;
 
-use Magento\Catalog\Model\Locator\LocatorInterface;
 use Magento\Catalog\Model\Product;
+use Magento\Catalog\Model\Locator\LocatorInterface;
 use Magento\Framework\Stdlib\ArrayManager;
 use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
-use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\Store;
 use Magento\Ui\DataProvider\Modifier\ModifierInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -36,11 +36,6 @@ abstract class AbstractModifierTestCase extends TestCase
     private $model;
 
     /**
-     * @var ObjectManager
-     */
-    protected $objectManager;
-
-    /**
      * @var LocatorInterface|MockObject
      */
     protected $locatorMock;
@@ -51,7 +46,7 @@ abstract class AbstractModifierTestCase extends TestCase
     protected $productMock;
 
     /**
-     * @var StoreInterface|MockObject
+     * @var Store|MockObject
      */
     protected $storeMock;
 
@@ -61,22 +56,51 @@ abstract class AbstractModifierTestCase extends TestCase
     protected $arrayManagerMock;
 
     /**
-     * Set up test environment
-     *
-     * @return void
+     * @var ObjectManager
      */
+    protected $objectManager;
+
     protected function setUp(): void
     {
         $this->objectManager = new ObjectManager($this);
         $this->locatorMock = $this->createMock(LocatorInterface::class);
-        $this->productMock = $this->createMock(Product::class);
-        $this->storeMock = $this->createMock(StoreInterface::class);
         
+        // Use createPartialMock for Product class to allow method configuration
+        // Note: getId/setId are NOT mocked, allowing natural behavior via DataObject
+        $this->productMock = $this->createPartialMock(
+            Product::class,
+            [
+                'getCustomAttributesCodes',
+                'getStoreId',
+                'getResource',
+                'isLockedAttribute',
+                'getTypeId',
+                'getAttributeSetId',
+                'getOptions',
+                'getStore',
+                'getMediaAttributes'
+            ]
+        );
+        $this->productMock->method('getCustomAttributesCodes')->willReturn([]);
+        $this->productMock->method('getMediaAttributes')->willReturn([]);
+
+        $this->storeMock = $this->createPartialMock(Store::class, ['load', 'getConfig', 'getId']);
+        $this->storeMock->method('getId')->willReturn(1);
+
         $this->arrayManagerMock = $this->createMock(ArrayManager::class);
-        $this->arrayManagerMock->method('replace')->willReturnArgument(1);
-        $this->arrayManagerMock->method('get')->willReturnArgument(2);
-        $this->arrayManagerMock->method('set')->willReturnArgument(1);
-        $this->arrayManagerMock->method('remove')->willReturnArgument(1);
+
+        $this->arrayManagerMock->expects($this->any())
+            ->method('replace')
+            ->willReturnArgument(1);
+        $this->arrayManagerMock->expects($this->any())
+            ->method('get')
+            ->willReturnArgument(2);
+        $this->arrayManagerMock->expects($this->any())
+            ->method('set')
+            ->willReturnArgument(1);
+        $this->arrayManagerMock->expects($this->any())
+            ->method('remove')
+            ->willReturnArgument(1);
 
         $this->locatorMock->method('getProduct')->willReturn($this->productMock);
         $this->locatorMock->method('getStore')->willReturn($this->storeMock);
