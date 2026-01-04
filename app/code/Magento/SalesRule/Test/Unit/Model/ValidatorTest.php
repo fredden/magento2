@@ -722,10 +722,7 @@ class ValidatorTest extends TestCase
                 'getBaseSubtotal'
             ]
         );
-        $cartExtensionMock = $this->createPartialMockWithReflection(
-            CartExtensionInterface::class,
-            ['getShippingAssignments']
-        );
+        $cartExtensionMock = $this->createMock(CartExtensionInterface::class);
 
         $quoteMock->method('getStore')
             ->willReturn($storeMock);

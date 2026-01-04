@@ -16,12 +16,13 @@ use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Shipping\Model\Carrier\AbstractCarrierOnline;
 use Magento\Shipping\Model\Simplexml\Element;
 use Magento\Store\Model\Store;
-
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class AbstractCarrierOnlineTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * Test identification number of product
      *
@@ -83,11 +84,10 @@ class AbstractCarrierOnlineTest extends TestCase
         $product = $this->createMock(Product::class);
         $product->expects($this->any())->method('getId')->willReturn($this->productId);
 
-        $item = $this->getMockBuilder(\Magento\Quote\Model\Quote\Item::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getWeight'])
-            ->onlyMethods(['getProduct', 'getQty', '__wakeup', 'getStore'])
-            ->getMock();
+        $item = $this->createPartialMockWithReflection(
+            \Magento\Quote\Model\Quote\Item::class,
+            ['getWeight', 'getProduct', 'getQty', '__wakeup', 'getStore']
+        );
         $item->expects($this->any())->method('getProduct')->willReturn($product);
 
         $store = $this->createPartialMock(Store::class, ['getWebsiteId']);
