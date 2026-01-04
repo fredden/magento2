@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2013 Adobe
+ * Copyright 2014 Adobe
  * All Rights Reserved.
  */
 
@@ -196,7 +196,7 @@ class Factory
 
         // Check for special backend types
         $backendType = $options['backend'] ?? $this->_defaultBackend;
-        
+
         if ($this->isSymfonyL2Cache($backendType)) {
             // SymfonyL2Cache backend for L2 cache with Symfony
             $result = $this->createSymfonyL2Cache($options);
@@ -204,7 +204,7 @@ class Factory
             // Use Symfony cache - fully backward compatible, no Zend cache needed
             $result = $this->createSymfonyCache($options);
         }
-        
+
         $result = $this->_applyDecorators($result);
 
         // stop profiling
@@ -703,7 +703,7 @@ class Factory
     private function isSymfonyL2Cache(string $backendType): bool
     {
         $backendLower = strtolower($backendType);
-        
+
         // Check for symfony_l2 or l2_symfony or SymfonyL2Cache
         return in_array($backendLower, [
             'symfony_l2',
@@ -723,19 +723,19 @@ class Factory
     private function createSymfonyL2Cache(array $options): FrontendInterface
     {
         $backendOptions = $options['backend_options'] ?? [];
-        
+
         // Get remote backend configuration (L2 - persistent, shared)
         $remoteBackend = $backendOptions['remote_backend'] ?? 'redis';
         $remoteBackendOptions = $backendOptions['remote_backend_options'] ?? [];
-        
+
         // Get local backend configuration (L1 - fast, local)
         $localBackend = $backendOptions['local_backend'] ?? 'file';
         $localBackendOptions = $backendOptions['local_backend_options'] ?? [];
-        
+
         // Get common options
         $frontend = $this->_getFrontendOptions($options);
         $defaultLifetime = $frontend['lifetime'] ?? self::DEFAULT_LIFETIME;
-        
+
         Profiler::start('cache_symfony_l2_create', [
             'group' => 'cache',
             'operation' => 'cache:create_symfony_l2',
@@ -750,14 +750,14 @@ class Factory
                 'backend_options' => $remoteBackendOptions,
             ]);
             $remoteFrontend = $this->createSymfonyCache($remoteOptions);
-            
+
             // Create local backend (L1 - Symfony)
             $localOptions = array_merge($options, [
                 'backend' => $localBackend,
                 'backend_options' => $localBackendOptions,
             ]);
             $localFrontend = $this->createSymfonyCache($localOptions);
-            
+
             // Create SymfonyL2Cache backend
             $l2Backend = $this->_objectManager->create(
                 \Magento\Framework\Cache\Backend\SymfonyL2Cache::class,

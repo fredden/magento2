@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2013 Adobe
+ * Copyright 2015 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -58,7 +58,7 @@ class FactoryTest extends TestCase
             $lowLevelFrontend,
             'Created object must have Symfony LowLevelFrontend'
         );
-        
+
         $backend = $result->getBackend();
         $this->assertTrue(
             $backend instanceof BackendWrapper ||
