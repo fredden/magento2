@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Magento\Catalog\Test\Unit\Model\Product;
 
-use PHPUnit\Framework\Attributes\DataProvider;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Option;
 use Magento\Catalog\Model\Product\Option\Value;
