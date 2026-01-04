@@ -143,12 +143,24 @@ class PriceTest extends TestCase
         $simpleProduct->method('getCalculatedFinalPrice')->willReturn(null);
         
         // getFinalPrice() sets final price, then gets it back via getData('final_price')
-        $simpleProduct->expects($this->atLeastOnce())->method('setFinalPrice')->willReturnSelf();
-        $simpleProduct->method('getData')
-            ->willReturnMap([
-                ['final_price', $finalPrice],
-                ['price', $basePrice]
-            ]);
+        // Make the mock stateful so setFinalPrice() and getData() work together
+        $finalPriceValue = null;
+        $simpleProduct->method('setFinalPrice')->willReturnCallback(
+            function($price) use (&$finalPriceValue, $simpleProduct) {
+                $finalPriceValue = $price;
+                return $simpleProduct;
+            }
+        );
+        $simpleProduct->method('getData')->willReturnCallback(
+            function($key = null) use (&$finalPriceValue, $basePrice) {
+                if ($key === 'final_price') {
+                    return $finalPriceValue;
+                } elseif ($key === 'price') {
+                    return $basePrice;
+                }
+                return null;
+            }
+        );
         $simpleProduct->method('getCustomOption')->with('option_ids')->willReturn(false);
         
         // Verify event dispatch for simple product
