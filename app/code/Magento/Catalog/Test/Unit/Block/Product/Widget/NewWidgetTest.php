@@ -531,7 +531,10 @@ class NewWidgetTest extends TestCase
     {
         $pagerMock = $this->createPartialMockWithReflection(
             Pager::class,
-            ['setShowPerPage', 'setPageVarName', 'setLimit', 'setCollection', 'toHtml', 'setUseContainer', 'setShowAmounts', 'setTotalLimit']
+            [
+                'setShowPerPage', 'setPageVarName', 'setLimit', 'setCollection',
+                'toHtml', 'setUseContainer', 'setShowAmounts', 'setTotalLimit'
+            ]
         );
 
         $pagerMock->expects($this->once())

@@ -19,8 +19,8 @@ use Symfony\Component\Console\Tester\CommandTester;
 class TablesWhitelistGenerateCommandTest extends TestCase
 {
     // Exception Messages!
-    const CONFIG_EXCEPTION_MESSAGE = 'Configuration Exception Message';
-    const EXCEPTION_MESSAGE = 'General Exception Message';
+    private const CONFIG_EXCEPTION_MESSAGE = 'Configuration Exception Message';
+    private const EXCEPTION_MESSAGE = 'General Exception Message';
 
     /** @var WhitelistGenerator|MockObject $whitelistGenerator */
     private $whitelistGenerator;

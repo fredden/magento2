@@ -71,7 +71,7 @@ class BooleanTest extends TestCase
      * @param bool $isScopeGlobal
      * @param array $expectedJoinCondition
      * @param string $expectedOrder
-     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      * @return void
      * @covers \Magento\Eav\Model\Entity\Attribute\Source\Boolean::addValueSortToCollection
      */

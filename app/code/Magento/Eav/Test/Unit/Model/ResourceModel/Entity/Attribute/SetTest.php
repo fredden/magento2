@@ -124,7 +124,10 @@ class SetTest extends TestCase
         $this->typeMock = $this->createMock(Type::class);
         $this->objectMock = $this->createPartialMockWithReflection(
             AbstractModel::class,
-            ['getEntityTypeId', 'getAttributeSetId', 'beforeDelete', 'getId', 'isDeleted', 'afterDelete', 'afterDeleteCommit', '__wakeup']
+            [
+                'getEntityTypeId', 'getAttributeSetId', 'beforeDelete', 'getId',
+                'isDeleted', 'afterDelete', 'afterDeleteCommit', '__wakeup'
+            ]
         );
     }
 

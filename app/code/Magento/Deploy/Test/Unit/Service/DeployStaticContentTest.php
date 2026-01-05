@@ -70,19 +70,9 @@ class DeployStaticContentTest extends TestCase
     {
         $this->deployStrategyFactory = $this->createPartialMock(DeployStrategyFactory::class, ['create']);
         $this->queueFactory = $this->createPartialMock(QueueFactory::class, ['create']);
-        $this->logger = $this->createMock(
-            LoggerInterface::class,
-            [],
-            '',
-            false
-        );
+        $this->logger = $this->createMock(LoggerInterface::class);
         $this->objectManager = $this->createPartialMock(ObjectManagerInterface::class, ['create', 'get', 'configure']);
-        $this->versionStorage = $this->createMock(
-            StorageInterface::class,
-            ['save'],
-            '',
-            false
-        );
+        $this->versionStorage = $this->createMock(StorageInterface::class);
 
         $this->service = new DeployStaticContent(
             $this->objectManager,

@@ -33,9 +33,9 @@ use Psr\Log\LoggerInterface;
  */
 class AbstractCollectionTest extends TestCase
 {
-    const ATTRIBUTE_CODE = 'any_attribute';
-    const ATTRIBUTE_ID_STRING = '15';
-    const ATTRIBUTE_ID_INT = 15;
+    private const ATTRIBUTE_CODE = 'any_attribute';
+    private const ATTRIBUTE_ID_STRING = '15';
+    private const ATTRIBUTE_ID_INT = 15;
 
     /**
      * @var AbstractCollectionStub|MockObject

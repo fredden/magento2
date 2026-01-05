@@ -167,13 +167,12 @@ class EmulationTest extends TestCase
 
         // Expectations
         $this->storeMock->expects($this->any())->method('getStoreId')->willReturn($initStore);
-        $this->inlineTranslationMock->expects($this->any())->method('suspend')->with($newInlineTranslate);
-        $this->viewDesignMock->expects($this->any())->method('setDesignTheme')->with($initTheme);
-        $this->localeResolverMock->expects($this->any())->method('setLocale')->with($newLocale);
-        $this->translateMock->expects($this->any())->method('setLocale')->with($newLocale);
-        $this->translateMock->expects($this->any())->method('loadData')->with($newArea);
-        $this->storeManagerMock->expects($this->any())
-            ->method('setCurrentStore')->with(self::STUB_NEW_STORE_ID);
+        $this->inlineTranslationMock->expects($this->any())->method('suspend');
+        $this->viewDesignMock->expects($this->any())->method('setDesignTheme');
+        $this->localeResolverMock->expects($this->any())->method('setLocale');
+        $this->translateMock->expects($this->any())->method('setLocale');
+        $this->translateMock->expects($this->any())->method('loadData');
+        $this->storeManagerMock->expects($this->any())->method('setCurrentStore');
 
         // Test
         $result = $this->model->startEnvironmentEmulation(

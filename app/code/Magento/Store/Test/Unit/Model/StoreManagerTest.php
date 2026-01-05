@@ -157,7 +157,8 @@ class StoreManagerTest extends TestCase
         $this->assertEquals($expectedStoresFinal, $this->model->getStores($withDefault, $codeKey));
     }
 
-    protected function getMockForStoreInterfaceClass($idReturn, $codeReturn) {
+    protected function getMockForStoreInterfaceClass($idReturn, $codeReturn)
+    {
         $storeMock = $this->createMock(StoreInterface::class);
         $storeMock->expects($this->any())->method('getId')->willReturn($idReturn);
         $storeMock->expects($this->any())->method('getCode')->willReturn($codeReturn);
@@ -172,7 +173,7 @@ class StoreManagerTest extends TestCase
         $defaultStoreMock = static fn (self $testCase) =>
             $testCase->getMockForStoreInterfaceClass(0, 'default');
         $storeMock = static fn (self $testCase) =>
-            $testCase->getMockForStoreInterfaceClass(1, 'first_store');;
+            $testCase->getMockForStoreInterfaceClass(1, 'first_store');
 
         return [
             'withoutDefaultAndId' => [

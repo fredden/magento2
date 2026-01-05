@@ -212,6 +212,7 @@ class ConfigTest extends TestCase
      * @param int $cachedValue
      * @param int $unserializeCalls
      * @return void
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     #[DataProvider('getAttributeCacheDataProvider')]
     public function testGetAttributes($cacheEnabled, $loadCalls, $cachedValue, $unserializeCalls)

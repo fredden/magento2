@@ -9,7 +9,6 @@ namespace Magento\Theme\Test\Unit\Model\View;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\State;
-use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\View\Design\Theme\FlyweightFactory;
 use Magento\Framework\View\Design\ThemeInterface;
@@ -128,12 +127,13 @@ class DesignTest extends TestCase
      * @test
      * @param bool $storeMode
      * @param string $scope
-     * */
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     #[DataProvider('designThemeDataProvider')]
     public function testSetDesignTheme($storeMode, $scope)
     {
         $area = 'adminhtml';
-        $theme = $this->getMockBuilder(ThemeInterface::class)
+        $theme = $this->getMockBuilder(className: ThemeInterface::class)
             ->getMock();
 
         $this->assertInstanceOf(get_class($this->model), $this->model->setDesignTheme($theme, $area));

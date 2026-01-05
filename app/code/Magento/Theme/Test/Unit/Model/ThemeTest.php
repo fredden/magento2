@@ -124,7 +124,6 @@ class ThemeTest extends TestCase
         );
         $this->getServicesForObjMap();
         $this->_model = $objectManagerHelper->getObject(Theme::class, $arguments);
-
     }
 
     /**
@@ -135,10 +134,10 @@ class ThemeTest extends TestCase
     {
         $value = $this->resourceCollection;
         $objectManagerMock = $this->createMock(ObjectManagerInterface::class);
-        $objectManagerMock->method('create')->willReturnCallback(function () use ($value){
+        $objectManagerMock->method('create')->willReturnCallback(function () use ($value) {
             return $value;
         });
-        $objectManagerMock->method('get')->willReturnCallback(function () use ($value){
+        $objectManagerMock->method('get')->willReturnCallback(function () use ($value) {
             return $value;
         });
 
@@ -560,7 +559,8 @@ class ThemeTest extends TestCase
         $this->assertEquals($expected, $this->_model->toArray());
     }
 
-    protected function getMockForParentTheme() {
+    protected function getMockForParentTheme()
+    {
         $parentTheme = $this->createMock(Theme::class);
         $parentTheme->expects($this->once())
             ->method('toArray')
@@ -568,7 +568,8 @@ class ThemeTest extends TestCase
         return $parentTheme;
     }
 
-    protected function getMockForChildTheme() {
+    protected function getMockForChildTheme()
+    {
         $parentTheme = $this->createMock(Theme::class);
         $childTheme = clone $parentTheme;
         $childTheme->expects($this->exactly(2))

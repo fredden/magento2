@@ -19,12 +19,12 @@ use PHPUnit\Framework\TestCase;
 class UpgradeInsecureTest extends TestCase
 {
     /** Content-Security-Policy Header name */
-    const HEADER_NAME = 'Content-Security-Policy';
+    private const HEADER_NAME = 'Content-Security-Policy';
 
     /**
      * Content-Security-Policy header value
      */
-    const HEADER_VALUE = 'upgrade-insecure-requests';
+    private const HEADER_VALUE = 'upgrade-insecure-requests';
 
     /**
      * @var UpgradeInsecure

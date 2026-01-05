@@ -948,14 +948,8 @@ class AbstractGroupTest extends TestCase
             ->willReturn($baseCurrency);
 
         $elementMock = $this->createPartialMockWithReflection(
-
-
             AbstractElement::class,
-
-
             ['getValue']
-
-
         );
         $elementMock->expects($this->once())
             ->method('getValue')

@@ -28,6 +28,7 @@ class RendererTest extends TestCase
      * Init mocks for tests
      *
      * @SuppressWarnings(PHPMD.UnusedLocalVariable)
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     protected function setUp(): void
     {

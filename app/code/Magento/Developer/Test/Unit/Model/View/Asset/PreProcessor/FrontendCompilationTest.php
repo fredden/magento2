@@ -23,17 +23,17 @@ use PHPUnit\Framework\TestCase;
  */
 class FrontendCompilationTest extends TestCase
 {
-    const AREA = 'test-area';
+    private const AREA = 'test-area';
 
-    const THEME = 'test-theme';
+    private const THEME = 'test-theme';
 
-    const LOCALE = 'test-locale';
+    private const LOCALE = 'test-locale';
 
-    const FILE_PATH = 'test-file';
+    private const FILE_PATH = 'test-file';
 
-    const MODULE = 'test-module';
+    private const MODULE = 'test-module';
 
-    const NEW_CONTENT = 'test-new-content';
+    private const NEW_CONTENT = 'test-new-content';
 
     /**
      * @var LockerProcessInterface|MockObject
@@ -74,7 +74,7 @@ class FrontendCompilationTest extends TestCase
     {
         $this->lockerProcessMock->expects(self::once())
             ->method('lockProcess')
-            ->with(self::isString());
+            ->with($this->callback('is_string'));
         $this->lockerProcessMock->expects(self::once())
             ->method('unlockProcess');
 
@@ -133,7 +133,7 @@ class FrontendCompilationTest extends TestCase
 
         $this->lockerProcessMock->expects(self::once())
             ->method('lockProcess')
-            ->with(self::isString());
+            ->with($this->callback('is_string'));
         $this->lockerProcessMock->expects(self::once())
             ->method('unlockProcess');
 

@@ -213,7 +213,7 @@ class DataTest extends TestCase
     public function testIsValidAttributesFromCollection(): void
     {
         /** @var AbstractEntity $resource */
-        $resource = $this->createMock(AbstractEntity::class, [], '', false);
+        $resource = $this->createMock(AbstractEntity::class);
         $attribute = $this->_getAttributeMock(
             [
                 'attribute_code' => 'attribute',

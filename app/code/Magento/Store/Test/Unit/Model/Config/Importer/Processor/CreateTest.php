@@ -309,7 +309,7 @@ class CreateTest extends TestCase
 
         $this->groupMock->expects($this->exactly(2))
             ->method('setData')
-            ->willReturnCallback(function ($arg1)  {
+            ->willReturnCallback(function ($arg1) {
                 if ($arg1 == $this->equalTo($this->trimmedGroup[0])) {
                     return $this;
                 } elseif ($arg1 == $this->equalTo($this->trimmedGroup[1])) {
@@ -338,7 +338,7 @@ class CreateTest extends TestCase
 
         $this->abstractDbMock->expects($this->any())
             ->method('load')
-            ->willReturnCallback(function ($arg1, $arg2, $arg3)  {
+            ->willReturnCallback(function ($arg1, $arg2, $arg3) {
                 if ($arg1 == $this->websiteMock && $arg2 == 'base' && $arg3 == 'code') {
                     return $this;
                 } elseif ($arg1 == $this->storeMock && $arg2 == 'default' && $arg3 == 'code') {
@@ -381,7 +381,7 @@ class CreateTest extends TestCase
 
         $this->abstractDbMock->expects($this->exactly(2))
             ->method('load')
-            ->willReturnCallback(function ($arg1, $arg2, $arg3)  {
+            ->willReturnCallback(function ($arg1, $arg2, $arg3) {
                 if ($arg1 == $this->groupMock && $arg2 == 'default' && $arg3 == 'code') {
                     return $this;
                 } elseif ($arg1 == $this->websiteMock && $arg2 == 'base' && $arg3 == 'code') {

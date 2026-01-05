@@ -62,19 +62,9 @@ class QueueTest extends TestCase
     protected function setUp(): void
     {
         $this->appState = $this->createMock(AppState::class);
-        $this->localeResolver = $this->createMock(
-            LocaleResolver::class,
-            ['setLocale'],
-            '',
-            false
-        );
+        $this->localeResolver = $this->createMock(LocaleResolver::class);
         $this->resourceConnection = $this->createMock(ResourceConnection::class);
-        $this->logger = $this->createMock(
-            LoggerInterface::class,
-            ['notice', 'info'],
-            '',
-            false
-        );
+        $this->logger = $this->createMock(LoggerInterface::class);
         $this->deployPackageService = $this->createPartialMock(DeployPackage::class, ['deploy']);
 
         $this->queue = new Queue(

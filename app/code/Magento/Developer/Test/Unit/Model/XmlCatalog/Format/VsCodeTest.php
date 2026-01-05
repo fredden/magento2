@@ -90,6 +90,7 @@ class VsCodeTest extends TestCase
      * @param array $dictionary
      *
      * @return void
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     #[DataProvider('dictionaryDataProvider')]
     public function testGenerateNewValidCatalog($content, $dictionary, $invalidContent = null): void
@@ -123,6 +124,7 @@ class VsCodeTest extends TestCase
      * @param array $dictionary
      *
      * @return void
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     #[DataProvider('dictionaryDataProvider')]
     public function testGenerateExistingValidCatalog($content, $dictionary, $invalidContent = null): void
@@ -158,8 +160,10 @@ class VsCodeTest extends TestCase
      *
      * @param string $content
      * @param array $dictionary
+     * @param string|null $invalidContent
      *
      * @return void
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     #[DataProvider('dictionaryDataProvider')]
     public function testGenerateExistingEmptyValidCatalog($content, $dictionary, $invalidContent = null): void
@@ -195,11 +199,12 @@ class VsCodeTest extends TestCase
      *
      * @param string $content
      * @param array $dictionary
+     * @param string $invalidContent
      *
      * @return void
      */
     #[DataProvider('dictionaryDataProvider')]
-    public function testGenerateExistingInvalidValidCatalog($content, $dictionary, $invalidContent): void
+    public function testGenerateExistingInvalidValidCatalog($content, $dictionary, $invalidContent = null): void
     {
         $configFile = 'test';
 

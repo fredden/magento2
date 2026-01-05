@@ -22,7 +22,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  */
 class JsFooterPluginTest extends TestCase
 {
-    const STUB_XML_PATH_DEV_MOVE_JS_TO_BOTTOM = 'dev/js/move_script_to_bottom';
+    private const STUB_XML_PATH_DEV_MOVE_JS_TO_BOTTOM = 'dev/js/move_script_to_bottom';
 
     /** @var JsFooterPlugin */
     private $plugin;

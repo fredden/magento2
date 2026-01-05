@@ -84,14 +84,9 @@ class CollectionTest extends TestCase
         $this->coreResourceMock = $this->createMock(ResourceConnection::class);
         $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
         $this->connectionMock = $this->createMock(Mysql::class);
-        $this->resourceMock = $this->createMock(
+        $this->resourceMock = $this->createPartialMock(
             AbstractDb::class,
-            [],
-            '',
-            false,
-            true,
-            true,
-            ['__wakeup', 'getConnection', 'getMainTable', 'getTable']
+            ['__wakeup', 'getConnection', 'getMainTable', 'getTable', '_construct']
         );
         $this->selectMock = $this->createMock(Select::class);
 

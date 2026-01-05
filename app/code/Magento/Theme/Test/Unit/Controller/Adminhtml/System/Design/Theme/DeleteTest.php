@@ -135,7 +135,10 @@ class DeleteTest extends TestCase
         $themeId = 1;
         $theme = $this->createPartialMockWithReflection(
             ThemeInterface::class,
-            ['getArea', 'getThemePath', 'getFullPath', 'getParentTheme', 'getCode', 'isPhysical', 'getInheritedThemes', 'getId', 'load', 'isVirtual', 'delete']
+            [
+                'getArea', 'getThemePath', 'getFullPath', 'getParentTheme', 'getCode', 'isPhysical',
+                'getInheritedThemes', 'getId', 'load', 'isVirtual', 'delete'
+            ]
         );
         $this->request->expects($this->any())
             ->method('getParam')
@@ -204,7 +207,10 @@ class DeleteTest extends TestCase
         $themeId = 1;
         $theme = $this->createPartialMockWithReflection(
             ThemeInterface::class,
-            ['getArea', 'getThemePath', 'getFullPath', 'getParentTheme', 'getCode', 'isPhysical', 'getInheritedThemes', 'getId', 'load', 'isVirtual']
+            [
+                'getArea', 'getThemePath', 'getFullPath', 'getParentTheme', 'getCode', 'isPhysical',
+                'getInheritedThemes', 'getId', 'load', 'isVirtual'
+            ]
         );
         $this->request->expects($this->any())
             ->method('getParam')

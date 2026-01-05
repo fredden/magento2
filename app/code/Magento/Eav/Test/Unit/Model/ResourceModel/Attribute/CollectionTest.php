@@ -119,14 +119,9 @@ class CollectionTest extends TestCase
 
         $this->select = new Select($this->connectionMock, $this->selectRenderer);
 
-        $this->resourceMock = $this->createMock(
+        $this->resourceMock = $this->createPartialMock(
             AbstractDb::class,
-            [],
-            '',
-            false,
-            true,
-            true,
-            ['__wakeup', 'getConnection', 'getMainTable', 'getTable']
+            ['__wakeup', 'getConnection', 'getMainTable', 'getTable', '_construct']
         );
 
         $this->connectionMock->expects($this->any())->method('select')->willReturn($this->select);

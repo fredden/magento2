@@ -69,14 +69,9 @@ class TypeTest extends TestCase
         $this->attrSetFactoryMock = $this->createMock(SetFactory::class);
         $this->storeFactoryMock = $this->createPartialMock(StoreFactory::class, ['create']);
         $this->universalFactoryMock = $this->createMock(UniversalFactory::class);
-        $this->resourceMock = $this->createMock(
+        $this->resourceMock = $this->createPartialMock(
             AbstractDb::class,
-            [],
-            '',
-            false,
-            false,
-            true,
-            ['beginTransaction', 'rollBack', 'commit', 'getIdFieldName', '__wakeup']
+            ['beginTransaction', 'rollBack', 'commit', 'getIdFieldName', '__wakeup', '_construct']
         );
 
         $this->model = new Type(
