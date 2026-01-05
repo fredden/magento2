@@ -6,13 +6,14 @@
 
 namespace Magento\Setup\Model;
 
+use Magento\Framework\App\DeploymentConfig;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\State;
+use Magento\Framework\Config\ConfigOptionsListConstants;
 use Magento\Framework\Config\Data\ConfigData;
 use Magento\Framework\Config\Data\ConfigDataFactory;
 use Magento\Framework\Config\File\ConfigFilePool;
-use Magento\Framework\App\DeploymentConfig;
-use Magento\Framework\Config\ConfigOptionsListConstants;
-use Magento\Framework\App\State;
+use Magento\Framework\DB\Helper\InitStatementsCleanup;
 use Magento\Framework\Math\Random;
 use Magento\Setup\Model\ConfigOptionsList\DriverOptions;
 
@@ -69,6 +70,11 @@ class ConfigGenerator
     private $driverOptions;
 
     /**
+     * @var InitStatementsCleanup
+     */
+    private $initStatementsCleanup;
+
+    /**
      * Constructor
      *
      * @param Random $random Deprecated since 100.2.0
@@ -76,19 +82,23 @@ class ConfigGenerator
      * @param ConfigDataFactory|null $configDataFactory
      * @param CryptKeyGeneratorInterface|null $cryptKeyGenerator
      * @param DriverOptions|null $driverOptions
+     * @param InitStatementsCleanup|null $initStatementsCleanup
      */
     public function __construct(
         Random $random,
         DeploymentConfig $deploymentConfig,
         ?ConfigDataFactory $configDataFactory = null,
         ?CryptKeyGeneratorInterface $cryptKeyGenerator = null,
-        ?DriverOptions $driverOptions = null
+        ?DriverOptions $driverOptions = null,
+        ?InitStatementsCleanup $initStatementsCleanup = null
     ) {
         $this->random = $random;
         $this->deploymentConfig = $deploymentConfig;
         $this->configDataFactory = $configDataFactory ?? ObjectManager::getInstance()->get(ConfigDataFactory::class);
         $this->cryptKeyGenerator = $cryptKeyGenerator ?? ObjectManager::getInstance()->get(CryptKeyGenerator::class);
         $this->driverOptions = $driverOptions ?? ObjectManager::getInstance()->get(DriverOptions::class);
+        $this->initStatementsCleanup = $initStatementsCleanup
+            ?? ObjectManager::getInstance()->get(InitStatementsCleanup::class);
     }
 
     /**
@@ -180,7 +190,18 @@ class ConfigGenerator
 
         foreach ($optional as $key) {
             if (isset($data[$key])) {
-                $configData->set($dbConnectionPrefix . self::$paramMap[$key], $data[$key]);
+                $value = $data[$key];
+                
+                // Clean up deprecated 'SET NAMES utf8;' from initStatements
+                if ($key === ConfigOptionsListConstants::INPUT_KEY_DB_INIT_STATEMENTS && is_string($value)) {
+                    $value = $this->initStatementsCleanup->removeSetNamesUtf8($value);
+                    // If cleanup returns null, don't set the initStatements key
+                    if ($value === null) {
+                        continue;
+                    }
+                }
+                
+                $configData->set($dbConnectionPrefix . self::$paramMap[$key], $value);
             }
         }
 
