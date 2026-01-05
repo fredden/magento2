@@ -151,7 +151,6 @@ class EmulationTest extends TestCase
         $initLocale = 'initial locale code';
         $newInlineTranslate = false;
         $newLocale = 'new locale code';
-        $newArea = Area::AREA_FRONTEND;
 
         // Stubs
         $this->inlineTranslationMock->expects($this->any())->method('isEnabled')->willReturn($inlineTranslate);
