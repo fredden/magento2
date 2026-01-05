@@ -28,6 +28,9 @@
             </updateData>
             <!--END Create order via API-->
         </before>
+        <after>
+            <deleteData createDataKey="createCategory" stepKey="deleteCategory"/>
+        </after>
 
         <!--Prerequisites-->
         <!--Create store view to ensure multiple store views-->
