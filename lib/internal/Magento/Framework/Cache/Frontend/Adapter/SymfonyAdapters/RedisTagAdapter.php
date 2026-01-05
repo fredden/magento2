@@ -221,7 +221,6 @@ LUA;
     private function extractRedisClient(
         CacheItemPoolInterface $cachePool
     ): \Redis|\RedisCluster|PredisClient|OptimizedPredisClient {
-        // Unwrap TagAwareAdapter if present
         $adapter = $cachePool;
         if ($adapter instanceof TagAwareAdapter) {
             $reflection = new \ReflectionClass($adapter);
@@ -338,7 +337,6 @@ LUA;
             return is_array($ids) ? $ids : [];
         }
 
-        // CRITICAL OPTIMIZATION: Chunk SUNION for large tag sets
         // Matches Zend's implementation to prevent Redis slowdowns
         // @see vendor/colinmollenhour/cache-backend-redis/Cm/Cache/Backend/Redis.php line 777-778
         if (count($tags) > self::SUNION_CHUNK_SIZE) {
@@ -350,20 +348,14 @@ LUA;
                 $chunkIds = $this->redis->sUnion($tagKeys);
                 $chunkIds = is_array($chunkIds) ? $chunkIds : [];
 
-                // Merge with previous chunks
                 // phpcs:ignore Magento2.Performance.ForeachArrayMerge
                 $allIds = array_merge($allIds, $chunkIds);
             }
 
-            // Remove duplicates across chunks (SUNION returns unique within chunk only)
             return array_unique($allIds);
         }
 
-        // Small tag count - use single SUNION
         $tagKeys = array_map([$this, 'getTagKey'], $tags);
-
-        // Redis SUNION returns IDs present in ANY set
-        // Note: SUNION already returns unique values, no need for array_unique()
         $ids = $this->redis->sUnion($tagKeys);
 
         return is_array($ids) ? $ids : [];
@@ -382,9 +374,6 @@ LUA;
             return is_array($allIds) ? $allIds : [];
         }
 
-        // OPTIMIZATION: Use Redis SDIFF (Set Difference) command
-        // This is much more efficient than doing array_diff in PHP
-        // Matches Zend: sDiff(SET_IDS, tag1, tag2, ...)
         $tagKeys = array_map([$this, 'getTagKey'], $tags);
 
         // Prepend the all_ids set as first argument
@@ -409,7 +398,6 @@ LUA;
             return true;
         }
 
-        // CRITICAL OPTIMIZATION: Chunk deletes for large ID sets
         // Matches Zend's implementation to prevent Redis blocking and memory issues
         // @see vendor/colinmollenhour/cache-backend-redis/Cm/Cache/Backend/Redis.php line 809-825
         if (count($ids) > self::REMOVE_CHUNK_SIZE) {
@@ -438,10 +426,8 @@ LUA;
             return $success;
         }
 
-        // Small/medium ID count - delete all at once
         $success = $this->cachePool->deleteItems($ids);
 
-        // OPTIMIZATION: Use pipeline for large batches (more than 10 IDs)
         if (count($ids) > 10) {
             $pipeline = $this->createPipeline();
 
@@ -453,7 +439,6 @@ LUA;
             $this->executePipeline($pipeline);
         } else {
             // For small batches, use single command (slightly faster)
-            // Use array_unshift to prepend the set key, then call_user_func_array
             array_unshift($ids, self::ALL_IDS_SET);
             call_user_func_array([$this->redis, 'sRem'], $ids);
         }
@@ -468,9 +453,6 @@ LUA;
 
     /**
      * Clean cache entries matching ANY of the given tags (OR logic)
-     *
-     * Uses Redis SUNION for efficient OR operation, exactly like Zend does.
-     * Supports both Lua (faster, atomic) and PHP (fallback) implementations.
      *
      * @param array $tags Tags to match (OR logic)
      * @return bool
@@ -520,13 +502,6 @@ LUA;
     /**
      * Clean cache entries matching ANY tags within a scope (OR + AND logic)
      *
-     * Logic: (tag1 OR tag2 OR ...) AND scopeTag
-     * This is what TagScope needs for efficient MATCHING_ANY_TAG cleaning.
-     *
-     * Uses SUNION for OR operation, then filters by scope tag.
-     * Much faster than TagScope's old loop approach (1 SUNION vs N SINTER calls).
-     * Supports both Lua (faster, atomic) and PHP (fallback) implementations.
-     *
      * @param array $tags Tags to match (OR logic)
      * @param string $scopeTag Scope tag to filter by (AND logic)
      * @return bool
@@ -557,7 +532,6 @@ LUA;
             // phpcs:enable Magento2.CodeAnalysis.EmptyBlock
         }
 
-        // PHP path (fallback)
         // Step 1: Get IDs matching ANY of the tags using SUNION (OR logic)
         $anyIds = $this->getIdsMatchingAnyTags($tags);
 
@@ -602,9 +576,6 @@ LUA;
             return;
         }
 
-        // OPTIMIZATION: Use Redis pipeline for all operations
-        // Reduces network round trips from N+1 to 1
-        // Matches Zend's approach: update forward indices + reverse index
         $pipeline = $this->createPipeline();
 
         // Add ID to all_ids set
@@ -635,8 +606,7 @@ LUA;
      */
     public function onRemove(string $id): void
     {
-        // We need to find which tags this ID was associated with
-        // Store a reverse index: cache:id:tags => SET{tag1, tag2}
+        // Find which tags this ID was associated with store a reverse index: cache:id:tags => SET{tag1, tag2}
         $idTagsKey = 'cache:id_tags:' . $this->namespace . $id;
         $tags = $this->redis->smembers($idTagsKey);
 
@@ -646,8 +616,7 @@ LUA;
             return;
         }
 
-        // OPTIMIZATION: Use Redis pipeline for all remove operations
-        // Reduces network round trips from N+2 to 1
+        // OPTIMIZATION: Use Redis pipeline for all remove operations, reduces network round trips from N+2 to 1
         $pipeline = $this->createPipeline();
 
         // Remove from all_ids set
@@ -701,8 +670,7 @@ LUA;
     }
 
     /**
-     * Store reverse index for efficient onRemove
-     * This should be called after onSave
+     * Store reverse index for efficient onRemove, This should be called after onSave
      *
      * @param string $id
      * @param array $tags
@@ -734,9 +702,6 @@ LUA;
 
     /**
      * Run garbage collection to clean expired items
-     *
-     * Uses Lua scripts if use_lua_on_gc is enabled for atomic server-side execution,
-     * otherwise returns 0 (no garbage collection)
      *
      * @param int $batchSize Number of keys to process per iteration
      * @return int Number of items cleaned
@@ -844,9 +809,6 @@ LUA;
 
     /**
      * Clean cache entries matching ANY tags within scope using Lua script
-     *
-     * Logic: (tag1 OR tag2 OR ...) AND scopeTag
-     * Atomic operation with scope filtering
      *
      * @param array $tags Tags to match (OR logic)
      * @param string $scopeTag Scope tag to filter by (AND logic)

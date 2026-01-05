@@ -68,7 +68,7 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
         // Redis backends
         'redis' => 'redis',
 
-        // Valkey backends (Redis fork, protocol-compatible)
+        // Valkey backends
         'valkey' => 'redis',
 
         // Memcached backends
@@ -110,6 +110,7 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
      *
      * Called by ObjectManager::_resetState() between HTTP requests in Application Server mode.
      * Clears connection pool to prevent stale connections and state pollution across requests.
+     *
      * @return void
      */
     public function _resetState(): void
@@ -150,7 +151,6 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
             };
         } catch (\Exception $e) {
             // Fallback to filesystem adapter if the requested adapter fails
-            // This handles cases where Redis/Memcached is not available
             $adapter = $this->createFilesystemAdapter($backendOptions, $namespace, $defaultLifetime);
         }
 
@@ -266,18 +266,14 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
             ? (int)$options['connect_retries']
             : self::REDIS_DEFAULT_CONNECT_RETRIES;
 
-        // Create connection key for pooling
         // For Predis with Ultra-Optimized client: use connection pooling like phpredis
         // The client's internal cache is cleared on writes and database switches,
         // so connection pooling is safe and provides better performance
         $usePhpRedis = extension_loaded('redis');
         $connectionKey = sprintf('redis:%s:%d:%d', $host, $port, $database);
 
-        // Check connection pool
         if (!isset($this->connectionPool[$connectionKey])) {
-            // Check if phpredis extension is available
             if ($usePhpRedis) {
-                // Use phpredis (native C extension - fastest)
                 $this->connectionPool[$connectionKey] = $this->createPhpRedisConnection(
                     $host,
                     $port,
@@ -291,7 +287,6 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
                     $connectRetries
                 );
             } elseif (class_exists(PredisClient::class)) {
-                // Fallback to Ultra-Optimized Predis (pure PHP, Symfony-compatible)
                 $this->connectionPool[$connectionKey] = $this->createOptimizedPredisConnection(
                     $host,
                     $port,
@@ -310,7 +305,6 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
         }
 
         // Set client name every time (even for pooled connections)
-        // This ensures persistent connections get named correctly
         if ($persistentId) {
             $this->setRedisClientName($this->connectionPool[$connectionKey], $persistentId);
         }
@@ -400,13 +394,6 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
     /**
      * Create ultra-optimized Predis connection (Symfony-compatible, maximum performance)
      *
-     * Features:
-     * - Connection persistence and pooling
-     * - Aggressive command result caching
-     * - Automatic pipeline batching
-     * - Full Symfony RedisAdapter compatibility
-     * - Target: Match phpredis performance as close as possible
-     *
      * @param string $host
      * @param int $port
      * @param string|null $password
@@ -460,7 +447,6 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
                 $connection->client('SETNAME', $clientName);
                 // phpcs:disable Magento2.CodeAnalysis.EmptyBlock
             } elseif ($connection instanceof \RedisCluster) {
-                // Intentional no-op: RedisCluster doesn't support CLIENT SETNAME
                 // phpcs:enable Magento2.CodeAnalysis.EmptyBlock
             } elseif ($connection instanceof PredisClient) {
                 // Predis
@@ -496,19 +482,13 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
             return null;
         }
 
-        // Create marshaller with igbinary enabled
-        // true = use igbinary_serialize/igbinary_unserialize
+        // Create marshaller with igbinary enabled, true = use igbinary_serialize/igbinary_unserialize
         // false = don't throw on serialization failure (graceful degradation)
         return new DefaultMarshaller(true, false);
     }
 
     /**
      * Create Memcached cache adapter
-     *
-     * Performance optimizations:
-     * - Connection pooling
-     * - Optimized server list building
-     * - Reduced array operations
      *
      * @param array $options
      * @param string $namespace
@@ -552,11 +532,6 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
     /**
      * Create Filesystem cache adapter
      *
-     * Performance optimizations:
-     * - Lazy directory creation
-     * - Cached directory path
-     * - Optimized path resolution
-     *
      * @param array $options
      * @param string $namespace
      * @param int|null $defaultLifetime
@@ -596,9 +571,6 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
     /**
      * Create Magento Database cache adapter
      *
-     * Uses Magento's existing Database.php backend (reuses cache/cache_tag tables)
-     * This leverages the 620-line Database.php that has all the logic with zend_db
-     *
      * @param array $options Backend options (unused - database config is in ResourceConnection)
      * @param string $namespace
      * @param int|null $defaultLifetime
@@ -611,7 +583,6 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
         ?int $defaultLifetime
     ): CacheItemPoolInterface {
         // Use Magento's existing Database backend (reuses cache/cache_tag tables)
-        // This leverages the 620-line Database.php that has all the logic
         return new MagentoDatabaseAdapter(
             $this->resource,
             $this->serializer,
