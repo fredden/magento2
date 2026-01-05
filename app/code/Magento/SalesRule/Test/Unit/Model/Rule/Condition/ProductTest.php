@@ -28,6 +28,7 @@ use Magento\Framework\Locale\FormatInterface;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Quote\Model\Quote\Item\AbstractItem;
+use Magento\Quote\Model\Quote\Item as QuoteItem;
 use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Rule\Model\Condition\Context;
 use Magento\SalesRule\Model\Rule\Condition\Product as SalesRuleProduct;
@@ -438,7 +439,7 @@ class ProductTest extends TestCase
         );
 
         $product = $this->createPartialMockWithReflection(
-            \Magento\Catalog\Model\Product::class,
+            CatalogProduct::class,
             ['getResource', 'hasData', 'getData', 'setQuoteItemQty', 'setQuoteItemPrice', 'setQuoteItemRowTotal']
         );
         $product->method('getResource')->willReturn($attr);
@@ -452,7 +453,7 @@ class ProductTest extends TestCase
         $product->method('setQuoteItemRowTotal')->willReturnSelf();
 
         $parentItem = $this->createPartialMockWithReflection(
-            \Magento\Quote\Model\Quote\Item::class,
+            QuoteItem::class,
             ['getQty', 'getPrice', 'getBaseRowTotal', 'getParentItem', 'getProduct']
         );
         $parentItem->method('getQty')->willReturn(1);
@@ -462,7 +463,7 @@ class ProductTest extends TestCase
         $parentItem->method('getProduct')->willReturn($product);
 
         $childItem = $this->createPartialMockWithReflection(
-            \Magento\Quote\Model\Quote\Item::class,
+            QuoteItem::class,
             ['getQty', 'getPrice', 'getBaseRowTotal', 'getParentItem', 'getProduct']
         );
         $childItem->method('getQty')->willReturn(1);
@@ -494,7 +495,7 @@ class ProductTest extends TestCase
         );
 
         $product = $this->createPartialMockWithReflection(
-            \Magento\Catalog\Model\Product::class,
+            CatalogProduct::class,
             ['getResource', 'hasData', 'getData', 'setQuoteItemQty', 'setQuoteItemPrice', 'setQuoteItemRowTotal']
         );
         $product->method('getResource')->willReturn($attr);
@@ -508,7 +509,7 @@ class ProductTest extends TestCase
         $product->method('setQuoteItemRowTotal')->willReturnSelf();
 
         $item = $this->createPartialMockWithReflection(
-            \Magento\Quote\Model\Quote\Item::class,
+            QuoteItem::class,
             ['getQty', 'getPrice', 'getBaseRowTotal', 'getParentItem', 'getProduct']
         );
         $item->method('getQty')->willReturn(1);
@@ -591,8 +592,15 @@ class ProductTest extends TestCase
         $resource->method('getAttribute')->with($attrCode)->willReturn($eavAttr);
 
         $product = $this->createPartialMockWithReflection(
-            \Magento\Catalog\Model\Product::class,
-            ['getResource', 'hasData', 'getData', 'setData', 'unsetData', 'setQuoteItemQty', 'setQuoteItemPrice', 'setQuoteItemRowTotal']
+            CatalogProduct::class,
+            ['getResource',
+            'hasData',
+            'getData',
+            'setData',
+            'unsetData',
+            'setQuoteItemQty',
+            'setQuoteItemPrice',
+            'setQuoteItemRowTotal']
         );
         $product->method('getResource')->willReturn($resource);
         $product->method('hasData')->with($attrCode)->willReturnOnConsecutiveCalls(false, true);
@@ -604,7 +612,7 @@ class ProductTest extends TestCase
         $product->method('setQuoteItemRowTotal')->willReturnSelf();
 
         $item = $this->createPartialMockWithReflection(
-            \Magento\Quote\Model\Quote\Item::class,
+            QuoteItem::class,
             ['getQty', 'getPrice', 'getBaseRowTotal', 'getParentItem', 'getProduct', 'getProductId']
         );
         $item->method('getQty')->willReturn(1);

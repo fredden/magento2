@@ -722,7 +722,7 @@ class ValidatorTest extends TestCase
                 'getBaseSubtotal'
             ]
         );
-        $cartExtensionMock = $this->createMock(CartExtensionInterface::class);
+        $cartExtensionMock = $this->createStub(CartExtensionInterface::class);
 
         $quoteMock->method('getStore')
             ->willReturn($storeMock);

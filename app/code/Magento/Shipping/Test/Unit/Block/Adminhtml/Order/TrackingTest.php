@@ -57,13 +57,11 @@ class TrackingTest extends TestCase
             ['free' => $carrier]
         );
 
-        // Create Tracking without calling parent constructor (bypasses ObjectManager)
         $model = $this->getMockBuilder(Tracking::class)
             ->disableOriginalConstructor()
             ->onlyMethods([])
             ->getMock();
 
-        // Inject dependencies via reflection
         $reflection = new \ReflectionClass(Tracking::class);
 
         $registryProperty = $reflection->getProperty('_coreRegistry');

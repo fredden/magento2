@@ -136,7 +136,7 @@ class FreeshippingTest extends TestCase
         $this->scopeConfigMock
             ->method('getValue')
             ->willReturnCallback(
-                function ($arg1,$arg2,$arg3) use ($minOrderAmount) {
+                function ($arg1, $arg2, $arg3) use ($minOrderAmount) {
                     if ($arg1 == 'carriers/freeshipping/free_shipping_subtotal' &&
                         $arg2 == ScopeInterface::SCOPE_STORE && $arg3 == null) {
                         return $minOrderAmount;

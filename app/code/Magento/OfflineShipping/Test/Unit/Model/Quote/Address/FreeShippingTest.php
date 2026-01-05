@@ -20,6 +20,8 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Test for Magento\OfflineShipping\Model\Quote\Address\FreeShipping class.
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
 class FreeShippingTest extends TestCase
 {
@@ -109,10 +111,10 @@ class FreeShippingTest extends TestCase
     public static function itemsDataProvider(): array
     {
         return [
-            'address_free' => [1, 0, 0, true],
-            'first_item_free' => [0, 1, 0, false],
-            'second_item_free' => [0, 0, 1, false],
-            'both_items_free' => [0, 1, 1, true],
+            ['addressFree' => 1, 'fItemFree' => 0, 'sItemFree' => 0, 'expected' => true],
+            ['addressFree' => 0, 'fItemFree' => 1, 'sItemFree' => 0, 'expected' => false],
+            ['addressFree' => 0, 'fItemFree' => 0, 'sItemFree' => 1, 'expected' => false],
+            ['addressFree' => 0, 'fItemFree' => 1, 'sItemFree' => 1, 'expected' => true],
         ];
     }
 
@@ -189,7 +191,13 @@ class FreeShippingTest extends TestCase
         /** @var Item|MockObject $item */
         $item = $this->createPartialMockWithReflection(
             Item::class,
-            ['getHasChildren', 'setQuote', 'setNoDiscount', 'setParentItemId', 'getAddress', 'setFreeShipping', 'getFreeShipping']
+            ['getHasChildren',
+            'setQuote',
+            'setNoDiscount',
+            'setParentItemId',
+            'getAddress',
+            'setFreeShipping',
+            'getFreeShipping']
         );
         $item->method('setQuote')->willReturnSelf();
         $item->method('setNoDiscount')->willReturnSelf();
@@ -199,7 +207,6 @@ class FreeShippingTest extends TestCase
         $item->method('getAddress')
             ->willReturn($address);
 
-        // Track free shipping state
         $freeShipping = 0;
         $item->method('setFreeShipping')->willReturnCallback(function ($value) use (&$freeShipping, $item) {
             $freeShipping = $value;

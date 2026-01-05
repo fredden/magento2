@@ -10,6 +10,7 @@ namespace Magento\Shipping\Test\Unit\Model\Carrier;
 use Magento\Catalog\Model\Product;
 use Magento\CatalogInventory\Model\Stock\Item;
 use Magento\CatalogInventory\Model\StockRegistry;
+use Magento\Quote\Model\Quote\Item as QuoteItem;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 use Magento\Framework\Xml\Security;
 use Magento\Quote\Model\Quote\Address\RateRequest;
@@ -85,7 +86,7 @@ class AbstractCarrierOnlineTest extends TestCase
         $product->expects($this->any())->method('getId')->willReturn($this->productId);
 
         $item = $this->createPartialMockWithReflection(
-            \Magento\Quote\Model\Quote\Item::class,
+            QuoteItem::class,
             ['getWeight', 'getProduct', 'getQty', '__wakeup', 'getStore']
         );
         $item->expects($this->any())->method('getProduct')->willReturn($product);

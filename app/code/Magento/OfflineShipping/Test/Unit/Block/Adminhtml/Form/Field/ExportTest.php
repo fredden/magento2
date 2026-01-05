@@ -39,13 +39,11 @@ class ExportTest extends TestCase
         $this->backendUrl = $this->createMock(UrlInterface::class);
         $this->backendUrl->expects($this->once())->method('getUrl')->with("*/*/exportTablerates", ['website' => 1]);
 
-        // Create Export without calling parent constructor (bypasses ObjectManager)
         $this->_object = $this->getMockBuilder(Export::class)
             ->disableOriginalConstructor()
             ->onlyMethods([])
             ->getMock();
 
-        // Inject backendUrl via reflection
         $reflection = new \ReflectionClass(Export::class);
         $backendUrlProperty = $reflection->getProperty('_backendUrl');
         $backendUrlProperty->setValue($this->_object, $this->backendUrl);

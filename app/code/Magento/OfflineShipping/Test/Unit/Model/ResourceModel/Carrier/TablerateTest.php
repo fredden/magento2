@@ -26,6 +26,7 @@ use Magento\OfflineShipping\Model\ResourceModel\Carrier\Tablerate\Import;
 use Magento\OfflineShipping\Model\ResourceModel\Carrier\Tablerate\RateQueryFactory;
 use Magento\Store\Api\Data\WebsiteInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\OfflineShipping\Model\Config\Backend\Tablerate as TablerateBackend;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -124,7 +125,7 @@ class TablerateTest extends TestCase
             'tmp_name' => 'some/path/to/file/import.csv'
         ];
         $object = $this->createPartialMockWithReflection(
-            \Magento\OfflineShipping\Model\Config\Backend\Tablerate::class,
+            TablerateBackend::class,
             ['getScopeId']
         );
 

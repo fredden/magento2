@@ -189,7 +189,7 @@ class CartFixedTest extends TestCase
         $this->cartFixedDiscountHelper->expects($this->any())
             ->method('applyDiscountOnPricesIncludedTax')
             ->willReturn(true);
-        $cartExtensionMock = $this->createMock(CartExtensionInterface::class);
+        $cartExtensionMock = $this->createStub(CartExtensionInterface::class);
         $this->quote->expects($this->any())->method('getCartFixedRules')->willReturn([]);
         $store = $this->createMock(Store::class);
         $this->priceCurrency

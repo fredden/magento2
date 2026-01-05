@@ -61,13 +61,11 @@ class GridTest extends TestCase
 
         $this->tablerateMock = $this->createMock(Tablerate::class);
 
-        // Create Grid without calling parent constructor (bypasses ObjectManager)
         $this->model = $this->getMockBuilder(Grid::class)
             ->disableOriginalConstructor()
             ->onlyMethods([])
             ->getMock();
 
-        // Inject dependencies via reflection
         $reflection = new \ReflectionClass(Grid::class);
 
         $storeManagerProperty = $reflection->getProperty('_storeManager');
