@@ -21,6 +21,7 @@ use Magento\Setup\Model\ConfigOptionsList\DriverOptions;
  * Creates deployment config data based on user input array
  *
  * This class introduced to break down {@see \Magento\Setup\Model\ConfigOptionsList::createConfig}
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class ConfigGenerator
 {
@@ -50,7 +51,8 @@ class ConfigGenerator
 
     /**
      * @var Random
-     * @deprecated 100.2.0
+     * @deprecated 100.2.0 CryptKeyGenerator should be used instead for generating encryption keys
+     * @see CryptKeyGeneratorInterface
      */
     protected $random;
 
@@ -151,7 +153,8 @@ class ConfigGenerator
      *
      * @param array $data
      * @return ConfigData|null
-     * @deprecated 2.2.0
+     * @deprecated 2.2.0 Definitions are no longer used and config generation is not required. Method returns null.
+     * @see This method is not replaced; definitions functionality was removed entirely.
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function createDefinitionsConfig(array $data)
