@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -88,11 +88,11 @@ class MagentoDatabaseAdapter implements AdapterInterface
         $isHit = false;
         $tagVersions = [];
         $expiry = null;
-        
+
         if ($serializedData !== false) {
             // Unserialize the data structure using Magento's serializer
             $unserialized = $this->serializer->unserialize($serializedData);
-            
+
             if ($unserialized !== false && is_array($unserialized)) {
                 // New format with tag_versions
                 if (isset($unserialized['data'])) {
@@ -273,18 +273,18 @@ class MagentoDatabaseAdapter implements AdapterInterface
 
         try {
             $reflection = new \ReflectionClass($item);
-            
+
             // Try newMetadata first (set by TagAwareAdapter during save)
             if ($reflection->hasProperty('newMetadata')) {
                 $newMetadataProperty = $reflection->getProperty('newMetadata');
                 $newMetadataProperty->setAccessible(true);
                 $newMetadata = $newMetadataProperty->getValue($item);
-                
+
                 if (isset($newMetadata[CacheItem::METADATA_TAGS]) && is_array($newMetadata[CacheItem::METADATA_TAGS])) {
                     return $newMetadata[CacheItem::METADATA_TAGS];
                 }
             }
-            
+
             // Fallback to regular metadata
             $metadata = $item->getMetadata();
             if (isset($metadata[CacheItem::METADATA_TAGS]) && is_array($metadata[CacheItem::METADATA_TAGS])) {
@@ -347,7 +347,7 @@ class MagentoDatabaseAdapter implements AdapterInterface
         if (!empty($tagVersions)) {
             $metadataProperty = $reflection->getProperty('metadata');
             $metadataProperty->setAccessible(true);
-            
+
             // Store tag versions exactly as provided (with actual version bytes)
             $metadata = [
                 \Symfony\Component\Cache\CacheItem::METADATA_TAGS => $tagVersions

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -9,7 +9,6 @@ namespace Magento\Framework\Cache\Frontend\Adapter;
 
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\Cache\Frontend\Adapter\OptimizedPredisClient;
 use Magento\Framework\Cache\Frontend\Adapter\Symfony\MagentoDatabaseAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\FilesystemTagAdapter;
 use Magento\Framework\Cache\Frontend\Adapter\SymfonyAdapters\GenericTagAdapter;
@@ -111,12 +110,6 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
      *
      * Called by ObjectManager::_resetState() between HTTP requests in Application Server mode.
      * Clears connection pool to prevent stale connections and state pollution across requests.
-     *
-     * CRITICAL: Without this, connection pooling causes:
-     * - Stale Redis/Memcached connections reused across requests
-     * - Corrupted cache state (e.g., "Undefined array key 'data'" in Initial.php)
-     * - GraphQL 500 errors under load (createEmptyCart, setBillingAddressOnCart, etc.)
-     *
      * @return void
      */
     public function _resetState(): void
@@ -126,11 +119,6 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
 
     /**
      * Create Symfony cache adapter based on backend type and options
-     *
-     * Performance optimizations:
-     * - Cached type mappings (no switch statement)
-     * - Connection pooling for Redis/Memcached
-     * - Early type resolution
      *
      * @param string $backendType
      * @param array $backendOptions
@@ -238,31 +226,6 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
     /**
      * Create Redis cache adapter with automatic fallback support
      *
-     * Connection Strategy:
-     * 1. Try phpredis extension (fastest - native C extension)
-     * 2. Fallback to Predis library (slower but no extension required)
-     * 3. Throw exception if neither available
-     *
-     * Performance optimizations:
-     * - Connection pooling (reuse existing connections)
-     * - Optimized DSN building
-     * - Persistent connections support (phpredis only)
-     * - igbinary serializer support (70% faster, 58% smaller)
-     * - Connection tuning (timeout, read_timeout, retry_interval, connect_retries)
-     *
-     * Supported options:
-     * - server/host: Redis server hostname (default: 127.0.0.1)
-     * - port: Redis port (default: 6379)
-     * - password: Redis password (optional)
-     * - database: Redis database number (default: 0)
-     * - persistent: Enable persistent connections (default: true, phpredis only)
-     * - persistent_id: Persistent connection identifier (optional, phpredis only)
-     * - serializer: Serializer to use (igbinary, php, default: php)
-     * - timeout: Connection timeout in seconds (optional, e.g. 2.5)
-     * - read_timeout: Read timeout in seconds (optional, e.g. 2.0)
-     * - retry_interval: Retry interval in milliseconds (optional, e.g. 100, phpredis only)
-     * - connect_retries: Number of connection retries (optional, e.g. 3, phpredis only)
-     *
      * @param array $options Connection and configuration options
      * @param string $namespace Cache key namespace/prefix
      * @param int|null $defaultLifetime Default cache lifetime in seconds
@@ -282,7 +245,7 @@ class SymfonyAdapterProvider implements ResetAfterRequestInterface
         $port = (int)($options['port'] ?? 6379);
         $password = $options['password'] ?? null;
         $database = (int)($options['database'] ?? 0);
-        
+
         // OPTIMIZATION: Auto-enable igbinary if available (2-3x faster serialization)
         $serializer = $options['serializer'] ?? null;
         if ($serializer === null && extension_loaded('igbinary')) {

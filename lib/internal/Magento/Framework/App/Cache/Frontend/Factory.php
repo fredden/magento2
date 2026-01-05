@@ -6,13 +6,6 @@
 
 /**
  * Factory that creates cache frontend instances based on options
- *
- * Performance optimizations:
- * - Cached directory paths
- * - Cached extension checks
- * - SymfonyAdapterProvider instance caching
- * - Optimized backend type resolution
- * - Early returns where possible
  */
 namespace Magento\Framework\App\Cache\Frontend;
 
@@ -153,11 +146,6 @@ class Factory
     /**
      * Return newly created cache frontend instance
      *
-     * Performance optimizations:
-     * - Cached directory operations
-     * - Cached ID prefix generation
-     * - Early option resolution
-     *
      * @param array $options
      * @return FrontendInterface
      */
@@ -294,11 +282,6 @@ class Factory
 
     /**
      * Get cache backend options. Result array contain backend type ('type' key) and backend options ('options')
-     *
-     * Performance optimizations:
-     * - Cached extension checks
-     * - Cached directory operations
-     * - Early returns
      *
      * @param  array $cacheOptions
      * @return array
@@ -521,12 +504,6 @@ class Factory
      *
      * This method creates a Symfony-based cache adapter that implements FrontendInterface.
      * It provides PSR-6 compliant caching while maintaining full backward compatibility.
-     *
-     * Performance optimizations:
-     * - Cached SymfonyAdapterProvider instance
-     * - Cached directory operations
-     * - Cached ID prefix
-     * - Optimized option resolution
      *
      * @param array $options
      * @return FrontendInterface

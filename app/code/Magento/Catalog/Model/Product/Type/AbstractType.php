@@ -228,8 +228,6 @@ abstract class AbstractType
      */
     private function getCache()
     {
-        // Don't try to lazy-load cache - only use it if it was injected
-        // This avoids issues where FrontendInterface can't be instantiated
         return $this->cache;
     }
 

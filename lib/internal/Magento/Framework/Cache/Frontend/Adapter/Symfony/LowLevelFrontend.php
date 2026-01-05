@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -112,7 +112,7 @@ class LowLevelFrontend
             // Helper will add namespace prefix internally
             return $this->adapter->getIdsMatchingTags($tags);
         }
-        
+
         // For GenericAdapterHelper, return empty array
         // (it doesn't support native ID lookup by tags)
         return [];

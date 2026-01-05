@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -14,13 +14,6 @@ use Magento\Framework\Cache\FrontendInterface;
  *
  * Compresses cache data before storing to reduce memory usage and network bandwidth.
  * Compatible with legacy Zend cache compression format for seamless migration.
- *
- * Supports multiple compression algorithms:
- * - gzip (default, best compatibility)
- * - snappy (fastest, requires php-snappy extension)
- * - lzf (fast, requires php-lzf extension)
- * - lz4 (balanced, requires php-lz4 extension)
- * - zstd (best compression, requires php-zstd extension)
  */
 class Compression extends Bare
 {
@@ -72,7 +65,7 @@ class Compression extends Bare
         // Only compress string data that exceeds threshold
         if (is_string($data) && strlen($data) > $this->threshold) {
             $compressed = $this->compressData($data);
-            
+
             // Only use compressed version if it's actually smaller
             if ($compressed !== false && strlen($compressed) < strlen($data)) {
                 $data = self::COMPRESSION_PREFIX . $compressed;
@@ -125,9 +118,6 @@ class Compression extends Bare
 
     /**
      * Decompress data by auto-detecting compression method
-     *
-     * Auto-detection is necessary for backward compatibility with Zend cache
-     * and to support multiple compression algorithms transparently.
      *
      * @param string $data
      * @return string|false Decompressed data or false on failure

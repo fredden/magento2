@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -38,7 +38,7 @@ class SymfonyFileAdapterTest extends TestCase
         parent::setUp();
 
         $this->cacheFactory = Bootstrap::getObjectManager()->get(Factory::class);
-        
+
         // Create Symfony cache adapter using Factory
         $this->cache = $this->cacheFactory->create([
             'frontend' => [
@@ -100,10 +100,10 @@ class SymfonyFileAdapterTest extends TestCase
         // Verify data is tagged by testing tag-based clean
         $id2 = 'test_tags_2_' . uniqid();
         $this->cache->save('other_data', $id2, ['other_tag']);
-        
+
         // Clean by one of the tags
         $this->cache->clean(CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, ['tag1']);
-        
+
         // Original item should be removed
         $this->assertFalse($this->cache->load($id), 'Item with tag1 should be removed');
         // Other item should still exist
@@ -124,7 +124,7 @@ class SymfonyFileAdapterTest extends TestCase
 
         $loadResult = $this->cache->load($id);
         $this->assertEquals($data, $loadResult, 'Data should be loadable within lifetime');
-        
+
         // Verify test() returns a timestamp (indicates the item exists and has expiry)
         $testResult = $this->cache->test($id);
         $this->assertIsInt($testResult, 'test() should return int timestamp for item with lifetime');
@@ -249,7 +249,7 @@ class SymfonyFileAdapterTest extends TestCase
 
         // Only id1 should be removed (has both tags)
         $this->assertFalse($this->cache->load($id1), 'Item with both tags should be removed');
-        
+
         // id2 and id3 should still exist (have only one tag each)
         $this->assertEquals('data2', $this->cache->load($id2), 'Item with only tagA should remain');
         $this->assertEquals('data3', $this->cache->load($id3), 'Item with only tagB should remain');
@@ -276,7 +276,7 @@ class SymfonyFileAdapterTest extends TestCase
         // id1 and id2 should be removed (have tagA or tagB)
         $this->assertFalse($this->cache->load($id1), 'Item with tagA should be removed');
         $this->assertFalse($this->cache->load($id2), 'Item with tagB should be removed');
-        
+
         // id3 should still exist (has tagC)
         $this->assertEquals('data3', $this->cache->load($id3), 'Item with tagC should remain');
     }
@@ -302,7 +302,7 @@ class SymfonyFileAdapterTest extends TestCase
 
         // id1 should still exist (has both tagA and tagB)
         $this->assertEquals('data1', $this->cache->load($id1), 'Item with both tags should remain');
-        
+
         // id2 and id3 should be removed (don't have both tags)
         // Note: NOT_MATCHING_TAG behavior may vary by adapter implementation
         $this->assertTrue(
@@ -332,11 +332,11 @@ class SymfonyFileAdapterTest extends TestCase
 
         // Clean items with tagY (ANY mode)
         $this->cache->clean(CacheConstants::CLEANING_MODE_MATCHING_ANY_TAG, ['tagY']);
-        
+
         // id1 and id2 should be removed (have tagY)
         $this->assertFalse($this->cache->load($id1), 'Item 1 with tagY should be removed');
         $this->assertFalse($this->cache->load($id2), 'Item 2 with tagY should be removed');
-        
+
         // id3 should remain (doesn't have tagY)
         $this->assertEquals('data3', $this->cache->load($id3), 'Item 3 without tagY should remain');
     }
@@ -347,7 +347,7 @@ class SymfonyFileAdapterTest extends TestCase
     public function testGetBackend(): void
     {
         $backend = $this->cache->getBackend();
-        
+
         $this->assertInstanceOf(
             \Magento\Framework\Cache\Frontend\Adapter\Symfony\BackendWrapper::class,
             $backend,
@@ -361,7 +361,7 @@ class SymfonyFileAdapterTest extends TestCase
     public function testGetLowLevelFrontend(): void
     {
         $frontend = $this->cache->getLowLevelFrontend();
-        
+
         $this->assertInstanceOf(
             \Magento\Framework\Cache\Frontend\Adapter\Symfony\LowLevelFrontend::class,
             $frontend,
@@ -375,7 +375,7 @@ class SymfonyFileAdapterTest extends TestCase
     public function testBackendIsProperlyInitialized(): void
     {
         $backend = $this->cache->getBackend();
-        
+
         // Verify backend can perform operations
         $testResult = $backend->test('test_backend_' . uniqid());
         $this->assertFalse($testResult, 'Backend test() should work for non-existent item');
@@ -436,7 +436,7 @@ class SymfonyFileAdapterTest extends TestCase
     public function testOverwriteExistingId(): void
     {
         $id = 'test_overwrite_' . uniqid();
-        
+
         // First save
         $this->cache->save('data1', $id);
         $this->assertEquals('data1', $this->cache->load($id));
@@ -510,7 +510,7 @@ class SymfonyFileAdapterTest extends TestCase
     {
         $ids = [];
         $baseId = 'test_batch_' . uniqid() . '_';
-        
+
         // Save 100 items
         for ($i = 0; $i < 100; $i++) {
             $id = $baseId . $i;

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -15,23 +15,6 @@ use Magento\Framework\Cache\FrontendInterface;
  *
  * Preloads frequently accessed cache keys into local PHP memory on initialization
  * to eliminate Redis network roundtrips for critical configuration data.
- *
- * Performance benefits:
- * - Array lookup: ~0.0001ms (vs Redis GET: ~0.15ms)
- * - Per request savings: ~0.6ms for 4 preloaded keys
- * - Significant at scale: 600ms/s saved at 1,000 req/s
- *
- * Use cases:
- * - EAV_ENTITY_TYPES: Entity type configuration
- * - GLOBAL_PLUGIN_LIST: Plugin list cache
- * - DB_IS_UP_TO_DATE: Database schema version
- * - SYSTEM_DEFAULT: System configuration
- *
- * Implementation notes:
- * - Preloads once per PHP-FPM worker initialization
- * - Read-only local cache (writes go directly to Redis)
- * - No sync logic needed (preload fresh on worker restart)
- * - Minimal memory overhead (~30-75KB per worker)
  */
 class PreloadingSymfonyAdapter implements FrontendInterface
 {

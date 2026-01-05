@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -14,13 +14,6 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Integration test for Symfony cache with Redis backend
- *
- * Tests Redis-specific features:
- * - RedisTagAdapter integration
- * - Redis SET operations for tag indices
- * - Persistent connections
- * - igbinary serialization
- * - Connection pooling
  *
  * @magentoAppIsolation enabled
  * @magentoDbIsolation enabled
@@ -54,12 +47,6 @@ class SymfonyRedisAdapterTest extends TestCase
 
     /**
      * Get Redis server from integration test sandbox environment
-     *
-     * Integration tests run in a sandbox with isolated env.php at:
-     * dev/tests/integration/tmp/sandbox-{hash}/etc/env.php
-     *
-     * The correct way to read this configuration is through DeploymentConfig
-     * which automatically uses the sandbox environment's configuration.
      *
      * @return string
      */
@@ -367,11 +354,6 @@ class SymfonyRedisAdapterTest extends TestCase
         $testId = 'trigger_connection_' . uniqid();
         $namedCache->save('test_data', $testId);
         $namedCache->load($testId);
-
-        // Check if client name is set in Redis
-        // Note: This test verifies the configuration is accepted and processed
-        // Actual CLIENT SETNAME verification requires active PHP-FPM workers
-        // which persist connections. CLI commands close connections immediately.
 
         // Verify the cache works correctly with persistent_id
         $this->assertEquals('test_data', $namedCache->load($testId), 'Cache should work with persistent_id');
@@ -760,10 +742,6 @@ class SymfonyRedisAdapterTest extends TestCase
         // Items should be expired
         $this->assertFalse($luaCache->load($id1), 'Item 1 should be expired');
         $this->assertFalse($luaCache->load($id2), 'Item 2 should be expired');
-
-        // Note: Actual garbage collection via garbageCollect() method
-        // is tested at the unit level. This integration test verifies
-        // the configuration is properly passed through.
     }
 
     /**
@@ -1171,7 +1149,7 @@ class SymfonyRedisAdapterTest extends TestCase
 
         // Cleanup
         $cache->clean(CacheConstants::CLEANING_MODE_ALL);
-        
+
         // Clean up test cache directory
         $testCacheFile = '/tmp/magento_stale_cache_test/' . $testKey;
         if (file_exists($testCacheFile)) {

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -87,13 +87,13 @@ class AbstractBackendTest extends TestCase
     public function testSetDirectivesAcceptsLifetimeValue(): void
     {
         $directives = ['lifetime' => 3600, 'logging' => true];
-        
+
         // Should not throw exception
         $this->backend->setDirectives($directives);
-        
+
         // Verify by setting directives again
         $this->backend->setDirectives(['lifetime' => 7200]);
-        
+
         $this->assertTrue(true);
     }
 

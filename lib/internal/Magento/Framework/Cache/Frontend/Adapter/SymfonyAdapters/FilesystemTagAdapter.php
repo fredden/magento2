@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -11,30 +11,6 @@ use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Filesystem-specific tag adapter
- *
- * Implements tag-to-ID index management using filesystem, similar to Colin Mollenhour's
- * Cm_Cache_Backend_File implementation. This enables true AND logic for MATCHING_TAG mode
- * using PHP array_intersect operation.
- *
- * Storage structure:
- * - Cache items: var/cache/symfony/items/id
- * - Tag indices: var/cache/symfony/tags/tagname (one ID per line)
- *
- * Example:
- * - Item 'config_1' with tags ['config', 'eav']
- * - Files:
- *   - var/cache/symfony/items/config_1
- *   - var/cache/symfony/tags/config:
- *       config_1
- *       config_2
- *   - var/cache/symfony/tags/eav:
- *       config_1
- *       eav_1
- *
- * MATCHING_TAG(['config', 'eav']):
- * - Read var/cache/symfony/tags/config => ['config_1', 'config_2']
- * - Read var/cache/symfony/tags/eav => ['config_1', 'eav_1']
- * - array_intersect() => ['config_1']  ← Only IDs in BOTH (true AND logic)
  */
 class FilesystemTagAdapter implements TagAdapterInterface
 {
@@ -56,7 +32,7 @@ class FilesystemTagAdapter implements TagAdapterInterface
     {
         $this->cachePool = $cachePool;
         $this->tagDirectory = rtrim($tagDirectory, '/') . '/tags/';
-        
+
         // Ensure tag directory exists with proper error handling
         if (!is_dir($this->tagDirectory)) {
             if (!@mkdir($this->tagDirectory, 0770, true) && !is_dir($this->tagDirectory)) {
@@ -87,7 +63,7 @@ class FilesystemTagAdapter implements TagAdapterInterface
     private function getTagIds(string $tag): array
     {
         $file = $this->getTagFile($tag);
-        
+
         if (!file_exists($file)) {
             return [];
         }
@@ -112,7 +88,7 @@ class FilesystemTagAdapter implements TagAdapterInterface
     private function setTagIds(string $tag, array $ids): void
     {
         $file = $this->getTagFile($tag);
-        
+
         if (empty($ids)) {
             // Remove tag file if no IDs
             @unlink($file);
@@ -160,7 +136,7 @@ class FilesystemTagAdapter implements TagAdapterInterface
     {
         $ids = $this->getTagIds($tag);
         $key = array_search($id, $ids, true);
-        
+
         if ($key !== false) {
             unset($ids[$key]);
             $this->setTagIds($tag, array_values($ids));
@@ -244,7 +220,7 @@ class FilesystemTagAdapter implements TagAdapterInterface
     {
         $allIds = [];
         $tagFiles = glob($this->tagDirectory . '*');
-        
+
         if ($tagFiles === false) {
             return [];
         }
@@ -306,7 +282,7 @@ class FilesystemTagAdapter implements TagAdapterInterface
     {
         // We need to scan all tag files and remove this ID
         $tagFiles = glob($this->tagDirectory . '*');
-        
+
         if ($tagFiles === false) {
             return;
         }
@@ -326,7 +302,7 @@ class FilesystemTagAdapter implements TagAdapterInterface
     {
         // Remove all tag files
         $tagFiles = glob($this->tagDirectory . '*');
-        
+
         if ($tagFiles === false) {
             return;
         }

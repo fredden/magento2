@@ -51,12 +51,6 @@ class Memcached extends AbstractBackend implements ExtendedBackendInterface
     /**
      * Constructor
      *
-     * Available options:
-     * - servers: Array of memcached servers [['host' => 'localhost', 'port' => 11211, 'weight' => 1]]
-     * - compression: Enable compression (default: true)
-     * - slab_size: Maximum size before chunking (default: 1048576)
-     * - prefix: Key prefix (default: '')
-     *
      * @param array $options Memcached configuration options
      * @throws LocalizedException
      * @throws CacheException

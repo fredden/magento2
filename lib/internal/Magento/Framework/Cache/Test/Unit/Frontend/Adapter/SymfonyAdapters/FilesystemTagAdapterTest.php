@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -41,7 +41,7 @@ class FilesystemTagAdapterTest extends TestCase
 
         $this->cachePoolMock = $this->createMock(CacheItemPoolInterface::class);
         $this->tempDir = sys_get_temp_dir() . '/magento_fs_tag_adapter_test_' . uniqid();
-        
+
         $this->adapter = new FilesystemTagAdapter($this->cachePoolMock, $this->tempDir);
     }
 
@@ -83,7 +83,7 @@ class FilesystemTagAdapterTest extends TestCase
     public function testConstructorCreatesTagDirectory(): void
     {
         $tagDir = $this->tempDir . '/tags/';
-        
+
         $this->assertDirectoryExists($tagDir);
     }
 
@@ -94,7 +94,7 @@ class FilesystemTagAdapterTest extends TestCase
     {
         // Directory already exists from setUp
         $newAdapter = new FilesystemTagAdapter($this->cachePoolMock, $this->tempDir);
-        
+
         $this->assertInstanceOf(FilesystemTagAdapter::class, $newAdapter);
     }
 
@@ -104,15 +104,15 @@ class FilesystemTagAdapterTest extends TestCase
     public function testConstructorNormalizesTrailingSlash(): void
     {
         $tempDir = sys_get_temp_dir() . '/magento_normalize_test_' . uniqid();
-        
+
         // Test with trailing slash
         new FilesystemTagAdapter($this->cachePoolMock, $tempDir . '/');
         $this->assertDirectoryExists($tempDir . '/tags/');
-        
+
         // Test without trailing slash
         new FilesystemTagAdapter($this->cachePoolMock, $tempDir);
         $this->assertDirectoryExists($tempDir . '/tags/');
-        
+
         // Clean up
         $this->removeDirectory($tempDir);
     }
@@ -124,17 +124,17 @@ class FilesystemTagAdapterTest extends TestCase
     {
         $id = 'test_id_1';
         $tags = ['config', 'eav'];
-        
+
         $this->adapter->onSave($id, $tags);
-        
+
         $tagDir = $this->tempDir . '/tags/';
         $this->assertFileExists($tagDir . 'config');
         $this->assertFileExists($tagDir . 'eav');
-        
+
         // Verify content
         $configIds = file_get_contents($tagDir . 'config');
         $this->assertStringContainsString($id, $configIds);
-        
+
         $eavIds = file_get_contents($tagDir . 'eav');
         $this->assertStringContainsString($id, $eavIds);
     }
@@ -146,10 +146,10 @@ class FilesystemTagAdapterTest extends TestCase
     {
         $id = 'test_id';
         $tags = [];
-        
+
         // Should not crash
         $this->adapter->onSave($id, $tags);
-        
+
         $this->assertTrue(true);
     }
 
@@ -161,13 +161,13 @@ class FilesystemTagAdapterTest extends TestCase
         $id1 = 'test_id_1';
         $id2 = 'test_id_2';
         $tags = ['config'];
-        
+
         $this->adapter->onSave($id1, $tags);
         $this->adapter->onSave($id2, $tags);
-        
+
         $tagFile = $this->tempDir . '/tags/config';
         $content = file_get_contents($tagFile);
-        
+
         $this->assertStringContainsString($id1, $content);
         $this->assertStringContainsString($id2, $content);
     }
@@ -179,15 +179,15 @@ class FilesystemTagAdapterTest extends TestCase
     {
         $id = 'test_id_1';
         $tags = ['config'];
-        
+
         // Save twice
         $this->adapter->onSave($id, $tags);
         $this->adapter->onSave($id, $tags);
-        
+
         $tagFile = $this->tempDir . '/tags/config';
         $content = file_get_contents($tagFile);
         $lines = explode("\n", trim($content));
-        
+
         // Should only appear once
         $count = count(array_filter($lines, fn($line) => trim($line) === $id));
         $this->assertEquals(1, $count);
@@ -201,24 +201,24 @@ class FilesystemTagAdapterTest extends TestCase
         $id1 = 'test_id_1';
         $id2 = 'test_id_2';
         $tags = ['config', 'eav'];
-        
+
         // Save two items with same tags
         $this->adapter->onSave($id1, $tags);
         $this->adapter->onSave($id2, $tags);
-        
+
         // Verify both are there
         $configContent = file_get_contents($this->tempDir . '/tags/config');
         $this->assertStringContainsString($id1, $configContent);
         $this->assertStringContainsString($id2, $configContent);
-        
+
         // Remove first ID
         $this->adapter->onRemove($id1);
-        
+
         // Verify id1 is gone but id2 remains
         $configContentAfter = file_get_contents($this->tempDir . '/tags/config');
         $this->assertStringNotContainsString($id1, $configContentAfter);
         $this->assertStringContainsString($id2, $configContentAfter);
-        
+
         $eavContentAfter = file_get_contents($this->tempDir . '/tags/eav');
         $this->assertStringNotContainsString($id1, $eavContentAfter);
         $this->assertStringContainsString($id2, $eavContentAfter);
@@ -231,17 +231,17 @@ class FilesystemTagAdapterTest extends TestCase
     {
         $id = 'test_id_1';
         $tags = ['config'];
-        
+
         // Save single item
         $this->adapter->onSave($id, $tags);
-        
+
         // Verify tag file exists
         $tagFile = $this->tempDir . '/tags/config';
         $this->assertFileExists($tagFile);
-        
+
         // Remove the ID
         $this->adapter->onRemove($id);
-        
+
         // Tag file should be deleted (no more IDs)
         $this->assertFileDoesNotExist($tagFile);
     }
@@ -253,7 +253,7 @@ class FilesystemTagAdapterTest extends TestCase
     {
         // Should not crash
         $this->adapter->onRemove('non_existent_id');
-        
+
         $this->assertTrue(true);
     }
 
@@ -266,10 +266,10 @@ class FilesystemTagAdapterTest extends TestCase
         $this->adapter->onSave('id1', ['config', 'eav']);
         $this->adapter->onSave('id2', ['config']);
         $this->adapter->onSave('id3', ['eav']);
-        
+
         // Get IDs matching BOTH tags
         $result = $this->adapter->getIdsMatchingTags(['config', 'eav']);
-        
+
         // Only id1 should match (has both tags)
         $this->assertCount(1, $result);
         $this->assertContains('id1', $result);
@@ -285,9 +285,9 @@ class FilesystemTagAdapterTest extends TestCase
         $this->adapter->onSave('id1', ['config']);
         $this->adapter->onSave('id2', ['config']);
         $this->adapter->onSave('id3', ['eav']);
-        
+
         $result = $this->adapter->getIdsMatchingTags(['config']);
-        
+
         $this->assertCount(2, $result);
         $this->assertContains('id1', $result);
         $this->assertContains('id2', $result);
@@ -300,7 +300,7 @@ class FilesystemTagAdapterTest extends TestCase
     public function testGetIdsMatchingTagsWithEmptyArray(): void
     {
         $result = $this->adapter->getIdsMatchingTags([]);
-        
+
         $this->assertEquals([], $result);
     }
 
@@ -310,9 +310,9 @@ class FilesystemTagAdapterTest extends TestCase
     public function testGetIdsMatchingTagsWithNonExistentTag(): void
     {
         $this->adapter->onSave('id1', ['config']);
-        
+
         $result = $this->adapter->getIdsMatchingTags(['nonexistent']);
-        
+
         $this->assertEquals([], $result);
     }
 
@@ -325,10 +325,10 @@ class FilesystemTagAdapterTest extends TestCase
         $this->adapter->onSave('id2', ['config']);
         $this->adapter->onSave('id3', ['eav']);
         $this->adapter->onSave('id4', ['layout']);
-        
+
         // Get IDs matching ANY of the tags
         $result = $this->adapter->getIdsMatchingAnyTags(['config', 'eav']);
-        
+
         // id1, id2, id3 should match (have at least one tag)
         $this->assertCount(3, $result);
         $this->assertContains('id1', $result);
@@ -343,7 +343,7 @@ class FilesystemTagAdapterTest extends TestCase
     public function testGetIdsMatchingAnyTagsWithEmptyArray(): void
     {
         $result = $this->adapter->getIdsMatchingAnyTags([]);
-        
+
         $this->assertEquals([], $result);
     }
 
@@ -355,10 +355,10 @@ class FilesystemTagAdapterTest extends TestCase
         $this->adapter->onSave('id1', ['config']);
         $this->adapter->onSave('id2', ['eav']);
         $this->adapter->onSave('id3', ['layout']);
-        
+
         // Get IDs NOT matching 'config'
         $result = $this->adapter->getIdsNotMatchingTags(['config']);
-        
+
         // id2 and id3 should match (don't have 'config' tag)
         $this->assertCount(2, $result);
         $this->assertNotContains('id1', $result);
@@ -373,10 +373,10 @@ class FilesystemTagAdapterTest extends TestCase
     {
         $this->adapter->onSave('id1', ['config']);
         $this->adapter->onSave('id2', ['eav']);
-        
+
         // No tags to exclude means all IDs should be returned
         $result = $this->adapter->getIdsNotMatchingTags([]);
-        
+
         $this->assertCount(2, $result);
         $this->assertContains('id1', $result);
         $this->assertContains('id2', $result);
@@ -388,15 +388,15 @@ class FilesystemTagAdapterTest extends TestCase
     public function testDeleteByIdsRemovesItemsFromCachePool(): void
     {
         $ids = ['id1', 'id2', 'id3'];
-        
+
         $this->cachePoolMock
             ->expects($this->once())
             ->method('deleteItems')
             ->with($ids)
             ->willReturn(true);
-        
+
         $result = $this->adapter->deleteByIds($ids);
-        
+
         $this->assertTrue($result);
     }
 
@@ -408,9 +408,9 @@ class FilesystemTagAdapterTest extends TestCase
         $this->cachePoolMock
             ->expects($this->never())
             ->method('deleteItems');
-        
+
         $result = $this->adapter->deleteByIds([]);
-        
+
         $this->assertTrue($result);
     }
 
@@ -422,15 +422,15 @@ class FilesystemTagAdapterTest extends TestCase
         // Create some tag files
         $this->adapter->onSave('id1', ['config', 'eav']);
         $this->adapter->onSave('id2', ['layout']);
-        
+
         $tagDir = $this->tempDir . '/tags/';
         $this->assertFileExists($tagDir . 'config');
         $this->assertFileExists($tagDir . 'eav');
         $this->assertFileExists($tagDir . 'layout');
-        
+
         // Clear all indices
         $this->adapter->clearAllIndices();
-        
+
         // All tag files should be gone
         $this->assertFileDoesNotExist($tagDir . 'config');
         $this->assertFileDoesNotExist($tagDir . 'eav');
@@ -444,7 +444,7 @@ class FilesystemTagAdapterTest extends TestCase
     {
         // Should not crash
         $this->adapter->clearAllIndices();
-        
+
         $this->assertTrue(true);
     }
 
@@ -458,25 +458,25 @@ class FilesystemTagAdapterTest extends TestCase
         $this->adapter->onSave('product_2', ['catalog', 'product']);
         $this->adapter->onSave('category_1', ['catalog', 'category']);
         $this->adapter->onSave('config_1', ['config']);
-        
+
         // Test MATCHING_TAG (AND logic)
         $productIds = $this->adapter->getIdsMatchingTags(['catalog', 'product']);
         $this->assertCount(2, $productIds);
         $this->assertContains('product_1', $productIds);
         $this->assertContains('product_2', $productIds);
-        
+
         // Test MATCHING_ANY_TAG (OR logic)
         $catalogIds = $this->adapter->getIdsMatchingAnyTags(['catalog', 'config']);
         $this->assertCount(4, $catalogIds);
-        
+
         // Test NOT_MATCHING_TAG
         $nonCatalogIds = $this->adapter->getIdsNotMatchingTags(['catalog']);
         $this->assertCount(1, $nonCatalogIds);
         $this->assertContains('config_1', $nonCatalogIds);
-        
+
         // Remove one item
         $this->adapter->onRemove('product_1');
-        
+
         // Verify it's removed
         $updatedProductIds = $this->adapter->getIdsMatchingTags(['catalog', 'product']);
         $this->assertCount(1, $updatedProductIds);
@@ -490,14 +490,14 @@ class FilesystemTagAdapterTest extends TestCase
     public function testConcurrentSavesToSameTag(): void
     {
         $tag = 'config';
-        
+
         // Simulate concurrent saves
         for ($i = 1; $i <= 10; $i++) {
             $this->adapter->onSave("id_$i", [$tag]);
         }
-        
+
         $ids = $this->adapter->getIdsMatchingTags([$tag]);
-        
+
         // All 10 IDs should be present
         $this->assertCount(10, $ids);
         for ($i = 1; $i <= 10; $i++) {
@@ -512,10 +512,10 @@ class FilesystemTagAdapterTest extends TestCase
     {
         $this->adapter->onSave('id1', ['config']);
         $this->adapter->onSave('id2', ['config']);
-        
+
         $tagFile = $this->tempDir . '/tags/config';
         $content = file_get_contents($tagFile);
-        
+
         // Should have one ID per line
         $lines = explode("\n", trim($content));
         $this->assertCount(2, $lines);

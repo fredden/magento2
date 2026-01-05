@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -14,12 +14,6 @@ use InvalidArgumentException;
  *
  * Provides Lua script functionality for operations that benefit from
  * server-side execution and true atomicity beyond what pipelines offer.
- *
- * Use cases:
- * - Conditional cache operations based on TTL/metadata
- * - Atomic tag management with cleanup
- * - Complex garbage collection
- * - Race condition prevention
  */
 class RedisLuaHelper
 {
@@ -64,7 +58,7 @@ local deleted = 0
 for _, id in ipairs(ids) do
     local cache_key = prefix .. id
     local should_delete = false
-    
+
     if condition == "all" then
         should_delete = true
     elseif condition == "expired" then
@@ -74,7 +68,7 @@ for _, id in ipairs(ids) do
             should_delete = true
         end
     end
-    
+
     if should_delete then
         redis.call('DEL', cache_key)
         redis.call('SREM', tag_key, id)
@@ -161,16 +155,16 @@ for _, key in ipairs(keys) do
         -- Key expired or doesn't exist
         -- Extract ID from key (remove prefix)
         local id = string.gsub(key, "^" .. string.match(KEYS[1], "^(.-)%*"), "")
-        
+
         -- Find and remove from tag indices
         local tag_pattern = tag_prefix .. "*"
         local tag_scan = redis.call('SCAN', 0, 'MATCH', tag_pattern, 'COUNT', 100)
         local tag_keys = tag_scan[2]
-        
+
         for _, tag_key in ipairs(tag_keys) do
             redis.call('SREM', tag_key, id)
         end
-        
+
         deleted = deleted + 1
     end
 end
@@ -203,20 +197,20 @@ local function delete_by_pattern(pattern)
     local deleted = 0
     local iterations = 0
     local max_iterations = 100  -- Safety limit
-    
+
     repeat
         local result = redis.call('SCAN', cursor, 'MATCH', pattern, 'COUNT', batch_size)
         cursor = result[1]
         local keys = result[2]
-        
+
         if #keys > 0 then
             redis.call('DEL', unpack(keys))
             deleted = deleted + #keys
         end
-        
+
         iterations = iterations + 1
     until cursor == "0" or iterations >= max_iterations
-    
+
     return deleted
 end
 
@@ -293,14 +287,14 @@ LUA;
         }
 
         $sha = $this->loadScript(self::SCRIPT_CLEAN_BY_TAG_CONDITIONAL);
-        
+
         try {
             $result = $this->redis->evalSha(
                 $sha,
                 [$tagKey, $prefix, time(), $condition],
                 2  // Number of KEYS
             );
-            
+
             return (int)$result;
         } catch (\RedisException $e) {
             // Fallback: script not loaded, try eval
@@ -336,16 +330,16 @@ LUA;
         }
 
         $sha = $this->loadScript(self::SCRIPT_ATOMIC_SAVE_WITH_TAGS);
-        
+
         $argv = array_merge([$value, $ttl], $newTagKeys);
-        
+
         try {
             $result = $this->redis->evalSha(
                 $sha,
                 array_merge([$cacheKey, $reverseIndexKey], $argv),
                 2  // Number of KEYS
             );
-            
+
             return (bool)$result;
         } catch (\RedisException $e) {
             // Fallback: script not loaded
@@ -375,11 +369,11 @@ LUA;
         }
 
         $sha = $this->loadScript(self::SCRIPT_GARBAGE_COLLECT);
-        
+
         $totalDeleted = 0;
         $iterations = 0;
         $cursor = '0';
-        
+
         do {
             try {
                 $result = $this->redis->evalSha(
@@ -387,12 +381,12 @@ LUA;
                     [$pattern, $tagPrefix, $batchSize, $cursor],
                     2  // Number of KEYS
                 );
-                
+
                 $cursor = $result[0];
                 $deleted = $result[1];
                 $totalDeleted += $deleted;
                 $iterations++;
-                
+
                 // Safety: max 100 iterations
                 if ($iterations >= 100) {
                     break;
@@ -402,7 +396,7 @@ LUA;
                 break;
             }
         } while ($cursor !== '0');
-        
+
         return [$totalDeleted, $iterations];
     }
 
@@ -423,19 +417,19 @@ LUA;
         }
 
         $sha = $this->loadScript(self::SCRIPT_CLEAR_ALL_INDICES);
-        
+
         // Build patterns
         $tagPattern = 'cache:tags:' . $namespace . '*';
         $reversePattern = 'cache:id_tags:' . $namespace . '*';
         $allIdsKey = 'cache:all_ids';
-        
+
         try {
             $result = $this->redis->evalSha(
                 $sha,
                 [$tagPattern, $reversePattern, $allIdsKey, $batchSize],
                 3  // Number of KEYS
             );
-            
+
             return (int)$result;
         } catch (\RedisException $e) {
             // Fallback: run script directly
@@ -462,11 +456,11 @@ LUA;
     private function loadScript(string $script): string
     {
         $hash = hash('sha256', $script);
-        
+
         if (isset($this->scriptShas[$hash])) {
             return $this->scriptShas[$hash];
         }
-        
+
         try {
             $sha = $this->redis->script('load', $script);
             $this->scriptShas[$hash] = $sha;

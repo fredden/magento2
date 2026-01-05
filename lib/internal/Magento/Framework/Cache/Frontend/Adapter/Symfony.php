@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -290,11 +290,11 @@ class Symfony implements FrontendInterface
     {
         $cache = $this->getCache();
         $cleanId = $this->cleanIdentifier($identifier);
-        
+
         // Clear response cache for this key (important for concurrent access)
         unset($this->responseCache['test:' . $cleanId]);
         unset($this->responseCache['load:' . $cleanId]);
-        
+
         $item = $cache->getItem($cleanId);
 
         // Calculate actual lifetime to use

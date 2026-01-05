@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -113,7 +113,7 @@ class MagentoDatabaseAdapterTest extends TestCase
             'mtime' => time(),
             'expire' => time() + 3600
         ];
-        
+
         // Use Magento serializer to prepare test data
         $realSerializer = new Serialize();
         $serializedData = $realSerializer->serialize($dataStructure);
@@ -190,7 +190,7 @@ class MagentoDatabaseAdapterTest extends TestCase
             'tags' => ['tag1', 'tag2'],
             'expire' => time() + 3600
         ];
-        
+
         // Use Magento serializer to prepare test data
         $realSerializer = new Serialize();
         $serializedData = $realSerializer->serialize($oldFormatData);
@@ -227,7 +227,7 @@ class MagentoDatabaseAdapterTest extends TestCase
     {
         $key = 'simple_key';
         $simpleValue = 'simple_string';
-        
+
         // Use Magento serializer to prepare test data
         $realSerializer = new Serialize();
         $serializedData = $realSerializer->serialize($simpleValue);

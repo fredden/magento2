@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -16,25 +16,6 @@ use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 /**
  * Redis-specific tag adapter
  *
- * Implements tag-to-ID index management using Redis SETs, similar to Colin Mollenhour's
- * Cm_Cache_Backend_Redis implementation. This enables true AND logic for MATCHING_TAG mode
- * using Redis SINTER (set intersection) operation.
- *
- * Storage structure:
- * - Cache items: cache:namespace:id => {data, metadata}
- * - Tag indices: cache:tags:tagname => SET{id1, id2, id3}
- *
- * Example:
- * - Item 'config_1' with tags ['config', 'eav']
- * - Redis stores:
- *   - cache:69d_config_1 => {data}
- *   - cache:tags:69d_config => SET{config_1, config_2}
- *   - cache:tags:69d_eav => SET{config_1, eav_1}
- *
- * MATCHING_TAG(['config', 'eav']):
- * - SINTER cache:tags:69d_config cache:tags:69d_eav
- * - Returns: {config_1}  ← Only IDs in BOTH sets (true AND logic)
- *
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -42,20 +23,20 @@ class RedisTagAdapter implements TagAdapterInterface
 {
     private const TAG_INDEX_PREFIX = 'cache:tags:';
     private const ALL_IDS_SET = 'cache:all_ids';
-    
+
     /**
-     * SUNION chunk size - matches Zend's $_sunionChunkSize
+     * SUNION chunk size
      * On large data sets SUNION slows down considerably when used with too many arguments
      * @see vendor/colinmollenhour/cache-backend-redis/Cm/Cache/Backend/Redis.php line 92
      */
     private const SUNION_CHUNK_SIZE = 500;
-    
+
     /**
      * Maximum number of IDs to be removed at a time - matches Zend's $_removeChunkSize
      * @see vendor/colinmollenhour/cache-backend-redis/Cm/Cache/Backend/Redis.php line 99
      */
     private const REMOVE_CHUNK_SIZE = 10000;
-    
+
     /**
      * Lua's unpack() limit - matches Zend's $_luaMaxCStack
      * @see vendor/colinmollenhour/cache-backend-redis/Cm/Cache/Backend/Redis.php line 121
@@ -216,7 +197,7 @@ LUA;
         $this->cachePool = $cachePool;
         $this->namespace = $namespace;
         $this->redis = $this->extractRedisClient($cachePool);
-        
+
         if ($this->isPredisClient()) {
             $this->useLua = false;
             $this->useLuaOnGc = false;
@@ -224,7 +205,7 @@ LUA;
             $this->useLua = $useLua;
             $this->useLuaOnGc = $useLuaOnGc;
         }
-        
+
         if (($this->useLua || $this->useLuaOnGc) && !$this->isPredisClient()) {
             $this->luaHelper = new RedisLuaHelper($this->redis, true);
         }
@@ -296,7 +277,7 @@ LUA;
         if ($this->isPredisClient()) {
             return $this->redis->pipeline();
         }
-        
+
         return $this->redis->multi(\Redis::PIPELINE);
     }
 
@@ -312,7 +293,7 @@ LUA;
             // Predis pipeline
             return $pipeline->execute();
         }
-        
+
         // phpredis pipeline
         return $pipeline->exec();
     }
@@ -363,17 +344,17 @@ LUA;
         if (count($tags) > self::SUNION_CHUNK_SIZE) {
             $allIds = [];
             $chunks = array_chunk($tags, self::SUNION_CHUNK_SIZE);
-            
+
             foreach ($chunks as $chunk) {
                 $tagKeys = array_map([$this, 'getTagKey'], $chunk);
                 $chunkIds = $this->redis->sUnion($tagKeys);
                 $chunkIds = is_array($chunkIds) ? $chunkIds : [];
-                
+
                 // Merge with previous chunks
                 // phpcs:ignore Magento2.Performance.ForeachArrayMerge
                 $allIds = array_merge($allIds, $chunkIds);
             }
-            
+
             // Remove duplicates across chunks (SUNION returns unique within chunk only)
             return array_unique($allIds);
         }
@@ -405,13 +386,13 @@ LUA;
         // This is much more efficient than doing array_diff in PHP
         // Matches Zend: sDiff(SET_IDS, tag1, tag2, ...)
         $tagKeys = array_map([$this, 'getTagKey'], $tags);
-        
+
         // Prepend the all_ids set as first argument
         array_unshift($tagKeys, self::ALL_IDS_SET);
-        
+
         // Call SDIFF: returns IDs in ALL_IDS_SET but NOT in any tag sets
         $result = call_user_func_array([$this->redis, 'sdiff'], $tagKeys);
-        
+
         return is_array($result) ? $result : [];
     }
 
@@ -434,26 +415,26 @@ LUA;
         if (count($ids) > self::REMOVE_CHUNK_SIZE) {
             $chunks = array_chunk($ids, self::REMOVE_CHUNK_SIZE);
             $success = true;
-            
+
             foreach ($chunks as $chunk) {
                 // Delete cache items for this chunk
                 if (!$this->cachePool->deleteItems($chunk)) {
                     $success = false;
                 }
-                
+
                 // Remove IDs from all_ids set for this chunk
                 $pipeline = $this->createPipeline();
                 foreach ($chunk as $id) {
                     $pipeline->srem(self::ALL_IDS_SET, $id);
                 }
                 $this->executePipeline($pipeline);
-                
+
                 // Commit each chunk separately (important for large operations)
                 if (method_exists($this->cachePool, 'commit')) {
                     $this->cachePool->commit();
                 }
             }
-            
+
             return $success;
         }
 
@@ -463,12 +444,12 @@ LUA;
         // OPTIMIZATION: Use pipeline for large batches (more than 10 IDs)
         if (count($ids) > 10) {
             $pipeline = $this->createPipeline();
-            
+
             // Remove each ID from all_ids set in pipeline
             foreach ($ids as $id) {
                 $pipeline->srem(self::ALL_IDS_SET, $id);
             }
-            
+
             $this->executePipeline($pipeline);
         } else {
             // For small batches, use single command (slightly faster)
@@ -488,9 +469,6 @@ LUA;
     /**
      * Clean cache entries matching ANY of the given tags (OR logic)
      *
-     * This matches Zend's _removeByMatchingAnyTags implementation
-     * (vendor/colinmollenhour/cache-backend-redis/Cm/Cache/Backend/Redis.php line 774-804)
-     *
      * Uses Redis SUNION for efficient OR operation, exactly like Zend does.
      * Supports both Lua (faster, atomic) and PHP (fallback) implementations.
      *
@@ -507,12 +485,12 @@ LUA;
         if ($this->useLua && $this->luaHelper && $this->luaHelper->isEnabled()) {
             try {
                 $deleted = $this->cleanMatchingAnyTagsLua($tags);
-                
+
                 // Ensure changes are committed
                 if (method_exists($this->cachePool, 'commit')) {
                     $this->cachePool->commit();
                 }
-                
+
                 return $deleted >= 0; // Lua returns number of items deleted
             // phpcs:disable Magento2.CodeAnalysis.EmptyBlock
             } catch (\Exception $e) {
@@ -530,12 +508,12 @@ LUA;
 
         // Batch delete - exactly like Zend's _removeByIds (line 751-768)
         $success = $this->deleteByIds($ids);
-        
+
         // Ensure changes are committed to underlying pool
         if (method_exists($this->cachePool, 'commit')) {
             $this->cachePool->commit();
         }
-        
+
         return $success;
     }
 
@@ -565,12 +543,12 @@ LUA;
         if ($this->useLua && $this->luaHelper && $this->luaHelper->isEnabled()) {
             try {
                 $deleted = $this->cleanMatchingAnyTagsWithScopeLua($tags, $scopeTag);
-                
+
                 // Ensure changes are committed
                 if (method_exists($this->cachePool, 'commit')) {
                     $this->cachePool->commit();
                 }
-                
+
                 return $deleted >= 0; // Lua returns number of items deleted
             // phpcs:disable Magento2.CodeAnalysis.EmptyBlock
             } catch (\Exception $e) {
@@ -603,12 +581,12 @@ LUA;
 
         // Step 4: Batch delete filtered IDs
         $success = $this->deleteByIds($filteredIds);
-        
+
         // Step 5: Ensure changes are committed to underlying pool
         if (method_exists($this->cachePool, 'commit')) {
             $this->cachePool->commit();
         }
-        
+
         return $success;
     }
 
@@ -628,7 +606,7 @@ LUA;
         // Reduces network round trips from N+1 to 1
         // Matches Zend's approach: update forward indices + reverse index
         $pipeline = $this->createPipeline();
-        
+
         // Add ID to all_ids set
         $pipeline->sadd(self::ALL_IDS_SET, $id);
 
@@ -637,14 +615,14 @@ LUA;
             $tagKey = $this->getTagKey($tag);
             $pipeline->sadd($tagKey, $id);
         }
-        
+
         // Reverse index: Store tags for this ID (for cleanup on delete)
         $idTagsKey = 'cache:id_tags:' . $this->namespace . $id;
         $pipeline->del($idTagsKey);  // Clear old tags first
         foreach ($tags as $tag) {
             $pipeline->sadd($idTagsKey, $tag);
         }
-        
+
         // Execute all operations in one go
         $this->executePipeline($pipeline);
     }
@@ -661,29 +639,29 @@ LUA;
         // Store a reverse index: cache:id:tags => SET{tag1, tag2}
         $idTagsKey = 'cache:id_tags:' . $this->namespace . $id;
         $tags = $this->redis->smembers($idTagsKey);
-        
+
         if (!is_array($tags) || empty($tags)) {
             // No tags, just remove from all_ids
             $this->redis->srem(self::ALL_IDS_SET, $id);
             return;
         }
-        
+
         // OPTIMIZATION: Use Redis pipeline for all remove operations
         // Reduces network round trips from N+2 to 1
         $pipeline = $this->createPipeline();
-        
+
         // Remove from all_ids set
         $pipeline->srem(self::ALL_IDS_SET, $id);
-        
+
         // Remove ID from each tag's SET in pipeline
         foreach ($tags as $tag) {
             $tagKey = $this->getTagKey($tag);
             $pipeline->srem($tagKey, $id);
         }
-        
+
         // Delete the reverse index
         $pipeline->del($idTagsKey);
-        
+
         // Execute all operations in one go
         $this->executePipeline($pipeline);
     }
@@ -725,7 +703,6 @@ LUA;
     /**
      * Store reverse index for efficient onRemove
      * This should be called after onSave
-     * OPTIMIZED: Uses Redis pipeline for batch operations
      *
      * @param string $id
      * @param array $tags
@@ -738,19 +715,19 @@ LUA;
         }
 
         $idTagsKey = 'cache:id_tags:' . $this->namespace . $id;
-        
+
         // OPTIMIZATION: Use Redis pipeline for all operations
         // Reduces network round trips from N+1 to 1
         $pipeline = $this->createPipeline();
-        
+
         // Clear existing reverse index
         $pipeline->del($idTagsKey);
-        
+
         // Add all tags to reverse index in pipeline
         foreach ($tags as $tag) {
             $pipeline->sadd($idTagsKey, $tag);
         }
-        
+
         // Execute all operations in one go
         $this->executePipeline($pipeline);
     }
@@ -810,7 +787,7 @@ LUA;
         }
 
         $tagKey = $this->getTagKey($tag);
-        
+
         return $this->luaHelper->cleanByTagConditional(
             $tagKey,
             $this->namespace,
@@ -820,9 +797,6 @@ LUA;
 
     /**
      * Clean cache entries matching ANY tags using Lua script
-     *
-     * Matches Zend's Lua implementation exactly
-     * (vendor/colinmollenhour/cache-backend-redis/Cm/Cache/Backend/Redis.php line 780-798)
      *
      * @param array $tags Tags to match (OR logic)
      * @return int Number of items deleted (-1 on error)
@@ -836,7 +810,7 @@ LUA;
         try {
             // Load and execute Lua script
             $sha = $this->loadLuaScript(self::LUA_CLEAN_MATCHING_ANY_TAGS);
-            
+
             // KEYS: array of tags
             // ARGV: [tag_prefix, namespace, chunk_size]
             $result = $this->redis->evalSha(
@@ -847,7 +821,7 @@ LUA;
                 $this->namespace,  // ARGV[2]
                 100  // ARGV[3] - chunk size
             );
-            
+
             return (int)$result;
         } catch (\RedisException $e) {
             // Fallback: try executing script directly
@@ -887,7 +861,7 @@ LUA;
         try {
             // Load and execute Lua script
             $sha = $this->loadLuaScript(self::LUA_CLEAN_MATCHING_ANY_TAGS_WITH_SCOPE);
-            
+
             // KEYS: array of tags
             // ARGV: [tag_prefix, namespace, scope_tag]
             $result = $this->redis->evalSha(
@@ -898,7 +872,7 @@ LUA;
                 $this->namespace,  // ARGV[2]
                 $scopeTag  // ARGV[3]
             );
-            
+
             return (int)$result;
         } catch (\RedisException $e) {
             // Fallback: try executing script directly

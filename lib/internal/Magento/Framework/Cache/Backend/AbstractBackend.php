@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -10,7 +10,6 @@ namespace Magento\Framework\Cache\Backend;
 /**
  * Abstract cache backend base class
  *
- * Modern replacement for \Zend_Cache_Backend
  * Provides common functionality for all backend implementations.
  */
 abstract class AbstractBackend implements BackendInterface

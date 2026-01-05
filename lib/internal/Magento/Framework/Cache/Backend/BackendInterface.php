@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -12,7 +12,6 @@ use Magento\Framework\Cache\Exception\CacheException;
 /**
  * Magento cache backend interface
  *
- * Modern replacement for \Zend_Cache_Backend
  * Defines core cache operations for all backend implementations.
  */
 interface BackendInterface

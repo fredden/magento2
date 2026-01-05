@@ -222,26 +222,20 @@ class ResolverCacheAbstract extends GraphQlAbstract
      */
     private function cleanCacheType(string $cacheType): void
     {
-        // IMPROVED: Direct cache clean is more reliable and faster than exec()
-        // Also ensures proper test isolation with Symfony cache's unique namespaces
         try {
             // Get a fresh Pool instance without affecting shared instances
             $cachePool = $this->objectManager->create(Pool::class);
             $cache = $cachePool->get($cacheType);
-            
+
             // Clean all cache entries for this type
             $cache->clean(CacheConstants::CLEANING_MODE_ALL);
-            
-            // Also try to clear the backend completely for graphql_query_resolver_result
+
             if ($cacheType === GraphQlResolverCache::TYPE_IDENTIFIER) {
                 $backend = $cache->getBackend();
                 if (method_exists($backend, 'clean')) {
                     $backend->clean(CacheConstants::CLEANING_MODE_ALL);
                 }
-                
-                // CRITICAL: Only reset GraphQL resolver cache instance
-                // for graphql_query_resolver_result. This ensures fresh cache instance
-                // in next test without corrupting deployment config
+
                 $this->objectManager->removeSharedInstance(
                     GraphQlResolverCache::class
                 );

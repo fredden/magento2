@@ -82,7 +82,7 @@
         "ramsey/uuid": "^4.2",
         "spomky-labs/aes-key-wrap": "^7.0",
         "stomp-php/stomp-php": "^5.1",
-        "symfony/cache": "^7.3",
+        "symfony/cache": "^7.4",
         "symfony/console": "^7.4",
         "symfony/intl": "^7.4",
         "symfony/process": "^7.4",

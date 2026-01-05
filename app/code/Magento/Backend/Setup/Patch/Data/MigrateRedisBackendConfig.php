@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2025 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -59,7 +59,7 @@ class MigrateRedisBackendConfig implements DataPatchInterface
 
         // Get current cache configuration from env.php
         $cacheConfig = $this->deploymentConfig->get('cache');
-        
+
         if (!$cacheConfig || !isset($cacheConfig['frontend'])) {
             // No cache frontend configuration - nothing to migrate
             return $this;
@@ -73,7 +73,7 @@ class MigrateRedisBackendConfig implements DataPatchInterface
             if (isset($frontendConfig['backend']) && isset($migrationMap[$frontendConfig['backend']])) {
                 $oldValue = $frontendConfig['backend'];
                 $newValue = $migrationMap[$oldValue];
-                
+
                 if (!isset($configUpdates['cache'])) {
                     $configUpdates['cache'] = $cacheConfig;
                 }
