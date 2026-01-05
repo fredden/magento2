@@ -25,6 +25,7 @@ use Magento\Reports\Model\Grouped\CollectionFactory;
 use Magento\Reports\Model\ResourceModel\Report\Collection\Factory;
 use Magento\Reports\Block\Adminhtml\Sales\Invoiced\Grid;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -34,6 +35,7 @@ use PHPUnit\Framework\MockObject\MockObject;
  */
 class GridTest extends TestCase
 {
+    use MockCreationTrait;
 
     /**
      * @var Context|MockObject
@@ -143,18 +145,16 @@ class GridTest extends TestCase
         $currencyCode = 'USD';
         $rate = 0.5;
         $this->layout->method('getChildName')->willReturn('columns');
-        $block = $this->getMockBuilder(AbstractBlock::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['getColumns', 'isAvailable'])
-            ->onlyMethods(['getChildBlock', 'getChildNames', 'setChild'])
-            ->getMock();
+        $block = $this->createPartialMockWithReflection(
+            AbstractBlock::class,
+            ['getColumns', 'isAvailable', 'getChildBlock', 'getChildNames', 'setChild']
+        );
         $block->method('getColumns')->willReturn([]);
         $this->layout->method('getBlock')->willReturn($block);
-        $extendedBlock = $this->getMockBuilder(DataObject::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['setId', 'setGrid', 'setDataAttribute'])
-            ->onlyMethods(['setData'])
-            ->getMock();
+        $extendedBlock = $this->createPartialMockWithReflection(
+            DataObject::class,
+            ['setId', 'setGrid', 'setDataAttribute', 'setData']
+        );
 
         $expectedData = $this->getColumnData($currencyCode, $rate);
         $callIndex = 0;

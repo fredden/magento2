@@ -9,7 +9,6 @@ namespace Magento\OfflineShipping\Test\Unit\Block\Adminhtml\Carrier\Tablerate;
 
 use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Helper\Data;
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\OfflineShipping\Block\Adminhtml\Carrier\Tablerate\Grid;
 use Magento\OfflineShipping\Model\Carrier\Tablerate;
 use Magento\OfflineShipping\Model\ResourceModel\Carrier\Tablerate\CollectionFactory;
@@ -52,37 +51,31 @@ class GridTest extends TestCase
 
     protected function setUp(): void
     {
-        $objectManager = new ObjectManager($this);
+        $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
 
-        $this->storeManagerMock = $this->getMockBuilder(StoreManagerInterface::class)
+        $this->context = $this->createMock(Context::class);
+
+        $this->backendHelperMock = $this->createMock(Data::class);
+
+        $this->collectionFactoryMock = $this->createMock(CollectionFactory::class);
+
+        $this->tablerateMock = $this->createMock(Tablerate::class);
+
+        $this->model = $this->getMockBuilder(Grid::class)
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
-
-        $this->context = $objectManager->getObject(
-            Context::class,
-            ['storeManager' => $this->storeManagerMock]
-        );
-
-        $this->backendHelperMock = $this->getMockBuilder(Data::class)
-            ->disableOriginalConstructor()
+            ->onlyMethods([])
             ->getMock();
 
-        $this->collectionFactoryMock =
-            $this->getMockBuilder(
-                CollectionFactory::class
-            )->disableOriginalConstructor()
-                ->getMock();
+        $reflection = new \ReflectionClass(Grid::class);
 
-        $this->tablerateMock = $this->getMockBuilder(Tablerate::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $storeManagerProperty = $reflection->getProperty('_storeManager');
+        $storeManagerProperty->setValue($this->model, $this->storeManagerMock);
 
-        $this->model = new Grid(
-            $this->context,
-            $this->backendHelperMock,
-            $this->collectionFactoryMock,
-            $this->tablerateMock
-        );
+        $collectionFactoryProperty = $reflection->getProperty('_collectionFactory');
+        $collectionFactoryProperty->setValue($this->model, $this->collectionFactoryMock);
+
+        $tablerateProperty = $reflection->getProperty('_tablerate');
+        $tablerateProperty->setValue($this->model, $this->tablerateMock);
     }
 
     public function testSetWebsiteId()
