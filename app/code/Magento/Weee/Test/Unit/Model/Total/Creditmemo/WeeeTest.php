@@ -106,6 +106,8 @@ class WeeeTest extends TestCase
     /**
      * @param array $creditmemoData
      * @param array $expectedResults
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     #[DataProvider('collectDataProvider')]
     public function testCollect($creditmemoData, $expectedResults)
