@@ -9,16 +9,18 @@ namespace Magento\Theme\Test\Unit\Model\View;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\State;
+use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\View\Design\Theme\FlyweightFactory;
 use Magento\Framework\View\Design\ThemeInterface;
 use Magento\Framework\View\DesignInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Theme\Model\ThemeFactory;
 use Magento\Theme\Model\View\Design;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -41,7 +43,7 @@ class DesignTest extends TestCase
     protected $flyweightThemeFactory;
 
     /**
-     * @var \Magento\Theme\Model\ThemeFactory|MockObject
+     * @var ThemeFactory|MockObject
      */
     protected $themeFactory;
 
@@ -70,7 +72,7 @@ class DesignTest extends TestCase
         $this->storeManager = $this->createMock(StoreManagerInterface::class);
         $this->flyweightThemeFactory = $this->createMock(FlyweightFactory::class);
         $this->config = $this->createMock(ScopeConfigInterface::class);
-        $this->themeFactory = $this->createPartialMock(\Magento\Theme\Model\ThemeFactory::class, ['create']);
+        $this->themeFactory = $this->createPartialMock(ThemeFactory::class, ['create']);
         $this->objectManager = $this->createMock(ObjectManagerInterface::class);
         $this->state = $this->createMock(State::class);
         $themes = [Design::DEFAULT_AREA => $this->defaultTheme];
@@ -127,14 +129,71 @@ class DesignTest extends TestCase
      * @test
      * @param bool $storeMode
      * @param string $scope
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @return void
      */
     #[DataProvider('designThemeDataProvider')]
-    public function testSetDesignTheme($storeMode, $scope)
+    public function testSetDefaultDesignTheme($storeMode, $scope)
+    {
+        $area = Design::DEFAULT_AREA;
+        $this->state->expects($this->any())
+            ->method('getAreaCode')
+            ->willReturn($area);
+        $this->storeManager->expects($this->once())
+            ->method('isSingleStoreMode')
+            ->willReturn($storeMode);
+        $this->config->expects($this->once())
+            ->method('getValue')
+            ->with(Design::XML_PATH_THEME_ID, $scope, null)
+            ->willReturn(null);
+        $this->flyweightThemeFactory->expects($this->once())
+            ->method('create')
+            ->with($this->defaultTheme, $area);
+        $this->assertInstanceOf(get_class($this->model), $this->model->setDefaultDesignTheme());
+    }
+
+    /**
+     * @test
+     * @return void
+     * @covers \Magento\Theme\Model\View\Design::getDesignParams
+     * @covers \Magento\Theme\Model\View\Design::getLocale
+     * @covers \Magento\Theme\Model\View\Design::getArea
+     * @covers \Magento\Theme\Model\View\Design::getDesignTheme
+     */
+    public function testGetDesignParams()
+    {
+        $locale = 'locale';
+        $area = Design::DEFAULT_AREA;
+        $localeMock = $this->createMock(ResolverInterface::class);
+        $localeMock->expects($this->once())
+            ->method('getLocale')
+            ->willReturn($locale);
+        $this->objectManager->expects($this->once())
+            ->method('get')
+            ->willReturn($localeMock);
+        $this->state->expects($this->any())
+            ->method('getAreaCode')
+            ->willReturn($area);
+        $this->themeFactory->expects($this->once())
+            ->method('create')
+            ->willReturn($this->createMock(ThemeInterface::class));
+
+        $params = $this->model->getDesignParams();
+
+        $this->assertInstanceOf(ThemeInterface::class, $params['themeModel']);
+        $this->assertEquals($area, $params['area']);
+        $this->assertEquals($locale, $params['locale']);
+    }
+
+    /**
+     * @test
+     * @return void
+     * @covers \Magento\Theme\Model\View\Design::setDesignTheme
+     * @covers \Magento\Theme\Model\View\Design::setArea
+     */
+    public function testSetDesignTheme()
     {
         $area = 'adminhtml';
-        $theme = $this->getMockBuilder(className: ThemeInterface::class)
-            ->getMock();
+        $theme = $this->createMock(ThemeInterface::class);
 
         $this->assertInstanceOf(get_class($this->model), $this->model->setDesignTheme($theme, $area));
     }

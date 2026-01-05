@@ -45,7 +45,6 @@ class ContentTest extends TestCase
         $this->_request = $this->createMock(RequestInterface::class);
 
         $objectManagerHelper = new ObjectManager($this);
-        // Initialize ObjectManager to avoid "ObjectManager isn't initialized" errors
         $objectManagerHelper->prepareObjectManager();
         
         $constructArguments = $objectManagerHelper->getConstructArguments(

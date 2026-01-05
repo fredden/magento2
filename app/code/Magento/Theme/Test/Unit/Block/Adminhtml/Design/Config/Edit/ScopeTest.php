@@ -47,7 +47,6 @@ class ScopeTest extends TestCase
     protected function setUp(): void
     {
         $this->objectManager = new ObjectManager($this);
-        // Initialize ObjectManager to avoid "ObjectManager isn't initialized" errors
         $this->objectManager->prepareObjectManager();
         
         $this->initContext();

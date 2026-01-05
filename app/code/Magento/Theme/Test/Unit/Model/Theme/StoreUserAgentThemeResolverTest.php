@@ -50,7 +50,7 @@ class StoreUserAgentThemeResolverTest extends TestCase
      *
      * @param array|null $config
      * @param array $expected
-     * */
+     */
     #[DataProvider('getThemesDataProvider')]
     public function testGetThemes(?array $config, array $expected): void
     {

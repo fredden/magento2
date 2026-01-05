@@ -36,7 +36,8 @@ class UiComponentTypeResolverTest extends TestCase
 
     /**
      * @param string $acceptType
-     * @param string $contentType     */
+     * @param string $contentType     
+     */
     #[DataProvider('resolveDataProvider')]
     public function testResolve(string $acceptType, string $contentType)
     {

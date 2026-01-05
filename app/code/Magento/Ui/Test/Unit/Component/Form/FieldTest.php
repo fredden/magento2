@@ -7,9 +7,13 @@ declare(strict_types=1);
 
 namespace Magento\Ui\Test\Unit\Component\Form;
 
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
+use Magento\Framework\View\Element\UiComponent\Processor;
 use Magento\Framework\View\Element\UiComponentFactory;
+use Magento\Framework\View\Element\UiComponentInterface;
 use Magento\Ui\Component\Form\Field;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -20,9 +24,9 @@ use PHPUnit\Framework\TestCase;
  */
 class FieldTest extends TestCase
 {
-    const NAME = 'test-name';
-    const COMPONENT_NAME = 'test-name';
-    const COMPONENT_NAMESPACE = 'test-name';
+    private const NAME = 'test-name';
+    private const COMPONENT_NAME = 'test-name';
+    private const COMPONENT_NAMESPACE = 'test-name';
 
     /**
      * @var Field
@@ -69,11 +73,103 @@ class FieldTest extends TestCase
      * @param array $data
      * @param array $expectedData
      * @return void
+     */
+    #[DataProvider('prepareSuccessDataProvider')]
+    public function testPrepareSuccess(array $data, array $expectedData)
+    {
+        $processor = $this->createMock(Processor::class);
+        $this->contextMock->expects($this->atLeastOnce())->method('getProcessor')->willReturn($processor);
+        $this->uiComponentFactoryMock->expects($this->once())
+            ->method('create')
+            ->with(self::NAME, $data['config']['formElement'], $this->arrayHasKey('context'))
+            ->willReturn($this->getWrappedComponentMock());
+
+        $this->contextMock->expects($this->any())
+            ->method('getNamespace')
+            ->willReturn(self::COMPONENT_NAMESPACE);
+
+        $this->field->setData($data);
+        $this->field->prepare();
+        $result = $this->field->getData();
+
+        $this->assertEquals($expectedData, $result);
+    }
+
+    /**
+     * Data provider for testPrepare
      *
+     * @return array
+     */
+    public static function prepareSuccessDataProvider()
+    {
+        return [
+            [
+                'data' => [
+                    'name' => self::NAME,
+                    'config' => [
+                        'formElement' => 'test',
+                    ]
+                ],
+                'expectedData' => [
+                    'name' => self::NAME,
+                    'config' => [
+                        'test-key' => 'test-value',
+                    ],
+                    'js_config' => [
+                        'extends' => self::NAME,
+                        'test-key' => 'test-value',
+                    ]
+                ]
+            ],
+        ];
+    }
+
+    /**
+     * @return MockObject|UiComponentInterface
+     */
+    protected function getWrappedComponentMock()
+    {
+        $wrappedComponentMock = $this->createMock(UiComponentInterface::class);
+
+        $wrappedComponentMock->expects($this->any())
+            ->method('getData')
+            ->willReturnMap($this->testConfigData);
+        $wrappedComponentMock->expects($this->once())
+            ->method('setData')
+            ->with('config', $this->logicalNot($this->isEmpty()));
+        $wrappedComponentMock->expects($this->once())
+            ->method('prepare');
+        $wrappedComponentMock->expects($this->atLeastOnce())
+            ->method('getChildComponents')
+            ->willReturn($this->getComponentsMock());
+        $wrappedComponentMock->expects($this->any())
+            ->method('getComponentName')
+            ->willReturn(self::COMPONENT_NAME);
+        $wrappedComponentMock->expects($this->once())
+            ->method('getContext')
+            ->willReturn($this->contextMock);
+
+        return $wrappedComponentMock;
+    }
+
+    /**
+     * @return MockObject[]|UiComponentInterface[]
+     */
+    protected function getComponentsMock()
+    {
+        $componentMock = $this->createMock(UiComponentInterface::class);
+
+        return [$componentMock];
+    }
+
+    /**
+     * Run test prepare method (Exception)
+     *
+     * @return void
      */
     public function testPrepareException()
     {
-        $this->expectException('Magento\Framework\Exception\LocalizedException');
+        $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage(
             'The "formElement" configuration parameter is required for the "test-name" field.'
         );

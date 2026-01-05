@@ -11,6 +11,7 @@ namespace Magento\Eav\Test\Unit\Model\Validator\Attribute;
 use Magento\Eav\Model\Attribute;
 use Magento\Eav\Model\Attribute\Data\AbstractData;
 use Magento\Eav\Model\AttributeDataFactory;
+use Magento\Eav\Model\Config;
 use Magento\Eav\Model\Entity\AbstractEntity;
 use Magento\Eav\Model\Validator\Attribute\Data;
 use Magento\Framework\App\ObjectManager;
@@ -62,7 +63,7 @@ class DataTest extends TestCase
         $this->createMock(ObjectManagerInterface::class);
         ObjectManager::setInstance($this->createMock(ObjectManagerInterface::class));
         $this->eavConfigMock = $this->createPartialMockWithReflection(
-            \Magento\Eav\Model\Config::class,
+            Config::class,
             ['getEntityType']
         );
         $this->model = new Data($this->attrDataFactory);
@@ -268,7 +269,8 @@ class DataTest extends TestCase
     /**
      * @param callable $callback
      *
-     * @return void     */
+     * @return void
+     */
     #[DataProvider('allowDenyListProvider')]
     public function testIsValidExclusionInclusionListChecks($callback): void
     {

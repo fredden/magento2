@@ -62,7 +62,7 @@ class MultilineTest extends TestCase
      * @param array $data
      * @return void
      *
-     * */
+     */
     #[DataProvider('prepareDataProvider')]
     public function testPrepare(array $data)
     {

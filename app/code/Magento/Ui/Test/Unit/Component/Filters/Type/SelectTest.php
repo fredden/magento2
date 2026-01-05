@@ -48,12 +48,7 @@ class SelectTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->contextMock = $this->createMock(
-            ContextInterface::class,
-            [],
-            '',
-            false
-        );
+        $this->contextMock = $this->createMock(ContextInterface::class);
         $this->uiComponentFactory = $this->createPartialMock(
             UiComponentFactory::class,
             ['create']
@@ -91,7 +86,7 @@ class SelectTest extends TestCase
      * @param array $data
      * @param array $filterData
      * @param array|null $expectedCondition
-     * */
+     */
     #[DataProvider('getPrepareDataProvider')]
     public function testPrepare($data, $filterData, $expectedCondition)
     {
@@ -99,12 +94,7 @@ class SelectTest extends TestCase
         $this->contextMock->expects($this->atLeastOnce())->method('getProcessor')->willReturn($processor);
         $name = $data['name'];
         /** @var UiComponentInterface $uiComponent */
-        $uiComponent = $this->createMock(
-            UiComponentInterface::class,
-            [],
-            '',
-            false
-        );
+        $uiComponent = $this->createMock(UiComponentInterface::class);
 
         $uiComponent->expects($this->any())
             ->method('getContext')
@@ -120,12 +110,7 @@ class SelectTest extends TestCase
             ->method('getFiltersParams')
             ->willReturn($filterData);
         /** @var DataProviderInterface $dataProvider */
-        $dataProvider = $this->createMock(
-            DataProviderInterface::class,
-            ['addFilter'],
-            '',
-            false
-        );
+        $dataProvider = $this->createMock(DataProviderInterface::class);
         $this->contextMock->expects($this->any())
             ->method('getDataProvider')
             ->willReturn($dataProvider);
@@ -152,12 +137,7 @@ class SelectTest extends TestCase
         }
 
         /** @var OptionSourceInterface $selectOptions */
-        $selectOptions = $this->createMock(
-            OptionSourceInterface::class,
-            [],
-            '',
-            false
-        );
+        $selectOptions = $this->createMock(OptionSourceInterface::class);
 
         $this->uiComponentFactory->expects($this->any())
             ->method('create')

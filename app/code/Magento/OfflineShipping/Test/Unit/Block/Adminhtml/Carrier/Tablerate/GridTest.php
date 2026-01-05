@@ -9,6 +9,9 @@ namespace Magento\OfflineShipping\Test\Unit\Block\Adminhtml\Carrier\Tablerate;
 
 use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Helper\Data;
+use Magento\Framework\Filesystem;
+use Magento\Framework\Filesystem\Directory\WriteInterface;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\OfflineShipping\Block\Adminhtml\Carrier\Tablerate\Grid;
 use Magento\OfflineShipping\Model\Carrier\Tablerate;
 use Magento\OfflineShipping\Model\ResourceModel\Carrier\Tablerate\CollectionFactory;
@@ -49,11 +52,26 @@ class GridTest extends TestCase
      */
     protected $collectionFactoryMock;
 
+    /**
+     * @var ObjectManager
+     */
+    protected $objectManager;
+
     protected function setUp(): void
     {
+        $this->objectManager = new ObjectManager($this);
+        // Initialize ObjectManager to avoid "ObjectManager isn't initialized" errors
+        $this->objectManager->prepareObjectManager();
+
         $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
 
+        $filesystemMock = $this->createMock(Filesystem::class);
+        $directoryWriteMock = $this->createMock(WriteInterface::class);
+        $filesystemMock->method('getDirectoryWrite')->willReturn($directoryWriteMock);
+
         $this->context = $this->createMock(Context::class);
+        $this->context->method('getFilesystem')->willReturn($filesystemMock);
+        $this->context->method('getStoreManager')->willReturn($this->storeManagerMock);
 
         $this->backendHelperMock = $this->createMock(Data::class);
 
@@ -61,31 +79,25 @@ class GridTest extends TestCase
 
         $this->tablerateMock = $this->createMock(Tablerate::class);
 
-        $this->model = $this->getMockBuilder(Grid::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods([])
-            ->getMock();
-
-        $reflection = new \ReflectionClass(Grid::class);
-
-        $storeManagerProperty = $reflection->getProperty('_storeManager');
-        $storeManagerProperty->setValue($this->model, $this->storeManagerMock);
-
-        $collectionFactoryProperty = $reflection->getProperty('_collectionFactory');
-        $collectionFactoryProperty->setValue($this->model, $this->collectionFactoryMock);
-
-        $tablerateProperty = $reflection->getProperty('_tablerate');
-        $tablerateProperty->setValue($this->model, $this->tablerateMock);
+        $this->model = $this->objectManager->getObject(
+            Grid::class,
+            [
+                'context' => $this->context,
+                'backendHelper' => $this->backendHelperMock,
+                'collectionFactory' => $this->collectionFactoryMock,
+                'tablerate' => $this->tablerateMock
+            ]
+        );
     }
 
     public function testSetWebsiteId()
     {
         $websiteId = 1;
 
-        $websiteMock = $this->getMockBuilder(Website::class)
-            ->onlyMethods(['getId'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $websiteMock = $this->createPartialMock(
+            Website::class,
+            ['getId']
+        );
 
         $this->storeManagerMock->expects($this->once())
             ->method('getWebsite')
@@ -104,10 +116,10 @@ class GridTest extends TestCase
     {
         $websiteId = 10;
 
-        $websiteMock = $this->getMockBuilder(Website::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getId'])
-            ->getMock();
+        $websiteMock = $this->createPartialMock(
+            Website::class,
+            ['getId']
+        );
 
         $websiteMock->expects($this->once())
             ->method('getId')

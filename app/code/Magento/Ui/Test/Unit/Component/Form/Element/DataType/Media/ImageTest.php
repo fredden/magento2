@@ -78,8 +78,6 @@ class ImageTest extends MediaTest
         ]);
     }
 
-    /**
-     * */
     #[DataProvider('prepareDataProvider')]
     public function testPrepare(array $initialConfig, int $maxFileSizeSupported, array $expectedPreparedConfig): void
     {

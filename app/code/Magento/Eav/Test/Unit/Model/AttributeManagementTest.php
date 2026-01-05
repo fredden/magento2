@@ -16,6 +16,7 @@ use Magento\Eav\Api\Data\AttributeSetInterface;
 use Magento\Eav\Model\AttributeManagement;
 use Magento\Eav\Model\Config;
 use Magento\Eav\Model\ConfigFactory;
+use Magento\Eav\Model\Entity\Attribute as EntityAttribute;
 use Magento\Eav\Model\Entity\Type;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\Collection;
@@ -23,7 +24,6 @@ use Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
@@ -269,7 +269,7 @@ class AttributeManagementTest extends TestCase
         $entityTypeMock = $this->createMock(Type::class);
         $this->eavConfigMock->expects($this->once())->method('getEntityType')->with(66)->willReturn($entityTypeMock);
         $attributeMock = $this->createPartialMockWithReflection(
-            \Magento\Eav\Model\Entity\Attribute::class,
+            EntityAttribute::class,
             [
                 'getEntityAttributeId',
                 'setAttributeSetId',
@@ -309,7 +309,7 @@ class AttributeManagementTest extends TestCase
         $entityTypeMock = $this->createMock(Type::class);
         $this->eavConfigMock->expects($this->once())->method('getEntityType')->with(66)->willReturn($entityTypeMock);
         $attributeMock = $this->createPartialMockWithReflection(
-            \Magento\Eav\Model\Entity\Attribute::class,
+            EntityAttribute::class,
             [
                 'getEntityAttributeId',
                 'setAttributeSetId',
@@ -369,7 +369,7 @@ class AttributeManagementTest extends TestCase
         $entityTypeMock = $this->createMock(Type::class);
         $this->eavConfigMock->expects($this->once())->method('getEntityType')->with(66)->willReturn($entityTypeMock);
         $attributeMock = $this->createPartialMockWithReflection(
-            \Magento\Eav\Model\Entity\Attribute::class,
+            EntityAttribute::class,
             [
                 'getEntityAttributeId',
                 'setAttributeSetId',

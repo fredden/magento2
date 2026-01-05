@@ -16,6 +16,7 @@ use Magento\Ui\Api\Data\BookmarkInterface;
 use Magento\Ui\Api\Data\BookmarkInterfaceFactory;
 use Magento\Ui\Api\Data\BookmarkSearchResultsInterface;
 use Magento\Ui\Api\Data\BookmarkSearchResultsInterfaceFactory;
+use Magento\Ui\Model\Bookmark as BookmarkModel;
 use Magento\Ui\Model\ResourceModel\Bookmark;
 use Magento\Ui\Model\ResourceModel\Bookmark\Collection;
 use Magento\Ui\Model\ResourceModel\BookmarkRepository;
@@ -57,7 +58,7 @@ class BookmarkRepositoryTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->bookmarkMock = $this->createMock(\Magento\Ui\Model\Bookmark::class);
+        $this->bookmarkMock = $this->createMock(BookmarkModel::class);
         $bookmarkFactoryMock = $this->createPartialMock(
             BookmarkInterfaceFactory::class,
             ['create']

@@ -85,7 +85,8 @@ class ReadHandlerTest extends TestCase
      * @param string $eavEntityType
      * @param int $callNum
      * @param array $expected
-     * @param bool $isStatic     */
+     * @param bool $isStatic
+     */
     #[DataProvider('executeDataProvider')]
     public function testExecute(
         $eavEntityType,
@@ -146,7 +147,8 @@ class ReadHandlerTest extends TestCase
      * @param bool $isStatic
      * @param null|int $isGlobalScope
      * @throws \Magento\Framework\Exception\ConfigurationMismatchException
-     * @throws \Magento\Framework\Exception\LocalizedException     */
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     #[DataProvider('executeGlobalScopeDataProvider')]
     public function testExecuteGlobalScope(
         $eavEntityType,

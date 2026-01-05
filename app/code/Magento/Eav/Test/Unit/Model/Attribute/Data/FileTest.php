@@ -77,7 +77,8 @@ class FileTest extends TestCase
      * @param string $format
      * @param mixed $value
      * @param mixed $expectedResult
-     * @param int $callTimes     */
+     * @param int $callTimes
+     */
     #[DataProvider('outputValueDataProvider')]
     public function testOutputValue($format, $value, $callTimes, $expectedResult)
     {
@@ -131,7 +132,8 @@ class FileTest extends TestCase
      * @param bool $isAjaxRequest
      * @param array $rules
      * @param bool $fileIsValid
-     * @param array $expectedResult     */
+     * @param array $expectedResult
+     */
     #[DataProvider('validateValueDataProvider')]
     public function testValidateValue(
         $value,

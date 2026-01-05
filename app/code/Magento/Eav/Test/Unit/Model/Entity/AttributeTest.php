@@ -10,6 +10,7 @@ namespace Magento\Eav\Test\Unit\Model\Entity;
 use Magento\Eav\Model\Entity\Attribute;
 use Magento\Eav\Model\Entity\Attribute\FrontendLabel;
 use Magento\Eav\Model\Entity\Attribute\FrontendLabelFactory;
+use Magento\Eav\Model\ResourceModel\Entity\Attribute as AttributeResource;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -109,7 +110,8 @@ class AttributeTest extends TestCase
 
     /**
      * @param array|null $sortWeights
-     * @param float $expected     */
+     * @param float $expected
+     */
     #[DataProvider('getSortWeightDataProvider')]
     public function testGetSortWeight($sortWeights, $expected)
     {
@@ -146,7 +148,7 @@ class AttributeTest extends TestCase
             ['create']
         );
         $resource = $this->createPartialMock(
-            \Magento\Eav\Model\ResourceModel\Entity\Attribute::class,
+            AttributeResource::class,
             ['getStoreLabelsByAttributeId']
         );
         $arguments = [

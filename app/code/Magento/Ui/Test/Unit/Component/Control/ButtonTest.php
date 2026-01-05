@@ -86,7 +86,7 @@ class ButtonTest extends TestCase
      * @param string|null $url
      * @param string $getUrl
      * @param string|null $result
-     * */
+     */
     #[DataProvider('dataProviderGetOnClick')]
     public function testGetOnClick($onClick, $url, $getUrl, $result)
     {

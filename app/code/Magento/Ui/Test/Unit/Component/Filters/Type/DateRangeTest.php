@@ -47,12 +47,7 @@ class DateRangeTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->contextMock = $this->createMock(
-            \Magento\Framework\View\Element\UiComponent\ContextInterface::class,
-            [],
-            '',
-            false
-        );
+        $this->contextMock = $this->createMock(\Magento\Framework\View\Element\UiComponent\ContextInterface::class);
         $this->uiComponentFactory = $this->createPartialMock(
             UiComponentFactory::class,
             ['create']
@@ -95,7 +90,7 @@ class DateRangeTest extends TestCase
         $processor = $this->createMock(Processor::class);
         $this->contextMock->expects($this->atLeastOnce())->method('getProcessor')->willReturn($processor);
         /** @var FormDate $uiComponent */
-        $uiComponent = $this->createMock(\Magento\Ui\Component\Form\Element\DataType\Date::class);
+        $uiComponent = $this->createMock(FormDate::class);
 
         $uiComponent->expects($this->any())
             ->method('getContext')
@@ -111,12 +106,7 @@ class DateRangeTest extends TestCase
             ->method('getRequestParam')
             ->with(UiContext::FILTER_VAR)
             ->willReturn($filterData);
-        $dataProvider = $this->createMock(
-            DataProviderInterface::class,
-            [],
-            '',
-            false
-        );
+        $dataProvider = $this->createMock(DataProviderInterface::class);
         $this->contextMock->expects($this->any())
             ->method('getDataProvider')
             ->willReturn($dataProvider);

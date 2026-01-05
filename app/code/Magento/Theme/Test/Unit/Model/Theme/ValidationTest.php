@@ -23,7 +23,7 @@ class ValidationTest extends TestCase
      * @param array $messages
      *
      * @covers \Magento\Framework\View\Design\Theme\Validator::validate
-     * */
+     */
     #[DataProvider('dataProviderValidate')]
     public function testValidate(array $data, $result, array $messages)
     {

@@ -438,9 +438,6 @@ class AbstractGroupTest extends TestCase
     public function testGetDefaultCustomerGroupReturnsAllCustomersGroupId(): void
     {
         $allCustomersGroupId = 0;
-        
-        // The default group mock is already set up in setUp() with getId() returning 0
-        // Just verify the method returns the expected value
         $result = $this->block->getDefaultCustomerGroup();
 
         $this->assertSame($allCustomersGroupId, $result);

@@ -42,7 +42,8 @@ class ItemTest extends TestCase
 
     /**
      * @param array $expectedResult
-     * @param string $xpath     */
+     * @param string $xpath
+     */
     #[DataProvider('convertDataProvider')]
     public function testConvert(array $expectedResult, string $xpath)
     {

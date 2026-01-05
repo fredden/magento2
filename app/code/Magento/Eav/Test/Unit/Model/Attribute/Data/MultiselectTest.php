@@ -46,7 +46,8 @@ class MultiselectTest extends TestCase
      * @covers \Magento\Eav\Model\Attribute\Data\Multiselect::extractValue
      *
      * @param mixed $param
-     * @param mixed $expectedResult     */
+     * @param mixed $expectedResult
+     */
     #[DataProvider('extractValueDataProvider')]
     public function testExtractValue($param, $expectedResult)
     {
@@ -85,7 +86,8 @@ class MultiselectTest extends TestCase
      * @covers \Magento\Eav\Model\Attribute\Data\Multiselect::outputValue
      *
      * @param string $format
-     * @param mixed $expectedResult     */
+     * @param mixed $expectedResult
+     */
     #[DataProvider('outputValueDataProvider')]
     public function testOutputValue($format, $expectedResult)
     {
@@ -127,7 +129,8 @@ class MultiselectTest extends TestCase
      * @param mixed $originalValue
      * @param bool $isRequired
      * @param bool $skipRequiredValidation
-     * @param array $expectedResult     */
+     * @param array $expectedResult
+     */
     #[DataProvider('validateValueDataProvider')]
     public function testValidateValue($value, $originalValue, $isRequired, $skipRequiredValidation, $expectedResult)
     {

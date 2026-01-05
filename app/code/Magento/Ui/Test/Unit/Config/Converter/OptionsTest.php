@@ -35,7 +35,8 @@ class OptionsTest extends TestCase
     /**
      * @param array $expectedResult
      * @param string $xpath
-     * @return void     */
+     * @return void
+     */
     #[DataProvider('convertDataProvider')]
     public function testConvert(array $expectedResult, $xpath)
     {

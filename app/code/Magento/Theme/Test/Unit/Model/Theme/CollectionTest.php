@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace Magento\Theme\Test\Unit\Model\Theme;
 
+use Magento\Framework\Config\Theme as ThemeConfig;
+use Magento\Framework\Config\ThemeFactory as ThemeConfigFactory;
 use Magento\Framework\Data\Collection\EntityFactory;
 use Magento\Framework\Filesystem\Directory\ReadFactory;
 use Magento\Framework\Filesystem\Directory\ReadInterface;
@@ -15,9 +17,10 @@ use Magento\Framework\View\Design\Theme\ThemePackageList;
 use Magento\Framework\View\Design\ThemeInterface;
 use Magento\Theme\Model\Theme;
 use Magento\Theme\Model\Theme\Collection;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\DataProvider;
+use UnexpectedValueException;
 
 class CollectionTest extends TestCase
 {
@@ -27,7 +30,7 @@ class CollectionTest extends TestCase
     private $model;
 
     /**
-     * @var \Magento\Framework\Config\ThemeFactory|MockObject
+     * @var ThemeConfigFactory|MockObject
      */
     private $themeConfigFactory;
 
@@ -53,14 +56,14 @@ class CollectionTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->entityFactory = $this->getMockBuilder(EntityFactory::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['create'])
-            ->getMock();
-        $this->themeConfigFactory = $this->getMockBuilder(\Magento\Framework\Config\ThemeFactory::class)
-            ->onlyMethods(['create'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->entityFactory = $this->createPartialMock(
+            EntityFactory::class,
+            ['create']
+        );
+        $this->themeConfigFactory = $this->createPartialMock(
+            ThemeConfigFactory::class,
+            ['create']
+        );
         $this->directory = $this->createMock(ReadInterface::class);
 
         $this->themePackageList = $this->createMock(ThemePackageList::class);
@@ -87,9 +90,7 @@ class CollectionTest extends TestCase
         $media = ['preview_image' => 'preview.jpg'];
         $themeTitle = 'Theme title';
         $themeConfigFile = 'theme.xml';
-        $themeConfig = $this->createMock(
-            \Magento\Framework\Config\Theme::class
-        );
+        $themeConfig = $this->createMock(ThemeConfig::class);
         $theme = $this->createMock(Theme::class);
         $parentTheme = ['parentThemeCode'];
         $parentThemePath = 'frontend/parent/theme';
@@ -160,7 +161,7 @@ class CollectionTest extends TestCase
 
     public function testAddConstraintUnsupportedType()
     {
-        $this->expectException('UnexpectedValueException');
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionMessage('Constraint \'unsupported_type\' is not supported');
         $this->model->addConstraint('unsupported_type', 'value');
     }

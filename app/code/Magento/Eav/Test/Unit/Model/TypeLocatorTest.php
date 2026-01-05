@@ -62,7 +62,8 @@ class TypeLocatorTest extends TestCase
      * @param StringUtils $stringUtility ,
      * @param array $serviceEntityTypeMapData
      * @param array $serviceBackendModelDataInterfaceMapData
-     * @param string $expected     */
+     * @param string $expected
+     */
     #[DataProvider('getTypeDataProvider')]
     public function testGetType(
         $attributeCode,

@@ -10,6 +10,7 @@ namespace Magento\Theme\Test\Unit\Controller\Adminhtml\System\Design;
 use Magento\Backend\Helper\Data;
 use Magento\Backend\Model\Session;
 use Magento\Framework\App\ActionFlag;
+use Magento\Framework\App\Request\Http as RequestHttp;
 use Magento\Framework\App\Response\Http;
 use Magento\Framework\App\Response\Http\FileFactory;
 use Magento\Framework\App\Response\RedirectInterface;
@@ -101,7 +102,7 @@ abstract class ThemeTestCase extends TestCase
     {
         $this->_objectManagerMock = $this->createMock(ObjectManagerInterface::class);
 
-        $this->_request = $this->createMock(\Magento\Framework\App\Request\Http::class);
+        $this->_request = $this->createMock(RequestHttp::class);
         $this->eventManager = $this->createMock(ManagerInterface::class);
         $this->view = $this->createMock(ViewInterface::class);
         $this->messageManager = $this->createMock(\Magento\Framework\Message\ManagerInterface::class);

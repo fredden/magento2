@@ -52,7 +52,8 @@ class DateTest extends TestCase
      * @param string $format
      * @param mixed $value
      * @param mixed $expectedResult
-     * @param int $callTimes     */
+     * @param int $callTimes
+     */
     #[DataProvider('outputValueDataProvider')]
     public function testOutputValue($format, $value, $callTimes, $expectedResult)
     {
@@ -99,7 +100,8 @@ class DateTest extends TestCase
      * @param mixed $originalValue
      * @param bool $isRequired
      * @param bool $skipRequiredValidation
-     * @param array $expectedResult     */
+     * @param array $expectedResult
+     */
     #[DataProvider('validateValueDataProvider')]
     public function testValidateValue(
         $value,
@@ -196,7 +198,8 @@ class DateTest extends TestCase
      * @covers \Magento\Eav\Model\Attribute\Data\Date::compactValue
      *
      * @param string $value
-     * @param string $expectedResult     */
+     * @param string $expectedResult
+     */
     #[DataProvider('compactValueDataProvider')]
     public function testCompactValue($value, $expectedResult)
     {

@@ -42,7 +42,8 @@ class SelectTest extends TestCase
      *
      * @param string $format
      * @param mixed $value
-     * @param mixed $expectedResult     */
+     * @param mixed $expectedResult
+     */
     #[DataProvider('outputValueDataProvider')]
     public function testOutputValue($format, $value, $expectedResult)
     {
@@ -91,7 +92,8 @@ class SelectTest extends TestCase
      * @param mixed $originalValue
      * @param bool $isRequired
      * @param bool $skipRequiredValidation
-     * @param array $expectedResult     */
+     * @param array $expectedResult
+     */
     #[DataProvider('validateValueDataProvider')]
     public function testValidateValue($value, $originalValue, $isRequired, $skipRequiredValidation, $expectedResult)
     {

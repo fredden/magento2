@@ -47,12 +47,7 @@ class InputTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->contextMock = $this->createMock(
-            ContextInterface::class,
-            [],
-            '',
-            false
-        );
+        $this->contextMock = $this->createMock(ContextInterface::class);
         $this->uiComponentFactory = $this->createPartialMock(
             UiComponentFactory::class,
             ['create']
@@ -89,19 +84,14 @@ class InputTest extends TestCase
      * @param array $data
      * @param array $filterData
      * @param array|null $expectedCondition
-     * */
+     */
     #[DataProvider('getPrepareDataProvider')]
     public function testPrepare(array $data, array $filterData, ?array $expectedCondition): void
     {
         $processor = $this->createMock(Processor::class);
         $this->contextMock->expects($this->atLeastOnce())->method('getProcessor')->willReturn($processor);
         /** @var UiComponentInterface $uiComponent */
-        $uiComponent = $this->createMock(
-            UiComponentInterface::class,
-            [],
-            '',
-            false
-        );
+        $uiComponent = $this->createMock(UiComponentInterface::class);
 
         $uiComponent->expects($this->any())
             ->method('getContext')
@@ -116,12 +106,7 @@ class InputTest extends TestCase
         $this->contextMock->expects($this->any())
             ->method('getFiltersParams')
             ->willReturn($filterData);
-        $dataProvider = $this->createMock(
-            DataProviderInterface::class,
-            [],
-            '',
-            false
-        );
+        $dataProvider = $this->createMock(DataProviderInterface::class);
 
         $this->contextMock->expects($this->any())
             ->method('getDataProvider')

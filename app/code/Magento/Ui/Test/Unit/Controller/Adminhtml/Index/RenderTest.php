@@ -14,6 +14,7 @@ use Magento\Backend\Helper\Data;
 use Magento\Backend\Model\Session;
 use Magento\Framework\App\ActionFlag;
 use Magento\Framework\App\Request\Http;
+use Magento\Framework\App\Response\Http as ResponseHttp;
 use Magento\Framework\AuthorizationInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
@@ -131,7 +132,7 @@ class RenderTest extends TestCase
         $objectManager->prepareObjectManager();
 
         $this->requestMock = $this->createMock(Http::class);
-        $this->responseMock = $this->createMock(\Magento\Framework\App\Response\Http::class);
+        $this->responseMock = $this->createMock(ResponseHttp::class);
         $this->contextMock = $this->createMock(Context::class);
         $this->uiFactoryMock = $this->createMock(UiComponentFactory::class);
         $this->authorizationMock = $this->createMock(AuthorizationInterface::class);
@@ -144,15 +145,7 @@ class RenderTest extends TestCase
         $this->dataProviderMock = $this->createMock(
             DataProviderInterface::class
         );
-        $this->uiComponentMock = $this->createMock(
-            UiComponentInterface::class,
-            [],
-            '',
-            false,
-            true,
-            true,
-            ['render']
-        );
+        $this->uiComponentMock = $this->createMock(UiComponentInterface::class);
 
         $this->resultJsonFactoryMock = $this->createMock(
             JsonFactory::class

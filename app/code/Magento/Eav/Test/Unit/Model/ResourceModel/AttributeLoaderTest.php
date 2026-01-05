@@ -65,7 +65,8 @@ class AttributeLoaderTest extends TestCase
     /**
      * @param string $entityType
      * @param int|null $attributeSetId
-     * @param string $expectedCondition     */
+     * @param string $expectedCondition
+     */
     #[DataProvider('getAttributesDataProvider')]
     public function testGetAttributes($entityType, $attributeSetId, $expectedCondition)
     {

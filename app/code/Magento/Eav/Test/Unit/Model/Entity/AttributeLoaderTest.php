@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\Eav\Test\Unit\Model\Entity;
 
+use Magento\Eav\Model\Attribute;
 use Magento\Eav\Model\Config;
 use Magento\Eav\Model\Entity;
 use Magento\Eav\Model\Entity\AbstractEntity;
@@ -92,7 +93,7 @@ class AttributeLoaderTest extends TestCase
     public function testLoadAllAttributesAttributeCodesPresentInDefaultAttributes()
     {
         $attributeMock = $this->createPartialMockWithReflection(
-            \Magento\Eav\Model\Attribute::class,
+            Attribute::class,
             ['setIsGlobal', 'setAttributeCode', 'setBackendType', 'setEntityType', 'setEntityTypeId']
         );
         $attributeCodes = ['bar' => $attributeMock];

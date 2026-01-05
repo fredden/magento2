@@ -46,12 +46,7 @@ class RangeTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->contextMock = $this->createMock(
-            ContextInterface::class,
-            [],
-            '',
-            false
-        );
+        $this->contextMock = $this->createMock(ContextInterface::class);
         $this->uiComponentFactory = $this->createMock(UiComponentFactory::class);
         $this->filterBuilderMock = $this->createMock(FilterBuilder::class);
         $this->filterModifierMock = $this->createPartialMock(
@@ -85,7 +80,7 @@ class RangeTest extends TestCase
      * @param string $name
      * @param array $filterData
      * @param array|null $expectedCalls
-     * */
+     */
     #[DataProvider('getPrepareDataProvider')]
     public function testPrepare($name, $filterData, $expectedCalls)
     {
@@ -116,12 +111,7 @@ class RangeTest extends TestCase
             ->willReturn($filterData);
 
         /** @var DataProviderInterface $dataProvider */
-        $dataProvider = $this->createMock(
-            DataProviderInterface::class,
-            [],
-            '',
-            false
-        );
+        $dataProvider = $this->createMock(DataProviderInterface::class);
 
         $this->contextMock->expects($this->atLeastOnce())
             ->method('getDataProvider')

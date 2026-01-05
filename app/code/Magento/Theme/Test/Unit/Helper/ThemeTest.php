@@ -19,6 +19,12 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 class ThemeTest extends TestCase
 {
+
+    /**
+     * @param string $layoutStr
+     * @param array $expectedResult
+     * @return void
+     */
     #[DataProvider('getCssAssetsDataProvider')]
     public function testGetCssAssets($layoutStr, $expectedResult)
     {

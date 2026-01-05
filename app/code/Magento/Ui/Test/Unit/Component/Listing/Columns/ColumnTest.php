@@ -60,15 +60,7 @@ class ColumnTest extends TestCase
         $this->objectManager = new ObjectManager($this);
         $this->objectManager->prepareObjectManager();
 
-        $this->contextMock = $this->createMock(
-            ContextInterface::class,
-            [],
-            '',
-            false,
-            true,
-            true,
-            []
-        );
+        $this->contextMock = $this->createMock(ContextInterface::class);
 
         $this->uiComponentFactoryMock = $this->createMock(UiComponentFactory::class);
     }
@@ -117,8 +109,6 @@ class ColumnTest extends TestCase
 
     /**
      * Run test prepare method
-     *
-     * @param null $dataProviderMock
      * @return void
      */
     public function testPrepare()
@@ -140,20 +130,10 @@ class ColumnTest extends TestCase
         );
 
         /** @var UiComponentInterface|PHPUnit\Framework\MockObject\MockObject $wrappedComponentMock */
-        $wrappedComponentMock = $this->createMock(
-            UiComponentInterface::class,
-            [],
-            '',
-            false
-        );
+        $wrappedComponentMock = $this->createMock(UiComponentInterface::class);
 
         if ($this->dataProviderMock === null) {
-            $this->dataProviderMock = $this->createMock(
-                DataProviderInterface::class,
-                [],
-                '',
-                false
-            );
+            $this->dataProviderMock = $this->createMock(DataProviderInterface::class);
 
             $this->dataProviderMock->expects($this->once())
                 ->method('addOrder')
@@ -201,7 +181,7 @@ class ColumnTest extends TestCase
      * @param int $numOfProviderCalls
      * @throws \ReflectionException
      *
-     * */
+     */
     #[DataProvider('sortingDataProvider')]
     public function testSorting(array $config, string $direction, int $numOfProviderCalls)
     {
@@ -210,12 +190,7 @@ class ColumnTest extends TestCase
             'config' => $config
         ];
 
-        $this->dataProviderMock = $this->createMock(
-            DataProviderInterface::class,
-            [],
-            '',
-            false
-        );
+        $this->dataProviderMock = $this->createMock(DataProviderInterface::class);
 
         $this->dataProviderMock->expects($this->exactly($numOfProviderCalls))
             ->method('addOrder')

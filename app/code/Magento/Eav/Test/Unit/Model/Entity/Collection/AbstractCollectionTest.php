@@ -195,8 +195,6 @@ class AbstractCollectionTest extends TestCase
         }
     }
 
-    /**
-     */
     #[DataProvider('getItemsDataProvider')]
     public function testClear($values, $count)
     {
@@ -209,8 +207,6 @@ class AbstractCollectionTest extends TestCase
         $this->assertNull($this->model->getItemById($testId));
     }
 
-    /**
-     */
     #[DataProvider('getItemsDataProvider')]
     public function testRemoveAllItems($values, $count)
     {
@@ -223,8 +219,6 @@ class AbstractCollectionTest extends TestCase
         $this->assertNull($this->model->getItemById($testId));
     }
 
-    /**
-     */
     #[DataProvider('getItemsDataProvider')]
     public function testRemoveItemByKey($values, $count)
     {
@@ -238,8 +232,6 @@ class AbstractCollectionTest extends TestCase
         $this->assertNull($this->model->getItemById($testId));
     }
 
-    /**
-     */
     #[DataProvider('getItemsDataProviderWithoutCount')]
     public function testAttributeIdIsInt($values)
     {

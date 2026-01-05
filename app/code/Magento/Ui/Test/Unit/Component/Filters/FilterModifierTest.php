@@ -95,7 +95,7 @@ class FilterModifierTest extends TestCase
      * @param $conditionType
      * @param $value
      * @return void
-     * */
+     */
     #[DataProvider('getApplyFilterModifierDataProvider')]
     public function testApplyFilterModifierWith($filterModifier, $filterName, $conditionType, $value)
     {

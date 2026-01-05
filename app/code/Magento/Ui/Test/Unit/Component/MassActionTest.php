@@ -63,7 +63,7 @@ class MassActionTest extends TestCase
      * @param string $componentName
      * @param array $componentData
      * @return void
-     * */
+     */
     #[DataProvider('getPrepareDataProvider')]
     public function testPrepare($componentName, $componentData)
     {

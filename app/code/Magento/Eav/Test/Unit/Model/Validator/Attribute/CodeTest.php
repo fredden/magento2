@@ -19,7 +19,7 @@ class CodeTest extends TestCase
 {
     /**
      * Testing \Magento\Eav\Model\Validator\Attribute\Code::isValid
-     *     * @param string $attributeCode
+     * @param string $attributeCode
      * @param bool $expected
      * @throws ValidateException
      */

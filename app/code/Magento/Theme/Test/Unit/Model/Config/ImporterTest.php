@@ -143,7 +143,7 @@ class ImporterTest extends TestCase
      * @param array $inDb
      * @param array $inFs
      * @param array $expectedResult
-     * */
+     */
     #[DataProvider('getWarningMessagesDataProvider')]
     public function testGetWarningMessages(array $inFile, array $inDb, array $inFs, array $expectedResult)
     {

@@ -62,7 +62,7 @@ class FiltersTest extends TestCase
      * @param string $filterType
      * @param string $filterName
      * @param bool $userDefined
-     * */
+     */
     #[DataProvider('updateDataProvider')]
     public function testUpdate(string $filterType, string $filterName, bool $userDefined)
     {

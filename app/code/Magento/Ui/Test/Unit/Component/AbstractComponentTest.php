@@ -174,7 +174,7 @@ class AbstractComponentTest extends TestCase
      * @param mixed $config
      * @param array $expectedResult
      * @return void
-     * */
+     */
     #[DataProvider('getJsConfigDataProvider')]
     public function testGetJsConfig(array $jsConfig, array $expectedResult)
     {

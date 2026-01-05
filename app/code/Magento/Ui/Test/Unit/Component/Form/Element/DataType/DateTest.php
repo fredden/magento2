@@ -160,7 +160,7 @@ class DateTest extends TestCase
      * @param string $dateStr
      * @param bool $setUtcTimeZone
      * @param string $convertedDate
-     * */
+     */
     #[DataProvider('convertDateFormatDataProvider')]
     public function testConvertDateFormat(
         string $date,

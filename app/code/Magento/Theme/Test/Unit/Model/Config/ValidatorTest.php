@@ -7,6 +7,9 @@ declare(strict_types=1);
 
 namespace Magento\Theme\Test\Unit\Model\Config;
 
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Mail\TemplateInterface;
+use Magento\Framework\Mail\TemplateInterfaceFactory;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Theme\Api\Data\DesignConfigExtensionInterface;
@@ -28,16 +31,16 @@ class ValidatorTest extends TestCase
     private $model;
 
     /**
-     * @var \Magento\Framework\Mail\TemplateInterfaceFactory
+     * @var TemplateInterfaceFactory
      */
     private $templateFactoryMock;
 
     protected function setUp(): void
     {
-        $this->templateFactoryMock = $this->getMockBuilder(\Magento\Framework\Mail\TemplateInterfaceFactory::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['create'])
-            ->getMock();
+        $this->templateFactoryMock = $this->createPartialMock(
+            TemplateInterfaceFactory::class,
+            ['create']
+        );
 
         $objectManagerHelper = new ObjectManager($this);
         $this->model = $objectManagerHelper->getObject(
@@ -51,15 +54,14 @@ class ValidatorTest extends TestCase
 
     public function testValidateHasRecursiveReference()
     {
-        $this->expectException('Magento\Framework\Exception\LocalizedException');
+        $this->expectException(LocalizedException::class);
         $fieldConfig = [
             'path' => 'design/email/header_template',
             'fieldset' => 'other_settings/email',
             'field' => 'email_header_template'
         ];
 
-        $designConfigMock = $this->getMockBuilder(DesignConfigInterface::class)
-            ->getMock();
+        $designConfigMock = $this->createMock(DesignConfigInterface::class);
         $designConfigExtensionMock =
             $this->createPartialMockWithReflection(
                 DesignConfigExtensionInterface::class,
@@ -78,7 +80,7 @@ class ValidatorTest extends TestCase
         $designElementMock->expects($this->once())->method('getValue')->willReturn($fieldConfig['field']);
 
         $templateMock = $this->createPartialMockWithReflection(
-            \Magento\Framework\Mail\TemplateInterface::class,
+            TemplateInterface::class,
             [
                 'isPlain', 'getType', 'processTemplate', 'getSubject', 'setVars',
                 'setOptions', 'getTemplateText', 'emulateDesign', 'loadDefault',
@@ -107,8 +109,7 @@ class ValidatorTest extends TestCase
             'field' => 'no_reference'
         ];
 
-        $designConfigMock = $this->getMockBuilder(DesignConfigInterface::class)
-            ->getMock();
+        $designConfigMock = $this->createMock(DesignConfigInterface::class);
         $designConfigExtensionMock =
             $this->createPartialMockWithReflection(
                 DesignConfigExtensionInterface::class,
@@ -127,7 +128,7 @@ class ValidatorTest extends TestCase
         $designElementMock->expects($this->once())->method('getValue')->willReturn($fieldConfig['field']);
 
         $templateMock = $this->createPartialMockWithReflection(
-            \Magento\Framework\Mail\TemplateInterface::class,
+            TemplateInterface::class,
             [
                 'isPlain', 'getType', 'processTemplate', 'getSubject', 'setVars',
                 'setOptions', 'getTemplateText', 'emulateDesign', 'loadDefault',

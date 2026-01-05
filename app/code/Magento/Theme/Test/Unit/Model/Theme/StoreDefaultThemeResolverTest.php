@@ -74,7 +74,7 @@ class StoreDefaultThemeResolverTest extends TestCase
      *
      * @param string|null $defaultTheme
      * @param array $expected
-     * */
+     */
     #[DataProvider('getThemesDataProvider')]
     public function testGetThemes(?string $defaultTheme, array $expected): void
     {

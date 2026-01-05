@@ -62,7 +62,8 @@ class MultilineTest extends TestCase
      * @covers       \Magento\Eav\Model\Attribute\Data\Multiline::extractValue
      *
      * @param mixed $param
-     * @param mixed $expectedResult     */
+     * @param mixed $expectedResult
+     */
     #[DataProvider('extractValueDataProvider')]
     public function testExtractValue($param, $expectedResult)
     {
@@ -101,7 +102,8 @@ class MultilineTest extends TestCase
      * @covers       \Magento\Eav\Model\Attribute\Data\Multiline::outputValue
      *
      * @param string $format
-     * @param mixed $expectedResult     */
+     * @param mixed $expectedResult
+     */
     #[DataProvider('outputValueDataProvider')]
     public function testOutputValue($format, $expectedResult)
     {
@@ -151,7 +153,8 @@ class MultilineTest extends TestCase
      * @param bool $isAttributeRequired
      * @param bool $skipRequiredValidation
      * @param array $rules
-     * @param array $expectedResult     */
+     * @param array $expectedResult
+     */
     #[DataProvider('validateValueDataProvider')]
     public function testValidateValue($value, $isAttributeRequired, $skipRequiredValidation, $rules, $expectedResult)
     {

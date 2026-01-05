@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Magento\Fedex\Test\Unit\Model;
 
+use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ResourceModel\Product\Collection;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\CatalogInventory\Model\StockRegistry;
@@ -19,6 +20,7 @@ use Magento\Directory\Model\CurrencyFactory;
 use Magento\Directory\Model\RegionFactory;
 use Magento\Fedex\Model\Carrier;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\HTTP\Client\CurlFactory;
@@ -314,7 +316,7 @@ class CarrierTest extends TestCase
         $orderShipment = $this->createMock(\Magento\Sales\Model\Order\Shipment::class);
         $order = $this->createMock(Order::class);
         $orderItem = $this->createPartialMockWithReflection(
-            \Magento\Framework\DataObject::class,
+            DataObject::class,
             ['getPrice', 'getName', 'getProductId']
         );
         $orderItem->expects($this->once())->method('getPrice')->willReturn($orderItemPrice);
@@ -325,7 +327,7 @@ class CarrierTest extends TestCase
         $request->expects($this->once())->method('getOrderShipment')->willReturn($orderShipment);
 
         $packageParams = $this->createPartialMockWithReflection(
-            \Magento\Framework\DataObject::class,
+            DataObject::class,
             ['getCustomsValue', 'getHeight', 'getWidth', 'getLength', 'getWeightUnits']
         );
         $packageParams->expects($this->once())->method('getCustomsValue')->willReturn($customsValue);
@@ -343,7 +345,7 @@ class CarrierTest extends TestCase
         $this->curlClient->expects($this->any())->method('getBody')->willReturnSelf();
 
         $product = $this->createPartialMockWithReflection(
-            \Magento\Catalog\Model\Product::class,
+            Product::class,
             ['getCountryOfManufacture']
         );
         $product->expects($this->any())->method('getCountryOfManufacture');

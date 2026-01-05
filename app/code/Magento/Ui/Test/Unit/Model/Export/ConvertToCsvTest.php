@@ -65,7 +65,7 @@ class ConvertToCsvTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->directory = $this->createMock(\Magento\Framework\Filesystem\Directory\WriteInterface::class);
+        $this->directory = $this->createMock(DirectoryWriteInterface::class);
 
         $this->filesystem = $this->getMockBuilder(Filesystem::class)
             ->disableOriginalConstructor()

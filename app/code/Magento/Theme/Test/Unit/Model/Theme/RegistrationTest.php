@@ -11,6 +11,8 @@ use Magento\Framework\View\Design\Theme\CustomizationInterface;
 use Magento\Framework\View\Design\Theme\Image;
 use Magento\Framework\View\Design\ThemeInterface;
 use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
+use Magento\Theme\Model\ResourceModel\Theme\Data\Collection as ThemeDataCollection;
+use Magento\Theme\Model\ResourceModel\Theme\Data\CollectionFactory as ThemeDataCollectionFactory;
 use Magento\Theme\Model\Theme\Data\Collection;
 use Magento\Theme\Model\Theme\Registration;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -26,7 +28,7 @@ class RegistrationTest extends TestCase
     protected $model;
 
     /**
-     * @var \Magento\Theme\Model\ResourceModel\Theme\Data\CollectionFactory|MockObject
+     * @var ThemeDataCollectionFactory|MockObject
      */
     protected $collectionFactory;
 
@@ -37,11 +39,10 @@ class RegistrationTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->collectionFactory =
-            $this->getMockBuilder(\Magento\Theme\Model\ResourceModel\Theme\Data\CollectionFactory::class)
-                ->onlyMethods(['create'])
-                ->disableOriginalConstructor()
-                ->getMock();
+        $this->collectionFactory = $this->createPartialMock(
+            ThemeDataCollectionFactory::class,
+            ['create']
+        );
         $this->filesystemCollection = $this->createMock(Collection::class);
 
         $this->model = new Registration(
@@ -88,7 +89,7 @@ class RegistrationTest extends TestCase
                 'setType', 'save', 'getType', 'getParentId', 'setParentId'
             ]
         );
-        $collection = $this->createMock(\Magento\Theme\Model\ResourceModel\Theme\Data\Collection::class);
+        $collection = $this->createMock(ThemeDataCollection::class);
         $customization = $this->createMock(CustomizationInterface::class);
         $imageModel = $this->createMock(Image::class);
 

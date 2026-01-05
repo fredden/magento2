@@ -58,7 +58,8 @@ class ImageTest extends TestCase
      * @param bool $isRequired
      * @param bool $isAjaxRequest
      * @param array $rules
-     * @param array $expectedResult     */
+     * @param array $expectedResult
+     */
     #[DataProvider('validateValueDataProvider')]
     public function testValidateValue(
         $value,

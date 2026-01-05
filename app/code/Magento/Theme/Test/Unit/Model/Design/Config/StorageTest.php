@@ -10,6 +10,7 @@ namespace Magento\Theme\Test\Unit\Model\Design\Config;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Value;
 use Magento\Framework\DB\Transaction;
+use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Theme\Api\Data\DesignConfigDataInterface;
 use Magento\Theme\Api\Data\DesignConfigExtensionInterface;
@@ -32,7 +33,7 @@ class StorageTest extends TestCase
     /** @var Storage */
     protected $model;
 
-    /** @var \Magento\Framework\DB\TransactionFactory|MockObject */
+    /** @var TransactionFactory|MockObject */
     protected $transactionFactoryMock;
 
     /** @var BackendModelFactory|MockObject */
@@ -78,7 +79,7 @@ class StorageTest extends TestCase
     protected function setUp(): void
     {
         $this->transactionFactoryMock = $this->createPartialMock(
-            \Magento\Framework\DB\TransactionFactory::class,
+            TransactionFactory::class,
             ['create']
         );
         $this->transactionMock = $this->createMock(Transaction::class);

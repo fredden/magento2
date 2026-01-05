@@ -28,6 +28,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Store\Api\Data\GroupInterface;
 use Magento\Store\Api\Data\WebsiteInterface;
 use Magento\Store\Model\GroupRepository;
+use Magento\Store\Model\ResourceModel\Store as StoreResourceModel;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
@@ -99,25 +100,17 @@ class StoreTest extends TestCase
             'getServer',
         ]);
 
-        $this->filesystemMock = $this->getMockBuilder(Filesystem::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->configMock = $this->getMockBuilder(ReinitableConfigInterface::class)
-            ->getMock();
+        $this->filesystemMock = $this->createMock(Filesystem::class);
+        $this->configMock = $this->createMock(ReinitableConfigInterface::class);
         $this->sessionMock = $this->createPartialMockWithReflection(
-            SessionGeneric::class,
-            ['getCurrencyCode']
+            SessionManagerInterface::class,
+            [
+                'start', 'writeClose', 'isSessionExists', 'getSessionId', 'getName', 'setName',
+                'destroy', 'clearStorage', 'getCookieDomain', 'getCookiePath', 'getCookieLifetime',
+                'setSessionId', 'regenerateId', 'expireSessionCookie', 'getSessionIdForHost',
+                'isValidForHost', 'isValidForPath', 'getCurrencyCode'
+            ]
         );
-        
-        // Set the sessionStartChecker property using reflection to prevent null error
-        $sessionStartCheckerMock = $this->getMockBuilder(SessionStartChecker::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $sessionStartCheckerMock->method('check')->willReturn(false); // Don't start session in tests
-        
-        $reflection = new \ReflectionClass(SessionManager::class);
-        $property = $reflection->getProperty('sessionStartChecker');
-        $property->setValue($this->sessionMock, $sessionStartCheckerMock);
         
         $this->store = $this->objectManagerHelper->getObject(
             Store::class,
@@ -141,9 +134,9 @@ class StoreTest extends TestCase
     #[DataProvider('loadDataProvider')]
     public function testLoad($key, $field)
     {
-        /** @var \Magento\Store\Model\ResourceModel\Store $resource */
+        /** @var StoreResourceModel $resource */
         $resource = $this->createPartialMock(
-            \Magento\Store\Model\ResourceModel\Store::class,
+            StoreResourceModel::class,
             ['load', 'getIdFieldName', '__wakeup']
         );
         $resource->expects($this->atLeastOnce())->method('load')
@@ -187,10 +180,10 @@ class StoreTest extends TestCase
         $websiteId = 2;
         $website = $this->createMock(WebsiteInterface::class);
 
-        $websiteRepository = $this->getMockBuilder(WebsiteRepository::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getById'])
-            ->getMock();
+        $websiteRepository = $this->createPartialMock(
+            WebsiteRepository::class,
+            ['getById']
+        );
         $websiteRepository->expects($this->once())
             ->method('getById')
             ->with($websiteId)
@@ -211,10 +204,10 @@ class StoreTest extends TestCase
      */
     public function testGetWebsiteIfWebsiteIsNotExist()
     {
-        $websiteRepository = $this->getMockBuilder(WebsiteRepository::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getById'])
-            ->getMock();
+        $websiteRepository = $this->createPartialMock(
+            WebsiteRepository::class,
+            ['getById']
+        );
         $websiteRepository->expects($this->never())
             ->method('getById');
 
@@ -236,10 +229,10 @@ class StoreTest extends TestCase
         $groupId = 2;
         $group = $this->createMock(GroupInterface::class);
 
-        $groupRepository = $this->getMockBuilder(GroupRepository::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['get'])
-            ->getMock();
+        $groupRepository = $this->createPartialMock(
+            GroupRepository::class,
+            ['get']
+        );
         $groupRepository->expects($this->once())
             ->method('get')
             ->with($groupId)
@@ -260,9 +253,7 @@ class StoreTest extends TestCase
      */
     public function testGetGroupIfGroupIsNotExist()
     {
-        $groupRepository = $this->getMockBuilder(GroupRepository::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $groupRepository = $this->createMock(GroupRepository::class);
 
         /** @var Store $model */
         $model = $this->objectManagerHelper->getObject(
@@ -643,9 +634,7 @@ class StoreTest extends TestCase
         ?string     $secureBaseUrl = 'https://example.com:443'
     ) {
         /* @var ReinitableConfigInterface|MockObject $configMock */
-        $configMock = $this->getMockBuilder(ReinitableConfigInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $configMock = $this->createMock(ReinitableConfigInterface::class);
         $configMock->expects($this->any())
             ->method('getValue')
             ->willReturnMap([

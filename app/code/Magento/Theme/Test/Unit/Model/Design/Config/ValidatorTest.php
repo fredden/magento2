@@ -9,6 +9,7 @@ namespace Magento\Theme\Test\Unit\Model\Design\Config;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Mail\TemplateInterface;
+use Magento\Framework\Mail\TemplateInterfaceFactory;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Theme\Api\Data\DesignConfigExtensionInterface;
@@ -26,7 +27,7 @@ class ValidatorTest extends TestCase
     use MockCreationTrait;
 
     /**
-     * @var \Magento\Framework\Mail\TemplateInterfaceFactory|MockObject
+     * @var TemplateInterfaceFactory|MockObject
      */
     private $templateFactory;
 
@@ -52,7 +53,7 @@ class ValidatorTest extends TestCase
     {
         $this->objectManager = new ObjectManager($this);
         $this->templateFactory = $this->createPartialMock(
-            \Magento\Framework\Mail\TemplateInterfaceFactory::class,
+            TemplateInterfaceFactory::class,
             ['create']
         );
         $this->template = $this->createPartialMockWithReflection(

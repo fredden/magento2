@@ -16,6 +16,7 @@ use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\View\Result\Page;
 use Magento\LoginAsCustomerApi\Api\AuthenticateCustomerBySecretInterface;
 use Magento\LoginAsCustomerFrontendUi\Controller\Login\Index;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -110,7 +111,7 @@ class IndexTest extends TestCase
         );
         $this->redirectMock = $this->createMock(Redirect::class);
         $this->resultPageMock = $this->createPartialMockWithReflection(
-            \Magento\Framework\View\Result\Page::class,
+            Page::class,
             ['getConfig', 'getTitle', 'set']
         );
         $this->redirectFactoryMock = $this->createMock(RedirectFactory::class);

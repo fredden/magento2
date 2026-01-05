@@ -68,7 +68,7 @@ class StoreThemesResolverTest extends TestCase
      *
      * @param array $themes
      * @param array $expected
-     * */
+     */
     #[DataProvider('getThemesDataProvider')]
     public function testGetThemes(array $themes, array $expected): void
     {
