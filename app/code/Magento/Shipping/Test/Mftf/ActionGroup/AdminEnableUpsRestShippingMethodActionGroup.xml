@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ /**
+  * Copyright 2025 Adobe
+  * All Rights Reserved.
+  */
+-->
+<actionGroups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/actionGroupSchema.xsd">
+    <actionGroup name="AdminEnableUpsRestShippingMethodActionGroup" extends="AdminEnableUPSActionGroup">
+        <annotations>
+            <description>Enables UPS REST shipping method with custom credentials in admin configuration</description>
+        </annotations>
+        <arguments>
+            <argument name="username" type="string" defaultValue="{{UPSRestCredentials.username}}"/>
+            <argument name="password" type="string" defaultValue="{{UPSRestCredentials.password}}"/>
+            <argument name="shipperNumber" type="string" defaultValue="{{UPSRestCredentials.shipperNumber}}"/>
+            <argument name="gatewayRestUrl" type="string" defaultValue="{{UPSRestCredentials.gatewayRestUrl}}"/>
+            <argument name="trackingRestUrl" type="string" defaultValue="{{UPSRestCredentials.trackingRestUrl}}"/>
+        </arguments>
+        <remove keyForRemoval="unCheckGatewayRestUrlSystem"/>
+        <remove keyForRemoval="enterGateWayRestURl"/>
+        <remove keyForRemoval="unCheckTrackingRestUrlSystem"/>
+        <remove keyForRemoval="enterTrackingRestURl"/>
+        <remove keyForRemoval="enterUsername"/>
+        <remove keyForRemoval="enterPassword"/>
+        <remove keyForRemoval="enterShipperNumber"/>
+        <uncheckOption selector="{{AdminShippingMethodUPSSection.carriersUpsGatewayRestUrlSystem}}" stepKey="uncheckGatewayRestUrlSystem" after="selectRestOption"/>
+        <fillField selector="{{AdminShippingMethodUPSSection.carriersUpsGatewayRestUrl}}" userInput="{{gatewayRestUrl}}" stepKey="fillGatewayRestUrl" after="uncheckGatewayRestUrlSystem"/>
+        <uncheckOption selector="{{AdminShippingMethodUPSSection.carriersUpsTrackingRestUrlSystem}}" stepKey="uncheckTrackingRestUrlSystem" after="fillGatewayRestUrl"/>
+        <fillField selector="{{AdminShippingMethodUPSSection.carriersUpsTrackingRestUrl}}" userInput="{{trackingRestUrl}}" stepKey="fillTrackingRestUrl" after="uncheckTrackingRestUrlSystem"/>
+        <fillField selector="{{AdminShippingMethodUPSSection.username}}" userInput="{{username}}" stepKey="fillUsername" after="enterAccessLicenseNumber"/>
+        <fillField selector="{{AdminShippingMethodUPSSection.password}}" userInput="{{password}}" stepKey="fillPassword" after="fillUsername"/>
+        <fillField selector="{{AdminShippingMethodUPSSection.shipperNumberInput}}" userInput="{{shipperNumber}}" stepKey="fillShipperNumber" after="fillPassword"/>
+    </actionGroup>
+</actionGroups>
