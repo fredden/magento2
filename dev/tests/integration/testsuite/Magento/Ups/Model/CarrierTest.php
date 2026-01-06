@@ -489,17 +489,18 @@ class CarrierTest extends TestCase
         //phpcs:enable Magento2.Functions.DiscouragedFunction
         $this->httpClient->clearRequests();
         $this->upsAuthMock->method('getAccessToken')->willReturn('abcdefghijklmnop');
-        
+
         $this->carrier->collectRates($request);
 
         $requests = $this->httpClient->getRequests();
         $this->assertNotEmpty($requests);
-        
+
         $requestData = json_decode($requests[0]->getBody(), true);
         $shipToAddress = $requestData['RateRequest']['Shipment']['ShipTo']['Address'];
-        
+
         $this->assertFalse(
-            isset($shipToAddress['ResidentialAddressIndicator']) && !empty($shipToAddress['ResidentialAddressIndicator']),
+            isset($shipToAddress['ResidentialAddressIndicator'])
+             && !empty($shipToAddress['ResidentialAddressIndicator']),
             'ResidentialAddressIndicator should not be present for commercial addresses'
         );
     }
@@ -541,15 +542,15 @@ class CarrierTest extends TestCase
         //phpcs:enable Magento2.Functions.DiscouragedFunction
         $this->httpClient->clearRequests();
         $this->upsAuthMock->method('getAccessToken')->willReturn('abcdefghijklmnop');
-        
+
         $this->carrier->collectRates($request);
 
         $requests = $this->httpClient->getRequests();
         $this->assertNotEmpty($requests);
-        
+
         $requestData = json_decode($requests[0]->getBody(), true);
         $shipToAddress = $requestData['RateRequest']['Shipment']['ShipTo']['Address'];
-        
+
         $this->assertArrayHasKey('ResidentialAddressIndicator', $shipToAddress);
         $this->assertEquals('01', $shipToAddress['ResidentialAddressIndicator']);
     }
