@@ -11,6 +11,7 @@ use Magento\FunctionalTestingFramework\DataGenerator\Persist\CurlHandler;
 use Magento\FunctionalTestingFramework\DataGenerator\Objects\EntityDataObject;
 use Magento\FunctionalTestingFramework\Helper\Helper;
 use Magento\FunctionalTestingFramework\ObjectManagerFactory;
+use Magento\FunctionalTestingFramework\Util\Logger\LoggingUtil;
 
 /**
  * This helper use to delete sales rules via API:
@@ -73,15 +74,15 @@ class SalesRuleApiHelper extends Helper
         }
 
         $ruleEntity = new EntityDataObject(
-            'salesrule_to_delete_' . $ruleId,
-            'SalesRule',
-            ['rule_id' => $ruleId],
-            [],
-            [],
-            [],
-            null,
-            null,
-            null
+            name: 'salesrule_to_delete_' . $ruleId,
+            type: 'SalesRule',
+            data: ['rule_id' => $ruleId],
+            linkedEntities: [],
+            uniquenessData: [],
+            vars: [],
+            parentEntity: null,
+            filename: null,
+            deprecated: null
         );
 
         $curlHandler = ObjectManagerFactory::getObjectManager()->create(
@@ -112,7 +113,7 @@ class SalesRuleApiHelper extends Helper
     private function logMessage(bool $enableLog, string $message): void
     {
         if ($enableLog) {
-            printf("%s\n", $message);
+            LoggingUtil::getInstance()->getLogger(self::class)->info($message);
         }
     }
 
@@ -214,19 +215,19 @@ class SalesRuleApiHelper extends Helper
         try {
             // Create EntityDataObject for GetSalesRuleList operation
             $ruleListEntity = new EntityDataObject(
-                'salesrule_list_all',
-                'salesrule_list',
-                [
+                name: 'salesrule_list_all',
+                type: 'salesrule_list',
+                data: [
                     'pageSize' => $pageSize,
                     'currentPage' => 1,
                     'fields' => 'items[rule_id,name,is_active]'
                 ],
-                [],
-                [],
-                [],
-                null,
-                null,
-                null
+                linkedEntities: [],
+                uniquenessData: [],
+                vars: [],
+                parentEntity: null,
+                filename: null,
+                deprecated: null
             );
 
             // Create CurlHandler for GetSalesRuleList operation
