@@ -13,19 +13,19 @@
         </annotations>
         <!-- Verify First Name field validation -->
         <waitForText selector="{{StorefrontCustomerCreateFormSection.fieldErrorByFieldId('firstname-error')}}" userInput="{{ProductWarningMessage.require_Message}}" stepKey="assertFirstNameError"/>
-        <seeElement selector="{{StorefrontCustomerCreateFormSection.fieldErrorWithClassByFieldId('firstname-error')}}" stepKey="assertFirstNameErrorClass"/>
+        <waitForElementVisible selector="{{StorefrontCustomerCreateFormSection.fieldErrorWithClassByFieldId('firstname-error')}}" stepKey="assertFirstNameErrorClass"/>
         <!-- Verify Last Name field validation -->
         <waitForText selector="{{StorefrontCustomerCreateFormSection.fieldErrorByFieldId('lastname-error')}}" userInput="{{ProductWarningMessage.require_Message}}" stepKey="assertLastNameError"/>
-        <seeElement selector="{{StorefrontCustomerCreateFormSection.fieldErrorWithClassByFieldId('lastname-error')}}" stepKey="assertLastNameErrorClass"/>
+        <waitForElementVisible selector="{{StorefrontCustomerCreateFormSection.fieldErrorWithClassByFieldId('lastname-error')}}" stepKey="assertLastNameErrorClass"/>
         <!-- Verify Email field validation -->
         <waitForText selector="{{StorefrontCustomerCreateFormSection.fieldErrorByFieldId('email_address-error')}}" userInput="{{ProductWarningMessage.require_Message}}" stepKey="assertEmailError"/>
-        <seeElement selector="{{StorefrontCustomerCreateFormSection.fieldErrorWithClassByFieldId('email_address-error')}}" stepKey="assertEmailErrorClass"/>
+        <waitForElementVisible selector="{{StorefrontCustomerCreateFormSection.fieldErrorWithClassByFieldId('email_address-error')}}" stepKey="assertEmailErrorClass"/>
         <!-- Verify Password field validation -->
         <waitForText selector="{{StorefrontCustomerCreateFormSection.fieldErrorByFieldId('password-error')}}" userInput="{{ProductWarningMessage.require_Message}}" stepKey="assertPasswordError"/>
-        <seeElement selector="{{StorefrontCustomerCreateFormSection.fieldErrorWithClassByFieldId('password-error')}}" stepKey="assertPasswordErrorClass"/>
+        <waitForElementVisible selector="{{StorefrontCustomerCreateFormSection.fieldErrorWithClassByFieldId('password-error')}}" stepKey="assertPasswordErrorClass"/>
         <!-- Verify Password Confirmation field validation -->
         <waitForText selector="{{StorefrontCustomerCreateFormSection.fieldErrorByFieldId('password-confirmation-error')}}" userInput="{{ProductWarningMessage.require_Message}}" stepKey="assertPasswordConfirmationError"/>
-        <seeElement selector="{{StorefrontCustomerCreateFormSection.fieldErrorWithClassByFieldId('password-confirmation-error')}}" stepKey="assertPasswordConfirmationErrorClass"/>
+        <waitForElementVisible selector="{{StorefrontCustomerCreateFormSection.fieldErrorWithClassByFieldId('password-confirmation-error')}}" stepKey="assertPasswordConfirmationErrorClass"/>
     </actionGroup>
 </actionGroups>
 
