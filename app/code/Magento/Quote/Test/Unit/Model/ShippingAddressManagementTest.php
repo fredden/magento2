@@ -25,6 +25,10 @@ use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Summary of ShippingAddressManagementTest
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class ShippingAddressManagementTest extends TestCase
 {
     use MockCreationTrait;
