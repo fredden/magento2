@@ -147,7 +147,10 @@ class BundleTest extends AbstractImportTestCase
         );
         $this->entityModel->method('getMultipleValueSeparator')->willReturn(',');
         $this->entityModel->method('getErrorAggregator')->willReturn($this->getErrorAggregatorObject());
-        $this->connection = $this->createPartialMockWithReflection(Mysql::class, ["select", "fetchAll", "fetchPairs", "fetchAssoc", "quoteInto", "delete", "insertOnDuplicate"]);
+        $this->connection = $this->createPartialMockWithReflection(
+            Mysql::class,
+            ["select", "fetchAll", "fetchPairs", "fetchAssoc", "quoteInto", "delete", "insertOnDuplicate"]
+        );
         $this->select = $this->createMock(Select::class);
         $this->select->expects($this->any())->method('from')->willReturnSelf();
         $this->select->expects($this->any())->method('where')->willReturnSelf();

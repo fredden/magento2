@@ -76,7 +76,10 @@ class ReadHandlerTest extends TestCase
 
         $extensionAttributes = $this->createPartialMockWithReflection(
             ProductExtensionInterface::class,
-            ['getConfigurableProductOptions', 'setConfigurableProductOptions', 'getConfigurableProductLinks', 'setConfigurableProductLinks']
+            [
+                'getConfigurableProductOptions', 'setConfigurableProductOptions',
+                'getConfigurableProductLinks', 'setConfigurableProductLinks'
+            ]
         );
 
         $product->expects(static::once())

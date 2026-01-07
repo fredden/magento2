@@ -77,7 +77,9 @@ class TierPriceTest extends TestCase
         
         // Configure getResource to return a mock with getAttribute method
         $resource = $this->createMock(\Magento\Catalog\Model\ResourceModel\Product::class);
-        $resource->method('getAttribute')->willReturn($this->createMock(\Magento\Eav\Model\Entity\Attribute\AbstractAttribute::class));
+        $resource->method('getAttribute')->willReturn(
+            $this->createMock(\Magento\Eav\Model\Entity\Attribute\AbstractAttribute::class)
+        );
         $this->product->method('getResource')->willReturn($resource);
 
         $this->calculator = $this->createMock(Calculator::class);

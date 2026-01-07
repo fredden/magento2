@@ -146,13 +146,13 @@ class PriceTest extends TestCase
         // Make the mock stateful so setFinalPrice() and getData() work together
         $finalPriceValue = null;
         $simpleProduct->method('setFinalPrice')->willReturnCallback(
-            function($price) use (&$finalPriceValue, $simpleProduct) {
+            function ($price) use (&$finalPriceValue, $simpleProduct) {
                 $finalPriceValue = $price;
                 return $simpleProduct;
             }
         );
         $simpleProduct->method('getData')->willReturnCallback(
-            function($key = null) use (&$finalPriceValue, $basePrice) {
+            function ($key = null) use (&$finalPriceValue, $basePrice) {
                 if ($key === 'final_price') {
                     return $finalPriceValue;
                 } elseif ($key === 'price') {

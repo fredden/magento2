@@ -99,7 +99,6 @@ class BundlePriceTest extends AbstractModifierTestCase
                 ) use (
                     $sourceMeta,
                     $priceTypeMeta,
-                    $priceMeta,
                     $priceTypePath,
                     $pricePath
                 ) {
@@ -129,8 +128,7 @@ class BundlePriceTest extends AbstractModifierTestCase
                     $priceTypeConfigPath,
                     $priceConfigPath,
                     $priceTypeParams,
-                    $priceParams,
-                    $taxParams
+                    $priceParams
                 ) {
                     if ($path === $priceTypeConfigPath && $data === $sourceMeta && $params === $priceTypeParams) {
                         return $priceTypeMeta;
