@@ -283,12 +283,13 @@ class ConfigurableTest extends TestCase
         $this->configurableAttributeFactoryMock->expects($this->once())
             ->method('create')
             ->willReturn($attribute);
-        $attributeCollection = $this->createPartialMockWithReflection(
+        $attributeCollection = $this->createPartialMock(
             Collection::class,
-            ['setProductFilter', 'addFieldToFilter', 'walk']
+            ['setProductFilter', 'addFieldToFilter', 'load', 'walk']
         );
         $attributeCollection->method('setProductFilter')->willReturnSelf();
         $attributeCollection->method('addFieldToFilter')->willReturnSelf();
+        $attributeCollection->method('load')->willReturnSelf();
         $attributeCollection->method('walk')->willReturnSelf();
         $this->attributeCollectionFactory->expects($this->once())
             ->method('create')
