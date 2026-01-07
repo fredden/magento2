@@ -5,6 +5,8 @@
  */
 namespace Magento\TestFramework\Integrity\Library\PhpParser;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+
 /**
  * Check Uses parsing
  */
@@ -156,9 +158,8 @@ class UsesTest extends \PHPUnit\Framework\TestCase
     /**
      * Covered getClassNameWithNamespace
      *
-     * @test
-     * @dataProvider classNamesDataProvider
-     */
+     * @test     */
+    #[DataProvider('classNamesDataProvider')]
     public function testGetClassNameWithNamespace($className, $tokens)
     {
         foreach ($tokens as $k => $token) {

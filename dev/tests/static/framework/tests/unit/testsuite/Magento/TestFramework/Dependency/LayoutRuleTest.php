@@ -5,6 +5,8 @@
  */
 namespace Magento\TestFramework\Dependency;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+
 class LayoutRuleTest extends \PHPUnit\Framework\TestCase
 {
     public function testNonLayoutGetDependencyInfo()
@@ -16,9 +18,8 @@ class LayoutRuleTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $contents
-     * @param array $expected
-     * @dataProvider getDependencyInfoDataProvider
-     */
+     * @param array $expected     */
+    #[DataProvider('getDependencyInfoDataProvider')]
     public function testGetDependencyInfo($contents, array $expected)
     {
         $model = new LayoutRule([], [], []);
@@ -112,9 +113,8 @@ class LayoutRuleTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $contents
-     * @param string $type
-     * @dataProvider layoutGetDependencyInfoDataProvider
-     */
+     * @param string $type     */
+    #[DataProvider('layoutGetDependencyInfoDataProvider')]
     public function testUpdatesRouterGetDependencyInfo($contents, $type)
     {
         $model = new LayoutRule(['router_name' => ['Magento\RouterModule']], [], []);
@@ -128,9 +128,8 @@ class LayoutRuleTest extends \PHPUnit\Framework\TestCase
     /**
      * @param string $contents
      * @param string $type
-     * @param bool $isHandle
-     * @dataProvider layoutGetDependencyInfoWithReferenceDataProvider
-     */
+     * @param bool $isHandle     */
+    #[DataProvider('layoutGetDependencyInfoWithReferenceDataProvider')]
     public function testLayoutGetDependencyInfo($contents, $type, $isHandle)
     {
         // test one module

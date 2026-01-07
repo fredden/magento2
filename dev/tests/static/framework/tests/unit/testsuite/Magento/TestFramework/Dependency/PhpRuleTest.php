@@ -11,6 +11,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 use Magento\TestFramework\Dependency\Reader\ClassScanner;
 use Magento\TestFramework\Dependency\Route\RouteMapper;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Test for PhpRule dependency check
@@ -85,9 +86,8 @@ class PhpRuleTest extends \PHPUnit\Framework\TestCase
      * @param int $expectedScans
      * @param array $expected
      *
-     * @throws \Exception
-     * @dataProvider getDependencyInfoDataProvider
-     */
+     * @throws \Exception     */
+    #[DataProvider('getDependencyInfoDataProvider')]
     public function testGetDependencyInfo(string $class, string $content, int $expectedScans, array $expected): void
     {
         $file = $this->makeMockFilepath($class);
@@ -232,9 +232,8 @@ class PhpRuleTest extends \PHPUnit\Framework\TestCase
      * @param string $class
      * @param string $content
      * @param array $expected
-     * @throws \Exception
-     * @dataProvider getDependencyInfoDataCaseGetUrlDataProvider
-     */
+     * @throws \Exception     */
+    #[DataProvider('getDependencyInfoDataCaseGetUrlDataProvider')]
     public function testGetDependencyInfoCaseGetUrl(
         string $class,
         string $content,
@@ -316,9 +315,8 @@ class PhpRuleTest extends \PHPUnit\Framework\TestCase
      * @param string $template
      * @param string $content
      * @param array $expected
-     * @throws \Exception
-     * @dataProvider getDependencyInfoDataCaseGetTemplateUrlDataProvider
-     */
+     * @throws \Exception     */
+    #[DataProvider('getDependencyInfoDataCaseGetTemplateUrlDataProvider')]
     public function testGetDependencyInfoCaseTemplateGetUrl(
         string $template,
         string $content,
@@ -343,9 +341,8 @@ class PhpRuleTest extends \PHPUnit\Framework\TestCase
     /**
      * @param string $class
      * @param string $content
-     * @param array $expected
-     * @dataProvider processWildcardUrlDataProvider
-     */
+     * @param array $expected     */
+    #[DataProvider('processWildcardUrlDataProvider')]
     public function testProcessWildcardUrl(
         string $class,
         string $content,
@@ -414,9 +411,8 @@ class PhpRuleTest extends \PHPUnit\Framework\TestCase
      * @param string $class
      * @param string $content
      * @param \Exception $expected
-     * @throws \Exception
-     * @dataProvider getDependencyInfoDataCaseGetUrlExceptionDataProvider
-     */
+     * @throws \Exception     */
+    #[DataProvider('getDependencyInfoDataCaseGetUrlExceptionDataProvider')]
     public function testGetDependencyInfoCaseGetUrlException(
         string $class,
         string $content,

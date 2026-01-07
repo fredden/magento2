@@ -5,6 +5,8 @@
  */
 namespace Magento\TestFramework\Dependency;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+
 class DbRuleTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -21,9 +23,8 @@ class DbRuleTest extends \PHPUnit\Framework\TestCase
      * @param string $module
      * @param string $file
      * @param string $contents
-     * @param array $expected
-     * @dataProvider getDependencyInfoDataProvider
-     */
+     * @param array $expected     */
+    #[DataProvider('getDependencyInfoDataProvider')]
     public function testGetDependencyInfo($module, $file, $contents, array $expected)
     {
         $this->assertEquals($expected, $this->model->getDependencyInfo($module, 'php', $file, $contents));
