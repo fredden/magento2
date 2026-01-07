@@ -157,7 +157,7 @@ class Kernel
         if ($cacheControlHeader
             && preg_match('/public.*s-maxage=(\d+)/', $cacheControlHeader->getFieldValue(), $matches)
         ) {
-            $maxAge = $matches[1];
+            $maxAge = (int) $matches[1];
             $response->setNoCacheHeaders();
             if (($response->getHttpResponseCode() == 200 || $response->getHttpResponseCode() == 404)
                 && !$response instanceof NotCacheableInterface
@@ -176,7 +176,7 @@ class Kernel
                     $this->serializer->serialize($this->getPreparedData($response)),
                     $this->identifierForSave->getValue(),
                     $tags,
-                    (int) $maxAge
+                    $maxAge
                 );
             }
         }
