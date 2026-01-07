@@ -20,6 +20,8 @@
             <group value="pr_exclude"/>
         </annotations>
         <before>
+            <!-- Deploy static content for en_GB locale before changing locale -->
+            <magentoCLI command="setup:static-content:deploy -f en_GB" stepKey="deployStaticContentGB"/>
             <actionGroup ref="AdminLoginActionGroup" stepKey="loginAsAdmin"/>
             <!-- Create product -->
             <createData entity="SimpleProduct2" stepKey="createProduct"/>
