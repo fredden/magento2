@@ -13,6 +13,7 @@ use Magento\GiftMessage\Api\OrderItemRepositoryInterface;
 use Magento\GiftMessage\Api\OrderRepositoryInterface;
 use Magento\GiftMessage\Model\Plugin\OrderGet;
 use Magento\Sales\Api\Data\OrderExtension;
+use Magento\Sales\Api\Data\OrderExtensionInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderItemExtension;
 use Magento\Sales\Api\Data\OrderItemInterface;
@@ -92,10 +93,7 @@ class OrderGetTest extends TestCase
             Order::class,
             ['getGiftMessageId', 'getEntityId', 'getExtensionAttributes', 'setExtensionAttributes', 'getItems']
         );
-        $this->orderExtensionMock = $this->createPartialMockWithReflection(
-            OrderExtension::class,
-            ['getGiftMessage', 'setGiftMessage']
-        );
+        $this->orderExtensionMock = $this->createMock(OrderExtensionInterface::class);
         $this->giftMessageMock = $this->createMock(
             MessageInterface::class
         );

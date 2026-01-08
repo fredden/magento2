@@ -13,6 +13,7 @@ use Magento\GiftMessage\Api\OrderItemRepositoryInterface;
 use Magento\GiftMessage\Api\OrderRepositoryInterface;
 use Magento\GiftMessage\Model\Plugin\OrderSave;
 use Magento\Sales\Api\Data\OrderExtension;
+use Magento\Sales\Api\Data\OrderExtensionInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderItemExtension;
 use Magento\Sales\Api\Data\OrderItemInterface;
@@ -200,10 +201,7 @@ class OrderSaveTest extends TestCase
      */
     private function getOrderExtensionMock(): MockObject
     {
-        return $this->createPartialMockWithReflection(
-            OrderExtension::class,
-            ['getGiftMessage', 'setGiftMessage']
-        );
+        return $this->createMock(OrderExtensionInterface::class);
     }
 
     /**

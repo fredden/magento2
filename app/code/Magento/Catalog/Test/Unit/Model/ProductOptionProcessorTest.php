@@ -129,7 +129,8 @@ class ProductOptionProcessorTest extends TestCase
                 'setCustomOptions', 'getCustomOptions',
                 'getBundleOptions', 'setBundleOptions',
                 'getDownloadableOption', 'setDownloadableOption',
-                'getConfigurableItemOptions', 'setConfigurableItemOptions'
+                'getConfigurableItemOptions', 'setConfigurableItemOptions',
+                'getGiftcardItemOption', 'setGiftcardItemOption'
             ]
         );
         $customOptions = [];
@@ -149,6 +150,8 @@ class ProductOptionProcessorTest extends TestCase
         $productOptionExtensionMock->method('setDownloadableOption')->willReturnSelf();
         $productOptionExtensionMock->method('getConfigurableItemOptions')->willReturn(null);
         $productOptionExtensionMock->method('setConfigurableItemOptions')->willReturnSelf();
+        $productOptionExtensionMock->method('getGiftcardItemOption')->willReturn(null);
+        $productOptionExtensionMock->method('setGiftcardItemOption')->willReturnSelf();
 
         $productOptionMock->method('getExtensionAttributes')->willReturn($productOptionExtensionMock);
 

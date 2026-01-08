@@ -113,9 +113,12 @@ class LayoutRuleTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $contents
-     * @param string $type     */
+     * @param string $type
+     * @param bool $isHandle
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
     #[DataProvider('layoutGetDependencyInfoDataProvider')]
-    public function testUpdatesRouterGetDependencyInfo($contents, $type)
+    public function testUpdatesRouterGetDependencyInfo($contents, $type, $isHandle)
     {
         $model = new LayoutRule(['router_name' => ['Magento\RouterModule']], [], []);
         $this->assertEquals([], $model->getDependencyInfo('Magento\RouterModule', 'layout', 'any', $contents));

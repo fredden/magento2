@@ -448,9 +448,9 @@ class PhpRuleTest extends \PHPUnit\Framework\TestCase
      * @param string $module
      * @param string $content
      * @param array $expected
-     * @dataProvider getDefaultModelDependencyDataProvider
      * @throws \Exception
      */
+    #[DataProvider('getDefaultModelDependencyDataProvider')]
     public function testGetDefaultModelDependency($module, $content, array $expected)
     {
         $mapLayoutBlocks = [

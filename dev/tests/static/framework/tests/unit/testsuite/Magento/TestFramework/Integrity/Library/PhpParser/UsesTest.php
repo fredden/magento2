@@ -28,11 +28,11 @@ class UsesTest extends \PHPUnit\Framework\TestCase
     /**
      * Covered hasUses method
      *
-     * @dataProvider hasUsesDataProvider
      * @test
      *
      * @param array $tokens
      */
+    #[DataProvider('hasUsesDataProvider')]
     public function testHasUses($tokens)
     {
         foreach ($tokens as $k => $token) {
