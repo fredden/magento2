@@ -25,6 +25,9 @@ use Magento\SalesSequence\Model\Manager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class CreditmemoTest extends TestCase
 {
     /**
