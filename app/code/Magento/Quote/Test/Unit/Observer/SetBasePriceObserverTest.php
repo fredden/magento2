@@ -19,7 +19,14 @@ use PHPUnit\Framework\TestCase;
 
 class SetBasePriceObserverTest extends TestCase
 {
+    /**
+     * @var CatalogHelper
+     */
     private CatalogHelper $catalogHelper;
+
+    /**
+     * @var SetBasePriceObserver
+     */
     private SetBasePriceObserver $observer;
 
     protected function setUp(): void

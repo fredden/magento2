@@ -41,7 +41,17 @@ class SetBasePriceObserver implements ObserverInterface
     {
         $quoteItem = $observer->getEvent()->getQuoteItem();
 
-        if (!$quoteItem instanceof Item || !$quoteItem->getProduct()) {
+        if (!$quoteItem instanceof Item) {
+            return;
+        }
+
+        try {
+            $product = $quoteItem->getProduct();
+        } catch (\Throwable $e) {
+            return;
+        }
+
+        if (!$product) {
             return;
         }
 
