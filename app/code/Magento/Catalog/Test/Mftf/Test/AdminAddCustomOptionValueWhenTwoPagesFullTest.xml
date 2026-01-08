@@ -11,10 +11,10 @@
         <annotations>
             <features value="Catalog"/>
             <stories value="Customizable Options Pagination"/>
-            <title value="Admin should be able to add value to third page when first two pages are full"/>
-            <description value="When two pages of customizable option values are fully populated, adding a new value should switch to the third page and successfully add the value, not stay on page 2 in loading state"/>
+            <title value="Admin can add custom option value when two pages are full"/>
+            <description value="Adding value when two pages are full should switch to page 3, not stay in loading state"/>
             <severity value="MAJOR"/>
-            <testCaseId value="AC-14003"/>
+            <testCaseId value="AC-14688"/>
             <group value="Catalog"/>
         </annotations>
         <before>
@@ -52,9 +52,7 @@
         <click selector="{{AdminProductCustomizableOptionsSection.optionType('Drop-down')}}" stepKey="clickOptionType"/>
         <waitForPageLoad stepKey="waitForDropdownTypeSelected"/>
         <!-- Step 4: Add values until both pages are fully populated (40 values, 20 per page) -->
-        <helper class="Magento\Catalog\Test\Mftf\Helper\CustomizableOptionsHelper"
-                method="addMultipleCustomizableOptionValues"
-                stepKey="add40CustomizableOptionValues">
+        <helper class="Magento\Catalog\Test\Mftf\Helper\CustomizableOptionsHelper" method="addMultipleCustomizableOptionValues" stepKey="add40CustomizableOptionValues">
             <argument name="start">1</argument>
             <argument name="end">40</argument>
             <argument name="titlePrefix">OptionValue</argument>
@@ -73,9 +71,7 @@
         <!-- Verify we're on page 2 (pagination should show page 2 of 2) -->
         <waitForElementVisible selector="{{AdminProductCustomizableOptionsSection.customOptionPageDropdown}}" stepKey="waitForPaginationDropdown"/>
         <!-- Step 7: Add a new value (41st value) -->
-        <helper class="Magento\Catalog\Test\Mftf\Helper\CustomizableOptionsHelper"
-                method="addMultipleCustomizableOptionValues"
-                stepKey="add41CustomizableOptionValue">
+        <helper class="Magento\Catalog\Test\Mftf\Helper\CustomizableOptionsHelper" method="addMultipleCustomizableOptionValues" stepKey="add41CustomizableOptionValue">
             <argument name="start">41</argument>
             <argument name="end">41</argument>
             <argument name="titlePrefix">OptionValue</argument>
