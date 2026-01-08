@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Adobe
+ * Copyright 2026 Adobe
  * All Rights Reserved.
  */
 
@@ -67,7 +67,7 @@ define([
             }
 
             _.each(this.values, function (propertyValue, propertyName) {
-                string = string.replace('{{' + propertyName + '}}', propertyValue);
+                string = string.split('{{' + propertyName + '}}').join(propertyValue);
                 nonEmptyValueFlag = nonEmptyValueFlag || !!propertyValue;
             });
 
