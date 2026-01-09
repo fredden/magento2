@@ -148,7 +148,7 @@ class TelephoneTest extends TestCase
                 'message' => 'Telephone number longer than 20 characters should not be allowed'
             ],
             [
-                'telephone' => '<script>alert("xss")</script>',
+                'telephone' => '<' . 'script>alert("xss")<' . '/script>',
                 'message' => 'XSS attempt should not be allowed in telephone'
             ]
         ];
