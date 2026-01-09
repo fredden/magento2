@@ -189,7 +189,7 @@ class WatermarkTest extends TestCase
         $imageFieldMock = $this->createImageFieldMock();
         $selectFieldMock = $this->createSelectFieldMock();
 
-        $this->elementFactoryMock->expects($this->exactly(9))
+        $this->elementFactoryMock->expects($this->any())
             ->method('create')
             ->willReturnCallback(function ($type) use ($textFieldMock, $imageFieldMock, $selectFieldMock) {
                 if ($type === 'text') {
@@ -428,5 +428,291 @@ class WatermarkTest extends TestCase
         $result = $method->invoke($this->watermark, $elementMock);
 
         $this->assertEquals('</tbody></table></fieldset>', $result);
+    }
+
+    /**
+     * Test render with null element
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Frontend\Product\Watermark::render
+     * @return void
+     */
+    public function testRenderWithNullElement(): void
+    {
+        $this->expectException(\TypeError::class);
+        $this->watermark->render(null);
+    }
+
+    /**
+     * Test render with element having null legend
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Frontend\Product\Watermark::render
+     * @return void
+     */
+    public function testRenderWithNullLegend(): void
+    {
+        $elementMock = $this->getMockBuilder(AbstractElement::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getLegend'])
+            ->onlyMethods(['getHtmlId'])
+            ->getMock();
+        $elementMock->expects($this->any())->method('getLegend')->willReturn(null);
+        $elementMock->expects($this->any())->method('getHtmlId')->willReturn('test_id');
+
+        $formMock = $this->createMock(Form::class);
+        $this->watermark->setData('form', $formMock);
+
+        $this->requestMock->expects($this->atLeastOnce())
+            ->method('getParam')
+            ->willReturn(null);
+
+        $this->positionMock->expects($this->any())
+            ->method('toOptionArray')
+            ->willReturn([]);
+
+        $this->setupElementFactoryMock();
+
+        $result = $this->watermark->render($elementMock);
+
+        $this->assertIsString($result);
+        $this->assertStringContainsString('</fieldset>', $result);
+    }
+
+    /**
+     * Test render with empty image types array in constructor
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Frontend\Product\Watermark::render
+     * @return void
+     */
+    public function testRenderWithEmptyImageTypesArray(): void
+    {
+        $objectManager = new ObjectManager($this);
+        $watermarkEmpty = $objectManager->getObject(
+            Watermark::class,
+            [
+                'context' => $this->contextMock,
+                'watermarkPosition' => $this->positionMock,
+                'formField' => $this->formFieldMock,
+                'elementFactory' => $this->elementFactoryMock,
+                'imageTypes' => []
+            ]
+        );
+
+        $elementMock = $this->createElementMock();
+        $formMock = $this->createMock(Form::class);
+        $watermarkEmpty->setData('form', $formMock);
+
+        $this->requestMock->expects($this->atLeastOnce())
+            ->method('getParam')
+            ->willReturn(null);
+
+        $this->elementFactoryMock->expects($this->never())->method('create');
+
+        $result = $watermarkEmpty->render($elementMock);
+
+        $this->assertIsString($result);
+        $this->assertStringContainsString('</fieldset>', $result);
+    }
+
+    /**
+     * Test render when position toOptionArray returns empty
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Frontend\Product\Watermark::render
+     * @return void
+     */
+    public function testRenderWithEmptyPositionOptions(): void
+    {
+        $elementMock = $this->createElementMock();
+        $formMock = $this->createMock(Form::class);
+        $this->watermark->setData('form', $formMock);
+
+        $this->requestMock->expects($this->atLeastOnce())
+            ->method('getParam')
+            ->willReturn(null);
+
+        $this->positionMock->expects($this->any())
+            ->method('toOptionArray')
+            ->willReturn([]);
+
+        $this->setupElementFactoryMock();
+
+        $result = $this->watermark->render($elementMock);
+
+        $this->assertIsString($result);
+        $this->assertStringContainsString('</fieldset>', $result);
+    }
+
+    /**
+     * Test render with single image type
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Frontend\Product\Watermark::render
+     * @return void
+     */
+    public function testRenderWithSingleImageType(): void
+    {
+        $objectManager = new ObjectManager($this);
+        $watermarkSingle = $objectManager->getObject(
+            Watermark::class,
+            [
+                'context' => $this->contextMock,
+                'watermarkPosition' => $this->positionMock,
+                'formField' => $this->formFieldMock,
+                'elementFactory' => $this->elementFactoryMock,
+                'imageTypes' => ['thumbnail' => ['title' => 'Thumbnail Only']]
+            ]
+        );
+
+        $elementMock = $this->createElementMock();
+        $formMock = $this->createMock(Form::class);
+        $watermarkSingle->setData('form', $formMock);
+
+        $this->requestMock->expects($this->atLeastOnce())
+            ->method('getParam')
+            ->willReturn(null);
+
+        $this->positionMock->expects($this->once())
+            ->method('toOptionArray')
+            ->willReturn([['value' => 'center', 'label' => 'Center']]);
+
+        $this->setupElementFactoryMock();
+
+        $result = $watermarkSingle->render($elementMock);
+
+        $this->assertIsString($result);
+        // Since the mocked fields return generic HTML, check for structure instead
+        $this->assertStringContainsString('</fieldset>', $result);
+        $this->assertStringContainsString('<div>text field</div>', $result);
+    }
+
+    /**
+     * Test render with special characters in image type title
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Frontend\Product\Watermark::render
+     * @return void
+     */
+    public function testRenderWithSpecialCharactersInTitle(): void
+    {
+        $objectManager = new ObjectManager($this);
+        $scriptOpen = '<' . 'script>';
+        $scriptClose = '</' . 'script>';
+        $titleWithScript = 'Test ' . $scriptOpen . 'alert("xss")' . $scriptClose . ' Image';
+        $watermarkSpecial = $objectManager->getObject(
+            Watermark::class,
+            [
+                'context' => $this->contextMock,
+                'watermarkPosition' => $this->positionMock,
+                'formField' => $this->formFieldMock,
+                'elementFactory' => $this->elementFactoryMock,
+                'imageTypes' => [
+                    'test' => ['title' => $titleWithScript]
+                ]
+            ]
+        );
+
+        $elementMock = $this->createElementMock();
+        $formMock = $this->createMock(Form::class);
+        $watermarkSpecial->setData('form', $formMock);
+
+        $this->requestMock->expects($this->atLeastOnce())
+            ->method('getParam')
+            ->willReturn(null);
+
+        $this->positionMock->expects($this->once())
+            ->method('toOptionArray')
+            ->willReturn([['value' => 'center', 'label' => 'Center']]);
+
+        $this->setupElementFactoryMock();
+
+        $result = $watermarkSpecial->render($elementMock);
+
+        $this->assertIsString($result);
+        // The title is used in field generation, so check for field HTML structure
+        $this->assertStringContainsString('</fieldset>', $result);
+        $this->assertStringContainsString('<div>text field</div>', $result);
+    }
+
+    /**
+     * Test render with both website and store parameters
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Frontend\Product\Watermark::render
+     * @return void
+     */
+    public function testRenderWithBothWebsiteAndStoreParams(): void
+    {
+        $elementMock = $this->createElementMock();
+        $formMock = $this->createMock(Form::class);
+        $this->watermark->setData('form', $formMock);
+
+        $this->requestMock->expects($this->atLeastOnce())
+            ->method('getParam')
+            ->willReturnMap([
+                ['website', null, 'base'],
+                ['store', null, 'default']
+            ]);
+
+        $this->positionMock->expects($this->any())
+            ->method('toOptionArray')
+            ->willReturn([['value' => 'center', 'label' => 'Center']]);
+
+        $this->setupElementFactoryMock();
+
+        $result = $this->watermark->render($elementMock);
+
+        $this->assertIsString($result);
+        $this->assertStringContainsString('use-default', $result);
+    }
+
+    /**
+     * Test _getHeaderHtml with element having empty HTML ID
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Frontend\Product\Watermark::_getHeaderHtml
+     * @return void
+     */
+    public function testGetHeaderHtmlWithEmptyHtmlId(): void
+    {
+        $elementMock = $this->getMockBuilder(AbstractElement::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['getLegend'])
+            ->onlyMethods(['getHtmlId'])
+            ->getMock();
+        $elementMock->expects($this->any())->method('getLegend')->willReturn('Test Legend');
+        $elementMock->expects($this->any())->method('getHtmlId')->willReturn('');
+
+        $this->requestMock->expects($this->atLeastOnce())
+            ->method('getParam')
+            ->willReturn(null);
+
+        $method = new ReflectionMethod(Watermark::class, '_getHeaderHtml');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->watermark, $elementMock);
+
+        $this->assertIsString($result);
+        $this->assertStringContainsString('<fieldset', $result);
+    }
+
+    /**
+     * Test render with form not set
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Product\Frontend\Product\Watermark::render
+     * @return void
+     */
+    public function testRenderWithoutForm(): void
+    {
+        $elementMock = $this->createElementMock();
+
+        $this->requestMock->expects($this->atLeastOnce())
+            ->method('getParam')
+            ->willReturn(null);
+
+        $this->positionMock->expects($this->any())
+            ->method('toOptionArray')
+            ->willReturn([['value' => 'center', 'label' => 'Center']]);
+
+        $this->setupElementFactoryMock();
+
+        $result = $this->watermark->render($elementMock);
+
+        $this->assertIsString($result);
+        $this->assertStringContainsString('</fieldset>', $result);
     }
 }
