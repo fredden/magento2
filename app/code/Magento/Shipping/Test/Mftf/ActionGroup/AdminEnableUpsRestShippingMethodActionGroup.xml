@@ -12,11 +12,11 @@
             <description>Enables UPS REST shipping method with custom credentials in admin configuration</description>
         </annotations>
         <arguments>
-            <argument name="username" type="string" defaultValue="{{UPSRestCredentials.username}}"/>
-            <argument name="password" type="string" defaultValue="{{UPSRestCredentials.password}}"/>
-            <argument name="shipperNumber" type="string" defaultValue="{{UPSRestCredentials.shipperNumber}}"/>
-            <argument name="gatewayRestUrl" type="string" defaultValue="{{UPSRestCredentials.gatewayRestUrl}}"/>
-            <argument name="trackingRestUrl" type="string" defaultValue="{{UPSRestCredentials.trackingRestUrl}}"/>
+            <argument name="username" type="string" defaultValue="{{_CREDS.magento/carriers_ups_rest_username}}"/>
+            <argument name="password" type="string" defaultValue="{{_CREDS.magento/carriers_ups_rest_password}}"/>
+            <argument name="shipperNumber" type="string" defaultValue="{{_CREDS.magento/carriers_ups_rest_shipper_number}}"/>
+            <argument name="gatewayRestUrl" type="string" defaultValue="{{_CREDS.magento/carriers_ups_rest_gateway_url}}"/>
+            <argument name="trackingRestUrl" type="string" defaultValue="{{_CREDS.magento/carriers_ups_rest_tracking_url}}"/>
         </arguments>
         <remove keyForRemoval="unCheckGatewayRestUrlSystem"/>
         <remove keyForRemoval="enterGateWayRestURl"/>
