@@ -15,8 +15,8 @@
             <argument name="username" type="string" defaultValue="{{_CREDS.magento/carriers_ups_rest_username}}"/>
             <argument name="password" type="string" defaultValue="{{_CREDS.magento/carriers_ups_rest_password}}"/>
             <argument name="shipperNumber" type="string" defaultValue="{{_CREDS.magento/carriers_ups_rest_shipper_number}}"/>
-            <argument name="gatewayRestUrl" type="string" defaultValue="{{_CREDS.magento/carriers_ups_rest_gateway_url}}"/>
-            <argument name="trackingRestUrl" type="string" defaultValue="{{_CREDS.magento/carriers_ups_rest_tracking_url}}"/>
+            <argument name="gatewayRestUrl" type="string" defaultValue="{{_CREDS.magento/carriers_ups_gateway_rest_url}}"/>
+            <argument name="trackingRestUrl" type="string" defaultValue="{{_CREDS.magento/carriers_ups_tracking_rest_url}}"/>
         </arguments>
         <remove keyForRemoval="unCheckGatewayRestUrlSystem"/>
         <remove keyForRemoval="enterGateWayRestURl"/>
