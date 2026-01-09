@@ -15,8 +15,10 @@ use Magento\Framework\DB\Select;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Math\Random;
-use Magento\Framework\Test\Unit\Helper\RequestInterfaceTestHelper;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\UrlInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\View\Element\AbstractBlock;
 use Magento\Framework\View\LayoutInterface;
 use Magento\Reports\Block\Adminhtml\Sales\Grid\Column\Renderer\Date;
@@ -25,7 +27,6 @@ use Magento\Reports\Model\Grouped\CollectionFactory;
 use Magento\Reports\Model\ResourceModel\Report\Collection\Factory;
 use Magento\Reports\Block\Adminhtml\Sales\Invoiced\Grid;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -36,6 +37,11 @@ use PHPUnit\Framework\MockObject\MockObject;
 class GridTest extends TestCase
 {
     use MockCreationTrait;
+
+    /**
+     * @var ObjectManager
+     */
+    private ObjectManager $objectManagerHelper;
 
     /**
      * @var Context|MockObject
@@ -88,9 +94,9 @@ class GridTest extends TestCase
     private Random $mathRandom;
 
     /**
-     * @var RequestInterfaceTestHelper|MockObject
+     * @var Http|MockObject
      */
-    private RequestInterfaceTestHelper $request;
+    private Http $request;
 
     /**
      * @var Grid
@@ -101,7 +107,11 @@ class GridTest extends TestCase
     {
         parent::setUp();
 
-        $this->request = $this->createMock(RequestInterfaceTestHelper::class);
+        // Initialize ObjectManager to avoid "ObjectManager isn't initialized" errors
+        $this->objectManagerHelper = new ObjectManager($this);
+        $this->objectManagerHelper->prepareObjectManager();
+
+        $this->request = $this->createMock(Http::class);
         $this->mathRandom = $this->createMock(Random::class);
         $this->storeManager = $this->createMock(StoreManagerInterface::class);
         $this->context = $this->createMock(Context::class);

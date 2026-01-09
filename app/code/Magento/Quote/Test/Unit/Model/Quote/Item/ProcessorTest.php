@@ -244,7 +244,10 @@ class ProcessorTest extends TestCase
     public function testInitDoesNotModifyExistingChildItem(): void
     {
         $item = $this->createPartialMockWithReflection(Item::class, ['setStoreId']);
-        $product = $this->createPartialMockWithReflection(Product::class, ['getParentProductId']);
+        $product = $this->createPartialMockWithReflection(
+            Product::class,
+            ['getParentProductId']
+        );
         $request = new DataObject([
             'reset_count' => 0,
             'id' => 99,
@@ -271,7 +274,14 @@ class ProcessorTest extends TestCase
      */
     public function testInitReturnsEarlyWhenItemHasIdAndProductHasParent(): void
     {
+<<<<<<< HEAD
         $item = $this->createPartialMockWithReflection(Item::class, ['getId', 'setStoreId']);
+=======
+        $item = $this->createPartialMockWithReflection(
+            Item::class,
+            ['getId', 'setStoreId']
+        );
+>>>>>>> origin/2.4-develop
         $product = $this->createPartialMockWithReflection(
             Product::class,
             ['getParentProductId', 'getStickWithinParent']
