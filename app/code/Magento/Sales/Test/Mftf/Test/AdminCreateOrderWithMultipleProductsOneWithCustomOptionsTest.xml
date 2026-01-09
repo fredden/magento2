@@ -61,9 +61,10 @@
         <waitForPageLoad stepKey="waitForProductSelectionFirst"/>
         <!-- Wait for custom options slide to appear -->
         <waitForElementVisible selector="{{AdminOrderFormCustomOptionsSection.optionsContainer}}" stepKey="waitForOptionsContainer"/>
-        <!-- Select one of the radio button options -->
-        <waitForElementClickable selector="{{AdminOrderFormCustomOptionsSection.radioButtonOptionByTitle(ProductOptionValueRadioButtons1.title)}}" stepKey="waitForRadioButtonOption"/>
-        <click selector="{{AdminOrderFormCustomOptionsSection.radioButtonOptionByTitle(ProductOptionValueRadioButtons1.title)}}" stepKey="selectRadioButtonOption"/>
+        <!-- Grab the first radio button option value and select it -->
+        <waitForElementVisible selector="{{AdminOrderFormCustomOptionsSection.firstRadioButtonOption}}" stepKey="waitForRadioButtonOption"/>
+        <grabAttributeFrom selector="{{AdminOrderFormCustomOptionsSection.firstRadioButtonOption}}" userInput="value" stepKey="grabRadioOptionValue"/>
+        <click selector="{{AdminOrderFormCustomOptionsSection.radioButtonOptionByValue({$grabRadioOptionValue})}}" stepKey="selectRadioButtonOption"/>
         <!-- Fill quantity as 10 -->
         <waitForElementVisible selector="{{AdminOrderFormCustomOptionsSection.quantity}}" stepKey="waitForQuantityField"/>
         <fillField selector="{{AdminOrderFormCustomOptionsSection.quantity}}" userInput="10" stepKey="fillQuantityForProductWithOptions"/>
@@ -89,5 +90,9 @@
         <seeInField userInput="1" selector="{{AdminOrderFormItemsSection.orderedItemQty('2')}}" stepKey="seeSimpleProductQty"/>
         <!-- Verify we have 2 items in the order -->
         <waitForText userInput="Total 2 product(s)" selector="{{AdminOrderFormItemsOrderedSection.itemsOrderedSummaryText}}" stepKey="seeTotalTwoProducts"/>
+        <!-- Verify no error messages appear -->
+        <waitForElementNotVisible selector="{{AdminOrderFormMessagesSection.error}}" stepKey="verifyNoErrorMessages"/>
+        <!-- Verify no duplicate product exists (no 3rd row) -->
+        <waitForElementNotVisible selector="{{AdminOrderFormItemsSection.orderedItemProductName('3')}}" stepKey="verifyNoDuplicateProduct"/>
     </test>
 </tests>
