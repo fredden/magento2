@@ -13,6 +13,7 @@ use Magento\Framework\View\Layout\Data\Structure;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Rule\InvokedCount;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 
 class StructureTest extends TestCase
@@ -42,7 +43,7 @@ class StructureTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->loggerMock = $this->getMockForAbstractClass(LoggerInterface::class);
+        $this->loggerMock = $this->createMock(LoggerInterface::class);
         $this->stateMock = $this->createMock(State::class);
 
         $this->objectManagerHelper = new ObjectManagerHelper($this);
@@ -58,9 +59,8 @@ class StructureTest extends TestCase
     /**
      * @param InvokedCount $loggerExpects
      * @param string $stateMode
-     * @return void
-     * @dataProvider reorderChildElementLogDataProvider
-     */
+     * @return void     */
+    #[DataProvider('reorderChildElementLogDataProvider')]
     public function testReorderChildElementLog($loggerExpects, $stateMode)
     {
         $parentName = 'parent';

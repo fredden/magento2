@@ -73,18 +73,16 @@ class FulltextFilterTest extends TestCase
     protected function setUp(): void
     {
         $this->entityFactoryMock = $this->createMock(EntityFactory::class);
-        $this->loggerMock = $this->getMockForAbstractClass(LoggerInterface::class);
-        $this->fetchStrategyMock = $this->getMockForAbstractClass(FetchStrategyInterface::class);
-        $this->resourceModelAbstractDb = $this->getMockForAbstractClass(FetchStrategyInterface::class);
+        $this->loggerMock = $this->createMock(LoggerInterface::class);
+        $this->fetchStrategyMock = $this->createMock(FetchStrategyInterface::class);
+        $this->resourceModelAbstractDb = $this->createMock(FetchStrategyInterface::class);
         $this->connectionMock = $this->createPartialMock(Mysql::class, ['select', 'getIndexList']);
         $this->selectMock = $this->createPartialMock(Select::class, ['getPart', 'where']);
 
-        $this->resourceModelAbstractDb = $this->getMockBuilder(ResourceModelAbstractDb::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->resourceModelAbstractDb = $this->createMock(ResourceModelAbstractDb::class);
 
         $this->collectionAbstractDbMock = $this->getMockBuilder(CollectionAbstractDb::class)
-            ->addMethods(['getMainTable'])
+            ->onlyMethods(['getMainTable'])
             ->onlyMethods(['getConnection', 'getSelect'])
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();

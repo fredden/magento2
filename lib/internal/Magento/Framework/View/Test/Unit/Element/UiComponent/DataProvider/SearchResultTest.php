@@ -24,9 +24,7 @@ class SearchResultTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->model = $this->getMockBuilder(SearchResult::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->model = $this->createMock(SearchResult::class);
     }
 
     public function testSetTotalCount(): void

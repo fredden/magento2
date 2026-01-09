@@ -76,9 +76,9 @@ class AbstractExtensibleModelTest extends TestCase
     {
         $this->actionValidatorMock = $this->createMock(RemoveAction::class);
         $this->contextMock = new Context(
-            $this->getMockForAbstractClass(LoggerInterface::class),
-            $this->getMockForAbstractClass(ManagerInterface::class),
-            $this->getMockForAbstractClass(CacheInterface::class),
+            $this->createMock(LoggerInterface::class),
+            $this->createMock(ManagerInterface::class),
+            $this->createMock(CacheInterface::class),
             $this->createMock(State::class),
             $this->actionValidatorMock
         );
@@ -92,9 +92,7 @@ class AbstractExtensibleModelTest extends TestCase
             'getIdFieldName',
             'rollBack'
         ]);
-        $this->resourceCollectionMock = $this->getMockBuilder(\Magento\Framework\Data\Collection\AbstractDb::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->resourceCollectionMock = $this->createMock(\Magento\Framework\Data\Collection\AbstractDb::class);
         $this->metadataServiceMock = $this->getMockBuilder(MetadataServiceInterface::class)
             ->getMock();
         $this->metadataServiceMock
@@ -108,7 +106,7 @@ class AbstractExtensibleModelTest extends TestCase
                 ]
             );
         $extensionAttributesFactory = $this->getMockBuilder(ExtensionAttributesFactory::class)
-            ->addMethods(['extractExtensionAttributes'])
+            ->onlyMethods(['extractExtensionAttributes'])
             ->disableOriginalConstructor()
             ->getMock();
         $extensionAttributesFactory->expects($this->any())
@@ -117,7 +115,7 @@ class AbstractExtensibleModelTest extends TestCase
         $this->attributeValueFactoryMock = $this->getMockBuilder(AttributeValueFactory::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->model = $this->getMockForAbstractClass(
+        $this->model = $this->createMock(
             AbstractExtensibleModel::class,
             [
                 $this->contextMock,

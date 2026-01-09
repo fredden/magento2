@@ -172,7 +172,7 @@ class ResponseTest extends TestCase
         )->method(
             'render'
         )->willReturnCallback(
-            [$this, 'callbackForSendResponseTest'], $this->returnArgument(0)
+            [$this, 'callbackForSendResponseTest'], $this->willReturnArgument(0)
         );
         $exceptionMessage = 'Message';
         $exceptionHttpCode = \Magento\Framework\Webapi\Exception::HTTP_BAD_REQUEST;

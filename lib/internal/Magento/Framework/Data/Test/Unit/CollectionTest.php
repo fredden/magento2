@@ -12,9 +12,13 @@ use Magento\Framework\Data\Collection\EntityFactory;
 use Magento\Framework\DataObject;
 use Magento\Framework\Url;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class CollectionTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var Collection
      */
@@ -60,9 +64,8 @@ class CollectionTest extends TestCase
 
     /**
      * Test for method etItemObjectClass
-     *
-     * @dataProvider setItemObjectClassDataProvider
-     */
+     *     */
+    #[DataProvider('setItemObjectClassDataProvider')]
     public function testSetItemObjectClass($class)
     {
         $this->markTestSkipped('Skipped in #27500 due to testing protected/private methods and properties');
@@ -158,12 +161,12 @@ class CollectionTest extends TestCase
     public function testPossibleFlowWithItem()
     {
         $firstItemMock = $this->getMockBuilder(DataObject::class)
-            ->addMethods(['getId'])
+            ->onlyMethods(['getId'])
             ->onlyMethods(['getData', 'toArray'])
             ->disableOriginalConstructor()
             ->getMock();
         $secondItemMock = $this->getMockBuilder(DataObject::class)
-            ->addMethods(['getId'])
+            ->onlyMethods(['getId'])
             ->onlyMethods(['getData', 'toArray'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -233,7 +236,7 @@ class CollectionTest extends TestCase
     {
         for ($i = 0; $i < 3; $i++) {
             $item = $this->getMockBuilder(DataObject::class)
-                ->addMethods(['testCallback'])
+                ->onlyMethods(['testCallback'])
                 ->disableOriginalConstructor()
                 ->getMock();
             $item->expects($this->once())->method('testCallback')->with();
@@ -251,7 +254,7 @@ class CollectionTest extends TestCase
     {
         for ($i = 0; $i < 3; $i++) {
             $item = $this->getMockBuilder(DataObject::class)
-                ->addMethods(['testCallback'])
+                ->onlyMethods(['testCallback'])
                 ->disableOriginalConstructor()
                 ->getMock();
             $item->expects($this->once())->method('testCallback')->with('a', 'b', 'c');
@@ -269,7 +272,7 @@ class CollectionTest extends TestCase
     {
         for ($i = 0; $i < 3; $i++) {
             $item = $this->getMockBuilder(DataObject::class)
-                ->addMethods(['testCallback'])
+                ->onlyMethods(['testCallback'])
                 ->disableOriginalConstructor()
                 ->getMock();
             $item->expects($this->once())->method('testCallback')->with();
@@ -289,7 +292,7 @@ class CollectionTest extends TestCase
     {
         for ($i = 0; $i < 3; $i++) {
             $item = $this->getMockBuilder(DataObject::class)
-                ->addMethods(['testItemCallback'])
+                ->onlyMethods(['testItemCallback'])
                 ->disableOriginalConstructor()
                 ->getMock();
             $item->expects($this->once())->method('testItemCallback')->with('a', 'b', 'c');
@@ -308,7 +311,7 @@ class CollectionTest extends TestCase
     public function testCallsCallableArrayWithEachItemNoArgs()
     {
         $mockCallbackObject = $this->getMockBuilder(\stdClass::class)
-            ->addMethods(['testObjCallback'])
+            ->onlyMethods(['testObjCallback'])
             ->getMock();
         $mockCallbackObject->method('testObjCallback')->willReturnCallback(function ($item, ...$args) {
             $item->testItemCallback(...$args);
@@ -316,7 +319,7 @@ class CollectionTest extends TestCase
 
         for ($i = 0; $i < 3; $i++) {
             $item = $this->getMockBuilder(DataObject::class)
-                ->addMethods(['testItemCallback'])
+                ->onlyMethods(['testItemCallback'])
                 ->disableOriginalConstructor()
                 ->getMock();
             $item->expects($this->once())->method('testItemCallback')->with();
@@ -334,7 +337,7 @@ class CollectionTest extends TestCase
     public function testCallsCallableArrayWithEachItemAndArgs()
     {
         $mockCallbackObject = $this->getMockBuilder(\stdClass::class)
-            ->addMethods(['testObjCallback'])
+            ->onlyMethods(['testObjCallback'])
             ->getMock();
         $mockCallbackObject->method('testObjCallback')->willReturnCallback(function ($item, ...$args) {
             $item->testItemCallback(...$args);
@@ -342,7 +345,7 @@ class CollectionTest extends TestCase
 
         for ($i = 0; $i < 3; $i++) {
             $item = $this->getMockBuilder(DataObject::class)
-                ->addMethods(['testItemCallback'])
+                ->onlyMethods(['testItemCallback'])
                 ->disableOriginalConstructor()
                 ->getMock();
             $item->expects($this->once())->method('testItemCallback')->with('a', 'b', 'c');

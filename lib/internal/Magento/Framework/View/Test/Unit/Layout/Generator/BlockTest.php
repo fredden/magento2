@@ -22,6 +22,7 @@ use Magento\Framework\View\LayoutInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Rule\InvokedCount;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * @covers \Magento\Framework\View\Layout\Generator\Block
@@ -41,12 +42,11 @@ class BlockTest extends TestCase
      * @param InvokedCount $addToParentGroupCount
      * @param InvokedCount $setTemplateCount
      * @param InvokedCount $setTtlCount
-     * @param InvokedCount $setIsFlag
-     * @dataProvider provider
-     *
+     * @param InvokedCount $setIsFlag     *
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
+    #[DataProvider('provider')]
     public function testProcess(
         $testGroup,
         $testTemplate,
@@ -107,14 +107,14 @@ class BlockTest extends TestCase
         $readerContext->expects($this->once())->method('getScheduledStructure')
             ->willReturn($scheduleStructure);
 
-        $layout = $this->getMockForAbstractClass(LayoutInterface::class);
+        $layout = $this->createMock(LayoutInterface::class);
 
         /**
          * @var \Magento\Framework\View\Element\AbstractBlock|\PHPUnit\Framework\MockObject\MockObject $blockInstance
          */
         // explicitly set mocked methods for successful expectation of magic methods
         $blockInstance = $this->getMockBuilder(AbstractBlock::class)
-            ->addMethods(['setType', 'setTemplate', 'setTtl', $methodName])
+            ->onlyMethods(['setType', 'setTemplate', 'setTtl', $methodName])
             ->onlyMethods(['setNameInLayout', 'addData', 'setLayout'])
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
@@ -141,7 +141,7 @@ class BlockTest extends TestCase
         /**
          * @var MockObject $argumentInterpreter
          */
-        $argumentInterpreter = $this->getMockForAbstractClass(InterpreterInterface::class);
+        $argumentInterpreter = $this->createMock(InterpreterInterface::class);
         if ($isNeedEvaluate) {
             $argumentInterpreter
                 ->expects($this->any())
@@ -160,15 +160,15 @@ class BlockTest extends TestCase
             ->willReturn($blockInstance);
 
         /** @var ManagerInterface|MockObject $eventManager */
-        $eventManager = $this->getMockForAbstractClass(ManagerInterface::class);
+        $eventManager = $this->createMock(ManagerInterface::class);
         $eventManager->expects($this->once())->method('dispatch')
             ->with('core_layout_block_create_after', [$literal => $blockInstance]);
 
-        $scopeConfigMock = $this->getMockForAbstractClass(ScopeConfigInterface::class);
+        $scopeConfigMock = $this->createMock(ScopeConfigInterface::class);
         $scopeConfigMock->expects($this->once())->method('isSetFlag')
             ->with('config_path', 'scope', 'default')->willReturn($testIsFlag);
 
-        $scopeResolverMock = $this->getMockForAbstractClass(ScopeResolverInterface::class);
+        $scopeResolverMock = $this->createMock(ScopeResolverInterface::class);
         $scopeResolverMock->expects($this->once())->method('getScope')
             ->willReturn('default');
 

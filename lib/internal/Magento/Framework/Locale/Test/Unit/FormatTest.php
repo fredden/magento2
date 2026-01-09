@@ -15,6 +15,7 @@ use Magento\Framework\Locale\Format;
 use Magento\Framework\Locale\ResolverInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Tests class for Number locale format
@@ -54,13 +55,9 @@ class FormatTest extends TestCase
         $this->currency = $this->getMockBuilder(Currency::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->scope = $this->getMockBuilder(ScopeInterface::class)
-            ->addMethods(['getCurrentCurrency'])
-            ->getMockForAbstractClass();
+        $this->scope = $this->createMock(ScopeInterface::class);
 
-        $this->scopeResolver = $this->getMockBuilder(ScopeResolverInterface::class)
-            ->onlyMethods(['getScope'])
-            ->getMockForAbstractClass();
+        $this->scopeResolver = $this->createMock(ScopeResolverInterface::class);
         $this->scopeResolver->expects($this->any())
             ->method('getScope')
             ->willReturn($this->scope);
@@ -82,9 +79,8 @@ class FormatTest extends TestCase
     /**
      * @param string $localeCode
      * @param string $currencyCode
-     * @param array $expectedResult
-     * @dataProvider getPriceFormatDataProvider
-     */
+     * @param array $expectedResult     */
+    #[DataProvider('getPriceFormatDataProvider')]
     public function testGetPriceFormat($localeCode, $currencyCode, array $expectedResult): void
     {
         $this->scope->expects($this->once())
@@ -116,9 +112,8 @@ class FormatTest extends TestCase
      *
      * @param mixed $value
      * @param float $expected
-     * @param string $locale
-     * @dataProvider provideNumbers
-     */
+     * @param string $locale     */
+    #[DataProvider('provideNumbers')]
     public function testGetNumber(string $value, float $expected, ?string $locale = null): void
     {
         if ($locale !== null) {

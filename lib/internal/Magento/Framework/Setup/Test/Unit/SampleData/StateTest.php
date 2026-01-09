@@ -42,7 +42,7 @@ class StateTest extends TestCase
             ->onlyMethods(['getDirectoryWrite'])
             ->disableOriginalConstructor()
             ->getMock();
-        $this->writeInterface = $this->getMockForAbstractClass(
+        $this->writeInterface = $this->createMock(
             WriteInterface::class,
             [],
             '',

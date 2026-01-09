@@ -12,6 +12,7 @@ use Magento\Framework\Profiler\Driver\Standard\Stat;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class OutputAbstractTest extends TestCase
 {
@@ -22,7 +23,7 @@ class OutputAbstractTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->_output = $this->getMockForAbstractClass(
+        $this->_output = $this->createMock(
             AbstractOutput::class
         );
     }
@@ -66,7 +67,7 @@ class OutputAbstractTest extends TestCase
     {
         $configuration = ['filterPattern' => '/filter pattern/', 'thresholds' => ['fetchKey' => 100]];
         /** @var \Magento\Framework\Profiler\Driver\Standard\AbstractOutput $output  */
-        $output = $this->getMockForAbstractClass(
+        $output = $this->createMock(
             AbstractOutput::class,
             [$configuration]
         );
@@ -78,12 +79,11 @@ class OutputAbstractTest extends TestCase
 
     /**
      * Test _renderColumnValue method
-     *
-     * @dataProvider renderColumnValueDataProvider
-     * @param mixed $value
+     *     * @param mixed $value
      * @param string $columnKey
      * @param mixed $expectedValue
      */
+    #[DataProvider('renderColumnValueDataProvider')]
     public function testRenderColumnValue($value, $columnKey, $expectedValue)
     {
         $method = new \ReflectionMethod($this->_output, '_renderColumnValue');

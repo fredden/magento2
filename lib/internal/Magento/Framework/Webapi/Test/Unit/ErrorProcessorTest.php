@@ -23,6 +23,7 @@ use Magento\Framework\Webapi\Exception as WebapiException;
 use Magento\Framework\Validator\Exception as ValidatorException;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -103,7 +104,7 @@ class ErrorProcessorTest extends TestCase
             'encode'
         )->willReturnCallback(
             [$this, 'callbackJsonEncode'],
-            $this->returnArgument(0)
+            $this->willReturnArgument(0)
         );
         /** Init output buffering to catch output via echo function. */
         ob_start();
@@ -144,7 +145,7 @@ class ErrorProcessorTest extends TestCase
             'encode'
         )->willReturnCallback(
             [$this, 'callbackJsonEncode'],
-            $this->returnArgument(0)
+            $this->willReturnArgument(0)
         );
         ob_start();
         $this->_errorProcessor->renderErrorMessage('Message', 'Message trace.', 401);
@@ -234,9 +235,8 @@ class ErrorProcessorTest extends TestCase
      * @param int $expectedHttpCode
      * @param string $expectedMessage
      * @param array $expectedDetails
-     * @return void
-     * @dataProvider dataProviderForSendResponseExceptions
-     */
+     * @return void     */
+    #[DataProvider('dataProviderForSendResponseExceptions')]
     public function testMaskException($exception, $expectedHttpCode, $expectedMessage, $expectedDetails)
     {
         /** Assert that exception was logged. */

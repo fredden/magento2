@@ -21,6 +21,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -67,11 +68,11 @@ class AbstractCollectionTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->entityFactoryMock = $this->getMockForAbstractClass(EntityFactoryInterface::class);
-        $this->loggerMock = $this->getMockForAbstractClass(LoggerInterface::class);
+        $this->entityFactoryMock = $this->createMock(EntityFactoryInterface::class);
+        $this->loggerMock = $this->createMock(LoggerInterface::class);
         $this->fetchStrategyMock =
-            $this->getMockForAbstractClass(FetchStrategyInterface::class);
-        $this->managerMock = $this->getMockForAbstractClass(ManagerInterface::class);
+            $this->createMock(FetchStrategyInterface::class);
+        $this->managerMock = $this->createMock(ManagerInterface::class);
         $this->connectionMock = $this->createMock(Mysql::class);
         $renderer = $this->createMock(SelectRenderer::class);
         $this->resourceMock = $this->createMock(FlagResource::class);
@@ -103,7 +104,7 @@ class AbstractCollectionTest extends TestCase
     {
         parent::tearDown();
         /** @var ObjectManagerInterface|MockObject $objectManagerMock*/
-        $objectManagerMock = $this->getMockForAbstractClass(ObjectManagerInterface::class);
+        $objectManagerMock = $this->createMock(ObjectManagerInterface::class);
         \Magento\Framework\App\ObjectManager::setInstance($objectManagerMock);
     }
 
@@ -210,9 +211,8 @@ class AbstractCollectionTest extends TestCase
         $this->assertInstanceOf(Select::class, $this->uut->getSelect());
     }
 
-    /**
-     * @dataProvider getSelectDataProvider
-     */
+    /**     */
+    #[DataProvider('getSelectDataProvider')]
     public function testGetSelect($idFieldNameRet, $getPartRet, $expected)
     {
         if (is_callable($idFieldNameRet['column_alias'])) {
@@ -272,9 +272,8 @@ class AbstractCollectionTest extends TestCase
         return $this->createPartialMock(\Zend_Db_Expr::class, ['__toString']);
     }
 
-    /**
-     * @dataProvider addFieldToSelectDataProvider
-     */
+    /**     */
+    #[DataProvider('addFieldToSelectDataProvider')]
     public function testAddFieldToSelect($field, $alias, $expectedFieldsToSelect)
     {
         $this->assertInstanceOf(Uut::class, $this->uut->addFieldToSelect($field, $alias));
@@ -295,9 +294,8 @@ class AbstractCollectionTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider addExpressionFieldToSelectDataProvider
-     */
+    /**     */
+    #[DataProvider('addExpressionFieldToSelectDataProvider')]
     public function testAddExpressionFieldToSelect($alias, $expression, $fields, $expected)
     {
         $this->selectMock->expects($this->once())->method('columns')->with($expected);
@@ -315,9 +313,8 @@ class AbstractCollectionTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider removeFieldFromSelectDataProvider
-     */
+    /**     */
+    #[DataProvider('removeFieldFromSelectDataProvider')]
     public function testRemoveFieldFromSelect(
         $field,
         $isAlias,
@@ -410,9 +407,8 @@ class AbstractCollectionTest extends TestCase
         $this->assertEquals(self::TABLE_NAME, $this->uut->getTable(''));
     }
 
-    /**
-     * @dataProvider joinDataProvider
-     */
+    /**     */
+    #[DataProvider('joinDataProvider')]
     public function testJoin($table, $cond, $cols, $expected)
     {
         $this->assertInstanceOf(Uut::class, $this->uut->join($table, $cond, $cols));
@@ -434,7 +430,7 @@ class AbstractCollectionTest extends TestCase
     {
         for ($i = 0; $i < 3; $i++) {
             /** @var AbstractModel $item */
-            $item = $this->getMockForAbstractClass(AbstractModel::class, [], '', false);
+            $item = $this->createMock(AbstractModel::class, [], '', false);
             $this->uut->addItem($item->setDataChanges(true));
         }
 
@@ -450,7 +446,7 @@ class AbstractCollectionTest extends TestCase
         for ($i = 0; $i < 3; $i++) {
             /** @var DataObject|MockObject $item */
             $item = $this->getMockBuilder(DataObject::class)
-                ->addMethods(['save'])
+                ->onlyMethods(['save'])
                 ->disableOriginalConstructor()
                 ->getMock();
             $item->expects($this->once())->method('save');

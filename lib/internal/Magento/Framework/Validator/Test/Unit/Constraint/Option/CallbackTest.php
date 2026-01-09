@@ -10,6 +10,7 @@ namespace Magento\Framework\Validator\Test\Unit\Constraint\Option;
 use Magento\Framework\Validator\Constraint\Option\Callback;
 use Magento\Framework\Validator\Test\Unit\Test\Callback as TestCallback;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Test case for \Magento\Framework\Validator\Constraint\Option\Callback
@@ -23,14 +24,13 @@ class CallbackTest extends TestCase
 
     /**
      * Test getValue method
-     *
-     * @dataProvider getConfigDataProvider
-     *
+     *     *
      * @param callable $callback
      * @param mixed $expectedResult
      * @param null $arguments
      * @param bool $createInstance
      */
+    #[DataProvider('getConfigDataProvider')]
     public function testGetValue($callback, $expectedResult, $arguments = null, $createInstance = false)
     {
         if (is_array($callback) && is_callable($callback[0])) {
@@ -88,7 +88,7 @@ class CallbackTest extends TestCase
     {
         $classObject = $this;
         $mock = $this->getMockBuilder(\stdClass::class)
-            ->addMethods(['getValue'])
+            ->onlyMethods(['getValue'])
             ->getMock();
         $mock->method('getValue')
             ->with('arg1', 'arg2')
@@ -117,12 +117,11 @@ class CallbackTest extends TestCase
 
     /**
      * Test setArguments method
-     *
-     * @dataProvider setArgumentsDataProvider
-     *
+     *     *
      * @param string|array $value
      * @param string|array $expectedValue
      */
+    #[DataProvider('setArgumentsDataProvider')]
     public function testSetArguments($value, $expectedValue)
     {
         $this->markTestSkipped('Skipped in #27500 due to testing protected/private methods and properties');
@@ -148,13 +147,12 @@ class CallbackTest extends TestCase
 
     /**
      * Test getValue method raises \InvalidArgumentException
-     *
-     * @dataProvider getValueExceptionDataProvider
-     *
+     *     *
      * @param mixed $callback
      * @param string $expectedMessage
      * @param bool $createInstance
      */
+    #[DataProvider('getValueExceptionDataProvider')]
     public function testGetValueException($callback, $expectedMessage, $createInstance = false)
     {
         if (is_array($callback)) {

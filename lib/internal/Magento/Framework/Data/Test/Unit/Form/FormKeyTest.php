@@ -43,7 +43,7 @@ class FormKeyTest extends TestCase
     {
         $this->mathRandomMock = $this->createMock(Random::class);
         $this->sessionMock = $this->getMockBuilder(SessionManager::class)
-            ->addMethods(['setData'])
+            ->onlyMethods(['setData'])
             ->onlyMethods(['getData'])
             ->disableOriginalConstructor()
             ->getMock();

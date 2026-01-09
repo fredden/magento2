@@ -12,9 +12,12 @@ use Magento\Framework\Filter\FilterManager;
 use Magento\Framework\Filter\FilterManager\Config;
 use Magento\Framework\ObjectManagerInterface;
 use PHPUnit\Framework\TestCase;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class FilterManagerTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var FilterManager
      */
@@ -42,7 +45,7 @@ class FilterManagerTest extends TestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['canCreateFilter', 'createFilter'])
             ->getMock();
-        $this->_objectManager = $this->getMockForAbstractClass(ObjectManagerInterface::class);
+        $this->_objectManager = $this->createMock(ObjectManagerInterface::class);
         $this->_objectManager->expects(
             $this->atLeastOnce()
         )->method(
@@ -82,7 +85,7 @@ class FilterManagerTest extends TestCase
         ));
         $factoryName = Factory::class;
         $this->_factoryMock = new \stdClass();
-        $this->_objectManager = $this->getMockForAbstractClass(ObjectManagerInterface::class);
+        $this->_objectManager = $this->createMock(ObjectManagerInterface::class);
         $this->_objectManager->expects(
             $this->atLeastOnce()
         )->method(
@@ -175,7 +178,7 @@ class FilterManagerTest extends TestCase
         $value = 'testValue';
         $this->initMocks();
         $filterMock = $this->getMockBuilder(\stdClass::class)
-            ->addMethods(['filter'])->getMock();
+            ->onlyMethods(['filter'])->getMock();
         $filterMock->expects(
             $this->atLeastOnce()
         )->method(

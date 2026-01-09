@@ -62,17 +62,13 @@ class SearchTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->searchEngine = $this->getMockBuilder(SearchEngineInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->searchEngine = $this->createMock(SearchEngineInterface::class);
 
         $this->searchResponseBuilder = $this->getMockBuilder(SearchResponseBuilder::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->scopeResolver = $this->getMockBuilder(ScopeResolverInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->scopeResolver = $this->createMock(ScopeResolverInterface::class);
 
         $this->model = $objectManager->getObject(
             Search::class,
@@ -97,9 +93,7 @@ class SearchTest extends TestCase
             $this->createFilterMock('range_filter', ['from' => 60, 'to' => 82]),
         ];
 
-        $scope = $this->getMockBuilder(ScopeInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $scope = $this->createMock(ScopeInterface::class);
 
         $filterGroup = $this->getMockBuilder(FilterGroup::class)
             ->disableOriginalConstructor()
@@ -108,9 +102,7 @@ class SearchTest extends TestCase
             ->method('getFilters')
             ->willReturn($filters);
 
-        $searchCriteria = $this->getMockBuilder(SearchCriteriaInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $searchCriteria = $this->createMock(SearchCriteriaInterface::class);
         $searchCriteria->expects($this->once())
             ->method('getRequestName')
             ->willReturn($requestName);
@@ -118,17 +110,11 @@ class SearchTest extends TestCase
             ->method('getFilterGroups')
             ->willReturn([$filterGroup]);
 
-        $searchResult = $this->getMockBuilder(SearchResult::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $searchResult = $this->createMock(SearchResult::class);
 
-        $request = $this->getMockBuilder(RequestInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $request = $this->createMock(RequestInterface::class);
 
-        $response = $this->getMockBuilder(ResponseInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $response = $this->createMock(ResponseInterface::class);
 
         $this->requestBuilder->expects($this->once())
             ->method('setRequestName')

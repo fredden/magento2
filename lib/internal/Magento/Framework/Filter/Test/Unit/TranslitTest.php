@@ -11,9 +11,13 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Filter\Translit;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class TranslitTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var Translit
      */
@@ -29,9 +33,8 @@ class TranslitTest extends TestCase
      * @param string $testString
      * @param string $result
      * @param string $resultIconv
-     * @param bool $isIconv
-     * @dataProvider filterDataProvider
-     */
+     * @param bool $isIconv     */
+    #[DataProvider('filterDataProvider')]
     public function testFilter($testString, $result, $resultIconv, $isIconv)
     {
         if ($isIconv) {
@@ -73,7 +76,7 @@ class TranslitTest extends TestCase
         $config = $this->getMockBuilder(
             ScopeConfigInterface::class
         )->disableOriginalConstructor()
-            ->addMethods(['setValue'])
+            ->onlyMethods(['setValue'])
             ->onlyMethods(
                 ['getValue', 'isSetFlag']
             )->getMock();

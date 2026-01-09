@@ -70,7 +70,7 @@ class ConfigTest extends TestCase
     protected function setUp(): void
     {
         $this->fileSource = $this->createMock(Aggregated::class);
-        $this->design = $this->getMockForAbstractClass(DesignInterface::class);
+        $this->design = $this->createMock(DesignInterface::class);
 
         $readFactory = $this->createMock(ReadFactory::class);
         $this->fileReader = $this->createMock(Read::class);
@@ -78,7 +78,7 @@ class ConfigTest extends TestCase
             ->willReturn($this->fileReader);
         $repo = $this->createMock(Repository::class);
         $this->context = $this->getMockBuilder(ContextInterface::class)
-            ->addMethods([
+            ->onlyMethods([
                 'getConfigPath',
                 'getAreaCode',
                 'getThemePath',
@@ -90,14 +90,14 @@ class ConfigTest extends TestCase
                     'getBaseUrl'
                 ]
             )
-            ->getMockForAbstractClass();
+            ->getMock();
         $repo->expects($this->once())->method('getStaticViewFileContext')->willReturn($this->context);
         $this->minificationMock = $this->getMockBuilder(Minification::class)
             ->disableOriginalConstructor()
             ->getMock();
 
         $this->minifyAdapterMock = $this->getMockBuilder(AdapterInterface::class)
-            ->getMockForAbstractClass();
+            ->getMock();
 
         $this->repositoryMapMock = $this->getMockBuilder(RepositoryMap::class)
             ->disableOriginalConstructor()
@@ -137,7 +137,7 @@ class ConfigTest extends TestCase
         $fileTwo->expects($this->once())
             ->method('getName')
             ->willReturn('file_two.js');
-        $theme = $this->getMockForAbstractClass(ThemeInterface::class);
+        $theme = $this->createMock(ThemeInterface::class);
         $this->design->expects($this->once())
             ->method('getDesignTheme')
             ->willReturn($theme);

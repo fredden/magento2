@@ -9,9 +9,12 @@ namespace Magento\Framework\Convert\Test\Unit;
 
 use Magento\Framework\Convert\DataObject;
 use PHPUnit\Framework\TestCase;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class ObjectTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var DataObject
      */
@@ -24,7 +27,7 @@ class ObjectTest extends TestCase
 
     public function testToOptionArray()
     {
-        $mockFirst = $this->getMockBuilder(\Magento\Framework\DataObject::class)->addMethods(['getId', 'getCode'])
+        $mockFirst = $this->getMockBuilder(\Magento\Framework\DataObject::class)->onlyMethods(['getId', 'getCode'])
             ->disableOriginalConstructor()
             ->getMock();
         $mockFirst->expects($this->once())
@@ -33,7 +36,7 @@ class ObjectTest extends TestCase
         $mockFirst->expects($this->once())
             ->method('getCode')
             ->willReturn('code1');
-        $mockSecond = $this->getMockBuilder(\Magento\Framework\DataObject::class)->addMethods(['getId', 'getCode'])
+        $mockSecond = $this->getMockBuilder(\Magento\Framework\DataObject::class)->onlyMethods(['getId', 'getCode'])
             ->disableOriginalConstructor()
             ->getMock();
         $mockSecond->expects($this->once())
@@ -60,7 +63,7 @@ class ObjectTest extends TestCase
 
     public function testToOptionHash()
     {
-        $mockFirst = $this->getMockBuilder(\Magento\Framework\DataObject::class)->addMethods(['getSome', 'getId'])
+        $mockFirst = $this->getMockBuilder(\Magento\Framework\DataObject::class)->onlyMethods(['getSome', 'getId'])
             ->disableOriginalConstructor()
             ->getMock();
         $mockFirst->expects($this->once())
@@ -69,7 +72,7 @@ class ObjectTest extends TestCase
         $mockFirst->expects($this->once())
             ->method('getSome')
             ->willReturn('code3');
-        $mockSecond = $this->getMockBuilder(\Magento\Framework\DataObject::class)->addMethods(['getSome', 'getId'])
+        $mockSecond = $this->getMockBuilder(\Magento\Framework\DataObject::class)->onlyMethods(['getSome', 'getId'])
             ->disableOriginalConstructor()
             ->getMock();
         $mockSecond->expects($this->once())

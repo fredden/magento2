@@ -9,9 +9,13 @@ namespace Magento\Framework\TestFramework\Test\Unit\Unit\Helper;
 
 use Magento\Framework\TestFramework\Unit\Helper\ProxyTesting;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class ProxyTestingTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @param string $method
      * @param array $params
@@ -21,9 +25,8 @@ class ProxyTestingTest extends TestCase
      * @param string $callProxiedMethod
      * @param array $passProxiedParams
      * @param mixed $expectedResult
-     *
-     * @dataProvider invokeWithExpectationsDataProvider
-     */
+     *     */
+    #[DataProvider('invokeWithExpectationsDataProvider')]
     public function testInvokeWithExpectations(
         $method,
         $params,
@@ -36,7 +39,7 @@ class ProxyTestingTest extends TestCase
     ) {
         // Create proxied object with $callProxiedMethod
         $proxiedObject = $this->getMockBuilder('stdClass')
-            ->addMethods([$callProxiedMethod])
+            ->onlyMethods([$callProxiedMethod])
             ->getMock();
 
         // Create object, which reacts on called $method by calling $callProxiedMethod from proxied object
@@ -45,7 +48,7 @@ class ProxyTestingTest extends TestCase
         };
 
         $object = $this->getMockBuilder('stdClass')
-            ->addMethods([$method])
+            ->onlyMethods([$method])
             ->getMock();
         $builder = $object->expects($this->once())->method($method);
         call_user_func_array([$builder, 'with'], $params);

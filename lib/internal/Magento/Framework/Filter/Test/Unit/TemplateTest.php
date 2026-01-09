@@ -105,7 +105,7 @@ class TemplateTest extends TestCase
 
         // Build arbitrary object to pass into the addAfterFilterCallback method
         $callbackObject = $this->getMockBuilder(\stdClass::class)
-            ->addMethods(['afterFilterCallbackMethod'])
+            ->onlyMethods(['afterFilterCallbackMethod'])
             ->getMock();
 
         $callbackObject->expects($this->once())
@@ -137,7 +137,7 @@ class TemplateTest extends TestCase
 
         // Build arbitrary object to pass into the addAfterFilterCallback method
         $callbackObject = $this->getMockBuilder(\stdClass::class)
-            ->addMethods(['afterFilterCallbackMethod'])
+            ->onlyMethods(['afterFilterCallbackMethod'])
             ->getMock();
 
         $callbackObject->expects($this->once())

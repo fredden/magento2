@@ -27,7 +27,7 @@ class ActionFactoryTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->objectManagerMock = $this->getMockForAbstractClass(ObjectManagerInterface::class);
+        $this->objectManagerMock = $this->createMock(ObjectManagerInterface::class);
         $this->model = new ActionFactory($this->objectManagerMock);
     }
 
@@ -51,7 +51,7 @@ class ActionFactoryTest extends TestCase
 
     public function testGet()
     {
-        $actionInterfaceMock = $this->getMockForAbstractClass(
+        $actionInterfaceMock = $this->createMock(
             ActionInterface::class,
             [],
             '',

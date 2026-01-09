@@ -78,7 +78,7 @@ class ImageTest extends TestCase
      */
     private function setupObjectManagerForCheckImageExist($return): void
     {
-        $objectManagerMock = $this->getMockForAbstractClass(ObjectManagerInterface::class);
+        $objectManagerMock = $this->createMock(ObjectManagerInterface::class);
         $mockFileSystem = $this->createMock(Filesystem::class);
         $mockRead = $this->createMock(ReadInterface::class);
         $objectManagerMock->method($this->logicalOr('get', 'create'))->willReturn($mockFileSystem);
@@ -102,7 +102,7 @@ class ImageTest extends TestCase
             ['isExist', 'copyFile', 'getRelativePath', 'delete']
         );
         $this->_filesystemMock = $this->getMockBuilder(Filesystem::class)
-            ->addMethods(['delete'])
+            ->onlyMethods(['delete'])
             ->onlyMethods(['getDirectoryWrite'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -121,10 +121,10 @@ class ImageTest extends TestCase
         $this->_imageMock = $this->createMock(\Magento\Framework\Image::class);
         $imageFactory->expects($this->any())->method('create')->willReturn($this->_imageMock);
 
-        $logger = $this->getMockForAbstractClass(LoggerInterface::class);
+        $logger = $this->createMock(LoggerInterface::class);
         $this->_themeMock = $this->getMockBuilder(Theme::class)
             ->disableOriginalConstructor()
-            ->addMethods(['getPreviewImage'])
+            ->onlyMethods(['getPreviewImage'])
             ->getMock();
         $this->_uploaderMock = $this->createMock(Uploader::class);
 
@@ -262,7 +262,7 @@ class ImageTest extends TestCase
 
         $themeMock = $this->getMockBuilder(Theme::class)->disableOriginalConstructor()
             ->onlyMethods(['getThemeImage'])
-            ->addMethods(['getPreviewImage'])
+            ->onlyMethods(['getPreviewImage'])
             ->getMock();
         $themeMock->expects($this->atLeastOnce())
             ->method('getPreviewImage')

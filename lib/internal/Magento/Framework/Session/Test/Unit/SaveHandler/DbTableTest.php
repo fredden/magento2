@@ -13,9 +13,13 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Session\SaveHandler\DbTable;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class DbTableTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * Session table name
      */
@@ -137,9 +141,8 @@ class DbTableTest extends TestCase
 
     /**
      * @param bool $isDataEncoded
-     *
-     * @dataProvider readDataProvider
-     */
+     *     */
+    #[DataProvider('readDataProvider')]
     public function testRead($isDataEncoded)
     {
         $this->_prepareMockForRead($isDataEncoded);
@@ -172,7 +175,7 @@ class DbTableTest extends TestCase
     protected function _prepareMockForRead($isDataEncoded)
     {
         $connection = $this->getMockBuilder(Mysql::class)
-            ->addMethods(['from', 'where'])
+            ->onlyMethods(['from', 'where'])
             ->onlyMethods(['select', 'fetchOne', 'isTableExists'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -231,9 +234,8 @@ class DbTableTest extends TestCase
 
     /**
      * @param bool $sessionExists
-     *
-     * @dataProvider writeDataProvider
-     */
+     *     */
+    #[DataProvider('writeDataProvider')]
     public function testWrite($sessionExists)
     {
         $this->_prepareMockForWrite($sessionExists);
@@ -248,7 +250,7 @@ class DbTableTest extends TestCase
     protected function _prepareMockForWrite($sessionExists)
     {
         $connection = $this->getMockBuilder(Mysql::class)
-            ->addMethods(['from', 'where'])
+            ->onlyMethods(['from', 'where'])
             ->onlyMethods(['select', 'fetchOne', 'update', 'insert', 'isTableExists'])
             ->disableOriginalConstructor()
             ->getMock();

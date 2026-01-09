@@ -12,6 +12,7 @@ use Magento\Framework\Filter\Input\PurifierInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class MaliciousCodeTest extends TestCase
 {
@@ -27,10 +28,7 @@ class MaliciousCodeTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->purifier = $this->getMockBuilder(PurifierInterface::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['purify'])
-            ->getMockForAbstractClass();
+        $this->purifier = $this->createMock(PurifierInterface::class);
 
         $objectManager = new ObjectManager($this);
 
@@ -44,9 +42,8 @@ class MaliciousCodeTest extends TestCase
 
     /**
      * @param string|string[] $input
-     * @param string|string[] $expectedOutput
-     * @dataProvider filterDataProvider
-     */
+     * @param string|string[] $expectedOutput     */
+    #[DataProvider('filterDataProvider')]
     public function testFilter($input, $expectedOutput)
     {
         $this->purifier->expects(self::atLeastOnce())

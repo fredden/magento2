@@ -56,7 +56,7 @@ class CopyTest extends TestCase
     protected function setUp(): void
     {
         $this->fieldsetConfigMock = $this->createMock(Config::class);
-        $this->eventManagerMock = $this->getMockForAbstractClass(ManagerInterface::class);
+        $this->eventManagerMock = $this->createMock(ManagerInterface::class);
         $this->sourceMock = $this->createMock(DataObject::class);
         $this->targetMock = $this->createMock(DataObject::class);
         $this->extensionAttributesFactoryMock =
@@ -189,12 +189,8 @@ class CopyTest extends TestCase
             ->with('fieldset', 'global')
             ->willReturn($fields);
 
-        $sourceMock = $this->getMockBuilder(ExtensibleDataInterface::class)
-            ->addMethods(['getExtensionAttributes', 'getCode'])
-            ->getMockForAbstractClass();
-        $targetMock = $this->getMockBuilder(ExtensibleDataInterface::class)
-            ->addMethods(['getExtensionAttributes', 'setCode', 'setExtensionAttributes'])
-            ->getMockForAbstractClass();
+        $sourceMock = $this->createMock(ExtensibleDataInterface::class);
+        $targetMock = $this->createMock(ExtensibleDataInterface::class);
 
         $sourceMock
             ->expects($this->any())
@@ -328,12 +324,12 @@ class CopyTest extends TestCase
             ->willReturn($fields);
 
         $sourceMock = $this->getMockBuilder(Address::class)
-            ->addMethods(['getCode'])
+            ->onlyMethods(['getCode'])
             ->onlyMethods(['getExtensionAttributes'])
             ->disableOriginalConstructor()
             ->getMock();
         $targetMock = $this->getMockBuilder(Address::class)
-            ->addMethods(['setCode'])
+            ->onlyMethods(['setCode'])
             ->onlyMethods(['getExtensionAttributes', 'setExtensionAttributes'])
             ->disableOriginalConstructor()
             ->getMock();

@@ -15,10 +15,14 @@ use Magento\Framework\Filesystem\Directory\Write;
 use Magento\Framework\Image\Adapter\AbstractAdapter;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class AbstractTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var AbstractAdapter
      */
@@ -44,7 +48,7 @@ class AbstractTest extends TestCase
         $this->directoryWriteMock = $this->createMock(Write::class);
         $this->filesystemMock =
             $this->getMockBuilder(Filesystem::class)
-                ->addMethods(['createDirectory'])
+                ->onlyMethods(['createDirectory'])
                 ->onlyMethods(['getDirectoryWrite'])
                 ->disableOriginalConstructor()
                 ->getMock();
@@ -58,7 +62,7 @@ class AbstractTest extends TestCase
         $this->loggerMock = $this->getMockBuilder(LoggerInterface::class)
             ->getMock();
 
-        $this->_model = $this->getMockForAbstractClass(
+        $this->_model = $this->createMock(
             AbstractAdapter::class,
             [$this->filesystemMock, $this->loggerMock]
         );
@@ -74,9 +78,8 @@ class AbstractTest extends TestCase
 
     /**
      * Test adaptResizeValues with null as a value one of parameters
-     *
-     * @dataProvider adaptResizeValuesDataProvider
-     */
+     *     */
+    #[DataProvider('adaptResizeValuesDataProvider')]
     public function testAdaptResizeValues($width, $height, $expectedResult)
     {
         $method = new \ReflectionMethod($this->_model, '_adaptResizeValues');
@@ -101,9 +104,8 @@ class AbstractTest extends TestCase
         return [[134.5, null, $expected], [null, 134.5, $expected]];
     }
 
-    /**
-     * @dataProvider prepareDestinationDataProvider
-     */
+    /**     */
+    #[DataProvider('prepareDestinationDataProvider')]
     public function testPrepareDestination($destination, $newName, $expectedResult)
     {
         $property = new \ReflectionProperty(get_class($this->_model), '_fileSrcPath');

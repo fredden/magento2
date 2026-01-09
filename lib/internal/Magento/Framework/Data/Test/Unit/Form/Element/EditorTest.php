@@ -20,11 +20,15 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Magento\Framework\Math\Random;
 use Magento\Framework\View\Helper\SecureHtmlRenderer;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class EditorTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var Editor
      */
@@ -107,7 +111,7 @@ class EditorTest extends TestCase
 
         $this->formMock =
             $this->getMockBuilder(Form::class)
-                ->addMethods(['getHtmlIdPrefix', 'getHtmlIdSuffix'])
+                ->onlyMethods(['getHtmlIdPrefix', 'getHtmlIdSuffix'])
                 ->disableOriginalConstructor()
                 ->getMock();
         $this->model->setForm($this->formMock);
@@ -171,10 +175,9 @@ class EditorTest extends TestCase
     /**
      * @param bool $expected
      * @param bool $globalFlag
-     * @param bool $attributeFlag
-     * @dataProvider isEnabledDataProvider
-     * @return void
+     * @param bool $attributeFlag     * @return void
      */
+    #[DataProvider('isEnabledDataProvider')]
     public function testIsEnabled($expected, $globalFlag, $attributeFlag = null)
     {
         $this->configMock

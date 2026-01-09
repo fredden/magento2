@@ -12,6 +12,7 @@ use Magento\Framework\Filesystem\DriverInterface;
 use Magento\Framework\Filesystem\File\WriteFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Unit Test for \Magento\Framework\Filesystem\Directory\Write
@@ -93,7 +94,7 @@ class WriteTest extends TestCase
 
     public function testCreateSymlinkTargetDirectoryExists()
     {
-        $targetDir = $this->getMockForAbstractClass(WriteInterface::class);
+        $targetDir = $this->createMock(WriteInterface::class);
         $sourcePath = 'source/path/file';
         $destinationDirectory = 'destination/path';
         $destinationFile = $destinationDirectory . '/' . 'file';
@@ -162,9 +163,8 @@ class WriteTest extends TestCase
     /**
      * @param string $sourcePath
      * @param string $targetPath
-     * @param WriteInterface $targetDir
-     * @dataProvider getFilePathsDataProvider
-     */
+     * @param WriteInterface $targetDir     */
+    #[DataProvider('getFilePathsDataProvider')]
     public function testRenameFile($sourcePath, $targetPath, $targetDir)
     {
         if ($targetDir !== null && is_callable($targetDir)) {
@@ -226,7 +226,7 @@ class WriteTest extends TestCase
     {
         return $this->getMockBuilder(WriteInterface::class)
             ->onlyMethods(['getAbsolutePath', 'create'])
-            ->addMethods(['isExists'])
-            ->getMockForAbstractClass();
+            ->onlyMethods(['isExists'])
+            ->getMock();
     }
 }

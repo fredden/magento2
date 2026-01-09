@@ -136,9 +136,8 @@ namespace Magento\Framework\Stdlib\Test\Unit\Cookie
                 ->onlyMethods(['getPublicCookieMetadata', 'getCookieMetadata', 'getSensitiveCookieMetadata'])
                 ->disableOriginalConstructor()
                 ->getMockForAbstractClass();
-            $this->readerMock = $this->getMockForAbstractClass(CookieReaderInterface::class);
-            $this->loggerMock = $this->getMockBuilder(LoggerInterface::class)
-                ->getMockForAbstractClass();
+            $this->readerMock = $this->createMock(CookieReaderInterface::class);
+            $this->loggerMock = $this->createMock(LoggerInterface::class);
             $this->httpHeaderMock = $this->getMockBuilder(HttpHeader::class)
                 ->disableOriginalConstructor()
                 ->getMock();
@@ -252,10 +251,9 @@ namespace Magento\Framework\Stdlib\Test\Unit\Cookie
 
         /**
          * @param string $cookieName
-         * @param bool $secure
-         * @dataProvider isCurrentlySecureDataProvider
-         */
-        public function testSetSensitiveCookieNoMetadata($cookieName, $secure)
+         * @param bool $secure         */
+    #[DataProvider('isCurrentlySecureDataProvider')]
+    public function testSetSensitiveCookieNoMetadata($cookieName, $secure)
         {
             self::$isSetCookieInvoked = false;
             /** @var SensitiveCookieMetadata $sensitiveCookieMetadata */

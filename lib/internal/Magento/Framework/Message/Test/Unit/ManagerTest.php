@@ -20,6 +20,7 @@ use Magento\Framework\Message\Session;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -90,10 +91,10 @@ class ManagerTest extends TestCase
         $this->session = $this->getMockBuilder(Session::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['getData'])
-            ->addMethods(['setData'])
+            ->onlyMethods(['setData'])
             ->getMock();
-        $this->eventManager = $this->getMockForAbstractClass(ManagerInterface::class);
-        $this->logger = $this->getMockForAbstractClass(LoggerInterface::class);
+        $this->eventManager = $this->createMock(ManagerInterface::class);
+        $this->logger = $this->createMock(LoggerInterface::class);
 
         $this->exceptionMessageFactory = $this->getMockBuilder(
             ExceptionMessageLookupFactory::class
@@ -101,7 +102,7 @@ class ManagerTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->messageMock = $this->getMockForAbstractClass(MessageInterface::class);
+        $this->messageMock = $this->createMock(MessageInterface::class);
         $this->objectManager = new ObjectManager($this);
         $this->model = new Manager(
             $this->session,
@@ -221,7 +222,7 @@ class ManagerTest extends TestCase
         $exceptionMessage = 'exception message';
         $exception = new Exception($exceptionMessage);
         $this->logger->expects($this->once())->method('critical');
-        $message = $this->getMockForAbstractClass(MessageInterface::class);
+        $message = $this->createMock(MessageInterface::class);
         $this->messageFactory->expects($this->never())->method('create');
 
         $this->exceptionMessageFactory->expects($this->once())
@@ -245,9 +246,8 @@ class ManagerTest extends TestCase
      * @param string $type
      * @param string $methodName
      *
-     * @return void
-     * @dataProvider addMessageDataProvider
-     */
+     * @return void     */
+    #[DataProvider('addMessageDataProvider')]
     public function testAddMessage($type, $methodName): void
     {
         $this->assertFalse($this->model->hasMessages());
@@ -282,9 +282,8 @@ class ManagerTest extends TestCase
      * @param MockObject $messages
      * @param string $expectation
      *
-     * @return void
-     * @dataProvider addUniqueMessagesWhenMessagesImplementMessageInterfaceDataProvider
-     */
+     * @return void     */
+    #[DataProvider('addUniqueMessagesWhenMessagesImplementMessageInterfaceDataProvider')]
     public function testAddUniqueMessagesWhenMessagesImplementMessageInterface($messages, $expectation): void
     {
         $messageCollection =
@@ -320,9 +319,8 @@ class ManagerTest extends TestCase
     /**
      * @param string|array $messages
      *
-     * @return void
-     * @dataProvider addUniqueMessagesDataProvider
-     */
+     * @return void     */
+    #[DataProvider('addUniqueMessagesDataProvider')]
     public function testAddUniqueMessages($messages): void
     {
         $messageCollection =

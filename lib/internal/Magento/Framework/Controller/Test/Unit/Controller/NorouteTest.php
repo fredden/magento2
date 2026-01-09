@@ -14,9 +14,12 @@ use Magento\Framework\DataObject;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class NorouteTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var \Magento\Framework\Controller\Noroute
      */
@@ -41,10 +44,10 @@ class NorouteTest extends TestCase
     {
         $helper = new ObjectManager($this);
         $this->_requestMock = $this->createMock(Http::class);
-        $this->_viewMock = $this->getMockForAbstractClass(ViewInterface::class);
+        $this->_viewMock = $this->createMock(ViewInterface::class);
         $this->_statusMock =
             $this->getMockBuilder(DataObject::class)
-                ->addMethods(['getLoaded', 'getForwarded'])
+                ->onlyMethods(['getLoaded', 'getForwarded'])
                 ->disableOriginalConstructor()
                 ->getMock();
         $this->_controller = $helper->getObject(

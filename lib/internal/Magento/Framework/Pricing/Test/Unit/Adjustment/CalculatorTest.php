@@ -15,9 +15,12 @@ use Magento\Framework\Pricing\Amount\Base;
 use Magento\Framework\Pricing\SaleableInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class CalculatorTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var Calculator
      */
@@ -69,13 +72,11 @@ class CalculatorTest extends TestCase
 
         $productMock = $this->getMockBuilder(SaleableInterface::class)
             ->disableOriginalConstructor()
-            ->addMethods(['__wakeup'])
+            ->onlyMethods(['__wakeup'])
             ->onlyMethods(['getPriceInfo'])
-            ->getMockForAbstractClass();
+            ->getMock();
 
-        $weeeAdjustmentMock = $this->getMockBuilder(AdjustmentInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $weeeAdjustmentMock = $this->createMock(AdjustmentInterface::class);
         $weeeAdjustmentMock->expects($this->once())
             ->method('getAdjustmentCode')
             ->willReturn($weeeAdjustmentCode);
@@ -90,9 +91,7 @@ class CalculatorTest extends TestCase
             ->with($amountInclTax, $productMock)
             ->willReturn($weeeAdjustment + $amountInclTax);
 
-        $taxAdjustmentMock = $this->getMockBuilder(AdjustmentInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $taxAdjustmentMock = $this->createMock(AdjustmentInterface::class);
         $taxAdjustmentMock->expects($this->once())
             ->method('getAdjustmentCode')
             ->willReturn($taxAdjustmentCode);
@@ -137,13 +136,11 @@ class CalculatorTest extends TestCase
 
         $productMock = $this->getMockBuilder(SaleableInterface::class)
             ->disableOriginalConstructor()
-            ->addMethods(['__wakeup'])
+            ->onlyMethods(['__wakeup'])
             ->onlyMethods(['getPriceInfo'])
-            ->getMockForAbstractClass();
+            ->getMock();
 
-        $taxAdjustmentMock = $this->getMockBuilder(AdjustmentInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $taxAdjustmentMock = $this->createMock(AdjustmentInterface::class);
         $taxAdjustmentMock->expects($this->once())
             ->method('getAdjustmentCode')
             ->willReturn($taxAdjustmentCode);
@@ -159,9 +156,7 @@ class CalculatorTest extends TestCase
             ->with($fullamount, $productMock)
             ->willReturn($amount);
 
-        $weeeAdjustmentMock = $this->getMockBuilder(AdjustmentInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $weeeAdjustmentMock = $this->createMock(AdjustmentInterface::class);
         $weeeAdjustmentMock->expects($this->once())
             ->method('getAdjustmentCode')
             ->willReturn($weeeAdjustmentCode);

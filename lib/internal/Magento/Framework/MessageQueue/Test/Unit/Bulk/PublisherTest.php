@@ -122,9 +122,7 @@ class PublisherTest extends TestCase
         $this->messageValidator->expects($this->once())->method('validate')->with($topicName, $message);
         $this->messageEncoder->expects($this->once())
             ->method('encode')->with($topicName, $message)->willReturn($encodedMessage);
-        $envelope = $this->getMockBuilder(EnvelopeInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $envelope = $this->createMock(EnvelopeInterface::class);
         $this->messageIdGenerator->expects($this->once())
             ->method('generate')->with($topicName)->willReturn($messageId);
         $this->envelopeFactory->expects($this->once())->method('create')->with(

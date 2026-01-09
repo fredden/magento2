@@ -26,6 +26,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 require_once __DIR__ . '/../Custom/Module/Model/Item.php';
 require_once __DIR__ . '/../Custom/Module/Model/Item/Enhanced.php';
@@ -72,28 +73,22 @@ class PluginListTest extends TestCase
         $loadScoped = include __DIR__ . '/../_files/load_scoped_mock_map.php';
         $readerMock = $this->createMock(Dom::class);
 
-        $this->configScopeMock = $this->getMockForAbstractClass(ScopeInterface::class);
-        $this->cacheMock = $this->getMockBuilder(CacheInterface::class)
-            ->addMethods(['get'])
-            ->getMockForAbstractClass();
+        $this->configScopeMock = $this->createMock(ScopeInterface::class);
+        $this->cacheMock = $this->createMock(CacheInterface::class);
         // turn cache off
         $this->cacheMock->method('get')->willReturn(false);
 
-        $omConfigMock =  $this->getMockForAbstractClass(
+        $omConfigMock =  $this->createMock(
             ConfigInterface::class
         );
 
         $omConfigMock->method('getOriginalInstanceType')->willReturnArgument(0);
 
-        $objectManagerMock = $this->getMockBuilder(ObjectManagerInterface::class)
-            ->onlyMethods(['get'])
-            ->getMockForAbstractClass();
+        $objectManagerMock = $this->createMock(ObjectManagerInterface::class);
         $objectManagerMock->method('get')->willReturnArgument(0);
-        $this->serializerMock = $this->getMockForAbstractClass(SerializerInterface::class);
+        $this->serializerMock = $this->createMock(SerializerInterface::class);
 
-        $this->configLoaderMock = $this->getMockBuilder(ConfigLoaderInterface::class)
-            ->onlyMethods(['load'])
-            ->getMockForAbstractClass();
+        $this->configLoaderMock = $this->createMock(ConfigLoaderInterface::class);
         $pluginListGeneratorMock = $this->getMockBuilder(PluginListGenerator::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['loadScopedVirtualTypes', 'inheritPlugins'])
@@ -233,9 +228,8 @@ class PluginListTest extends TestCase
      * @param string $method
      * @param string $scopeCode
      * @param string $code
-     * @param array $scopePriorityScheme
-     * @dataProvider getPluginsDataProvider
-     */
+     * @param array $scopePriorityScheme     */
+    #[DataProvider('getPluginsDataProvider')]
     public function testGetPlugins(
         ?array $expectedResult,
         string $type,

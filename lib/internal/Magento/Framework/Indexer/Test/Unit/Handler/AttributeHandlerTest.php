@@ -33,10 +33,7 @@ class AttributeHandlerTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->source = $this->getMockBuilder(SourceProviderInterface::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['joinAttribute'])
-            ->getMockForAbstractClass();
+        $this->source = $this->createMock(SourceProviderInterface::class);
 
         $objectManager = new ObjectManager($this);
 

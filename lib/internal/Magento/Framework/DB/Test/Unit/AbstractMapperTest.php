@@ -17,6 +17,7 @@ use Magento\Framework\DB\Select;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 
 class AbstractMapperTest extends TestCase
@@ -68,7 +69,7 @@ class AbstractMapperTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->resourceMock = $this->getMockForAbstractClass(
+        $this->resourceMock = $this->createMock(
             AbstractDb::class,
             [],
             '',
@@ -77,7 +78,7 @@ class AbstractMapperTest extends TestCase
             true,
             []
         );
-        $this->connectionMock = $this->getMockForAbstractClass(
+        $this->connectionMock = $this->createMock(
             AdapterInterface::class,
             [],
             '',
@@ -87,8 +88,8 @@ class AbstractMapperTest extends TestCase
             []
         );
         $this->selectMock = $this->createMock(Select::class);
-        $this->loggerMock = $this->getMockForAbstractClass(LoggerInterface::class);
-        $this->fetchStrategyMock = $this->getMockForAbstractClass(
+        $this->loggerMock = $this->createMock(LoggerInterface::class);
+        $this->fetchStrategyMock = $this->createMock(
             FetchStrategyInterface::class,
             [],
             '',
@@ -107,13 +108,12 @@ class AbstractMapperTest extends TestCase
      * @param array $mapperMethods
      * @param array $criteriaParts
      * @return void
-     *
-     * @dataProvider dataProviderMap
-     */
+     *     */
+    #[DataProvider('dataProviderMap')]
     public function testMap(array $mapperMethods, array $criteriaParts)
     {
         /** @var AbstractMapper|MockObject $mapper */
-        $mapper = $this->getMockForAbstractClass(
+        $mapper = $this->createMock(
             AbstractMapper::class,
             [
                 'logger' => $this->loggerMock,
@@ -128,7 +128,7 @@ class AbstractMapperTest extends TestCase
             true,
             $mapperMethods
         );
-        $criteriaMock = $this->getMockForAbstractClass(
+        $criteriaMock = $this->createMock(
             CriteriaInterface::class,
             [],
             '',
@@ -159,7 +159,7 @@ class AbstractMapperTest extends TestCase
             'my_mapper_method_one' => 'my-test-value1'
         ];
         /** @var AbstractMapper|MockObject $mapper */
-        $mapper = $this->getMockForAbstractClass(
+        $mapper = $this->createMock(
             AbstractMapper::class,
             [
                 'logger' => $this->loggerMock,
@@ -174,7 +174,7 @@ class AbstractMapperTest extends TestCase
             true,
             $mapperMethods
         );
-        $criteriaMock = $this->getMockForAbstractClass(
+        $criteriaMock = $this->createMock(
             CriteriaInterface::class,
             [],
             '',
@@ -201,7 +201,7 @@ class AbstractMapperTest extends TestCase
             'key-attribute' => 'value-attribute',
         ];
         /** @var AbstractMapper|MockObject $mapper */
-        $mapper = $this->getMockForAbstractClass(
+        $mapper = $this->createMock(
             AbstractMapper::class,
             [
                 'logger' => $this->loggerMock,
@@ -230,15 +230,14 @@ class AbstractMapperTest extends TestCase
      * @param mixed $field
      * @param mixed $condition
      * @return void
-     *
-     * @dataProvider dataProviderAddFieldToFilter
-     */
+     *     */
+    #[DataProvider('dataProviderAddFieldToFilter')]
     public function testAddFieldToFilter($field, $condition)
     {
         $resultCondition = 'sql-condition-value';
 
         /** @var AbstractMapper|MockObject $mapper */
-        $mapper = $this->getMockForAbstractClass(
+        $mapper = $this->createMock(
             AbstractMapper::class,
             [
                 'logger' => $this->loggerMock,
@@ -253,7 +252,7 @@ class AbstractMapperTest extends TestCase
             true,
             ['getConnection']
         );
-        $connectionMock = $this->getMockForAbstractClass(
+        $connectionMock = $this->createMock(
             AdapterInterface::class,
             [],
             '',

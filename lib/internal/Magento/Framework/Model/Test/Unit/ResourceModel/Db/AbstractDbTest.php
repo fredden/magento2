@@ -20,6 +20,7 @@ use Magento\Framework\Registry;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionProperty;
 
 /**
@@ -68,7 +69,7 @@ class AbstractDbTest extends TestCase
             ->method('getTransactionManager')
             ->willReturn($this->transactionManagerMock);
 
-        $this->_model = $this->getMockForAbstractClass(
+        $this->_model = $this->createMock(
             AbstractDb::class,
             [$contextMock],
             '',
@@ -83,9 +84,8 @@ class AbstractDbTest extends TestCase
      * @param $fieldNameType
      * @param $expectedResult
      *
-     * @return void
-     * @dataProvider addUniqueFieldDataProvider
-     */
+     * @return void     */
+    #[DataProvider('addUniqueFieldDataProvider')]
     public function testAddUniqueField($fieldNameType, $expectedResult): void
     {
         $this->_model->addUniqueField($fieldNameType);
@@ -171,9 +171,8 @@ class AbstractDbTest extends TestCase
      * @param $tableName
      * @param $expectedResult
      *
-     * @return void
-     * @dataProvider getTableDataProvider
-     */
+     * @return void     */
+    #[DataProvider('getTableDataProvider')]
     public function testGetMainTable($tableName, $expectedResult): void
     {
         $mainTableProperty = new ReflectionProperty(
@@ -239,12 +238,11 @@ class AbstractDbTest extends TestCase
      * @param $checksum
      * @param $expected
      *
-     * @return void
-     * @dataProvider getChecksumProvider
-     */
+     * @return void     */
+    #[DataProvider('getChecksumProvider')]
     public function testGetChecksum($checksum, $expected): void
     {
-        $connectionMock = $this->getMockForAbstractClass(AdapterInterface::class);
+        $connectionMock = $this->createMock(AdapterInterface::class);
         $connectionMock->expects($this->once())->method('getTablesChecksum')->with($checksum)->willReturn(
             [$checksum => 'checksum']
         );
@@ -334,10 +332,10 @@ class AbstractDbTest extends TestCase
      */
     public function testDelete(): void
     {
-        $connectionInterfaceMock = $this->getMockForAbstractClass(AdapterInterface::class);
+        $connectionInterfaceMock = $this->createMock(AdapterInterface::class);
         $contextMock = $this->createMock(\Magento\Framework\Model\Context::class);
         $registryMock = $this->createMock(Registry::class);
-        $abstractModelMock = $this->getMockForAbstractClass(
+        $abstractModelMock = $this->createMock(
             AbstractModel::class,
             [$contextMock, $registryMock],
             '',
@@ -352,7 +350,7 @@ class AbstractDbTest extends TestCase
 
         $abstractModelMock->expects($this->atLeastOnce())->method('getId')->willReturn(1);
         $abstractModelMock->expects($this->once())->method('getData')->willReturn(['data' => 'value']);
-        $connectionMock = $this->getMockForAbstractClass(AdapterInterface::class);
+        $connectionMock = $this->createMock(AdapterInterface::class);
         $this->transactionManagerMock->expects($this->once())
             ->method('start')
             ->with($connectionInterfaceMock)
@@ -404,7 +402,7 @@ class AbstractDbTest extends TestCase
     {
         $contextMock = $this->createMock(\Magento\Framework\Model\Context::class);
         $registryMock = $this->createMock(Registry::class);
-        $abstractModelMock = $this->getMockForAbstractClass(
+        $abstractModelMock = $this->createMock(
             AbstractModel::class,
             [$contextMock, $registryMock],
             '',
@@ -421,18 +419,17 @@ class AbstractDbTest extends TestCase
      * @param string $getOriginData
      * @param bool $expected
      *
-     * @return void
-     * @dataProvider hasDataChangedDataProvider
-     */
+     * @return void     */
+    #[DataProvider('hasDataChangedDataProvider')]
     public function testGetDataChanged($getOriginData, $expected): void
     {
-        $connectionInterfaceMock = $this->getMockForAbstractClass(AdapterInterface::class);
+        $connectionInterfaceMock = $this->createMock(AdapterInterface::class);
         $this->_resourcesMock->expects($this->any())->method('getConnection')->willReturn(
             $connectionInterfaceMock
         );
         $contextMock = $this->createMock(\Magento\Framework\Model\Context::class);
         $registryMock = $this->createMock(Registry::class);
-        $abstractModelMock = $this->getMockForAbstractClass(
+        $abstractModelMock = $this->createMock(
             AbstractModel::class,
             [$contextMock, $registryMock],
             '',
@@ -479,9 +476,7 @@ class AbstractDbTest extends TestCase
      */
     public function testPrepareDataForUpdate(): void
     {
-        $connectionMock = $this->getMockBuilder(AdapterInterface::class)
-            ->addMethods(['save'])
-            ->getMockForAbstractClass();
+        $connectionMock = $this->createMock(AdapterInterface::class);
 
         $context = (new ObjectManager($this))->getObject(
             \Magento\Framework\Model\Context::class
@@ -491,14 +486,12 @@ class AbstractDbTest extends TestCase
             AbstractDb::class,
             ['_construct', 'getConnection', '__wakeup', 'getIdFieldName']
         );
-        $connectionInterfaceMock = $this->getMockForAbstractClass(AdapterInterface::class);
+        $connectionInterfaceMock = $this->createMock(AdapterInterface::class);
         $resourceMock->expects($this->any())
             ->method('getConnection')
             ->willReturn($connectionInterfaceMock);
-        $resourceCollectionMock = $this->getMockBuilder(\Magento\Framework\Data\Collection\AbstractDb::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
-        $abstractModelMock = $this->getMockForAbstractClass(
+        $resourceCollectionMock = $this->createMock(\Magento\Framework\Data\Collection\AbstractDb::class);
+        $abstractModelMock = $this->createMock(
             AbstractModel::class,
             [$context, $registryMock, $resourceMock, $resourceCollectionMock]
         );
@@ -588,18 +581,17 @@ class AbstractDbTest extends TestCase
      *
      * @param bool $pkIncrement
      *
-     * @return void
-     * @dataProvider saveNewObjectDataProvider
-     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @return void     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
+    #[DataProvider('saveNewObjectDataProvider')]
     public function testSaveNewObject($pkIncrement): void
     {
         /**
          * Mock SUT so as not to test extraneous logic
          */
         $model = $this->getMockBuilder(AbstractDb::class)->disableOriginalConstructor()
-            ->onlyMethods(['_prepareDataForSave', 'getIdFieldName', 'getConnection', 'getMainTable'])
-            ->getMockForAbstractClass();
+            ->onlyMethods(['_prepareDataForSave', 'getIdFieldName', 'getConnection', 'getMainTable', '_construct'])
+            ->getMock();
         /**
          * Only testing the logic in a protected method and property, must use reflection to avoid dealing with large
          * amounts of unrelated logic in save function
@@ -613,9 +605,7 @@ class AbstractDbTest extends TestCase
         $reflectionProperty->setValue($model, $pkIncrement);
 
         // Mocked behavior
-        $connectionMock = $this->getMockBuilder(AdapterInterface::class)->disableOriginalConstructor()
-            ->addMethods(['lastInsertId'])
-            ->getMockForAbstractClass();
+        $connectionMock = $this->createMock(AdapterInterface::class);
         $getConnectionInvokedCount = $pkIncrement ? 2 : 1;
         $model->expects($this->exactly($getConnectionInvokedCount))
             ->method('getConnection')
@@ -659,13 +649,13 @@ class AbstractDbTest extends TestCase
     public function testDuplicateExceptionProcessingOnSave(): void
     {
         $this->expectException('Magento\Framework\Exception\AlreadyExistsException');
-        $connection = $this->getMockForAbstractClass(AdapterInterface::class);
+        $connection = $this->createMock(AdapterInterface::class);
         $connection->expects($this->once())->method('rollback');
 
         /** @var AbstractDb|MockObject $model */
         $model = $this->getMockBuilder(AbstractDb::class)->disableOriginalConstructor()
-            ->onlyMethods(['getConnection'])
-            ->getMockForAbstractClass();
+            ->onlyMethods(['getConnection', '_construct'])
+            ->getMock();
         $model->expects($this->any())->method('getConnection')->willReturn($connection);
 
         /** @var AbstractModel|MockObject $object */

@@ -16,6 +16,7 @@ use Magento\Framework\View\Layout\ScheduledStructure\Helper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Rule\InvokedCount;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -59,7 +60,7 @@ class HelperTest extends TestCase
         $this->dataStructureMock = $this->getMockBuilder(Structure::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->loggerMock = $this->getMockForAbstractClass(LoggerInterface::class);
+        $this->loggerMock = $this->createMock(LoggerInterface::class);
         $this->stateMock = $this->createMock(State::class);
 
         $helperObjectManager = new ObjectManager($this);
@@ -78,9 +79,8 @@ class HelperTest extends TestCase
      * @param int $unsetPathElementCount
      * @param int $unsetStructureElementCount
      * @return void
-     *
-     * @dataProvider scheduleStructureDataProvider
-     */
+     *     */
+    #[DataProvider('scheduleStructureDataProvider')]
     public function testScheduleStructure(
         $currentNodeName,
         $actualNodeName,
@@ -154,9 +154,8 @@ class HelperTest extends TestCase
     /**
      * @param InvokedCount $loggerExpects
      * @param string $stateMode
-     * @return void
-     * @dataProvider scheduleElementLogDataProvider
-     */
+     * @return void     */
+    #[DataProvider('scheduleElementLogDataProvider')]
     public function testScheduleElementLog($loggerExpects, $stateMode)
     {
         $key = 'key';
@@ -227,9 +226,8 @@ class HelperTest extends TestCase
      * @param bool $isAfter
      * @param int $toSortList
      * @return void
-     *
-     * @dataProvider scheduleElementDataProvider
-     */
+     *     */
+    #[DataProvider('scheduleElementDataProvider')]
     public function testScheduleElement($hasParent, $setAsChild, $toRemoveList, $siblingName, $isAfter, $toSortList)
     {
         $key = 'key';

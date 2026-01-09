@@ -10,9 +10,12 @@ namespace Magento\Framework\Event\Test\Unit;
 use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
 use PHPUnit\Framework\TestCase;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class ObserverTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var Observer
      */
@@ -98,7 +101,7 @@ class ObserverTest extends TestCase
     {
         $eventName = 'eventName';
         $callbackName = 'testCallback';
-        $callbackMock = [$this->getMockBuilder(\stdClass::class)->addMethods([$callbackName])
+        $callbackMock = [$this->getMockBuilder(\stdClass::class)->onlyMethods([$callbackName])
             ->disableOriginalConstructor()
             ->getMock(), $callbackName];
         $callbackMock[0]->expects($this->once())

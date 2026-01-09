@@ -19,6 +19,7 @@ use Magento\Framework\Mview\ViewInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class CollectionTest extends TestCase
 {
@@ -56,18 +57,14 @@ class CollectionTest extends TestCase
     {
         $this->objectManagerHelper = new ObjectManagerHelper($this);
 
-        $this->indexerConfigMock = $this->getMockBuilder(IndexerConfigInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->indexerConfigMock = $this->createMock(IndexerConfigInterface::class);
 
         $this->entityFactoryMock = $this->getMockBuilder(EntityFactoryInterface::class)
             ->onlyMethods(['create'])
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
 
-        $this->mviewConfigMock = $this->getMockBuilder(MviewConfigInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->mviewConfigMock = $this->createMock(MviewConfigInterface::class);
 
         $this->statesFactoryMock = $this->getMockBuilder(CollectionFactory::class)
             ->onlyMethods(['create'])
@@ -90,9 +87,8 @@ class CollectionTest extends TestCase
      * @param array $views
      * @param array $stateMode
      * @param int $numDisabledViews
-     * @param int $numEnabledViews
-     * @dataProvider loadDataAndGetViewsByStateModeDataProvider
-     */
+     * @param int $numEnabledViews     */
+    #[DataProvider('loadDataAndGetViewsByStateModeDataProvider')]
     public function testLoadDataAndGetViewsByStateMode(
         array $indexers,
         array $views,
@@ -157,8 +153,7 @@ class CollectionTest extends TestCase
                 [ViewInterface::class, [], $emptyView]
             ]);
 
-        $states = $this->getMockBuilder(StateCollectionInterface::class)
-            ->getMockForAbstractClass();
+        $states = $this->createMock(StateCollectionInterface::class);
         $states->method('getItems')
             ->willReturn(array_map(
                 function ($elem) {

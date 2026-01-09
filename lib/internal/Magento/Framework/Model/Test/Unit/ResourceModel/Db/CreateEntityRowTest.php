@@ -13,6 +13,7 @@ use Magento\Framework\EntityManager\MetadataPool;
 use Magento\Framework\Model\ResourceModel\Db\CreateEntityRow;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Unit test for CreateEntityRow class.
@@ -38,7 +39,7 @@ class CreateEntityRowTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->connection = $this->getMockForAbstractClass(
+        $this->connection = $this->createMock(
             AdapterInterface::class,
             [],
             '',
@@ -90,9 +91,8 @@ class CreateEntityRowTest extends TestCase
      * @param $inputData
      * @param $tableData
      * @param $preparedData
-     * @param $finalData
-     * @dataProvider executeDataProvider
-     */
+     * @param $finalData     */
+    #[DataProvider('executeDataProvider')]
     public function testExecute($inputData, $tableData, $preparedData, $finalData)
     {
         $this->connection->expects($this->any())

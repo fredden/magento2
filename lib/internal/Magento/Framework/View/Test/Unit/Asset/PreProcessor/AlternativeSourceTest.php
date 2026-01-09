@@ -76,19 +76,14 @@ class AlternativeSourceTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->sorterMock = $this->getMockBuilder(SortInterface::class)
-            ->getMockForAbstractClass();
-        $this->objectManagerMock = $this->getMockBuilder(ObjectManagerInterface::class)
-            ->getMockForAbstractClass();
-        $this->lockerProcessMock = $this->getMockBuilder(LockerProcessInterface::class)
-            ->getMockForAbstractClass();
+        $this->sorterMock = $this->createMock(SortInterface::class);
+        $this->objectManagerMock = $this->createMock(ObjectManagerInterface::class);
+        $this->lockerProcessMock = $this->createMock(LockerProcessInterface::class);
         $this->assetBuilderMock = $this->getMockBuilder(AssetBuilder::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->alternativeMock = $this->getMockBuilder(ContentProcessorInterface::class)
-            ->getMockForAbstractClass();
-        $this->filenameResolverMock = $this->getMockBuilder(FilenameResolverInterface::class)
-            ->getMockForAbstractClass();
+        $this->alternativeMock = $this->createMock(ContentProcessorInterface::class);
+        $this->filenameResolverMock = $this->createMock(FilenameResolverInterface::class);
     }
 
     /**
@@ -277,8 +272,7 @@ class AlternativeSourceTest extends TestCase
      */
     private function getProcessorMock($asset)
     {
-        $processorMock = $this->getMockBuilder(ContentProcessorInterface::class)
-            ->getMockForAbstractClass();
+        $processorMock = $this->createMock(ContentProcessorInterface::class);
 
         $processorMock->expects(self::once())
             ->method('processContent')
@@ -339,9 +333,7 @@ class AlternativeSourceTest extends TestCase
      */
     private function getAssetMock()
     {
-        $assetMock = $this->getMockBuilder(LocalInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $assetMock = $this->createMock(LocalInterface::class);
 
         return $assetMock;
     }

@@ -24,6 +24,7 @@ use Magento\Framework\View\Page\Config\Renderer;
 use Magento\Framework\View\Page\Title;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -106,7 +107,7 @@ class RendererTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->urlBuilderMock = $this->getMockForAbstractClass(UrlInterface::class);
+        $this->urlBuilderMock = $this->createMock(UrlInterface::class);
 
         $this->escaperMock = $this->getMockBuilder(Escaper::class)
             ->disableOriginalConstructor()
@@ -131,7 +132,7 @@ class RendererTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->assetInterfaceMock = $this->getMockForAbstractClass(AssetInterface::class);
+        $this->assetInterfaceMock = $this->createMock(AssetInterface::class);
 
         $this->titleMock = $this->getMockBuilder(Title::class)
             ->onlyMethods(['set', 'get'])
@@ -332,9 +333,8 @@ class RendererTest extends TestCase
      * @param $groupTwo
      * @param $expectedResult
      *
-     * @return void
-     * @dataProvider dataProviderRenderAssets
-     */
+     * @return void     */
+    #[DataProvider('dataProviderRenderAssets')]
     public function testRenderAssets($groupOne, $groupTwo, $expectedResult): void
     {
         $assetUrl = 'url';
@@ -342,7 +342,7 @@ class RendererTest extends TestCase
 
         $exception = new LocalizedException(new Phrase('my message'));
 
-        $assetMockOne = $this->getMockForAbstractClass(AssetInterface::class);
+        $assetMockOne = $this->createMock(AssetInterface::class);
         $assetMockOne->expects($this->exactly(2))
             ->method('getUrl')
             ->willReturn($assetUrl);
@@ -367,7 +367,7 @@ class RendererTest extends TestCase
                 ]
             );
 
-        $assetMockTwo = $this->getMockForAbstractClass(AssetInterface::class);
+        $assetMockTwo = $this->createMock(AssetInterface::class);
         $assetMockTwo->expects($this->once())
             ->method('getUrl')
             ->willThrowException($exception);
@@ -472,7 +472,7 @@ class RendererTest extends TestCase
     {
         $type = '';
 
-        $assetMockOne = $this->getMockForAbstractClass(AssetInterface::class);
+        $assetMockOne = $this->createMock(AssetInterface::class);
         $assetMockOne->expects($this->exactly(1))
             ->method('getUrl')
             ->willReturn('url');

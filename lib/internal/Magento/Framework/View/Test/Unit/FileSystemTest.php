@@ -21,9 +21,13 @@ use Magento\Framework\View\FileSystem;
 use Magento\Setup\Module\I18n\Locale;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class FileSystemTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var FileSystem|MockObject
      */
@@ -76,7 +80,7 @@ class FileSystemTest extends TestCase
             EmailTemplateFile::class
         );
         $this->_assetRepo = $this->getMockBuilder(Repository::class)
-            ->addMethods(['extractScope'])
+            ->onlyMethods(['extractScope'])
             ->onlyMethods(['updateDesignParams', 'createAsset'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -95,7 +99,7 @@ class FileSystemTest extends TestCase
     {
         $params = [
             'area' => 'some_area',
-            'themeModel' => $this->getMockForAbstractClass(ThemeInterface::class),
+            'themeModel' => $this->createMock(ThemeInterface::class),
             'module' => 'Some_Module',   //It should be set in \Magento\Framework\View\Asset\Repository::extractScope
             // but PHPUnit has troubles with passing arguments by reference
         ];
@@ -120,7 +124,7 @@ class FileSystemTest extends TestCase
     {
         $params = [
             'area'       => 'some_area',
-            'themeModel' => $this->getMockForAbstractClass(ThemeInterface::class),
+            'themeModel' => $this->createMock(ThemeInterface::class),
             'module'     => 'Some_Module', //It should be set in \Magento\Framework\View\Asset\Repository::extractScope
             // but PHPUnit has troubles with passing arguments by reference
         ];
@@ -145,7 +149,7 @@ class FileSystemTest extends TestCase
     {
         $params = [
             'area' => 'some_area',
-            'themeModel' => $this->getMockForAbstractClass(ThemeInterface::class),
+            'themeModel' => $this->createMock(ThemeInterface::class),
             'locale' => 'some_locale',
         ];
         $file = 'some_file.ext';
@@ -164,7 +168,7 @@ class FileSystemTest extends TestCase
     {
         $params = [
             'area' => 'some_area',
-            'themeModel' => $this->getMockForAbstractClass(ThemeInterface::class),
+            'themeModel' => $this->createMock(ThemeInterface::class),
             'locale' => 'some_locale',
             'module' => 'Some_Module',
         ];
@@ -182,9 +186,8 @@ class FileSystemTest extends TestCase
 
     /**
      * @param string $path
-     * @param string $expectedResult
-     * @dataProvider normalizePathDataProvider
-     */
+     * @param string $expectedResult     */
+    #[DataProvider('normalizePathDataProvider')]
     public function testNormalizePath($path, $expectedResult)
     {
         $result = $this->_model->normalizePath($path);
@@ -207,9 +210,8 @@ class FileSystemTest extends TestCase
     /**
      * @param string $relatedPath
      * @param string $path
-     * @param string $expectedResult
-     * @dataProvider offsetPathDataProvider
-     */
+     * @param string $expectedResult     */
+    #[DataProvider('offsetPathDataProvider')]
     public function testOffsetPath($relatedPath, $path, $expectedResult)
     {
         $result = $this->_model->offsetPath($relatedPath, $path);
@@ -255,7 +257,7 @@ class FileSystemTest extends TestCase
         $locale = Locale::DEFAULT_SYSTEM_LOCALE;
         $params = [
             'area'       => 'some_area',
-            'themeModel' => $this->getMockForAbstractClass(ThemeInterface::class),
+            'themeModel' => $this->createMock(ThemeInterface::class),
             'module'     => 'Some_Module',
             'locale'     => $locale
         ];

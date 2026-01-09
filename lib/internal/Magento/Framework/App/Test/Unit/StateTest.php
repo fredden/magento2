@@ -14,6 +14,7 @@ use Magento\Framework\Config\ScopeInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class StateTest extends TestCase
@@ -36,8 +37,7 @@ class StateTest extends TestCase
     protected function setUp(): void
     {
         $objectManager = new ObjectManagerHelper($this);
-        $this->scopeMock = $this->getMockForAbstractClass(
-            ScopeInterface::class,
+        $this->scopeMock = $this->createMock(ScopeInterface::class,
             ['setCurrentScope'],
             '',
             false
@@ -151,12 +151,12 @@ class StateTest extends TestCase
 
     /**
      * @param string $mode
-     * @dataProvider constructorDataProvider
      */
+    #[DataProvider('constructorDataProvider')]
     public function testConstructor($mode)
     {
         $model = new State(
-            $this->getMockForAbstractClass(ScopeInterface::class, [], '', false),
+            $this->createMock(ScopeInterface::class, [], '', false),
             $mode
         );
         $this->assertEquals($mode, $model->getMode());
@@ -179,7 +179,7 @@ class StateTest extends TestCase
         $this->expectException('Exception');
         $this->expectExceptionMessage('Unknown application mode: unknown mode');
         new State(
-            $this->getMockForAbstractClass(ScopeInterface::class, [], '', false),
+            $this->createMock(ScopeInterface::class, [], '', false),
             "unknown mode"
         );
     }

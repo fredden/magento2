@@ -23,6 +23,7 @@ use Magento\Framework\View\Layout\ScheduledStructure\Helper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Rule\InvokedCount;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class BlockTest extends TestCase
 {
@@ -105,9 +106,8 @@ class BlockTest extends TestCase
      * @param InvokedCount $setCondition
      * @param string $aclKey
      * @param string $aclValue
-     *
-     * @dataProvider processBlockDataProvider
-     */
+     *     */
+    #[DataProvider('processBlockDataProvider')]
     public function testProcessBlock(
         $literal,
         $scheduleStructureCount,
@@ -251,9 +251,8 @@ class BlockTest extends TestCase
      * @param string $remove
      * @param InvokedCount $getCondition
      * @param InvokedCount $setCondition
-     * @param InvokedCount $setRemoveCondition
-     * @dataProvider processReferenceDataProvider
-     */
+     * @param InvokedCount $setRemoveCondition     */
+    #[DataProvider('processReferenceDataProvider')]
     public function testProcessReference(
         $literal,
         $remove,

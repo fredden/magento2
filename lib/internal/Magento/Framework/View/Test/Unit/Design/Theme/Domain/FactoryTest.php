@@ -17,16 +17,19 @@ use Magento\Framework\View\Design\Theme\Domain\VirtualInterface;
 use Magento\Framework\View\Design\ThemeInterface;
 use Magento\Theme\Model\Theme;
 use PHPUnit\Framework\TestCase;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class FactoryTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @covers \Magento\Framework\View\Design\Theme\Domain\Factory::create
      */
     public function testCreate()
     {
         $themeMock = $this->getMockBuilder(Theme::class)
-            ->addMethods(['getType'])
+            ->onlyMethods(['getType'])
             ->onlyMethods(['__wakeup'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -40,7 +43,7 @@ class FactoryTest extends TestCase
 
         $newThemeMock = $this->createMock(Theme::class);
 
-        $objectManager = $this->getMockForAbstractClass(ObjectManagerInterface::class);
+        $objectManager = $this->createMock(ObjectManagerInterface::class);
         $objectManager->expects(
             $this->once()
         )->method(
@@ -63,13 +66,13 @@ class FactoryTest extends TestCase
     {
         $wrongThemeType = 'wrong_theme_type';
         $themeMock = $this->getMockBuilder(Theme::class)
-            ->addMethods(['getType'])
+            ->onlyMethods(['getType'])
             ->onlyMethods(['__wakeup'])
             ->disableOriginalConstructor()
             ->getMock();
         $themeMock->expects($this->any())->method('getType')->willReturn($wrongThemeType);
 
-        $objectManager = $this->getMockForAbstractClass(ObjectManagerInterface::class);
+        $objectManager = $this->createMock(ObjectManagerInterface::class);
 
         $themeDomainFactory = new Factory($objectManager);
 

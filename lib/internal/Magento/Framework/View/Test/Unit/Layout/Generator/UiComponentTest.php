@@ -73,12 +73,11 @@ class UiComponentTest extends TestCase
     protected function setUp(): void
     {
         $this->objectManagerHelper = new ObjectManagerHelper($this);
-        $this->argumentInterpreterMock = $this->getMockBuilder(
+        $this->argumentInterpreterMock = $this->createMock(
             InterpreterInterface::class
-        )->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        );
         $this->uiComponentFactoryMock = $this->getMockBuilder(UiComponentFactory::class)
-            ->addMethods(['setLayout'])
+            ->onlyMethods(['setLayout'])
             ->onlyMethods(['create'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -124,8 +123,7 @@ class UiComponentTest extends TestCase
             ->with(UiComponent::TYPE, 'new_group')
             ->willReturnSelf();
 
-        $layoutMock = $this->getMockBuilder(LayoutInterface::class)
-            ->getMockForAbstractClass();
+        $layoutMock = $this->createMock(LayoutInterface::class);
 
         $generatorContextMock->expects($this->any())
             ->method('getStructure')
@@ -139,7 +137,7 @@ class UiComponentTest extends TestCase
             ->with($layoutMock)
             ->willReturnSelf();
 
-        $componentMock = $this->getMockForAbstractClass(
+        $componentMock = $this->createMock(
             UiComponentInterface::class,
             [],
             '',
@@ -149,13 +147,13 @@ class UiComponentTest extends TestCase
             []
         );
 
-        $contextMock = $this->getMockForAbstractClass(
+        $contextMock = $this->createMock(
             ContextInterface::class,
             [],
             '',
             false
         );
-        $blockMock = $this->getMockForAbstractClass(
+        $blockMock = $this->createMock(
             BlockInterface::class,
             [],
             '',

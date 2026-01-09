@@ -92,7 +92,7 @@ class PageTest extends TestCase
     {
         $this->layout = $this->getMockBuilder(Layout::class)
             ->onlyMethods(['getUpdate'])
-            ->addMethods(['addHandle', 'isLayoutDefined'])
+            ->onlyMethods(['addHandle', 'isLayoutDefined'])
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -131,7 +131,7 @@ class PageTest extends TestCase
             ]
         );
 
-        $this->translateInline = $this->getMockForAbstractClass(InlineInterface::class);
+        $this->translateInline = $this->createMock(InlineInterface::class);
 
         $this->pageConfigRenderer = $this->getMockBuilder(Renderer::class)
             ->disableOriginalConstructor()

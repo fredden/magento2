@@ -46,7 +46,7 @@ class MetadataTest extends TestCase
     {
         $objectManager = new ObjectManager($this);
         $this->model = $this->createMock(AbstractModel::class);
-        $this->resource = $this->getMockForAbstractClass(
+        $this->resource = $this->createMock(
             AdapterInterface::class,
             [],
             "",
@@ -55,7 +55,7 @@ class MetadataTest extends TestCase
             true,
             ['getConnection', 'getMainTable']
         );
-        $this->connection = $this->getMockForAbstractClass(
+        $this->connection = $this->createMock(
             AdapterInterface::class,
             [],
             "",

@@ -54,7 +54,7 @@ class DependencyCheckerTest extends TestCase
         $this->composerApp
             ->method('run')
             ->willReturnOnConsecutiveCalls(
-                $this->returnCallback(
+                $this->willReturnCallback(
                     function ($input, $buffer) {
                         $output = 'magento/package-b requires magento/package-a (1.0)' . PHP_EOL .
                             'magento/project-community-edition requires magento/package-a (1.0)' . PHP_EOL .
@@ -63,7 +63,7 @@ class DependencyCheckerTest extends TestCase
                         return 1;
                     }
                 ),
-                $this->returnCallback(
+                $this->willReturnCallback(
                     function ($input, $buffer) {
                         $output = 'magento/package-c requires magento/package-b (1.0)' . PHP_EOL .
                             'magento/project-community-edition requires magento/package-a (1.0)' . PHP_EOL .
@@ -98,7 +98,7 @@ class DependencyCheckerTest extends TestCase
         $this->composerApp
             ->method('run')
             ->willReturnOnConsecutiveCalls(
-                $this->returnCallback(
+                $this->willReturnCallback(
                     function ($input, $buffer) {
                         $output = 'magento/package-b requires magento/package-a (1.0)' . PHP_EOL .
                             'magento/project-community-edition requires magento/package-a (1.0)' . PHP_EOL .
@@ -107,7 +107,7 @@ class DependencyCheckerTest extends TestCase
                         return 1;
                     }
                 ),
-                $this->returnCallback(
+                $this->willReturnCallback(
                     function ($input, $buffer) {
                         $output = 'magento/package-c requires magento/package-b (1.0)' . PHP_EOL .
                             'magento/project-community-edition requires magento/package-a (1.0)' . PHP_EOL .
@@ -116,7 +116,7 @@ class DependencyCheckerTest extends TestCase
                         return 1;
                     }
                 ),
-                $this->returnCallback(
+                $this->willReturnCallback(
                     function ($input, $buffer) {
                         $output = 'magento/package-d requires magento/package-c (1.0)' . PHP_EOL .
                             'magento/project-community-edition requires magento/package-a (1.0)' . PHP_EOL;

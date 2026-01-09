@@ -16,6 +16,8 @@ declare(strict_types=1);
 namespace Magento\Framework\Cache\Test\Unit\Backend\Decorator;
 
 use Magento\Framework\Cache\Backend\Decorator\AbstractDecorator;
+use PHPUnit\Framework\Attributes\DataProvider;
+
 use PHPUnit\Framework\TestCase;
 
 class DecoratorAbstractTest extends TestCase
@@ -71,8 +73,8 @@ class DecoratorAbstractTest extends TestCase
 
     /**
      * @param array $options
-     * @dataProvider constructorExceptionDataProvider
      */
+     #[DataProvider('constructorExceptionDataProvider')]
     public function testConstructorException($options)
     {
         if (!empty($options)) {
@@ -80,7 +82,7 @@ class DecoratorAbstractTest extends TestCase
         }
 
         $this->expectException('Zend_Cache_Exception');
-        $this->getMockForAbstractClass(AbstractDecorator::class, [$options]);
+        $this->createMock(AbstractDecorator::class, [$options]);
     }
 
     /**
@@ -98,8 +100,8 @@ class DecoratorAbstractTest extends TestCase
     }
 
     /**
-     * @dataProvider allMethodsDataProvider
      */
+     #[DataProvider('allMethodsDataProvider')]
     public function testAllMethods($methodName)
     {
         $this->_mockBackend->expects($this->once())->method($methodName);

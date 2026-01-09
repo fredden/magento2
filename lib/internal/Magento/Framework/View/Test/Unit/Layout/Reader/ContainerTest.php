@@ -18,6 +18,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 use PHPUnit\Framework\MockObject\Rule\InvokedCount;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class ContainerTest extends TestCase
 {
@@ -69,9 +70,8 @@ class ContainerTest extends TestCase
      * @param InvokedCount $getStructureCondition
      * @param InvokedCount $setStructureCondition
      * @param InvokedCount $setRemoveCondition
-     *
-     * @dataProvider processDataProvider
-     */
+     *     */
+    #[DataProvider('processDataProvider')]
     public function testProcess(
         $elementCurrent,
         $containerName,

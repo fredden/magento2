@@ -43,8 +43,7 @@ class FactoryTest extends TestCase
 
         $this->dummyStrategy = $this->createMock(Dummy::class);
 
-        $this->customStrategy = $this->getMockForAbstractClass(
-            StrategyInterface::class
+        $this->customStrategy = $this->createMock(StrategyInterface::class
         );
 
         $this->model = new Factory(
@@ -68,14 +67,14 @@ class FactoryTest extends TestCase
 
     public function testGetStrategyWithIdentityInterface()
     {
-        $object = $this->getMockForAbstractClass(IdentityInterface::class);
+        $object = $this->createMock(IdentityInterface::class);
 
         $this->assertEquals($this->identifierStrategy, $this->model->getStrategy($object));
     }
 
     public function testGetStrategyForCustomClass()
     {
-        $object = $this->getMockForAbstractClass('\PDO', [], '', false, false, false, []);
+        $object = $this->createMock('\PDO', [], '', false, false, false, []);
 
         $this->assertEquals($this->customStrategy, $this->model->getStrategy($object));
     }

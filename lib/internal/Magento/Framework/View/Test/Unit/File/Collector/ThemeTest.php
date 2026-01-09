@@ -76,7 +76,7 @@ class ThemeTest extends TestCase
         $this->readDirFactory->expects($this->any())
             ->method('create')
             ->willReturn($this->themeDirectoryMock);
-        $this->componentRegistrar = $this->getMockForAbstractClass(
+        $this->componentRegistrar = $this->createMock(
             ComponentRegistrarInterface::class
         );
         $this->themeFileCollector = new Theme(

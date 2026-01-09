@@ -24,6 +24,7 @@ use Magento\Framework\View\Design\ThemeInterface;
 use Magento\Framework\View\DesignInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Unit test for Magento\Framework\View\Asset\Repository
@@ -99,13 +100,9 @@ class RepositoryTest extends TestCase
             \Magento\Framework\ObjectManager\ObjectManager::class,
             ['create', 'get']
         );
-        $this->urlMock = $this->getMockBuilder(UrlInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
-        $this->designMock = $this->getMockBuilder(DesignInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
-        $this->themeProvider = $this->getMockForAbstractClass(ThemeProviderInterface::class);
+        $this->urlMock = $this->createMock(UrlInterface::class);
+        $this->designMock = $this->createMock(DesignInterface::class);
+        $this->themeProvider = $this->createMock(ThemeProviderInterface::class);
         $this->sourceMock = $this->getMockBuilder(Source::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -131,7 +128,7 @@ class RepositoryTest extends TestCase
             ->getMock();
 
         $repositoryMapMock = $this->getMockBuilder(File::class)
-            ->addMethods(['getMap'])
+            ->onlyMethods(['getMap'])
             ->disableOriginalConstructor()
             ->getMock();
         $repositoryMapMock->method('getMap')->willReturn([]);
@@ -185,9 +182,8 @@ class RepositoryTest extends TestCase
     /**
      * @param array $params
      * @param array $result
-     * @return void
-     * @dataProvider updateDesignParamsDataProvider
-     */
+     * @return void     */
+    #[DataProvider('updateDesignParamsDataProvider')]
     public function testUpdateDesignParams($params, $result)
     {
         if (is_callable($result['themeModel'])) {
@@ -330,7 +326,7 @@ class RepositoryTest extends TestCase
      */
     public function testGetStaticViewFileContext()
     {
-        $themeMock = $this->getMockForAbstractClass(ThemeInterface::class);
+        $themeMock = $this->createMock(ThemeInterface::class);
         $this->designMock
             ->expects($this->any())
             ->method('getDesignParams')
@@ -376,14 +372,11 @@ class RepositoryTest extends TestCase
      * @param string $filePath
      * @param string $resultFilePath
      * @param string $module
-     * @return void
-     * @dataProvider createRelatedDataProvider
-     */
+     * @return void     */
+    #[DataProvider('createRelatedDataProvider')]
     public function testCreateRelated($filePath, $resultFilePath, $module)
     {
-        $originalContextMock = $this->getMockBuilder(ContextInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $originalContextMock = $this->createMock(ContextInterface::class);
 
         $originalAssetMock = $this->getMockBuilder(File::class)
             ->disableOriginalConstructor()
@@ -432,9 +425,7 @@ class RepositoryTest extends TestCase
      */
     public function testCreateArbitrary()
     {
-        $contextMock = $this->getMockBuilder(ContextInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $contextMock = $this->createMock(ContextInterface::class);
 
         $this->contextFactoryMock
             ->expects($this->once())
@@ -477,7 +468,7 @@ class RepositoryTest extends TestCase
      */
     public function testGetUrl()
     {
-        $themeMock = $this->getMockForAbstractClass(ThemeInterface::class);
+        $themeMock = $this->createMock(ThemeInterface::class);
         $this->designMock
             ->expects($this->any())
             ->method('getDesignParams')
@@ -537,7 +528,7 @@ class RepositoryTest extends TestCase
     private function getThemeMock()
     {
         if (null === $this->themeMock) {
-            $this->themeMock = $this->getMockForAbstractClass(ThemeInterface::class);
+            $this->themeMock = $this->createMock(ThemeInterface::class);
         }
 
         return $this->themeMock;

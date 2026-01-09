@@ -15,9 +15,12 @@ use Magento\Framework\View\Element\RendererList;
 use Magento\Framework\View\LayoutInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class RendererListTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var RendererList
      */
@@ -43,7 +46,7 @@ class RendererListTest extends TestCase
         $objectManagerHelper = new ObjectManager($this);
 
         $this->blockMock = $this->getMockBuilder(AbstractBlock::class)
-            ->addMethods(['setRenderedBlock', 'getTemplate', 'setTemplate'])->disableOriginalConstructor()
+            ->onlyMethods(['setRenderedBlock', 'getTemplate', 'setTemplate'])->disableOriginalConstructor()
             ->getMockForAbstractClass();
 
         $this->layoutMock = $this->getMockBuilder(LayoutInterface::class)

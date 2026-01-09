@@ -16,6 +16,7 @@ use Magento\Framework\Serialize\Serializer\Json;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class QueryIndexAnalyzerTest extends TestCase
 {
@@ -112,10 +113,9 @@ class QueryIndexAnalyzerTest extends TestCase
      * @param array $bind
      * @return void
      * @throws QueryAnalyzerException
-     * @throws \Zend_Db_Statement_Exception
-     * @dataProvider statsNonSelectDataProvider
-     * @testdox $sql with bindings $bind to get $expectedResult
+     * @throws \Zend_Db_Statement_Exception     * @testdox $sql with bindings $bind to get $expectedResult
      */
+    #[DataProvider('statsNonSelectDataProvider')]
     public function testProcessThrowsExceptionForNonSelectQuery(string $sql, array $bind): void
     {
         $this->expectException(QueryAnalyzerException::class);
@@ -168,9 +168,8 @@ class QueryIndexAnalyzerTest extends TestCase
      * @throws Exception
      * @throws QueryAnalyzerException
      * @throws \Zend_Db_Statement_Exception
-     * @testdox $sql with bindings $bind to get $expectedResult
-     * @dataProvider statsDataProvider
-     */
+     * @testdox $sql with bindings $bind to get $expectedResult     */
+    #[DataProvider('statsDataProvider')]
     public function testProcess(
         string $sql,
         array $bind,

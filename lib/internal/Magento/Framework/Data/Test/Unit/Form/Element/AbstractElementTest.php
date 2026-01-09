@@ -18,6 +18,7 @@ use Magento\Framework\Escaper;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Magento\Framework\Math\Random;
 use Magento\Framework\View\Helper\SecureHtmlRenderer;
 
@@ -59,7 +60,7 @@ class AbstractElementTest extends TestCase
         $randomMock = $this->createMock(Random::class);
         $randomMock->method('getRandomString')->willReturn(self::RANDOM_STRING);
 
-        $this->_model = $this->getMockForAbstractClass(
+        $this->_model = $this->createMock(
             AbstractElement::class,
             [
                 $this->_factoryMock,
@@ -78,7 +79,7 @@ class AbstractElementTest extends TestCase
     public function testAddElement()
     {
         $elementId = 11;
-        $elementMock = $this->getMockForAbstractClass(
+        $elementMock = $this->createMock(
             AbstractElement::class,
             [],
             '',
@@ -92,7 +93,7 @@ class AbstractElementTest extends TestCase
             ->willReturn($elementId);
 
         $formMock = $this->getMockBuilder(AbstractForm::class)
-            ->addMethods(['checkElementId', 'addElementToCollection'])
+            ->onlyMethods(['checkElementId', 'addElementToCollection'])
             ->disableOriginalConstructor()
             ->getMock();
         $formMock->expects($this->once())
@@ -122,7 +123,7 @@ class AbstractElementTest extends TestCase
         $htmlId = 'some_id';
 
         $formMock = $this->getMockBuilder(AbstractForm::class)
-            ->addMethods(['getHtmlIdPrefix', 'getHtmlIdSuffix'])
+            ->onlyMethods(['getHtmlIdPrefix', 'getHtmlIdSuffix'])
             ->disableOriginalConstructor()
             ->getMock();
         $formMock->expects($this->any())
@@ -143,7 +144,7 @@ class AbstractElementTest extends TestCase
     public function testGetNameWithoutSuffix()
     {
         $formMock = $this->getMockBuilder(AbstractForm::class)
-            ->addMethods(['getFieldNameSuffix', 'addSuffixToName'])
+            ->onlyMethods(['getFieldNameSuffix', 'addSuffixToName'])
             ->disableOriginalConstructor()
             ->getMock();
         $formMock->expects($this->any())
@@ -164,7 +165,7 @@ class AbstractElementTest extends TestCase
         $returnValue = 'some_value';
 
         $formMock = $this->getMockBuilder(AbstractForm::class)
-            ->addMethods(['getFieldNameSuffix', 'addSuffixToName'])
+            ->onlyMethods(['getFieldNameSuffix', 'addSuffixToName'])
             ->disableOriginalConstructor()
             ->getMock();
         $formMock->expects($this->once())
@@ -280,7 +281,7 @@ class AbstractElementTest extends TestCase
         $expectedValue = '&lt;a href=&quot;#hash_tag&quot;&gt;my &#039;quoted&#039; string&lt;/a&gt;';
 
         $filterMock = $this->getMockBuilder(DataObject::class)
-            ->addMethods(['filter'])
+            ->onlyMethods(['filter'])
             ->disableOriginalConstructor()
             ->getMock();
         $filterMock->expects($this->once())
@@ -295,10 +296,9 @@ class AbstractElementTest extends TestCase
 
     /**
      * @param array $initialData
-     * @param string $expectedValue
-     * @dataProvider getElementHtmlDataProvider
-     * @covers \Magento\Framework\Data\Form\Element\AbstractElement::getElementHtml()
+     * @param string $expectedValue     * @covers \Magento\Framework\Data\Form\Element\AbstractElement::getElementHtml()
      */
+    #[DataProvider('getElementHtmlDataProvider')]
     public function testGetElementHtml(array $initialData, $expectedValue)
     {
         $this->_model->setForm(
@@ -311,10 +311,9 @@ class AbstractElementTest extends TestCase
 
     /**
      * @param array $initialData
-     * @param string $expectedValue
-     * @dataProvider getLabelHtmlDataProvider
-     * @covers \Magento\Framework\Data\Form\Element\AbstractElement::getLabelHtml()
+     * @param string $expectedValue     * @covers \Magento\Framework\Data\Form\Element\AbstractElement::getLabelHtml()
      */
+    #[DataProvider('getLabelHtmlDataProvider')]
     public function testGetLabelHtml(array $initialData, $expectedValue)
     {
         $idSuffix = isset($initialData['id_suffix']) ? $initialData['id_suffix'] : null;
@@ -327,10 +326,9 @@ class AbstractElementTest extends TestCase
 
     /**
      * @param array $initialData
-     * @param string $expectedValue
-     * @dataProvider getDefaultHtmlDataProvider
-     * @covers \Magento\Framework\Data\Form\Element\AbstractElement::getDefaultHtml()
+     * @param string $expectedValue     * @covers \Magento\Framework\Data\Form\Element\AbstractElement::getDefaultHtml()
      */
+    #[DataProvider('getDefaultHtmlDataProvider')]
     public function testGetDefaultHtml(array $initialData, $expectedValue)
     {
         $this->_model->setData($initialData);
@@ -368,7 +366,7 @@ class AbstractElementTest extends TestCase
 
         $expectedHtml = 'some-html';
 
-        $rendererMock = $this->getMockForAbstractClass(
+        $rendererMock = $this->createMock(
             RendererInterface::class
         );
         $rendererMock->expects($this->once())
@@ -383,10 +381,9 @@ class AbstractElementTest extends TestCase
 
     /**
      * @param array $initialData
-     * @param string $expectedValue
-     * @dataProvider serializeDataProvider
-     * @covers \Magento\Framework\Data\Form\Element\AbstractElement::serialize()
+     * @param string $expectedValue     * @covers \Magento\Framework\Data\Form\Element\AbstractElement::serialize()
      */
+    #[DataProvider('serializeDataProvider')]
     public function testSerialize(array $initialData, $expectedValue)
     {
         $attributes = [];
@@ -431,7 +428,7 @@ class AbstractElementTest extends TestCase
         $id = 'id';
         $prefix = 'prefix_';
         $formMock = $this->getMockBuilder(AbstractForm::class)
-            ->addMethods(['getFieldContainerIdPrefix'])
+            ->onlyMethods(['getFieldContainerIdPrefix'])
             ->disableOriginalConstructor()
             ->getMock();
         $formMock->expects($this->once())
@@ -445,10 +442,9 @@ class AbstractElementTest extends TestCase
 
     /**
      * @param array $initialData
-     * @param string $expectedValue
-     * @dataProvider addElementValuesDataProvider
-     * @covers \Magento\Framework\Data\Form\Element\AbstractElement::addElementValues()
+     * @param string $expectedValue     * @covers \Magento\Framework\Data\Form\Element\AbstractElement::addElementValues()
      */
+    #[DataProvider('addElementValuesDataProvider')]
     public function testAddElementValues(array $initialData, $expectedValue)
     {
         $this->_model->setValues($initialData['initial_values']);

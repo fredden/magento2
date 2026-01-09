@@ -24,6 +24,7 @@ use Magento\Framework\View\Layout\ScheduledStructure;
 use Magento\Framework\View\Layout\ScheduledStructure\Helper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -67,17 +68,12 @@ class UiComponentTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $this->context = $this->getMockBuilder(Context::class)
-            ->addMethods(['setElementToIfconfigList'])
+            ->onlyMethods(['setElementToIfconfigList'])
             ->onlyMethods(['getScheduledStructure'])
             ->disableOriginalConstructor()
             ->getMock();
-        $this->dataConfigFactory = $this->getMockBuilder(DataInterfaceFactory::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['create'])
-            ->getMock();
-        $this->dataConfig = $this->getMockBuilder(DataInterface::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->dataConfigFactory = $this->createMock(DataInterfaceFactory::class);
+        $this->dataConfig = $this->createMock(DataInterface::class);
         $this->readerPool = $this->getMockBuilder(ReaderPool::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -94,9 +90,8 @@ class UiComponentTest extends TestCase
 
     /**
      * @param Element $element
-     *
-     * @dataProvider interpretDataProvider
-     */
+     *     */
+    #[DataProvider('interpretDataProvider')]
     public function testInterpret($element)
     {
         $scheduleStructure = $this->getMockBuilder(ScheduledStructure::class)

@@ -35,7 +35,7 @@ class PhpTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->_helperFactoryMock = $this->getMockForAbstractClass(ObjectManagerInterface::class);
+        $this->_helperFactoryMock = $this->createMock(ObjectManagerInterface::class);
         $this->_phpEngine = new Php($this->_helperFactoryMock);
     }
 
@@ -48,7 +48,7 @@ class PhpTest extends TestCase
     {
         $blockMock = $this->getMockBuilder(
             Template::class
-        )->addMethods(
+        )->onlyMethods(
             ['testMethod']
         )->disableOriginalConstructor()
             ->getMock();
@@ -105,7 +105,7 @@ class PhpTest extends TestCase
     public function testHelperWithValidClass()
     {
         $class = AbstractHelper::class;
-        $object = $this->getMockForAbstractClass($class, [], '', false);
+        $object = $this->createMock($class, [], '', false);
         $this->_helperFactoryMock->expects(
             $this->once()
         )->method(

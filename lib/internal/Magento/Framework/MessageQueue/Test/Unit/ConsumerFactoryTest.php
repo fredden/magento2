@@ -18,9 +18,12 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 class ConsumerFactoryTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var ObjectManager
      */
@@ -130,19 +133,13 @@ class ConsumerFactoryTest extends TestCase
 
         $consumerInstanceMock = $this->getMockBuilder($consumerTypeValue)
             ->getMock();
-        $consumerMock = $this->getMockBuilder(ConsumerInterface::class)
-            ->addMethods(['configure'])
-            ->getMockForAbstractClass();
+        $consumerMock = $this->createMock(ConsumerInterface::class);
 
         $consumerConfigurationMock =
-            $this->getMockBuilder(ConsumerConfigurationInterface::class)
-                ->disableOriginalConstructor()
-                ->getMockForAbstractClass();
+            $this->createMock(ConsumerConfigurationInterface::class);
         $consumerConfigurationMock->expects($this->any())->method('getType')->willReturn($consumerType);
 
-        $objectManagerMock = $this->getMockBuilder(ObjectManagerInterface::class)
-            ->onlyMethods(['create'])
-            ->getMockForAbstractClass();
+        $objectManagerMock = $this->createMock(ObjectManagerInterface::class);
 
         $objectManagerMock->expects($this->any())
             ->method('create')
