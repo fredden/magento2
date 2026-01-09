@@ -48,7 +48,7 @@
         <!-- Step 4 Assertion: Verify special price (final price) present -->
         <waitForElementVisible selector="{{StorefrontCategoryProductSection.ProductSpecialPriceByNumber('1')}}" stepKey="seeSpecialPrice"/>
         <!-- Step 4 Assertion: Verify old (regular) price present -->
-        <waitForElementVisible selector="{{StorefrontCategoryProductSection.ProductOldPriceByNumber('1')}}" stepKey="seeRegularlPrice"/>
+        <waitForElementVisible selector="{{StorefrontCategoryProductSection.ProductOldPriceByNumber('1')}}" stepKey="seeRegularPrice"/>
         <!--Step 4 Assertion: Verify regular price label present -->
         <waitForElementVisible selector="{{StorefrontProductInfoMainSection.oldPriceTag}}" stepKey="seeRegularPriceLabel"/>
     </test>
