@@ -53,9 +53,8 @@ class MemoryTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $number
-     * @param string $expected
-     * @dataProvider convertToBytesDataProvider
-     */
+     * @param string $expected     */
+    #[DataProvider('convertToBytesDataProvider')]
     public function testConvertToBytes($number, $expected)
     {
         $this->assertEquals($expected, \Magento\TestFramework\Helper\Memory::convertToBytes($number));
@@ -80,9 +79,8 @@ class MemoryTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @param string $number
-     * @dataProvider convertToBytesBadFormatDataProvider
-     */
+     * @param string $number     */
+    #[DataProvider('convertToBytesBadFormatDataProvider')]
     public function testConvertToBytesBadFormat($number)
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -104,9 +102,8 @@ class MemoryTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $number
-     * @param string $expected
-     * @dataProvider convertToBytes64DataProvider
-     */
+     * @param string $expected     */
+    #[DataProvider('convertToBytes64DataProvider')]
     public function testConvertToBytes64($number, $expected)
     {
         if (PHP_INT_SIZE <= 4) {

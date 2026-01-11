@@ -144,9 +144,8 @@ class ApplicationTest extends \PHPUnit\Framework\TestCase
      * @param string $globalConfigFilePath
      * @param string|null $postInstallSetupCommandsFilePath
      * @param array $expectedShellExecutionCalls
-     * @param bool $isExceptionExpected
-     * @dataProvider installDataProvider
-     */
+     * @param bool $isExceptionExpected     */
+    #[DataProvider('installDataProvider')]
     public function testInstall(
         string $installConfigFilePath,
         string $globalConfigFilePath,
@@ -319,11 +318,10 @@ class ApplicationTest extends \PHPUnit\Framework\TestCase
 
     /**
      * Test \Magento\TestFramework\Application will correctly load specified areas.
-     *
-     * @dataProvider partialLoadAreaDataProvider
-     * @param string $areaCode
+     *     * @param string $areaCode
      * @return void
      */
+    #[DataProvider('partialLoadAreaDataProvider')]
     public function testPartialLoadArea(string $areaCode)
     {
         $configScope = $this->getMockBuilder(Scope::class)

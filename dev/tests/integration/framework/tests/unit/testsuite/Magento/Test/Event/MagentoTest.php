@@ -42,10 +42,9 @@ class MagentoTest extends \PHPUnit\Framework\TestCase
         $this->testInitStoreAfter();
     }
 
-    /**
-     * @dataProvider constructorExceptionDataProvider
-     * @param mixed $eventManager
+    /**     * @param mixed $eventManager
      */
+    #[DataProvider('constructorExceptionDataProvider')]
     public function testConstructorException($eventManager)
     {
         $this->expectException(\Magento\Framework\Exception\LocalizedException::class);

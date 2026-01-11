@@ -41,9 +41,8 @@ class EventManagerTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param bool $reverseOrder
-     * @param array $expectedSubscribers
-     * @dataProvider fireEventDataProvider
-     */
+     * @param array $expectedSubscribers     */
+    #[DataProvider('fireEventDataProvider')]
     public function testFireEvent($reverseOrder, $expectedSubscribers)
     {
         $actualSubscribers = [];

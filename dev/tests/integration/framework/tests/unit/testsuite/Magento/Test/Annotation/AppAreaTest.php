@@ -12,6 +12,7 @@ use Magento\TestFramework\Annotation\TestCaseAnnotation;
 use Magento\TestFramework\Fixture\Parser\AppArea;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionProperty;
 
 class AppAreaTest extends \PHPUnit\Framework\TestCase
@@ -82,9 +83,8 @@ class AppAreaTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param array $annotations
-     * @param string $expectedArea
-     * @dataProvider getTestAppAreaDataProvider
-     */
+     * @param string $expectedArea     */
+    #[DataProvider('getTestAppAreaDataProvider')]
     public function testGetTestAppArea($annotations, $expectedArea)
     {
         $property = new ReflectionProperty(TestCaseAnnotation::class, 'instance');
@@ -130,10 +130,9 @@ class AppAreaTest extends \PHPUnit\Framework\TestCase
 
     /**
      * Check startTest() with different allowed area codes.
-     *
-     * @dataProvider startTestWithDifferentAreaCodes
-     * @param string $areaCode
+     *     * @param string $areaCode
      */
+    #[DataProvider('startTestWithDifferentAreaCodes')]
     public function testStartTestWithDifferentAreaCodes(string $areaCode)
     {
         $annotations = ['method' => ['magentoAppArea' => [$areaCode]]];

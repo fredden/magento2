@@ -71,9 +71,8 @@ class EntityTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    /**
-     * @dataProvider crudDataProvider
-     */
+    /**     */
+    #[DataProvider('crudDataProvider')]
     public function testTestCrud($saveCallback, $expectedException = null)
     {
         if ($expectedException != null) {

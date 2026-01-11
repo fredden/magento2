@@ -101,9 +101,8 @@ class TransactionTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $method
-     * @param string $eventName
-     * @dataProvider startAndRollbackTransactionDataProvider
-     */
+     * @param string $eventName     */
+    #[DataProvider('startAndRollbackTransactionDataProvider')]
     public function testStartAndRollbackTransaction($method, $eventName)
     {
         $eventManagerWithArgs = [];
@@ -132,9 +131,8 @@ class TransactionTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $method
-     * @param string $eventName
-     * @dataProvider startAndRollbackTransactionDataProvider
-     */
+     * @param string $eventName     */
+    #[DataProvider('startAndRollbackTransactionDataProvider')]
     public function testDoNotStartAndRollbackTransaction($method, $eventName)
     {
         $this->_eventManager->expects($this->once())->method('fireEvent')->with($eventName);

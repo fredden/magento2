@@ -274,14 +274,10 @@ class ProcessorTest extends TestCase
      */
     public function testInitReturnsEarlyWhenItemHasIdAndProductHasParent(): void
     {
-<<<<<<< HEAD
-        $item = $this->createPartialMockWithReflection(Item::class, ['getId', 'setStoreId']);
-=======
         $item = $this->createPartialMockWithReflection(
             Item::class,
             ['getId', 'setStoreId']
         );
->>>>>>> origin/2.4-develop
         $product = $this->createPartialMockWithReflection(
             Product::class,
             ['getParentProductId', 'getStickWithinParent']

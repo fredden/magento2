@@ -10,6 +10,7 @@ namespace Magento\Test\Fixture;
 use Magento\Framework\Component\ComponentRegistrar;
 use Magento\TestFramework\Fixture\LegacyDataFixturePathResolver;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Test fixture path resolver for file based data fixture
@@ -58,9 +59,8 @@ class LegacyDataFixturePathResolverTest extends TestCase
      * Test that fixture full path is resolved correctly
      *
      * @param string $fixture
-     * @param string $path
-     * @dataProvider fixtureDataProvider
-     */
+     * @param string $path     */
+    #[DataProvider('fixtureDataProvider')]
     public function testResolve(string $fixture, string $path): void
     {
         $path = str_replace('{{basePath}}', static::$basePath, $path);

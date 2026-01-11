@@ -10,6 +10,7 @@
 namespace Magento\Test\Event;
 
 use PHPUnit\Framework\TestSuite;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class PhpUnitTest extends \PHPUnit\Framework\TestCase
 {
@@ -54,9 +55,8 @@ class PhpUnitTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @param string $method
-     * @dataProvider doNotFireEventDataProvider
-     */
+     * @param string $method     */
+    #[DataProvider('doNotFireEventDataProvider')]
     public function testDoNotFireEvent($method)
     {
         $this->_eventManager->expects($this->never())->method('fireEvent');

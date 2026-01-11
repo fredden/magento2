@@ -55,7 +55,7 @@ class AbstractAdjustmentTest extends TestCase
             ]
         );
         $this->model = $this->getMockBuilder(AbstractAdjustment::class)->setConstructorArgs($constructorArgs)
-            ->onlyMethods(['getData', 'setData', 'apply'])
+            ->onlyMethods(['getData', 'setData', 'apply', 'getAdjustmentCode'])
             ->getMock();
     }
 

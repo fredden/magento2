@@ -96,7 +96,7 @@ class AppIsolationTest extends \PHPUnit\Framework\TestCase
     public function testEndTestIsolationController()
     {
         /** @var $controllerTest \Magento\TestFramework\TestCase\AbstractController */
-        $controllerTest = $this->getMockForAbstractClass(
+        $controllerTest = $this->createMock(
             \Magento\TestFramework\TestCase\AbstractController::class,
             ['']
         );
