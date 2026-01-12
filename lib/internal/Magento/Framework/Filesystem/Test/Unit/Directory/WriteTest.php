@@ -228,9 +228,20 @@ class WriteTest extends TestCase
 
     public function getWriterMock()
     {
+        // WriteInterface has 20+ abstract methods; we need to mock all of them + custom 'isExists'
         return $this->createPartialMockWithReflection(
             WriteInterface::class,
-            ['getAbsolutePath', 'create', 'isExists']
+            [
+                // ReadInterface methods
+                'getAbsolutePath', 'getRelativePath', 'read', 'readFile', 'isExist', 
+                'isDirectory', 'isFile', 'isReadable', 'search', 'stat',
+                // WriteInterface methods  
+                'create', 'delete', 'renameFile', 'copyFile', 'createSymlink',
+                'changePermissions', 'changePermissionsRecursively', 'touch',
+                'isWritable', 'openFile', 'writeFile', 'getDriver',
+                // Custom method not in interface (used by tests)
+                'isExists'
+            ]
         );
     }
 }
