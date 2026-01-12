@@ -478,10 +478,8 @@ class AbstractDbTest extends TestCase
      */
     public function testPrepareDataForUpdate(): void
     {
-        $connectionMock = $this->createPartialMockWithReflection(
-            AdapterInterface::class,
-            ['save', 'quoteInto', 'describeTable', 'prepareColumnValue', 'lastInsertId']
-        );
+        // AdapterInterface has 91 methods - use createMock() instead of createPartialMockWithReflection
+        $connectionMock = $this->createMock(AdapterInterface::class);
 
         $context = (new ObjectManager($this))->getObject(
             \Magento\Framework\Model\Context::class
