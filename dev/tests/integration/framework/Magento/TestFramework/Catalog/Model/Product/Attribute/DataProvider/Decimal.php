@@ -45,6 +45,7 @@ class Decimal extends AbstractBaseAttributeData
         $result = parent::getAttributeDataWithCheckArray();
         unset($result["{static::getFrontendInput()}_with_default_value"]);
         unset($result["{static::getFrontendInput()}_without_default_value"]);
+        unset($result["{static::getFrontendInput()}_with_store_view_scope"]);
 
         return $result;
     }
