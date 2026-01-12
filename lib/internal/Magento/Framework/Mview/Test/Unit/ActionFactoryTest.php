@@ -35,8 +35,7 @@ class ActionFactoryTest extends TestCase
     {
         $this->expectException('InvalidArgumentException');
         $this->expectExceptionMessage('NotAction doesn\'t implement \Magento\Framework\Mview\ActionInterface');
-        $notActionInterfaceMock = $this->getMockBuilder('Action')
-            ->getMock();
+        $notActionInterfaceMock = $this->createMock(\stdClass::class);
         $this->objectManagerMock->expects(
             $this->once()
         )->method(
@@ -51,12 +50,7 @@ class ActionFactoryTest extends TestCase
 
     public function testGet()
     {
-        $actionInterfaceMock = $this->createMock(
-            ActionInterface::class,
-            [],
-            '',
-            false
-        );
+        $actionInterfaceMock = $this->createMock(ActionInterface::class);
         $this->objectManagerMock->expects(
             $this->once()
         )->method(

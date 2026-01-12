@@ -71,7 +71,7 @@ class ConsumerFactoryTest extends TestCase
     public function testConnectionInjectedForConsumer()
     {
         $consumerType = 'async';
-        $consumerTypeValue = \Magento\Framework\MessageQueue\Model\TestConsumer::class;
+        $consumerTypeValue = \stdClass::class;
         $consumers = [
             [
                 'type' => [$consumerType => $consumerTypeValue]

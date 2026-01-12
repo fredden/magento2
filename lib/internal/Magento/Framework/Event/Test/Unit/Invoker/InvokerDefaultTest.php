@@ -123,8 +123,7 @@ class InvokerDefaultTest extends TestCase
     public function testWrongInterfaceCallWithEnabledDeveloperMode($shared)
     {
         $this->expectException('LogicException');
-        $notObserver = $this->getMockBuilder('NotObserver')
-            ->getMock();
+        $notObserver = $this->createMock(\stdClass::class);
         $this->_observerFactoryMock->expects(
             $this->any()
         )->method(
@@ -166,8 +165,7 @@ class InvokerDefaultTest extends TestCase
     #[DataProvider('dataProviderForMethodIsNotDefined')]
     public function testWrongInterfaceCallWithDisabledDeveloperMode($shared)
     {
-        $notObserver = $this->getMockBuilder('NotObserver')
-            ->getMock();
+        $notObserver = $this->createMock(\stdClass::class);
         $this->_observerFactoryMock->expects(
             $this->any()
         )->method(
