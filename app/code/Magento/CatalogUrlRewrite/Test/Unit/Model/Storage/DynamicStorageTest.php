@@ -22,6 +22,7 @@ use Magento\UrlRewrite\Model\OptionProvider;
 use Magento\Store\Model\ScopeInterface;
 use Magento\UrlRewrite\Service\V1\Data\UrlRewrite;
 use Magento\UrlRewrite\Service\V1\Data\UrlRewriteFactory;
+use Magento\UrlRewrite\Service\V1\Data\UrlRewrite as UrlRewriteData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
@@ -505,6 +506,23 @@ class DynamicStorageTest extends TestCase
 
         $this->connectionMock->expects($this->any())
             ->method('fetchAll')
+            ->willReturn([]);
+
+        $method = new ReflectionMethod($this->object, 'doFindOneByData');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->object, $data);
+        $this->assertNull($result);
+    }
+
+    public function testDoFindOneByDataReturnsNullWhenFilterEmpty(): void
+    {
+        $data = [
+            'entity_type' => 'product',
+            'store_id' => 1
+        ];
+
+        $this->connectionMock->method('fetchAll')
             ->willReturn([]);
 
         $method = new ReflectionMethod($this->object, 'doFindOneByData');
