@@ -48,4 +48,10 @@
         <data key="products_per_page">1</data>
         <data key="products_to_display">1</data>
     </entity>
+    <entity name="CmsBlockWidgetDefaultStoreView" extends="WidgetWithBlockMainContent">
+        <data key="name" unique="suffix">WidgetDefaultStoreView</data>
+    </entity>
+    <entity name="CmsBlockWidgetCustomStoreView" extends="WidgetWithBlockMainContent">
+        <data key="name" unique="suffix">WidgetCustomStoreView</data>
+    </entity>
 </entities>

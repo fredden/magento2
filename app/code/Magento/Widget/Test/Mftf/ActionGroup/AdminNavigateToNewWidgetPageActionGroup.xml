@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Copyright 2026 Adobe
+ * All Rights Reserved.
+ */
+-->
+<actionGroups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/actionGroupSchema.xsd">
+    <actionGroup name="AdminNavigateToNewWidgetPageActionGroup">
+        <annotations>
+            <description>Navigates to Admin New Widget page.</description>
+        </annotations>
+        <amOnPage url="{{AdminNewWidgetPage.url}}" stepKey="navigateToNewWidgetPage"/>
+        <waitForPageLoad stepKey="waitForNewWidgetPageLoad"/>
+    </actionGroup>
+</actionGroups>
+

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Copyright 2026 Adobe
+ * All Rights Reserved.
+ */
+-->
+<tests xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/testSchema.xsd">
+    <test name="AdminVerifyCmsBlockWidgetDisplaysPerStoreViewTest">
+        <annotations>
+            <features value="Cms"/>
+            <stories value="CMS Block Widget per Store View"/>
+            <title value="CMS block widget displays correct content per store view"/>
+            <description value="CMS block widget with same identifier displays correct content per store view."/>
+            <severity value="MAJOR"/>
+            <testCaseId value="AC-14472"/>
+            <group value="Cms"/>
+        </annotations>
+        <before>
+            <!-- Disable page builder -->
+            <magentoCLI command="config:set {{DisablePageBuilderConfigData.path}} {{DisablePageBuilderConfigData.value}}" stepKey="disablePageBuilder"/>
+            <actionGroup ref="AdminLoginActionGroup" stepKey="loginAsAdmin"/>
+        </before>
+        <after>
+            <!-- Delete widgets -->
+            <actionGroup ref="AdminDeleteWidgetActionGroup" stepKey="deleteFirstWidget">
+                <argument name="widget" value="CmsBlockWidgetDefaultStoreView"/>
+            </actionGroup>
+            <actionGroup ref="AdminDeleteWidgetActionGroup" stepKey="deleteSecondWidget">
+                <argument name="widget" value="CmsBlockWidgetCustomStoreView"/>
+            </actionGroup>
+            <!-- Delete CMS blocks -->
+            <actionGroup ref="AdminOpenCmsBlocksGridActionGroup" stepKey="openCmsBlocksGridForDelete"/>
+            <click selector="{{BlockPageActionsSection.select(CmsBlockForDefaultStoreView.title)}}" stepKey="clickSelectFirstBlock"/>
+            <waitForElementVisible selector="{{BlockPageActionsSection.delete}}" stepKey="waitForDeleteLinkFirst"/>
+            <click selector="{{BlockPageActionsSection.delete}}" stepKey="clickDeleteFirstBlock"/>
+            <waitForElementVisible selector="{{BlockPageActionsSection.deleteConfirm}}" stepKey="waitForDeleteConfirmFirst"/>
+            <click selector="{{BlockPageActionsSection.deleteConfirm}}" stepKey="confirmDeleteFirstBlock"/>
+            <waitForPageLoad stepKey="waitForFirstBlockDelete"/>
+            <click selector="{{BlockPageActionsSection.select(CmsBlockForCustomStoreView.title)}}" stepKey="clickSelectSecondBlock"/>
+            <waitForElementVisible selector="{{BlockPageActionsSection.delete}}" stepKey="waitForDeleteLinkSecond"/>
+            <click selector="{{BlockPageActionsSection.delete}}" stepKey="clickDeleteSecondBlock"/>
+            <waitForElementVisible selector="{{BlockPageActionsSection.deleteConfirm}}" stepKey="waitForDeleteConfirmSecond"/>
+            <click selector="{{BlockPageActionsSection.deleteConfirm}}" stepKey="confirmDeleteSecondBlock"/>
+            <waitForPageLoad stepKey="waitForSecondBlockDelete"/>
+            <!-- Delete custom store view -->
+            <actionGroup ref="AdminDeleteStoreViewActionGroup" stepKey="deleteCustomStoreView">
+                <argument name="customStore" value="customStoreEN"/>
+            </actionGroup>
+            <!-- Re-enable page builder -->
+            <magentoCLI command="config:set {{EnablePageBuilderConfigData.path}} {{EnablePageBuilderConfigData.value}}" stepKey="enablePageBuilder"/>
+            <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutFromAdmin"/>
+        </after>
+        <!-- Step 1: Create custom store view -->
+        <actionGroup ref="AdminCreateStoreViewActionGroup" stepKey="createCustomStoreView">
+            <argument name="customStore" value="customStoreEN"/>
+        </actionGroup>
+        <!-- Step 2: Create first CMS block for default store view -->
+        <actionGroup ref="AdminOpenCmsBlocksGridActionGroup" stepKey="openCmsBlocksGridForFirstBlock"/>
+        <actionGroup ref="AdminPressAddNewCmsBlockButtonActionGroup" stepKey="pressAddNewBlockButtonFirst"/>
+        <actionGroup ref="AdminFillCmsBlockFormActionGroup" stepKey="fillFirstCmsBlockForm">
+            <argument name="cmsBlockDataTitle" value="{{CmsBlockForDefaultStoreView.title}}"/>
+            <argument name="cmsBlockDataIdentifier" value="{{CmsBlockForDefaultStoreView.identifier}}"/>
+            <argument name="cmsBlockDataContent" value="{{CmsBlockForDefaultStoreView.content}}"/>
+        </actionGroup>
+        <actionGroup ref="AdminSelectCMSBlockStoreViewActionGroup" stepKey="selectDefaultStoreViewForBlock">
+            <argument name="storeViewName" value="{{_defaultStore.name}}"/>
+        </actionGroup>
+        <actionGroup ref="AdminPressSaveCmsBlockButtonActionGroup" stepKey="saveFirstCmsBlock"/>
+        <actionGroup ref="AssertMessageInAdminPanelActionGroup" stepKey="assertFirstBlockSaved">
+            <argument name="message" value="You saved the block."/>
+        </actionGroup>
+        <!-- Step 3: Create second CMS block with same identifier for custom store view -->
+        <actionGroup ref="AdminOpenCmsBlocksGridActionGroup" stepKey="openCmsBlocksGridForSecondBlock"/>
+        <actionGroup ref="AdminPressAddNewCmsBlockButtonActionGroup" stepKey="pressAddNewBlockButtonSecond"/>
+        <actionGroup ref="AdminFillCmsBlockFormActionGroup" stepKey="fillSecondCmsBlockForm">
+            <argument name="cmsBlockDataTitle" value="{{CmsBlockForCustomStoreView.title}}"/>
+            <argument name="cmsBlockDataIdentifier" value="{{CmsBlockForCustomStoreView.identifier}}"/>
+            <argument name="cmsBlockDataContent" value="{{CmsBlockForCustomStoreView.content}}"/>
+        </actionGroup>
+        <actionGroup ref="AdminSelectCMSBlockStoreViewActionGroup" stepKey="selectCustomStoreViewForBlock">
+            <argument name="storeViewName" value="{{customStoreEN.name}}"/>
+        </actionGroup>
+        <actionGroup ref="AdminPressSaveCmsBlockButtonActionGroup" stepKey="saveSecondCmsBlock"/>
+        <actionGroup ref="AssertMessageInAdminPanelActionGroup" stepKey="assertSecondBlockSaved">
+            <argument name="message" value="You saved the block."/>
+        </actionGroup>
+        <!-- Step 4: Create widget for default store view with first CMS block -->
+        <actionGroup ref="AdminNavigateToNewWidgetPageActionGroup" stepKey="goToNewWidgetPageFirst"/>
+        <actionGroup ref="AdminSetWidgetTypeAndDesignActionGroup" stepKey="setWidgetTypeFirst">
+            <argument name="widgetType" value="{{CmsBlockWidgetDefaultStoreView.type}}"/>
+            <argument name="widgetDesign" value="{{CmsBlockWidgetDefaultStoreView.designTheme}}"/>
+        </actionGroup>
+        <click selector="{{AdminNewWidgetSection.continue}}" stepKey="clickContinueFirst"/>
+        <waitForElementVisible selector="{{AdminNewWidgetSection.widgetTitle}}" stepKey="waitForWidgetTitleFirst"/>
+        <fillField selector="{{AdminNewWidgetSection.widgetTitle}}" userInput="{{CmsBlockWidgetDefaultStoreView.name}}" stepKey="fillWidgetTitleFirst"/>
+        <selectOption selector="{{AdminNewWidgetSection.widgetStoreIds}}" userInput="{{_defaultStore.name}}" stepKey="selectDefaultStoreForWidget"/>
+        <actionGroup ref="AdminWidgetAddLayoutUpdateActionGroup" stepKey="addLayoutUpdateFirst"/>
+        <scrollTo selector="{{AdminNewWidgetSection.selectDisplayOn}}" stepKey="scrollToDisplayOnFirst"/>
+        <selectOption selector="{{AdminNewWidgetSection.selectDisplayOn}}" userInput="{{CmsBlockWidgetDefaultStoreView.display}}" stepKey="selectDisplayOnFirst"/>
+        <waitForElementVisible selector="{{AdminNewWidgetSection.selectContainer}}" stepKey="waitForContainerFirst"/>
+        <selectOption selector="{{AdminNewWidgetSection.selectContainer}}" userInput="{{CmsBlockWidgetDefaultStoreView.container}}" stepKey="selectContainerFirst"/>
+        <scrollToTopOfPage stepKey="scrollToTopFirst"/>
+        <waitForAjaxLoad stepKey="waitForAjaxFirst"/>
+        <click selector="{{AdminNewWidgetSection.widgetOptions}}" stepKey="goToWidgetOptionsFirst"/>
+        <waitForElementVisible selector="{{AdminNewWidgetSection.widgetSelectBlock}}" time="60" stepKey="waitForSelectBlockFirst"/>
+        <click selector="{{AdminNewWidgetSection.widgetSelectBlock}}" stepKey="openSelectBlockFirst"/>
+        <waitForPageLoad stepKey="waitForBlockGridFirst"/>
+        <selectOption selector="{{AdminNewWidgetSection.blockStatus}}" userInput="Enable" stepKey="selectEnabledBlocksFirst"/>
+        <fillField selector="{{AdminNewWidgetSection.selectBlockTitle}}" userInput="{{CmsBlockForDefaultStoreView.title}}" stepKey="fillBlockTitleFirst"/>
+        <click selector="{{AdminNewWidgetSection.searchBlock}}" stepKey="searchBlockFirst"/>
+        <waitForAjaxLoad stepKey="waitForSearchFirst"/>
+        <click selector="{{AdminNewWidgetSection.searchedBlock}}" stepKey="clickSearchedBlockFirst"/>
+        <waitForPageLoad stepKey="waitForBlockSelectionFirst"/>
+        <actionGroup ref="AdminSaveWidgetActionGroup" stepKey="saveWidgetFirst"/>
+        <!-- Step 5: Create widget for custom store view with second CMS block -->
+        <actionGroup ref="AdminNavigateToNewWidgetPageActionGroup" stepKey="goToNewWidgetPageSecond"/>
+        <actionGroup ref="AdminSetWidgetTypeAndDesignActionGroup" stepKey="setWidgetTypeSecond">
+            <argument name="widgetType" value="{{CmsBlockWidgetCustomStoreView.type}}"/>
+            <argument name="widgetDesign" value="{{CmsBlockWidgetCustomStoreView.designTheme}}"/>
+        </actionGroup>
+        <click selector="{{AdminNewWidgetSection.continue}}" stepKey="clickContinueSecond"/>
+        <waitForElementVisible selector="{{AdminNewWidgetSection.widgetTitle}}" stepKey="waitForWidgetTitleSecond"/>
+        <fillField selector="{{AdminNewWidgetSection.widgetTitle}}" userInput="{{CmsBlockWidgetCustomStoreView.name}}" stepKey="fillWidgetTitleSecond"/>
+        <selectOption selector="{{AdminNewWidgetSection.widgetStoreIds}}" userInput="{{customStoreEN.name}}" stepKey="selectCustomStoreForWidget"/>
+        <actionGroup ref="AdminWidgetAddLayoutUpdateActionGroup" stepKey="addLayoutUpdateSecond"/>
+        <scrollTo selector="{{AdminNewWidgetSection.selectDisplayOn}}" stepKey="scrollToDisplayOnSecond"/>
+        <selectOption selector="{{AdminNewWidgetSection.selectDisplayOn}}" userInput="{{CmsBlockWidgetCustomStoreView.display}}" stepKey="selectDisplayOnSecond"/>
+        <waitForElementVisible selector="{{AdminNewWidgetSection.selectContainer}}" stepKey="waitForContainerSecond"/>
+        <selectOption selector="{{AdminNewWidgetSection.selectContainer}}" userInput="{{CmsBlockWidgetCustomStoreView.container}}" stepKey="selectContainerSecond"/>
+        <scrollToTopOfPage stepKey="scrollToTopSecond"/>
+        <waitForAjaxLoad stepKey="waitForAjaxSecond"/>
+        <click selector="{{AdminNewWidgetSection.widgetOptions}}" stepKey="goToWidgetOptionsSecond"/>
+        <waitForElementVisible selector="{{AdminNewWidgetSection.widgetSelectBlock}}" time="60" stepKey="waitForSelectBlockSecond"/>
+        <click selector="{{AdminNewWidgetSection.widgetSelectBlock}}" stepKey="openSelectBlockSecond"/>
+        <waitForPageLoad stepKey="waitForBlockGridSecond"/>
+        <selectOption selector="{{AdminNewWidgetSection.blockStatus}}" userInput="Enable" stepKey="selectEnabledBlocksSecond"/>
+        <fillField selector="{{AdminNewWidgetSection.selectBlockTitle}}" userInput="{{CmsBlockForCustomStoreView.title}}" stepKey="fillBlockTitleSecond"/>
+        <click selector="{{AdminNewWidgetSection.searchBlock}}" stepKey="searchBlockSecond"/>
+        <waitForAjaxLoad stepKey="waitForSearchSecond"/>
+        <click selector="{{AdminNewWidgetSection.searchedBlock}}" stepKey="clickSearchedBlockSecond"/>
+        <waitForPageLoad stepKey="waitForBlockSelectionSecond"/>
+        <actionGroup ref="AdminSaveWidgetActionGroup" stepKey="saveWidgetSecond"/>
+        <!-- Step 6: Verify first CMS block displays on default store view -->
+        <actionGroup ref="StorefrontOpenHomePageActionGroup" stepKey="goToHomePage"/>
+        <waitForText userInput="{{CmsBlockForDefaultStoreView.content}}" stepKey="seeFirstBlockContent"/>
+        <!-- Step 7: Verify second CMS block displays on custom store view -->
+        <actionGroup ref="StorefrontSwitchStoreViewActionGroup" stepKey="switchToCustomStoreView">
+            <argument name="storeView" value="customStoreEN"/>
+        </actionGroup>
+        <waitForText userInput="{{CmsBlockForCustomStoreView.content}}" stepKey="seeSecondBlockContent"/>
+        <!-- Verify first block content is not visible on custom store view -->
+        <dontSeeInPageSource userInput="{{CmsBlockForDefaultStoreView.content}}" stepKey="dontSeeFirstBlockContentOnCustomStore"/>
+    </test>
+</tests>
