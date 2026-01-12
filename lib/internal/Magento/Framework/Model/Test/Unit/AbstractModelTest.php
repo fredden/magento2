@@ -85,15 +85,18 @@ class AbstractModelTest extends TestCase
             \Magento\Framework\Data\Collection\AbstractDb::class,
             ['getResource']
         );
-        $this->model = $this->getMockBuilder(AbstractModel::class)
-            ->setConstructorArgs([
+        
+        // Use getMockForAbstractClass() to create instance with real method implementations
+        $this->model = $this->getMockForAbstractClass(
+            AbstractModel::class,
+            [
                 $this->contextMock,
                 $this->registryMock,
                 $this->resourceMock,
                 $this->resourceCollectionMock
-            ])
-            ->onlyMethods([])
-            ->getMockForAbstractClass();
+            ]
+        );
+        
         $this->connectionMock = $this->createMock(AdapterInterface::class);
         $this->resourceMock->expects($this->any())
             ->method('getConnection')
