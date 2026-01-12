@@ -50,9 +50,8 @@ class RendererListTest extends TestCase
             ['setRenderedBlock', 'getTemplate', 'setTemplate']
         );
 
-        $this->layoutMock = $this->getMockBuilder(LayoutInterface::class)
-            ->onlyMethods(['getBlock', 'getChildName'])
-            ->getMock();
+        // LayoutInterface has 32 abstract methods - use createMock() instead of onlyMethods()
+        $this->layoutMock = $this->createMock(LayoutInterface::class);
 
         $this->layoutMock->expects($this->any())
             ->method('getBlock')
