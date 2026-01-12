@@ -59,7 +59,14 @@ class FormatTest extends TestCase
             ->getMock();
         $this->scope = $this->createPartialMockWithReflection(
             ScopeInterface::class,
-            ['getCurrentCurrency']
+            [
+                'getCurrentCurrency',  // Custom method not in interface
+                'getCode',            // ScopeInterface methods
+                'getId',
+                'getScopeType',
+                'getScopeTypeName',
+                'getName'
+            ]
         );
 
         $this->scopeResolver = $this->createMock(ScopeResolverInterface::class);
