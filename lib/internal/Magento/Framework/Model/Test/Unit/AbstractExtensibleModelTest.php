@@ -121,20 +121,8 @@ class AbstractExtensibleModelTest extends TestCase
         $this->attributeValueFactoryMock = $this->getMockBuilder(AttributeValueFactory::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->model = $this->createMock(
+        $this->model = $this->createPartialMockWithReflection(
             AbstractExtensibleModel::class,
-            [
-                $this->contextMock,
-                $this->registryMock,
-                $extensionAttributesFactory,
-                $this->attributeValueFactoryMock,
-                $this->resourceMock,
-                $this->resourceCollectionMock
-            ],
-            '',
-            true,
-            true,
-            true,
             ['getCustomAttributesCodes']
         );
         $this->customAttribute = new AttributeValue();
