@@ -41,10 +41,8 @@ class CreateEntityRowTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->connection = $this->createPartialMockWithReflection(
-            AdapterInterface::class,
-            ['lastInsertId']
-        );
+        // AdapterInterface has 94 methods - use createMock() instead of createPartialMockWithReflection
+        $this->connection = $this->createMock(AdapterInterface::class);
 
         $this->connection->expects($this->any())
             ->method('lastInsertId')
@@ -88,8 +86,8 @@ class CreateEntityRowTest extends TestCase
      * @param $inputData
      * @param $tableData
      * @param $preparedData
-     * @param $finalData     *
-
+     * @param $finalData
+     */
     #[DataProvider('executeDataProvider')]
     public function testExecute($inputData, $tableData, $preparedData, $finalData)
     {
