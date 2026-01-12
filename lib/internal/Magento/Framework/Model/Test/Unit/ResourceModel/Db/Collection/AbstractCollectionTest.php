@@ -440,7 +440,7 @@ class AbstractCollectionTest extends TestCase
             /** @var AbstractModel $item */
             $item = $this->getMockBuilder(AbstractModel::class)
                 ->disableOriginalConstructor()
-                ->getMockForAbstractClass();
+                ->getMock();
             $this->uut->addItem($item->setDataChanges(true));
         }
 
