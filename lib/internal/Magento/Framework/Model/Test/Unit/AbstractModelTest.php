@@ -86,16 +86,17 @@ class AbstractModelTest extends TestCase
             ['getResource']
         );
         
-        // Use getMockForAbstractClass() to create instance with real method implementations
-        $this->model = $this->getMockForAbstractClass(
-            AbstractModel::class,
-            [
+        // Use getMockBuilder with onlyMethods([]) to allow real implementations
+        // This creates a partial mock that doesn't override any methods
+        $this->model = $this->getMockBuilder(AbstractModel::class)
+            ->setConstructorArgs([
                 $this->contextMock,
                 $this->registryMock,
                 $this->resourceMock,
                 $this->resourceCollectionMock
-            ]
-        );
+            ])
+            ->onlyMethods([])
+            ->getMock();
         
         $this->connectionMock = $this->createMock(AdapterInterface::class);
         $this->resourceMock->expects($this->any())
