@@ -115,12 +115,18 @@ class AbstractMapperTest extends TestCase
     public function testMap(array $mapperMethods, array $criteriaParts)
     {
         /** @var AbstractMapper|MockObject $mapper */
-        // Add abstract method 'init' to the methods array
+        // Use createPartialMockWithReflection for methods that don't exist in AbstractMapper
+        // mapMyMapperMethodOne, mapMyMapperMethodTwo don't exist, so onlyMethods() would fail
         $methodsToMock = array_merge(['init'], array_values($mapperMethods));
         $mapper = $this->createPartialMockWithReflection(
             AbstractMapper::class,
             $methodsToMock
         );
+        // Set the select mock via reflection since constructor wasn't called
+        $reflection = new \ReflectionClass($mapper);
+        $selectProperty = $reflection->getProperty('select');
+        $selectProperty->setAccessible(true);
+        $selectProperty->setValue($mapper, $this->selectMock);
         $criteriaMock = $this->createMock(CriteriaInterface::class);
         $criteriaMock->expects($this->once())
             ->method('toArray')
@@ -144,21 +150,19 @@ class AbstractMapperTest extends TestCase
             'my_mapper_method_one' => 'my-test-value1'
         ];
         /** @var AbstractMapper|MockObject $mapper */
-        // Add abstract method 'init' to the methods array
+        // Use createPartialMockWithReflection for methods that don't exist in AbstractMapper
+        // mapMyMapperMethodOne doesn't exist, so onlyMethods() would fail
         $methodsToMock = array_merge(['init'], array_values($mapperMethods));
-        $mapper = $this->getMockBuilder(AbstractMapper::class)
-            ->setConstructorArgs([
-                'logger' => $this->loggerMock,
-                'fetchStrategy' => $this->fetchStrategyMock,
-                'objectFactory' => $this->objectFactoryMock,
-                'mapperFactory' => $this->mapperFactoryMock,
-                'select' => $this->selectMock
-            ])
-            ->onlyMethods($methodsToMock)
-            ->getMock();
-        $criteriaMock = $this->getMockBuilder(CriteriaInterface::class)
-            ->onlyMethods(['toArray'])
-            ->getMock();
+        $mapper = $this->createPartialMockWithReflection(
+            AbstractMapper::class,
+            $methodsToMock
+        );
+        // Set the select mock via reflection since constructor wasn't called
+        $reflection = new \ReflectionClass($mapper);
+        $selectProperty = $reflection->getProperty('select');
+        $selectProperty->setAccessible(true);
+        $selectProperty->setValue($mapper, $this->selectMock);
+        $criteriaMock = $this->createMock(CriteriaInterface::class);
         $criteriaMock->expects($this->once())
             ->method('toArray')
             ->willReturn($criteriaParts);
@@ -208,13 +212,17 @@ class AbstractMapperTest extends TestCase
         $resultCondition = 'sql-condition-value';
 
         /** @var AbstractMapper|MockObject $mapper */
-        $mapper = $this->createPartialMockWithReflection(
-            AbstractMapper::class,
-            ['getConnection', 'init']
-        );
-        $connectionMock = $this->getMockBuilder(AdapterInterface::class)
-            ->onlyMethods(['quoteIdentifier', 'prepareSqlCondition'])
+        $mapper = $this->getMockBuilder(AbstractMapper::class)
+            ->setConstructorArgs([
+                $this->loggerMock,
+                $this->fetchStrategyMock,
+                $this->objectFactoryMock,
+                $this->mapperFactoryMock,
+                $this->selectMock
+            ])
+            ->onlyMethods(['getConnection', 'init'])
             ->getMock();
+        $connectionMock = $this->createMock(AdapterInterface::class);
 
         $mapper->expects($this->any())
             ->method('getConnection')
