@@ -214,10 +214,11 @@ class AbstractBlockTest extends TestCase
         /** @var AbstractBlock|MockObject $block */
         $params = ['viewConfig' => $configManager];
         $helper = new ObjectManager($this);
-        $block = $this->createMock(
-            AbstractBlock::class,
-            $helper->getConstructArguments(AbstractBlock::class, $params)
-        );
+        $constructorArgs = $helper->getConstructArguments(AbstractBlock::class, $params);
+        $block = $this->getMockBuilder(AbstractBlock::class)
+            ->setConstructorArgs($constructorArgs)
+            ->onlyMethods([])
+            ->getMock();
         $block->setData('module_name', 'Magento_Theme');
 
         $this->assertEquals('one', $block->getVar('v1'));
