@@ -17,6 +17,7 @@ use Magento\Framework\Model\ResourceModel\Db\Context;
 use Magento\Framework\Model\ResourceModel\Db\ObjectRelationProcessor;
 use Magento\Framework\Model\ResourceModel\Db\TransactionManagerInterface;
 use Magento\Framework\Registry;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -28,6 +29,7 @@ use ReflectionProperty;
  */
 class AbstractDbTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var AbstractDb
      */
@@ -476,7 +478,10 @@ class AbstractDbTest extends TestCase
      */
     public function testPrepareDataForUpdate(): void
     {
-        $connectionMock = $this->createMock(AdapterInterface::class);
+        $connectionMock = $this->createPartialMockWithReflection(
+            AdapterInterface::class,
+            ['save', 'quoteInto', 'describeTable', 'prepareColumnValue', 'lastInsertId']
+        );
 
         $context = (new ObjectManager($this))->getObject(
             \Magento\Framework\Model\Context::class
