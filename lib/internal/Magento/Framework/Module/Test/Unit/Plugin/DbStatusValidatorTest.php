@@ -70,10 +70,10 @@ class DbStatusValidatorTest extends TestCase
             ->method('getNames')
             ->willReturn(['Module_One', 'Module_Two']);
 
-        $this->moduleManager = $this->getMockBuilder(Manager::class)
-            ->onlyMethods(['isDbSchemaUpToDate', 'isDbDataUpToDate'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->moduleManager = $this->createPartialMockWithReflection(
+            Manager::class,
+            ['isDbSchemaUpToDate', 'isDbDataUpToDate']
+        );
         $this->dbVersionInfoMock = $this->createMock(DbVersionInfo::class);
 
         $this->deploymentConfig =$this->getMockBuilder(DeploymentConfig::class)

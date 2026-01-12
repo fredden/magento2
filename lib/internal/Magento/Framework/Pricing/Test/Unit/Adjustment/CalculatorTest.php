@@ -70,11 +70,10 @@ class CalculatorTest extends TestCase
             ->with($totalAmount, $expectedAdjustments)
             ->willReturn($amountBaseMock);
 
-        $productMock = $this->getMockBuilder(SaleableInterface::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['__wakeup'])
-            ->onlyMethods(['getPriceInfo'])
-            ->getMock();
+        $productMock = $this->createPartialMockWithReflection(
+            SaleableInterface::class,
+            ['__wakeup', 'getPriceInfo']
+        );
 
         $weeeAdjustmentMock = $this->createMock(AdjustmentInterface::class);
         $weeeAdjustmentMock->expects($this->once())
@@ -134,11 +133,10 @@ class CalculatorTest extends TestCase
         $adjustment = 5;
         $expectedAdjustments = [];
 
-        $productMock = $this->getMockBuilder(SaleableInterface::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['__wakeup'])
-            ->onlyMethods(['getPriceInfo'])
-            ->getMock();
+        $productMock = $this->createPartialMockWithReflection(
+            SaleableInterface::class,
+            ['__wakeup', 'getPriceInfo']
+        );
 
         $taxAdjustmentMock = $this->createMock(AdjustmentInterface::class);
         $taxAdjustmentMock->expects($this->once())

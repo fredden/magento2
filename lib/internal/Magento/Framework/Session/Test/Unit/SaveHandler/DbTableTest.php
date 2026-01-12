@@ -174,11 +174,10 @@ class DbTableTest extends TestCase
      */
     protected function _prepareMockForRead($isDataEncoded)
     {
-        $connection = $this->getMockBuilder(Mysql::class)
-            ->onlyMethods(['from', 'where'])
-            ->onlyMethods(['select', 'fetchOne', 'isTableExists'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $connection = $this->createPartialMockWithReflection(
+            Mysql::class,
+            ['from', 'where', 'select', 'fetchOne', 'isTableExists']
+        );
 
         $connection->expects($this->once())->method('isTableExists')->willReturn(true);
 
@@ -234,7 +233,7 @@ class DbTableTest extends TestCase
 
     /**
      * @param bool $sessionExists
-     *     */
+     */
     #[DataProvider('writeDataProvider')]
     public function testWrite($sessionExists)
     {
@@ -249,11 +248,10 @@ class DbTableTest extends TestCase
      */
     protected function _prepareMockForWrite($sessionExists)
     {
-        $connection = $this->getMockBuilder(Mysql::class)
-            ->onlyMethods(['from', 'where'])
-            ->onlyMethods(['select', 'fetchOne', 'update', 'insert', 'isTableExists'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $connection = $this->createPartialMockWithReflection(
+            Mysql::class,
+            ['from', 'where', 'select', 'fetchOne', 'update', 'insert', 'isTableExists']
+        );
         $connection->expects($this->once())->method('isTableExists')->willReturn(true);
         $connection->expects($this->once())->method('select')->willReturnSelf();
         $connection->expects($this->once())->method('from')->with(self::SESSION_TABLE)->willReturnSelf();
