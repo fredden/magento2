@@ -10,6 +10,7 @@ use Magento\Framework\Filesystem\Directory\WriteInterface;
 use Magento\Framework\Filesystem\Driver\File;
 use Magento\Framework\Filesystem\DriverInterface;
 use Magento\Framework\Filesystem\File\WriteFactory;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -19,6 +20,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
  */
 class WriteTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * \Magento\Framework\Filesystem\Driver
      *
@@ -163,7 +166,8 @@ class WriteTest extends TestCase
     /**
      * @param string $sourcePath
      * @param string $targetPath
-     * @param WriteInterface $targetDir     */
+     * @param WriteInterface $targetDir
+     */
     #[DataProvider('getFilePathsDataProvider')]
     public function testRenameFile($sourcePath, $targetPath, $targetDir)
     {
@@ -224,9 +228,9 @@ class WriteTest extends TestCase
 
     public function getWriterMock()
     {
-        return $this->getMockBuilder(WriteInterface::class)
-            ->onlyMethods(['getAbsolutePath', 'create'])
-            ->onlyMethods(['isExists'])
-            ->getMock();
+        return $this->createPartialMockWithReflection(
+            WriteInterface::class,
+            ['getAbsolutePath', 'create', 'isExists']
+        );
     }
 }

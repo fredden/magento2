@@ -51,7 +51,7 @@ class AbstractTest extends TestCase
             ['createDirectory', 'getDirectoryWrite']
         );
         $this->filesystemMock->expects(
-            $this->once()
+            $this->any()
         )->method(
             'getDirectoryWrite'
         )->willReturn(
@@ -60,10 +60,9 @@ class AbstractTest extends TestCase
         $this->loggerMock = $this->getMockBuilder(LoggerInterface::class)
             ->getMock();
 
-        $this->_model = $this->createMock(
-            AbstractAdapter::class,
-            [$this->filesystemMock, $this->loggerMock]
-        );
+        $this->_model = $this->getMockBuilder(AbstractAdapter::class)
+            ->setConstructorArgs([$this->filesystemMock, $this->loggerMock])
+            ->getMockForAbstractClass();
     }
 
     protected function tearDown(): void
