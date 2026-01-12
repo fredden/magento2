@@ -16,6 +16,7 @@ use Magento\Framework\Filter\Template;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Store\Model\Store;
 use PHPUnit\Framework\TestCase;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * Template Filter test.
@@ -104,9 +105,10 @@ class TemplateTest extends TestCase
             ->willReturn(1);
 
         // Build arbitrary object to pass into the addAfterFilterCallback method
-        $callbackObject = $this->getMockBuilder(\stdClass::class)
-            ->onlyMethods(['afterFilterCallbackMethod'])
-            ->getMock();
+        $callbackObject = $this->createPartialMockWithReflection(
+            \stdClass::class,
+            ['afterFilterCallbackMethod']
+        );
 
         $callbackObject->expects($this->once())
             ->method('afterFilterCallbackMethod')
@@ -136,9 +138,10 @@ class TemplateTest extends TestCase
             ->willReturn(1);
 
         // Build arbitrary object to pass into the addAfterFilterCallback method
-        $callbackObject = $this->getMockBuilder(\stdClass::class)
-            ->onlyMethods(['afterFilterCallbackMethod'])
-            ->getMock();
+        $callbackObject = $this->createPartialMockWithReflection(
+            \stdClass::class,
+            ['afterFilterCallbackMethod']
+        );
 
         $callbackObject->expects($this->once())
             ->method('afterFilterCallbackMethod')

@@ -22,6 +22,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * \Magento\Framework\Message\Manager test case
@@ -30,6 +31,7 @@ use Psr\Log\LoggerInterface;
  */
 class ManagerTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var ObjectManager
      */
@@ -88,11 +90,10 @@ class ManagerTest extends TestCase
         )
             ->disableOriginalConstructor()
             ->getMock();
-        $this->session = $this->getMockBuilder(Session::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getData'])
-            ->onlyMethods(['setData'])
-            ->getMock();
+        $this->session = $this->createPartialMockWithReflection(
+            Session::class,
+            ['getData', 'setData']
+        );
         $this->eventManager = $this->createMock(ManagerInterface::class);
         $this->logger = $this->createMock(LoggerInterface::class);
 

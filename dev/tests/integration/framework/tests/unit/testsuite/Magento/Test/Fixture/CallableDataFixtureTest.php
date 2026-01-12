@@ -36,7 +36,7 @@ class CallableDataFixtureTest extends TestCase
         parent::setUp();
         static::$testFlag = '';
         $this->fakeClass = $this->getMockBuilder(stdClass::class)
-            ->addMethods(['fakeMethod', 'fakeMethodRollback'])
+            ->onlyMethods(['fakeMethod', 'fakeMethodRollback'])
             ->getMock();
     }
 

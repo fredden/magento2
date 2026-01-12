@@ -37,11 +37,10 @@ class StateTest extends TestCase
     protected function setUp(): void
     {
         $objectManager = new ObjectManagerHelper($this);
-        $this->scopeMock = $this->createMock(ScopeInterface::class,
-            ['setCurrentScope'],
-            '',
-            false
-        );
+        $this->scopeMock = $this->getMockBuilder(ScopeInterface::class)
+            ->onlyMethods(['setCurrentScope', 'getCurrentScope'])
+            ->disableOriginalConstructor()
+            ->getMock();
 
         $this->areaListMock = $this->createMock(AreaList::class);
         $this->areaListMock->expects($this->any())
@@ -156,7 +155,7 @@ class StateTest extends TestCase
     public function testConstructor($mode)
     {
         $model = new State(
-            $this->createMock(ScopeInterface::class, [], '', false),
+            $this->getMockBuilder(ScopeInterface::class)->disableOriginalConstructor()->getMock(),
             $mode
         );
         $this->assertEquals($mode, $model->getMode());
@@ -179,7 +178,7 @@ class StateTest extends TestCase
         $this->expectException('Exception');
         $this->expectExceptionMessage('Unknown application mode: unknown mode');
         new State(
-            $this->createMock(ScopeInterface::class, [], '', false),
+            $this->getMockBuilder(ScopeInterface::class)->disableOriginalConstructor()->getMock(),
             "unknown mode"
         );
     }

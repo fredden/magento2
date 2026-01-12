@@ -75,7 +75,8 @@ class DateTest extends TestCase
     }
 
     /**
-     * @param $fieldName     */
+     * @param $fieldName
+     */
     #[DataProvider('providerGetElementHtmlDateFormat')]
     public function testGetElementHtmlDateFormat($fieldName)
     {
@@ -109,11 +110,10 @@ class DateTest extends TestCase
      */
     protected function getFormMock($exactly)
     {
-        $formMock = $this->getMockBuilder(\stdClass::class)->onlyMethods(
+        $formMock = $this->createPartialMockWithReflection(
+            \stdClass::class,
             ['getFieldNameSuffix', 'getHtmlIdPrefix', 'getHtmlIdSuffix']
-        )
-            ->disableOriginalConstructor()
-            ->getMock();
+        );
         foreach (['getFieldNameSuffix', 'getHtmlIdPrefix', 'getHtmlIdSuffix'] as $method) {
             switch ($exactly) {
                 case 'once':
@@ -129,7 +129,8 @@ class DateTest extends TestCase
         return $formMock;
     }
 
-    /**     * @param string|null $dateFormat
+    /** 
+     * @param string|null $dateFormat
      * @param string|null $format
      * @param string|null $timeFormat
      * @param string $expectedFormat

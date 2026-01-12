@@ -22,6 +22,7 @@ use Magento\Framework\View\Page\Config\RendererFactory;
 use Magento\Framework\View\Result\Page;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * Result Page Test
@@ -30,6 +31,7 @@ use PHPUnit\Framework\TestCase;
  */
 class PageTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var Page
      */
@@ -90,11 +92,10 @@ class PageTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->layout = $this->getMockBuilder(Layout::class)
-            ->onlyMethods(['getUpdate'])
-            ->onlyMethods(['addHandle', 'isLayoutDefined'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->layout = $this->createPartialMockWithReflection(
+            Layout::class,
+            ['getUpdate', 'addHandle', 'isLayoutDefined']
+        );
 
         $this->layoutFactory = $this->getMockBuilder(LayoutFactory::class)
             ->disableOriginalConstructor()

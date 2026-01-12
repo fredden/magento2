@@ -24,12 +24,14 @@ use Magento\Store\Model\ScopeInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class ConfigTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var ObjectManager
      */
@@ -442,11 +444,10 @@ class ConfigTest extends TestCase
             'init.host'
         );
 
-        $this->validatorFactoryMock = $this->getMockBuilder(ValidatorFactory::class)
-            ->onlyMethods(['create'])
-            ->onlyMethods(['setInstanceName'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->validatorFactoryMock = $this->createPartialMockWithReflection(
+            ValidatorFactory::class,
+            ['create', 'setInstanceName']
+        );
         $this->validatorFactoryMock->expects($this->any())
             ->method('setInstanceName')
             ->willReturnSelf();

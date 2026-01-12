@@ -55,10 +55,10 @@ class AdapterFactoryTest extends TestCase
     {
         $objectManagerMock =
             $this->createPartialMock(ObjectManager::class, ['create']);
-        $imageAdapterMock = $this->getMockBuilder($class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['checkDependencies'])
-            ->getMock();
+        $imageAdapterMock = $this->createPartialMockWithReflection(
+            $class,
+            ['checkDependencies']
+        );
         $imageAdapterMock->expects($this->once())->method('checkDependencies');
 
         $objectManagerMock->expects(
@@ -161,9 +161,10 @@ class AdapterFactoryTest extends TestCase
         $class = 'stdClass';
         $objectManagerMock =
             $this->createPartialMock(ObjectManager::class, ['create']);
-        $imageAdapterMock = $this->getMockBuilder($class)
-            ->onlyMethods(['checkDependencies'])
-            ->getMock();
+        $imageAdapterMock = $this->createPartialMockWithReflection(
+            $class,
+            ['checkDependencies']
+        );
 
         $objectManagerMock->expects(
             $this->once()

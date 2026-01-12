@@ -102,7 +102,8 @@ class AbstractFactoryTest extends TestCase
         ];
     }
 
-    /**     * @param string $alias
+    /**
+     * @param string $alias
      * @param array $arguments
      * @param bool $isShared
      */
@@ -112,8 +113,10 @@ class AbstractFactoryTest extends TestCase
         $property = new \ReflectionProperty(AbstractFactory::class, 'sharedInstances');
         $property->setAccessible(true);
 
-        $filterMock = $this->getMockBuilder(\stdClass::class)
-            ->onlyMethods(['filter'])->getMock();
+        $filterMock = $this->createPartialMockWithReflection(
+            \stdClass::class,
+            ['filter']
+        );
         $this->_objectManager->expects(
             $this->atLeastOnce()
         )->method(

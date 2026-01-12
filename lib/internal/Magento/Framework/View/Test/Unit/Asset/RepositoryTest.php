@@ -25,6 +25,7 @@ use Magento\Framework\View\DesignInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * Unit test for Magento\Framework\View\Asset\Repository
@@ -33,6 +34,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  */
 class RepositoryTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var Repository
      */
@@ -127,10 +129,10 @@ class RepositoryTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $repositoryMapMock = $this->getMockBuilder(File::class)
-            ->onlyMethods(['getMap'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $repositoryMapMock = $this->createPartialMockWithReflection(
+            File::class,
+            ['getMap']
+        );
         $repositoryMapMock->method('getMap')->willReturn([]);
         $this->objectManagerMock->method('get')
             ->with(RepositoryMap::class)
@@ -281,7 +283,7 @@ class RepositoryTest extends TestCase
             ->method('getThemeByFullPath')
             ->willReturnArgument(0);
 
-        $fallbackContextMock = $this->getMockBuilder('Magento\Framework\View\Asset\File\FallbackContex')
+        $fallbackContextMock = $this->getMockBuilder('Magento\Framework\View\Asset\File\FallbackContext')
             ->disableOriginalConstructor()
             ->getMock();
         $this->fallbackFactoryMock
@@ -346,7 +348,7 @@ class RepositoryTest extends TestCase
             ->method('isSecure')
             ->willReturn(false);
 
-        $fallbackContextMock = $this->getMockBuilder('Magento\Framework\View\Asset\File\FallbackContex')
+        $fallbackContextMock = $this->getMockBuilder('Magento\Framework\View\Asset\File\FallbackContext')
             ->disableOriginalConstructor()
             ->getMock();
         $this->fallbackFactoryMock

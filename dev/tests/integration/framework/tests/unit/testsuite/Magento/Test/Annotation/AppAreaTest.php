@@ -46,7 +46,7 @@ class AppAreaTest extends \PHPUnit\Framework\TestCase
         $objectManager = $this->getMockBuilder(ObjectManagerInterface::class)
             ->onlyMethods(['get', 'create'])
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
 
         $sharedInstances = [
             AppArea::class => $this->createConfiguredMock(AppArea::class, ['parse' => []])

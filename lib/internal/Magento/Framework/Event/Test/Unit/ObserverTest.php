@@ -101,9 +101,10 @@ class ObserverTest extends TestCase
     {
         $eventName = 'eventName';
         $callbackName = 'testCallback';
-        $callbackMock = [$this->getMockBuilder(\stdClass::class)->onlyMethods([$callbackName])
-            ->disableOriginalConstructor()
-            ->getMock(), $callbackName];
+        $callbackMock = [
+            $this->createPartialMockWithReflection(\stdClass::class, [$callbackName]),
+            $callbackName
+        ];
         $callbackMock[0]->expects($this->once())
             ->method('testCallback')
             ->willReturn(true);

@@ -49,7 +49,7 @@ class BootstrapTest extends \PHPUnit\Framework\TestCase
         );
         $this->_bootstrap = $this->getMockBuilder(\Magento\TestFramework\Bootstrap::class)
             ->disableOriginalConstructor()
-            ->addMethods(['getDbVendorName'])
+            ->onlyMethods(['getDbVendorName'])
             ->onlyMethods(['getApplication'])
             ->getMock();
         $this->_bootstrap->expects(

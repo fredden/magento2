@@ -73,13 +73,10 @@ class TranslitTest extends TestCase
 
     public function testFilterConfigured()
     {
-        $config = $this->getMockBuilder(
-            ScopeConfigInterface::class
-        )->disableOriginalConstructor()
-            ->onlyMethods(['setValue'])
-            ->onlyMethods(
-                ['getValue', 'isSetFlag']
-            )->getMock();
+        $config = $this->createPartialMockWithReflection(
+            ScopeConfigInterface::class,
+            ['setValue', 'getValue', 'isSetFlag']
+        );
 
         $config->expects(
             $this->once()

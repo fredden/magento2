@@ -45,11 +45,10 @@ class NorouteTest extends TestCase
         $helper = new ObjectManager($this);
         $this->_requestMock = $this->createMock(Http::class);
         $this->_viewMock = $this->createMock(ViewInterface::class);
-        $this->_statusMock =
-            $this->getMockBuilder(DataObject::class)
-                ->onlyMethods(['getLoaded', 'getForwarded'])
-                ->disableOriginalConstructor()
-                ->getMock();
+        $this->_statusMock = $this->createPartialMockWithReflection(
+            DataObject::class,
+            ['getLoaded', 'getForwarded']
+        );
         $this->_controller = $helper->getObject(
             Index::class,
             ['request' => $this->_requestMock, 'view' => $this->_viewMock]

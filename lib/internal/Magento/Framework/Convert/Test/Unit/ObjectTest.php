@@ -27,18 +27,20 @@ class ObjectTest extends TestCase
 
     public function testToOptionArray()
     {
-        $mockFirst = $this->getMockBuilder(\Magento\Framework\DataObject::class)->onlyMethods(['getId', 'getCode'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $mockFirst = $this->createPartialMockWithReflection(
+            \Magento\Framework\DataObject::class,
+            ['getId', 'getCode']
+        );
         $mockFirst->expects($this->once())
             ->method('getId')
             ->willReturn(1);
         $mockFirst->expects($this->once())
             ->method('getCode')
             ->willReturn('code1');
-        $mockSecond = $this->getMockBuilder(\Magento\Framework\DataObject::class)->onlyMethods(['getId', 'getCode'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $mockSecond = $this->createPartialMockWithReflection(
+            \Magento\Framework\DataObject::class,
+            ['getId', 'getCode']
+        );
         $mockSecond->expects($this->once())
             ->method('getId')
             ->willReturn(2);
@@ -63,18 +65,20 @@ class ObjectTest extends TestCase
 
     public function testToOptionHash()
     {
-        $mockFirst = $this->getMockBuilder(\Magento\Framework\DataObject::class)->onlyMethods(['getSome', 'getId'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $mockFirst = $this->createPartialMockWithReflection(
+            \Magento\Framework\DataObject::class,
+            ['getSome', 'getId']
+        );
         $mockFirst->expects($this->once())
             ->method('getId')
             ->willReturn(3);
         $mockFirst->expects($this->once())
             ->method('getSome')
             ->willReturn('code3');
-        $mockSecond = $this->getMockBuilder(\Magento\Framework\DataObject::class)->onlyMethods(['getSome', 'getId'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $mockSecond = $this->createPartialMockWithReflection(
+            \Magento\Framework\DataObject::class,
+            ['getSome', 'getId']
+        );
         $mockSecond->expects($this->once())
             ->method('getId')
             ->willReturn(4);

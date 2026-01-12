@@ -29,10 +29,10 @@ class EventManagerTest extends \PHPUnit\Framework\TestCase
     protected function setUp(): void
     {
         $this->_subscriberOne = $this->getMockBuilder(\stdClass::class)
-            ->addMethods(['testEvent'])
+            ->onlyMethods(['testEvent'])
             ->getMock();
         $this->_subscriberTwo = $this->getMockBuilder(\stdClass::class)
-            ->addMethods(['testEvent'])
+            ->onlyMethods(['testEvent'])
             ->getMock();
         $this->_eventManager = new \Magento\TestFramework\EventManager(
             [$this->_subscriberOne, $this->_subscriberTwo]

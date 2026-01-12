@@ -65,7 +65,7 @@ class CurrentTest extends TestCase
         $this->_urlBuilderMock->expects($this->once())
             ->method('getUrl')
             ->with($pathStub)
-            ->will($this->willReturn($urlStub));
+            ->willReturn($urlStub);
 
         $this->currentLink->setPath($pathStub);
 
@@ -102,29 +102,29 @@ class CurrentTest extends TestCase
     {
         $this->_requestMock->expects($this->any())
             ->method('getPathInfo')
-            ->will($this->willReturn($request['pathInfoStub']));
+            ->willReturn($request['pathInfoStub']);
         $this->_requestMock->expects($this->any())
             ->method('getModuleName')
-            ->will($this->willReturn($request['moduleStub']));
+            ->willReturn($request['moduleStub']);
         $this->_requestMock->expects($this->any())
             ->method('getControllerName')
-            ->will($this->willReturn($request['controllerStub']));
+            ->willReturn($request['controllerStub']);
         $this->_requestMock->expects($this->any())
             ->method('getActionName')
-            ->will($this->willReturn($request['actionStub']));
+            ->willReturn($request['actionStub']);
 
         $withArgs = $willReturnArgs = [];
 
         $withArgs[] = [$pathStub];
-        $willReturnArgs[] = $this->willReturn($urlStub);
+        $willReturnArgs[] = $urlStub;
         $withArgs[] = [$request['mcaStub']];
-        $willReturnArgs[] = $this->willReturn($request['getUrl']);
+        $willReturnArgs[] = $request['getUrl'];
         $withArgs[] = ['*/*/*', ['_current' => false, '_use_rewrite' => true]];
 
         if ($request['mcaStub'] == '') {
-            $willReturnArgs[] = $this->willReturn($urlStub);
+            $willReturnArgs[] = $urlStub;
         } else {
-            $willReturnArgs[] = $this->willReturn('');
+            $willReturnArgs[] = '';
         }
         $this->_urlBuilderMock
             ->method('getUrl')

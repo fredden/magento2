@@ -79,11 +79,10 @@ class FileSystemTest extends TestCase
         $this->_emailTemplateFileResolution = $this->createMock(
             EmailTemplateFile::class
         );
-        $this->_assetRepo = $this->getMockBuilder(Repository::class)
-            ->onlyMethods(['extractScope'])
-            ->onlyMethods(['updateDesignParams', 'createAsset'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->_assetRepo = $this->createPartialMockWithReflection(
+            Repository::class,
+            ['extractScope', 'updateDesignParams', 'createAsset']
+        );
 
         $this->_model = new FileSystem(
             $this->_fileResolution,

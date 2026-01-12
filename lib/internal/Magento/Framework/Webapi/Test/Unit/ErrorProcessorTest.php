@@ -63,8 +63,7 @@ class ErrorProcessorTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->_loggerMock = $this->getMockBuilder(LoggerInterface::class)
-            ->getMock();
+        $this->_loggerMock = $this->createMock(LoggerInterface::class);
 
         $filesystemMock = $this->getMockBuilder(Filesystem::class)
             ->disableOriginalConstructor()
@@ -103,8 +102,7 @@ class ErrorProcessorTest extends TestCase
         )->method(
             'encode'
         )->willReturnCallback(
-            [$this, 'callbackJsonEncode'],
-            $this->willReturnArgument(0)
+            [$this, 'callbackJsonEncode']
         );
         /** Init output buffering to catch output via echo function. */
         ob_start();
@@ -144,8 +142,7 @@ class ErrorProcessorTest extends TestCase
         )->method(
             'encode'
         )->willReturnCallback(
-            [$this, 'callbackJsonEncode'],
-            $this->willReturnArgument(0)
+            [$this, 'callbackJsonEncode']
         );
         ob_start();
         $this->_errorProcessor->renderErrorMessage('Message', 'Message trace.', 401);

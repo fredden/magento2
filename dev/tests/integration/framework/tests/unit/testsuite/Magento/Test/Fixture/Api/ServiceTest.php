@@ -49,7 +49,7 @@ class ServiceTest extends TestCase
             );
 
         $this->fakeClass = $this->getMockBuilder(stdClass::class)
-            ->addMethods(['fakeMethod'])
+            ->onlyMethods(['fakeMethod'])
             ->getMock();
 
         $objectManager->expects($this->once())

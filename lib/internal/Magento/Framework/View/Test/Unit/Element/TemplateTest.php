@@ -26,12 +26,14 @@ use Magento\Store\Model\StoreManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class TemplateTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var Template
      */
@@ -89,11 +91,10 @@ class TemplateTest extends TestCase
             ->with(DirectoryList::ROOT, DriverPool::FILE)
             ->willReturn($this->rootDirMock);
 
-        $this->templateEngine = $this->getMockBuilder(TemplateEnginePool::class)
-            ->onlyMethods(['render'])
-            ->onlyMethods(['get'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->templateEngine = $this->createPartialMockWithReflection(
+            TemplateEnginePool::class,
+            ['render', 'get']
+        );
         $this->loggerMock = $this->createMock(LoggerInterface::class);
         $this->templateEngine->expects($this->any())->method('get')->willReturn($this->templateEngine);
 

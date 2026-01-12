@@ -32,7 +32,7 @@ class MemoryTest extends \PHPUnit\Framework\TestCase
     {
         $this->_memoryLimit = $this->createPartialMock(MemoryLimit::class, ['printStats']);
         $this->_activationPolicy = $this->getMockBuilder(\stdClass::class)
-            ->addMethods(['register_shutdown_function'])
+            ->onlyMethods(['register_shutdown_function'])
             ->getMock();
         $this->_object = new \Magento\TestFramework\Bootstrap\Memory(
             $this->_memoryLimit,

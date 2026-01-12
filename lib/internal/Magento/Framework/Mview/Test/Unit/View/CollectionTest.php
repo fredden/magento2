@@ -62,7 +62,7 @@ class CollectionTest extends TestCase
         $this->entityFactoryMock = $this->getMockBuilder(EntityFactoryInterface::class)
             ->onlyMethods(['create'])
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
 
         $this->mviewConfigMock = $this->createMock(MviewConfigInterface::class);
 
@@ -184,10 +184,7 @@ class CollectionTest extends TestCase
      */
     private function getStateMock(array $methods = [], array $data = [])
     {
-        $state = $this->getMockBuilder(StateInterface::class)
-            ->onlyMethods(array_merge($methods, ['getViewId']))
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $state = $this->createStub(StateInterface::class);
         $state->method('getViewId')
             ->willReturn($data['view_id'] ?? '');
         return $state;
@@ -199,10 +196,7 @@ class CollectionTest extends TestCase
      */
     private function getViewMock(array $methods = [])
     {
-        $view = $this->getMockBuilder(ViewInterface::class)
-            ->onlyMethods(array_merge($methods, ['load']))
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $view = $this->createMock(ViewInterface::class);
         return $view;
     }
 
@@ -214,10 +208,7 @@ class CollectionTest extends TestCase
     private function getIndexerMock(array $methods = [], array $data = [])
     {
         /** @var MockObject|IndexerInterface $indexer */
-        $indexer = $this->getMockBuilder(IndexerInterface::class)
-            ->onlyMethods(array_merge($methods, ['getId', 'getViewId']))
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $indexer = $this->createMock(IndexerInterface::class);
         $indexer->method('getId')
             ->willReturn($data['indexer_id'] ?? '');
         $indexer->method('getViewId')

@@ -177,8 +177,10 @@ class FilterManagerTest extends TestCase
     {
         $value = 'testValue';
         $this->initMocks();
-        $filterMock = $this->getMockBuilder(\stdClass::class)
-            ->onlyMethods(['filter'])->getMock();
+        $filterMock = $this->createPartialMockWithReflection(
+            \stdClass::class,
+            ['filter']
+        );
         $filterMock->expects(
             $this->atLeastOnce()
         )->method(

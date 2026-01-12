@@ -29,10 +29,10 @@ class ConverterTest extends TestCase
     protected function setUp(): void
     {
         $this->sortingAdjustment = $this->createMock(SortingAdjustmentInterface::class);
-        $this->sortingAdjustment->method("adjust")->will(
-            $this->willReturnCallback(function ($arg) {
+        $this->sortingAdjustment->method("adjust")->willReturnCallback(
+            function ($arg) {
                 return $arg;
-            })
+            }
         );
         $this->_model = new Converter($this->sortingAdjustment);
     }

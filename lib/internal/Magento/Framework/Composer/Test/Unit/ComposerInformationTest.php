@@ -57,11 +57,10 @@ class ComposerInformationTest extends TestCase
         $this->lockerMock = $this->getMockBuilder(Locker::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->lockerRepositoryMock = $this->getMockBuilder(LockArrayRepository::class)
-            ->onlyMethods(['getPackages'])
-            ->onlyMethods(['getLockedRepository'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->lockerRepositoryMock = $this->createPartialMockWithReflection(
+            LockArrayRepository::class,
+            ['getPackages', 'getLockedRepository']
+        );
         $this->packageMock = $this->createMock(CompletePackageInterface::class);
         $this->lockerMock->method('getLockedRepository')->willReturn($this->lockerRepositoryMock);
         $this->packageMock->method('getType')->willReturn('metapackage');

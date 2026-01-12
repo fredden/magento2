@@ -49,7 +49,7 @@ class MinifyTest extends TestCase
         $this->adapterMock = $this->getMockBuilder(AdapterInterface::class)
             ->onlyMethods(['minify'])
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
         $this->minificationMock = $this->getMockBuilder(Minification::class)
             ->disableOriginalConstructor()
             ->getMock();

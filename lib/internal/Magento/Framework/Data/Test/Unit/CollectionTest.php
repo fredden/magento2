@@ -160,16 +160,14 @@ class CollectionTest extends TestCase
      */
     public function testPossibleFlowWithItem()
     {
-        $firstItemMock = $this->getMockBuilder(DataObject::class)
-            ->onlyMethods(['getId'])
-            ->onlyMethods(['getData', 'toArray'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $secondItemMock = $this->getMockBuilder(DataObject::class)
-            ->onlyMethods(['getId'])
-            ->onlyMethods(['getData', 'toArray'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $firstItemMock = $this->createPartialMockWithReflection(
+            DataObject::class,
+            ['getId', 'getData', 'toArray']
+        );
+        $secondItemMock = $this->createPartialMockWithReflection(
+            DataObject::class,
+            ['getId', 'getData', 'toArray']
+        );
         $requiredFields = ['required_field_one', 'required_field_two'];
         $arrItems = [
             'totalRecords' => 1,
@@ -235,10 +233,10 @@ class CollectionTest extends TestCase
     public function testEachCallsMethodOnEachItemWithNoArgs()
     {
         for ($i = 0; $i < 3; $i++) {
-            $item = $this->getMockBuilder(DataObject::class)
-                ->onlyMethods(['testCallback'])
-                ->disableOriginalConstructor()
-                ->getMock();
+            $item = $this->createPartialMockWithReflection(
+                DataObject::class,
+                ['testCallback']
+            );
             $item->expects($this->once())->method('testCallback')->with();
             $this->_model->addItem($item);
         }
@@ -253,10 +251,10 @@ class CollectionTest extends TestCase
     public function testEachCallsMethodOnEachItemWithArgs()
     {
         for ($i = 0; $i < 3; $i++) {
-            $item = $this->getMockBuilder(DataObject::class)
-                ->onlyMethods(['testCallback'])
-                ->disableOriginalConstructor()
-                ->getMock();
+            $item = $this->createPartialMockWithReflection(
+                DataObject::class,
+                ['testCallback']
+            );
             $item->expects($this->once())->method('testCallback')->with('a', 'b', 'c');
             $this->_model->addItem($item);
         }
@@ -271,10 +269,10 @@ class CollectionTest extends TestCase
     public function testCallsClosureWithEachItemAndNoArgs()
     {
         for ($i = 0; $i < 3; $i++) {
-            $item = $this->getMockBuilder(DataObject::class)
-                ->onlyMethods(['testCallback'])
-                ->disableOriginalConstructor()
-                ->getMock();
+            $item = $this->createPartialMockWithReflection(
+                DataObject::class,
+                ['testCallback']
+            );
             $item->expects($this->once())->method('testCallback')->with();
             $this->_model->addItem($item);
         }
@@ -291,10 +289,10 @@ class CollectionTest extends TestCase
     public function testCallsClosureWithEachItemAndArgs()
     {
         for ($i = 0; $i < 3; $i++) {
-            $item = $this->getMockBuilder(DataObject::class)
-                ->onlyMethods(['testItemCallback'])
-                ->disableOriginalConstructor()
-                ->getMock();
+            $item = $this->createPartialMockWithReflection(
+                DataObject::class,
+                ['testItemCallback']
+            );
             $item->expects($this->once())->method('testItemCallback')->with('a', 'b', 'c');
             $this->_model->addItem($item);
         }
@@ -310,18 +308,19 @@ class CollectionTest extends TestCase
      */
     public function testCallsCallableArrayWithEachItemNoArgs()
     {
-        $mockCallbackObject = $this->getMockBuilder(\stdClass::class)
-            ->onlyMethods(['testObjCallback'])
-            ->getMock();
+        $mockCallbackObject = $this->createPartialMockWithReflection(
+            \stdClass::class,
+            ['testObjCallback']
+        );
         $mockCallbackObject->method('testObjCallback')->willReturnCallback(function ($item, ...$args) {
             $item->testItemCallback(...$args);
         });
 
         for ($i = 0; $i < 3; $i++) {
-            $item = $this->getMockBuilder(DataObject::class)
-                ->onlyMethods(['testItemCallback'])
-                ->disableOriginalConstructor()
-                ->getMock();
+            $item = $this->createPartialMockWithReflection(
+                DataObject::class,
+                ['testItemCallback']
+            );
             $item->expects($this->once())->method('testItemCallback')->with();
             $this->_model->addItem($item);
         }
@@ -336,18 +335,19 @@ class CollectionTest extends TestCase
      */
     public function testCallsCallableArrayWithEachItemAndArgs()
     {
-        $mockCallbackObject = $this->getMockBuilder(\stdClass::class)
-            ->onlyMethods(['testObjCallback'])
-            ->getMock();
+        $mockCallbackObject = $this->createPartialMockWithReflection(
+            \stdClass::class,
+            ['testObjCallback']
+        );
         $mockCallbackObject->method('testObjCallback')->willReturnCallback(function ($item, ...$args) {
             $item->testItemCallback(...$args);
         });
 
         for ($i = 0; $i < 3; $i++) {
-            $item = $this->getMockBuilder(DataObject::class)
-                ->onlyMethods(['testItemCallback'])
-                ->disableOriginalConstructor()
-                ->getMock();
+            $item = $this->createPartialMockWithReflection(
+                DataObject::class,
+                ['testItemCallback']
+            );
             $item->expects($this->once())->method('testItemCallback')->with('a', 'b', 'c');
             $this->_model->addItem($item);
         }

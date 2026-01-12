@@ -357,7 +357,7 @@ class ApplicationTest extends \PHPUnit\Framework\TestCase
         /** @var ObjectManagerInterface|\PHPUnit\Framework\MockObject\MockObject $objectManager */
         $objectManager = $this->getMockBuilder(ObjectManagerInterface::class)
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
         $objectManager->expects($this->once())
             ->method('configure')
             ->with($this->identicalTo([]));

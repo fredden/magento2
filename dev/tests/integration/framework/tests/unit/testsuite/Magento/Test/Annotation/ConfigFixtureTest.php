@@ -36,7 +36,7 @@ class ConfigFixtureTest extends TestCase
         $objectManager = $this->getMockBuilder(ObjectManagerInterface::class)
             ->onlyMethods(['get', 'create'])
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
 
         $objectManager->method('create')
             ->willReturnCallback(

@@ -46,12 +46,10 @@ class AbstractTest extends TestCase
     protected function setUp(): void
     {
         $this->directoryWriteMock = $this->createMock(Write::class);
-        $this->filesystemMock =
-            $this->getMockBuilder(Filesystem::class)
-                ->onlyMethods(['createDirectory'])
-                ->onlyMethods(['getDirectoryWrite'])
-                ->disableOriginalConstructor()
-                ->getMock();
+        $this->filesystemMock = $this->createPartialMockWithReflection(
+            Filesystem::class,
+            ['createDirectory', 'getDirectoryWrite']
+        );
         $this->filesystemMock->expects(
             $this->once()
         )->method(

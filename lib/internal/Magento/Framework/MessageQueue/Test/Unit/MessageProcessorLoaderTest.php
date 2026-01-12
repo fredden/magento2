@@ -46,11 +46,11 @@ class MessageProcessorLoaderTest extends TestCase
         $this->mergedMessageProcessor = $this
             ->getMockBuilder(MessageProcessorInterface::class)
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
         $this->defaultMessageProcessor = $this
             ->getMockBuilder(MessageProcessorInterface::class)
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
 
         $objectManagerHelper = new ObjectManagerHelper($this);
         $this->messageProcessorLoader = $objectManagerHelper->getObject(

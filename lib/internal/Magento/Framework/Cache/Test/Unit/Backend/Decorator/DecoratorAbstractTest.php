@@ -48,7 +48,7 @@ class DecoratorAbstractTest extends TestCase
     {
         $options = ['concrete_backend' => $this->_mockBackend, 'testOption' => 'testOption'];
 
-        $decorator = $this->getMockForAbstractClass(
+        $decorator = $this->createMock(
             AbstractDecorator::class,
             [$options]
         );
@@ -106,7 +106,7 @@ class DecoratorAbstractTest extends TestCase
     {
         $this->_mockBackend->expects($this->once())->method($methodName);
 
-        $decorator = $this->getMockForAbstractClass(
+        $decorator = $this->createMock(
             AbstractDecorator::class,
             [['concrete_backend' => $this->_mockBackend]]
         );

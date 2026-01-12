@@ -27,12 +27,14 @@ use Magento\Theme\Model\Theme\Image\Path;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class ImageTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var Image
      */
@@ -101,11 +103,10 @@ class ImageTest extends TestCase
             Write::class,
             ['isExist', 'copyFile', 'getRelativePath', 'delete']
         );
-        $this->_filesystemMock = $this->getMockBuilder(Filesystem::class)
-            ->onlyMethods(['delete'])
-            ->onlyMethods(['getDirectoryWrite'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->_filesystemMock = $this->createPartialMockWithReflection(
+            Filesystem::class,
+            ['delete', 'getDirectoryWrite']
+        );
         $this->_filesystemMock
             ->method('getDirectoryWrite')
             ->willReturnCallback(
@@ -122,10 +123,10 @@ class ImageTest extends TestCase
         $imageFactory->expects($this->any())->method('create')->willReturn($this->_imageMock);
 
         $logger = $this->createMock(LoggerInterface::class);
-        $this->_themeMock = $this->getMockBuilder(Theme::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getPreviewImage'])
-            ->getMock();
+        $this->_themeMock = $this->createPartialMockWithReflection(
+            Theme::class,
+            ['getPreviewImage']
+        );
         $this->_uploaderMock = $this->createMock(Uploader::class);
 
         $this->imagePathMock = $this->_getImagePathMock();
@@ -260,10 +261,10 @@ class ImageTest extends TestCase
             ->method('getPreviewImagePath')
             ->willReturn($previewImage);
 
-        $themeMock = $this->getMockBuilder(Theme::class)->disableOriginalConstructor()
-            ->onlyMethods(['getThemeImage'])
-            ->onlyMethods(['getPreviewImage'])
-            ->getMock();
+        $themeMock = $this->createPartialMockWithReflection(
+            Theme::class,
+            ['getThemeImage', 'getPreviewImage']
+        );
         $themeMock->expects($this->atLeastOnce())
             ->method('getPreviewImage')
             ->willReturn($previewImage);

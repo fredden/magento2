@@ -93,7 +93,7 @@ class BatchConsumerTest extends TestCase
         $this->configuration = $this
             ->getMockBuilder(ConsumerConfigurationInterface::class)
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
         $this->messageEncoder = $this->getMockBuilder(MessageEncoder::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -161,7 +161,7 @@ class BatchConsumerTest extends TestCase
         $consumerConfigItem = $this
             ->getMockBuilder(ConsumerConfigItemInterface::class)
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
         $this->consumerConfig->expects($this->atLeastOnce())
             ->method('getConsumer')->with($consumerName)->willReturn($consumerConfigItem);
         $consumerConfigItem->expects($this->atLeastOnce())->method('getConnection')->willReturn($connectionName);
@@ -204,7 +204,7 @@ class BatchConsumerTest extends TestCase
         $consumerConfigItem = $this
             ->getMockBuilder(ConsumerConfigItemInterface::class)
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
         $this->consumerConfig->expects($this->atLeastOnce())
               ->method('getConsumer')->with($consumerName)->willReturn($consumerConfigItem);
         $consumerConfigItem->expects($this->atLeastOnce())->method('getConnection')->willReturn($connectionName);

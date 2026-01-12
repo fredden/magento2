@@ -41,7 +41,7 @@ class MinificationTest extends TestCase
         $this->resolverMock = $this
             ->getMockBuilder(ResolverInterface::class)
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
 
         $this->assetMinificationMock = $this->getMockBuilder(\Magento\Framework\View\Asset\Minification::class)
             ->disableOriginalConstructor()

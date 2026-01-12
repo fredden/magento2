@@ -41,20 +41,16 @@ class AbstractHelperTest extends TestCase
             ->with('prefix')
             ->willReturn($this->_adapterMock);
 
-        $this->_model = $this->createMock(
-            AbstractHelper::class,
-            [$this->_resourceMock, 'prefix'],
-            '',
-            true,
-            true,
-            true,
-            ['addLikeEscape']
-        );
+        $this->_model = $this->getMockBuilder(AbstractHelper::class)
+            ->setConstructorArgs([$this->_resourceMock, 'prefix'])
+            ->onlyMethods(['addLikeEscape'])
+            ->getMock();
     }
 
     /**
      * @param string $expected
-     * @param array $data     */
+     * @param array $data
+     */
     #[DataProvider('escapeLikeValueDataProvider')]
     public function testEscapeLikeValue($expected, array $data)
     {

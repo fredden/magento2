@@ -29,9 +29,10 @@ class CurlTest extends TestCase
 
     protected function setUp(): void
     {
-        self::$curlMock = $this->getMockBuilder(\StdClass::class)
-            ->onlyMethods(['setopt', 'exec'])
-            ->getMock();
+        self::$curlMock = $this->createPartialMockWithReflection(
+            \StdClass::class,
+            ['setopt', 'exec']
+        );
         require_once __DIR__ . '/_files/curl_exec_mock.php';
         $this->model = new Curl();
     }

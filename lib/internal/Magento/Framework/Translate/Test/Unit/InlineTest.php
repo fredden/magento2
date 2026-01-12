@@ -220,7 +220,7 @@ class InlineTest extends TestCase
         $jsonCall = is_array($body) ? 2 * (count($body) + 1) : 2;
         $this->parserMock->expects($this->exactly($jsonCall))
             ->method('setIsJson')
-            ->willReturnMap([[$isJson, $this->willReturnSelf()], [!$isJson, $this->willReturnSelf()]]);
+            ->willReturnSelf();
         $this->parserMock->expects($this->once())
             ->method('processResponseBodyString')
             ->with(is_array($body) ? reset($body) : $body);
@@ -276,7 +276,7 @@ class InlineTest extends TestCase
         $jsonCall = is_array($body) ? 2 * (count($body) + 1) : 2;
         $this->parserMock->expects($this->exactly($jsonCall))
             ->method('setIsJson')
-            ->willReturnMap([[$isJson, $this->willReturnSelf()], [!$isJson, $this->willReturnSelf()]]);
+            ->willReturnSelf();
         $this->parserMock->expects($this->once())
             ->method('processResponseBodyString')
             ->with(is_array($body) ? reset($body) : $body);

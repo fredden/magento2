@@ -24,12 +24,14 @@ use Magento\Framework\View\Layout\ScheduledStructure;
 use Magento\Framework\View\LayoutInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class UiComponentTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var ObjectManagerHelper
      */
@@ -76,11 +78,10 @@ class UiComponentTest extends TestCase
         $this->argumentInterpreterMock = $this->createMock(
             InterpreterInterface::class
         );
-        $this->uiComponentFactoryMock = $this->getMockBuilder(UiComponentFactory::class)
-            ->onlyMethods(['setLayout'])
-            ->onlyMethods(['create'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->uiComponentFactoryMock = $this->createPartialMockWithReflection(
+            UiComponentFactory::class,
+            ['setLayout', 'create']
+        );
         $this->scheduledStructureMock = $this->getMockBuilder(ScheduledStructure::class)
             ->disableOriginalConstructor()
             ->getMock();

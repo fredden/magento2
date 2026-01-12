@@ -42,7 +42,7 @@ class IndexScopeResolverTest extends TestCase
         $this->resource = $this->getMockBuilder(ResourceConnection::class)
             ->onlyMethods(['getTableName'])
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
 
         $this->scopeResolver = $this->createMock(ScopeResolverInterface::class);
 

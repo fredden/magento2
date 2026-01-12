@@ -43,11 +43,9 @@ class RequestTest extends TestCase
     protected function setUp(): void
     {
         /** Prepare mocks for request constructor arguments. */
-        $this->_deserializerFactory = $this->getMockBuilder(
-            DeserializerFactory::class
-        )->onlyMethods(['get'])->onlyMethods(
-            ['deserialize']
-        )->disableOriginalConstructor()
+        $this->_deserializerFactory = $this->getMockBuilder(DeserializerFactory::class)
+            ->onlyMethods(['get'])
+            ->disableOriginalConstructor()
             ->getMock();
         $areaListMock = $this->createMock(AreaList::class);
         $configScopeMock = $this->createMock(ScopeInterface::class);
@@ -84,7 +82,7 @@ class RequestTest extends TestCase
 
     /**
      * Test for getAcceptTypes() method.
-     *     * @param string $acceptHeader Value of Accept HTTP header
+     * @param string $acceptHeader Value of Accept HTTP header
      * @param array $expectedResult Method call result
      */
     #[DataProvider('providerAcceptType')]
@@ -159,7 +157,7 @@ class RequestTest extends TestCase
 
     /**
      * Test for getContentType() method.
-     *     * @param string $contentTypeHeader 'Content-Type' header value
+     * @param string $contentTypeHeader 'Content-Type' header value
      * @param string $contentType Appropriate content type for header value
      * @param string|boolean $exceptionMessage \Exception message (boolean FALSE if exception is not expected)
      */

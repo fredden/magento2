@@ -21,12 +21,14 @@ use Magento\Framework\View\DesignInterface;
 use Magento\Framework\View\File;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class ConfigTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var Aggregated|MockObject
      */
@@ -77,20 +79,17 @@ class ConfigTest extends TestCase
         $readFactory->method('create')
             ->willReturn($this->fileReader);
         $repo = $this->createMock(Repository::class);
-        $this->context = $this->getMockBuilder(ContextInterface::class)
-            ->onlyMethods([
+        $this->context = $this->createPartialMockWithReflection(
+            ContextInterface::class,
+            [
                 'getConfigPath',
                 'getAreaCode',
                 'getThemePath',
-                'getLocale'
-            ])
-            ->onlyMethods(
-                [
-                    'getPath',
-                    'getBaseUrl'
-                ]
-            )
-            ->getMock();
+                'getLocale',
+                'getPath',
+                'getBaseUrl'
+            ]
+        );
         $repo->expects($this->once())->method('getStaticViewFileContext')->willReturn($this->context);
         $this->minificationMock = $this->getMockBuilder(Minification::class)
             ->disableOriginalConstructor()

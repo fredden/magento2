@@ -25,12 +25,14 @@ use Magento\Framework\View\Layout\ScheduledStructure\Helper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class UiComponentTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var UiComponent
      */
@@ -67,11 +69,10 @@ class UiComponentTest extends TestCase
             ->onlyMethods(['scheduleStructure'])
             ->disableOriginalConstructor()
             ->getMock();
-        $this->context = $this->getMockBuilder(Context::class)
-            ->onlyMethods(['setElementToIfconfigList'])
-            ->onlyMethods(['getScheduledStructure'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->context = $this->createPartialMockWithReflection(
+            Context::class,
+            ['setElementToIfconfigList', 'getScheduledStructure']
+        );
         $this->dataConfigFactory = $this->createMock(DataInterfaceFactory::class);
         $this->dataConfig = $this->createMock(DataInterface::class);
         $this->readerPool = $this->getMockBuilder(ReaderPool::class)

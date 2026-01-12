@@ -32,7 +32,7 @@ class AppIsolationTest extends \PHPUnit\Framework\TestCase
         $objectManager = $this->getMockBuilder(ObjectManagerInterface::class)
             ->onlyMethods(['get', 'create'])
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
 
         $sharedInstances = [
             AppIsolation::class => $this->createConfiguredMock(AppIsolation::class, ['parse' => []])

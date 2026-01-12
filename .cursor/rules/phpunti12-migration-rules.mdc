@@ -1,0 +1,2586 @@
+---
+alwaysApply: true
+---
+## **Step 1: Basic Mock Migration Patterns**
+
+### **1.1 Simple Mock Creation**
+
+**Pattern:** `getMockBuilder()` with only `disableOriginalConstructor()`
+
+```php
+// Before (PHPUnit 9/10)
+$mock = $this->getMockBuilder(ClassName::class)
+    ->disableOriginalConstructor()
+    ->getMock();
+
+// After (PHPUnit 12)
+$mock = $this->createMock(ClassName::class);
+```
+
+**When to use:** Simple mocks where you only need basic functionality without method configuration.
+
+### **1.2 Partial Mock Creation**
+
+**Pattern:** `getMockBuilder()` with `onlyMethods()`
+
+```php
+// Before (PHPUnit 9/10)
+$mock = $this->getMockBuilder(ClassName::class)
+    ->disableOriginalConstructor()
+    ->onlyMethods(['method1', 'method2'])
+    ->getMock();
+
+// After (PHPUnit 12)
+$mock = $this->createPartialMock(ClassName::class, ['method1', 'method2']);
+```
+
+**When to use:** When you need to mock specific methods while keeping others as real implementations.
+
+### **1.3 Stub Creation**
+
+**Pattern:** `getMockBuilder()` for simple stubs with return values
+
+```php
+// Before (PHPUnit 9/10)
+$mock = $this->getMockBuilder(ClassName::class)
+    ->disableOriginalConstructor()
+    ->getMock();
+$mock->method('someMethod')->willReturn('value');
+
+// After (PHPUnit 12)
+$mock = $this->createStub(ClassName::class);
+$mock->method('someMethod')->willReturn('value');
+```
+
+**When to use:** When you only need to configure return values without verifying method calls.
+
+---
+
+## **Step 2: Abstract Classes and Interfaces**
+
+### **2.1 Abstract Classes**
+
+**Pattern:** `getMockForAbstractClass()` for abstract classes
+
+```php
+// Before (PHPUnit 9/10)
+$mock = $this->getMockForAbstractClass(AbstractClass::class);
+
+// After (PHPUnit 12)
+$mock = $this->createMock(AbstractClass::class);
+```
+
+**Note:** If you get "abstract method" errors, use `createPartialMock()` instead:
+```php
+$mock = $this->createPartialMock(AbstractClass::class, ['method1', 'method2', '_construct']);
+```
+
+### **2.2 Simple Interfaces (< 10 methods)**
+
+**Pattern:** `getMockForAbstractClass()` for simple interfaces
+
+```php
+// Before (PHPUnit 9/10)
+$mock = $this->getMockForAbstractClass(SimpleInterface::class);
+
+// After (PHPUnit 12)
+$mock = $this->createMock(SimpleInterface::class);
+```
+
+### **2.3 Complex Interfaces (10+ methods)**
+
+**Pattern:** `getMockForAbstractClass()` for complex interfaces
+
+```php
+// Before (PHPUnit 9/10)
+$mock = $this->getMockForAbstractClass(ManagerInterface::class);
+
+// After (PHPUnit 12)
+$mock = $this->createStub(ManagerInterface::class);
+```
+
+**When to use createStub():**
+- Interface has 10+ abstract methods
+- You get "contains X abstract methods" fatal error
+- You don't need to configure specific method behaviors
+- Examples: `ManagerInterface`, `ProductInterface`, `CustomerInterface`
+
+---
+
+## **Step 3: addMethods() Migration**
+
+### **3.1 Decision Tree**
+
+1. **Try createMock()** - Simple interface mock
+2. **Try createPartialMock()** - Interface with specific methods
+3. **Try createPartialMock() on concrete class** - Find concrete implementation
+4. **Use anonymous class** - Last resort for complex cases
+
+### **3.2 Approach 1: createMock() (Simplest)**
+
+```php
+// Try first: Simple createMock on interface
+$mock = $this->createMock(SomeInterface::class);
+$mock->method('customMethod')->willReturn('value');
+```
+
+**Expected Result:** 
+- ✅ SUCCESS: If method exists on interface
+- ❌ FAIL: `MethodCannotBeConfiguredException` if method doesn't exist
+
+### **3.3 Approach 2: createPartialMock() on Interface**
+
+```php
+// Try second: createPartialMock on interface
+$mock = $this->createPartialMock(SomeInterface::class, ['customMethod']);
+$mock->method('customMethod')->willReturn('value');
+```
+
+**Expected Result:**
+- ✅ SUCCESS: If method exists on interface
+- ❌ FAIL: `CannotUseOnlyMethodsException` if method doesn't exist
+
+### **3.4 Approach 3: createPartialMock() on Concrete Class**
+
+```php
+// Try third: Find concrete class that implements the interface
+$mock = $this->createPartialMock(\Concrete\ClassName::class, ['customMethod']);
+$mock->method('customMethod')->willReturn('testValue');
+```
+
+**Expected Result:**
+- ✅ SUCCESS: If method exists on concrete class
+- ❌ FAIL: If no concrete class found
+
+### **3.5 Approach 4: MockCreationTrait (PREFERRED for Non-Existent Methods)**
+
+**When approaches 1-3 fail and you need to mock methods that don't exist on a class/interface, use the MockCreationTrait BEFORE creating a helper file.**
+
+**🎯 BEST PRACTICE: Always try this trait-based approach before creating any helper files!**
+
+**Location:** `lib/internal/Magento/Framework/TestFramework/Unit/Helper/MockCreationTrait.php`
+
+#### **MockCreationTrait Code:**
+
+```php
+<?php
+declare(strict_types=1);
+
+namespace Magento\Framework\TestFramework\Unit\Helper;
+
+use PHPUnit\Framework\MockObject\MockObject;
+use ReflectionClass;
+
+/**
+ * Trait for creating partial mocks with reflection for PHPUnit 12 migration
+ *
+ * Provides helper methods for creating mocks when standard PHPUnit methods are insufficient
+ */
+trait MockCreationTrait
+{
+    /**
+     * Create a partial mock with reflection.
+     *
+     * Use this when you need to mock methods that don't exist in the class/interface
+     * and cannot use standard createPartialMock() which would throw CannotUseOnlyMethodsException.
+     *
+     * @param string $className
+     * @param array $methods Methods to mock
+     * @return MockObject
+     */
+    protected function createPartialMockWithReflection(string $className, array $methods): MockObject
+    {
+        $reflection = new ReflectionClass($this);
+        $getMockBuilderMethod = $reflection->getMethod('getMockBuilder');
+        $getMockBuilderMethod->setAccessible(true);
+        $mockBuilder = $getMockBuilderMethod->invoke($this, $className);
+
+        $builderReflection = new ReflectionClass($mockBuilder);
+        $methodsProperty = $builderReflection->getProperty('methods');
+        $methodsProperty->setAccessible(true);
+        $methodsProperty->setValue($mockBuilder, $methods);
+
+        $mockBuilder->disableOriginalConstructor();
+        return $mockBuilder->getMock();
+    }
+}
+```
+
+#### **How to Use the Trait:**
+
+**Step 1: Import the Trait**
+```php
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
+use PHPUnit\Framework\TestCase;
+
+class YourTest extends TestCase
+{
+    use MockCreationTrait;
+    
+    // ... your test code
+}
+```
+
+**Step 2: Create Mock with Non-Existent Methods**
+```php
+// For interfaces with custom methods not in the interface
+$mock = $this->createPartialMockWithReflection(
+    ClientInterface::class,
+    ['testConnection', 'query', 'bulkQuery'] // Methods not in interface
+);
+$mock->method('query')->willReturn(['results']);
+
+// For classes with custom methods
+$mock = $this->createPartialMockWithReflection(
+    \stdClass::class,
+    ['getId', 'getValue', 'getLabel'] // Custom methods
+);
+$mock->method('getId')->willReturn(14);
+$mock->method('getValue')->willReturn('Blue');
+```
+
+**Step 3: For Stateful Mocks (getData/setData patterns)**
+```php
+$mock = $this->createPartialMockWithReflection(
+    Attribute::class,
+    ['hasData', 'getData', 'setData']
+);
+
+$data = [];
+$mock->method('hasData')->willReturnCallback(function ($key) use (&$data) {
+    return isset($data[$key]);
+});
+$mock->method('getData')->willReturnCallback(function ($key = '') use (&$data) {
+    return $data[$key] ?? null;
+});
+$mock->method('setData')->willReturnCallback(function ($key, $value = null) use (&$data) {
+    $data[$key] = $value;
+});
+```
+
+#### **When to Use MockCreationTrait:**
+
+✅ **Use when:**
+- `createPartialMock()` throws `CannotUseOnlyMethodsException`
+- You need to mock methods that don't exist in the class/interface
+- You're migrating TestHelper files that only add custom methods
+- You need stateful behavior (getData/setData patterns)
+- You want to avoid creating separate helper files
+
+❌ **Don't use when:**
+- Standard `createMock()` works
+- Standard `createPartialMock()` works
+- The class has complex constructor logic that needs special handling
+- You need to override actual implementation logic (not just add methods)
+
+#### **Real-World Examples:**
+
+**Example 1: Interface with Custom Methods**
+```php
+// Before (TestHelper file):
+class ClientInterfaceTestHelper implements ClientInterface
+{
+    public function query($query) { return []; }
+    public function bulkQuery($queries) { return []; }
+    // ... more custom methods
+}
+
+// After (MockCreationTrait):
+$clientMock = $this->createPartialMockWithReflection(
+    ClientInterface::class,
+    ['testConnection', 'query', 'bulkQuery']
+);
+$clientMock->method('query')->willReturn([]);
+$clientMock->method('bulkQuery')->willReturn([]);
+```
+
+**Example 2: stdClass with Custom Methods**
+```php
+// Before (TestHelper file):
+class OptionTestHelper extends \stdClass
+{
+    public function getId() { return 14; }
+    public function getValue() { return 'Blue'; }
+    public function getLabel() { return '#0000FF'; }
+}
+
+// After (MockCreationTrait):
+$option = $this->createPartialMockWithReflection(
+    \stdClass::class,
+    ['getId', 'getValue', 'getLabel']
+);
+$option->method('getId')->willReturn(14);
+$option->method('getValue')->willReturn('Blue');
+$option->method('getLabel')->willReturn('#0000FF');
+```
+
+**Example 3: Observer with Custom Methods**
+```php
+// Before (TestHelper file):
+class ObserverTestHelper extends Observer
+{
+    public function getGrid() { return $this->grid; }
+}
+
+// After (MockCreationTrait):
+$observerMock = $this->createPartialMockWithReflection(
+    Observer::class,
+    ['getGrid']
+);
+$observerMock->method('getGrid')->willReturn($gridMock);
+```
+
+#### **Advantages Over Helper Files:**
+
+| Aspect | MockCreationTrait | Helper File |
+|--------|------------------|-------------|
+| **Code Location** | ✅ In test file | ❌ Separate file |
+| **Reusability** | ✅ Trait used in any test | ⚠️ Requires import |
+| **Maintainability** | ✅ Easy to update | ❌ Must update file |
+| **Lines of Code** | ✅ 3-5 lines | ❌ 30-50+ lines |
+| **File Count** | ✅ No new files | ❌ +1 file per helper |
+| **PHPUnit Native** | ✅ Uses PHPUnit mocking | ⚠️ Custom implementation |
+| **Flexibility** | ✅ Easy inline config | ⚠️ Requires class changes |
+
+#### **Migration Checklist:**
+
+When migrating TestHelper files to MockCreationTrait:
+
+1. ✅ Check if helper only adds custom methods (no constructor logic)
+2. ✅ Check if helper only provides simple return values
+3. ✅ Import `MockCreationTrait` in test class
+4. ✅ Add `use MockCreationTrait;` inside test class
+5. ✅ Replace `new HelperClass()` with `createPartialMockWithReflection()`
+6. ✅ Configure method returns using `method()->willReturn()`
+7. ✅ For stateful behavior, use `willReturnCallback()`
+8. ✅ Run tests to verify behavior
+9. ✅ Delete the helper file if no longer used
+
+---
+
+### **3.6 Approach 5: Test Helper File (LAST RESORT)**
+
+**⚠️ IMPORTANT: Only create a helper file if MockCreationTrait (Approach 4) cannot solve your problem!**
+
+**When to use helper files:**
+- Complex constructor logic that cannot be mocked
+- Need to override parent method implementations (not just add new methods)
+- Multiple tests need shared complex setup logic
+- The trait approach becomes too verbose or unclear
+
+**When approaches 1-4 fail, create a separate test helper file. Never use inline anonymous classes in test files.**
+
+**🚨 CRITICAL: For interfaces, always extend existing implementations instead of implementing from scratch!**
+
+**Step 1: Find Existing Implementation (For Interfaces)**
+```bash
+# Search for existing classes that implement the interface
+grep -r "implements.*InterfaceName" app/code/Magento/ --include="*.php" | grep -v "Test"
+
+# Example: Find LinkInterface implementations
+grep -r "implements.*LinkInterface" app/code/Magento/ --include="*.php" | grep -v "Test"
+# Result: \Magento\Bundle\Model\Link implements LinkInterface
+```
+
+**Step 2: Create Test Helper File**
+
+**For Concrete Classes:**
+```php
+// File: {Module}/Test/Unit/Helper/ConcreteClassTestHelper.php
+<?php
+declare(strict_types=1);
+
+namespace Magento\Module\Test\Unit\Helper;
+
+use Magento\Module\Model\ConcreteClass;
+
+class ConcreteClassTestHelper extends ConcreteClass
+{
+    private $data = [];
+    
+    public function __construct()
+    {
+        // Skip parent constructor to avoid dependency injection issues
+    }
+    
+    // ✅ ONLY implement the custom methods that don't exist in ConcreteClass
+    public function customMethod()
+    {
+        return $this->data['custom'] ?? 'value';
+    }
+    
+    public function setCustomMethod($value)
+    {
+        $this->data['custom'] = $value;
+        return $this;
+    }
+    
+    // ❌ DON'T implement methods that already exist in ConcreteClass
+    // All other methods are inherited from the parent class
+}
+```
+
+**For Interfaces (BEST APPROACH):**
+```php
+// File: {Module}/Test/Unit/Helper/InterfaceTestHelper.php
+<?php
+declare(strict_types=1);
+
+namespace Magento\Module\Test\Unit\Helper;
+
+use Magento\Module\Model\ExistingImplementation; // Found in Step 1
+
+class InterfaceTestHelper extends ExistingImplementation
+{
+    private $data = [];
+    
+    public function __construct()
+    {
+        // Skip parent constructor to avoid dependency injection issues
+    }
+    
+    // ✅ ONLY implement the custom methods that don't exist in ExistingImplementation
+    public function customMethod()
+    {
+        return $this->data['custom'] ?? 'value';
+    }
+    
+    public function setCustomMethod($value)
+    {
+        $this->data['custom'] = $value;
+        return $this;
+    }
+    
+    // ✅ All interface methods are inherited from ExistingImplementation
+    // No need to implement interface methods from scratch
+}
+```
+
+**Step 2: Use in Test File**
+```php
+use Magento\Module\Test\Unit\Helper\ConcreteClassTestHelper;
+
+public function testMethod()
+{
+    $mock = new ConcreteClassTestHelper();
+    $mock->setCustomMethod('test-value');
+    
+    // Use the helper in your test
+    $this->assertEquals('test-value', $mock->customMethod());
+}
+```
+
+---
+
+## **Step 4: Magic Methods and Reflection - Avoid Helper Files When Possible**
+
+### **4.1 Magic Methods with Reflection (PREFERRED APPROACH)**
+
+**Before creating helper files for classes with magic methods, try using reflection to set up internal properties.**
+
+**Common Scenario:** Classes that use `__call` magic method for `setData`/`getData` (like `SessionManager`, `DataObject`, etc.)
+
+**✅ PREFERRED: Use Reflection in Test File**
+```php
+// Instead of creating a helper file, use reflection directly in the test
+$sessionMock = $this->createPartialMock(Session::class, []);
+
+// Use reflection to set up the storage property
+$reflection = new \ReflectionClass($sessionMock);
+$storageProperty = $reflection->getProperty('storage');
+$storageProperty->setAccessible(true);
+$storage = new \Magento\Framework\DataObject();
+$storageProperty->setValue($sessionMock, $storage);
+
+$sessionMock->setData('key', 'value'); // Works via __call magic method
+```
+
+**Why This Works:**
+- **Magic Method Delegation**: `__call` delegates `setData`/`getData` to `$this->storage`
+- **No Custom Code**: Leverages existing parent class functionality
+- **No Helper File**: Everything is contained in the test file
+- **Standard PHPUnit**: Uses normal mocking with reflection
+
+**When to Use This Approach:**
+- Classes with `__call` magic methods for data access
+- Classes that delegate to internal storage objects
+- When you only need to set up internal properties
+- When the magic method handles all needed functionality
+
+**When NOT to Use This Approach:**
+- When you need custom method implementations
+- When the class has complex constructor dependencies
+- When you need to override specific method behavior
+- When the magic method doesn't handle all needed functionality
+
+### **4.2 Magic Method Examples**
+
+**Example 1: Session Classes**
+```php
+// SessionManager uses __call to delegate to $this->storage
+$sessionMock = $this->createPartialMock(Session::class, []);
+$reflection = new \ReflectionClass($sessionMock);
+$storageProperty = $reflection->getProperty('storage');
+$storageProperty->setAccessible(true);
+$storageProperty->setValue($sessionMock, new \Magento\Framework\DataObject());
+```
+
+**Example 2: DataObject Classes**
+```php
+// DataObject uses __call for getData/setData
+$dataMock = $this->createPartialMock(DataObject::class, []);
+$dataMock->setData('key', 'value'); // Works via __call
+```
+
+**Example 3: Model Classes with Magic Methods**
+```php
+// AbstractModel uses __call for data access
+$modelMock = $this->createPartialMock(AbstractModel::class, []);
+$modelMock->setData('field', 'value'); // Works via __call
+```
+
+### **4.3 Reflection Helper Method (Optional)**
+
+**For frequently used patterns, create a helper method in your test class:**
+```php
+private function createSessionMockWithStorage(): Session
+{
+    $sessionMock = $this->createPartialMock(Session::class, []);
+    $reflection = new \ReflectionClass($sessionMock);
+    $storageProperty = $reflection->getProperty('storage');
+    $storageProperty->setAccessible(true);
+    $storageProperty->setValue($sessionMock, new \Magento\Framework\DataObject());
+    return $sessionMock;
+}
+
+// Usage in tests
+public function testSomething()
+{
+    $sessionMock = $this->createSessionMockWithStorage();
+    $sessionMock->setData('key', 'value');
+    // ... rest of test
+}
+```
+
+---
+
+## **Step 5: Test Helper Optimization and Removal**
+
+### **5.1 Before Creating a Helper - Ask These Questions**
+
+**🚨 CRITICAL: Always try to avoid creating helpers. Create them only when absolutely necessary.**
+
+#### **Helper Necessity Decision Tree**
+
+```
+Can the parent class method be used directly?
+├─ YES → Don't create helper, use parent class
+└─ NO → Is it only to skip constructor?
+    ├─ YES → Use createMock() or createStub() instead
+    └─ NO → Does the method exist in parent?
+        ├─ YES → Use reflection to access parent functionality
+        └─ NO → Create helper (truly custom method needed)
+```
+
+### **5.2 Optimization Strategies by Helper Type**
+
+#### **Type 1: Constructor-Only Helpers (CAN BE REMOVED)**
+
+**Pattern:** Helper only overrides constructor, all methods inherited from parent
+
+**Before (Helper File):**
+```php
+class CheckoutCartTestHelper extends CheckoutCart
+{
+    public function __construct()
+    {
+        // Skip parent constructor
+    }
+}
+```
+
+**After (Test File):**
+```php
+// Use createMock or createStub instead
+$cartMock = $this->createMock(CheckoutCart::class);
+// Configure methods as needed
+$cartMock->method('save')->willReturnSelf();
+```
+
+**Result:** ✅ Helper deleted, test uses standard PHPUnit mocks
+
+#### **Type 2: Magic Method Helpers (CAN BE REPLACED WITH REFLECTION)**
+
+**Pattern:** Helper provides `setData()`/`getData()` for classes with `__call` magic method
+
+**Before (Helper File):**
+```php
+class SessionTestHelper extends Session
+{
+    private $data = [];
+    
+    public function __construct() { }
+    
+    public function getData($key) { return $this->data[$key] ?? null; }
+    public function setData($key, $value) { $this->data[$key] = $value; }
+}
+```
+
+**After (Test File):**
+```php
+// Use reflection to set internal storage
+$sessionMock = $this->createPartialMock(Session::class, []);
+$reflection = new \ReflectionClass($sessionMock);
+$property = $reflection->getProperty('storage');
+$property->setValue($sessionMock, new \Magento\Framework\DataObject());
+
+// Now use parent's methods via __call
+$sessionMock->setData('key', 'value');
+```
+
+**Result:** ✅ Helper deleted, use reflection + parent methods
+
+#### **Type 3: Method Override Helpers (CAN BE OPTIMIZED)**
+
+**Pattern:** Helper overrides many methods that exist in parent
+
+**Before (123 lines, 8 methods):**
+```php
+class CheckoutCartTestHelper extends CheckoutCart
+{
+    public $quote = null;
+    
+    public function __construct() { }
+    public function getQuote() { return $this->quote; }
+    public function setQuote($quote) { $this->quote = $quote; }
+    public function getItems() { return $this->items; }
+    public function setItems($items) { $this->items = $items; }
+    public function addProduct($info, $request = null) { return $this; }
+    public function save() { return $this; }
+    public function shouldRedirectToCart() { return false; }
+    public function getCartUrl() { return 'cart_url'; }
+}
+```
+
+**After - Check Which Methods Are Actually Used:**
+```bash
+grep "checkoutCartMock->" TestFile.php
+# Result: Only setQuote() is called
+```
+
+**Optimized (30 lines, 1 method):**
+```php
+class CheckoutCartTestHelper extends CheckoutCart
+{
+    public function __construct()
+    {
+        // Skip parent constructor
+        // All methods inherited from parent
+    }
+}
+```
+
+**Or Better - Remove Helper Entirely:**
+```php
+$cartMock = $this->createMock(CheckoutCart::class);
+// Parent's setQuote() and getQuote() use setData/getData from DataObject
+// Just configure the mock properly
+```
+
+**Result:** ✅ 75-100% reduction or complete removal
+
+#### **Type 4: Custom Method Helpers (CANNOT BE REMOVED)**
+
+**Pattern:** Helper implements methods that don't exist in parent
+
+**Example:**
+```php
+class ProductTypeSimpleTestHelper extends Simple
+{
+    private array $ids = [];
+    private int $callCount = 0;
+    
+    public function __construct() { }
+    
+    // Custom logic: returns different ID on each call
+    public function getId()
+    {
+        $id = $this->ids[$this->callCount] ?? null;
+        $this->callCount++;
+        return $id;
+    }
+    
+    public function setIds(array $ids)
+    {
+        $this->ids = $ids;
+        $this->callCount = 0;
+        return $this;
+    }
+}
+```
+
+**Analysis:**
+- `getId()` doesn't exist in `Simple` or `AbstractType`
+- Has custom counter logic needed for testing
+- Cannot use `createPartialMock` (method doesn't exist → `CannotUseOnlyMethodsException`)
+- **Must keep helper**
+
+**Optimization:** Remove unused helper methods
+```php
+// Before: getIds(), setId(), getCallCount(), setCallCount(), incrementCallCount()
+// After: Only setIds() and getId() (used by tests)
+// Result: 44% reduction
+```
+
+#### **Type 5: Interface Implementation Helpers (CANNOT BE REMOVED)**
+
+**Pattern:** Implements dynamically generated Extension Attributes interface
+
+**Example:**
+```php
+class PriceInfoExtensionInterfaceTestHelper implements PriceInfoExtensionInterface
+{
+    private ?array $weeeAttributes = null;
+    
+    public function setWeeeAttributes($attributes) { /* ... */ }
+    public function setWeeeAdjustment($adjustment) { /* ... */ }
+    // These methods are called by production code (collectors)
+}
+```
+
+**Why Cannot Remove:**
+- Interface is dynamically generated (doesn't exist as file)
+- No concrete implementation to extend from
+- Methods are called by production code (Weee/Tax/Msrp collectors)
+
+**Optimization:** Remove unused getter methods if only setters are called
+
+### **5.3 Helper Optimization Checklist**
+
+**For Each Helper File, Complete This Analysis:**
+
+1. **Check Method Usage:**
+```bash
+# Find where helper is used
+grep -r "HelperClassName" app/code/Magento/ --include="*.php" | grep -v "Test"
+
+# Check which methods are called
+grep "helperVar->" TestFile.php
+```
+
+2. **Compare with Parent Class:**
+```bash
+# Check if methods exist in parent
+grep "public function methodName" ParentClass.php
+```
+
+3. **Decision Matrix:**
+
+| Helper Type | Parent Has Method? | Method Called? | Action |
+|------------|-------------------|----------------|---------|
+| Constructor only | N/A | N/A | ❌ Delete helper, use `createMock()` |
+| Override | ✅ Yes | ✅ Yes | ❌ Delete helper, use parent method |
+| Override | ✅ Yes | ❌ No | ✅ Remove unused method from helper |
+| Magic method | ✅ Via `__call` | ✅ Yes | ❌ Delete helper, use reflection |
+| Custom method | ❌ No | ✅ Yes | ✅ Keep helper, optimize unused methods |
+| Interface impl | N/A (interface) | ✅ Yes | ✅ Keep helper, optimize unused methods |
+
+### **5.4 Common Helper Removal Patterns**
+
+#### **Pattern A: Constructor Bypass with Mock Configuration**
+
+```php
+// BEFORE: Helper file (30 lines)
+class CartTestHelper extends Cart {
+    public function __construct() { }
+}
+
+// AFTER: Test file configuration
+$cartMock = $this->createMock(Cart::class);
+$cartMock->method('save')->willReturnSelf();
+
+// For setQuote/getQuote with state management:
+$cartQuote = null;
+$cartMock->method('setQuote')->willReturnCallback(
+    function($quote) use (&$cartQuote) {
+        $cartQuote = $quote;
+        return $this;
+    }
+);
+$cartMock->method('getQuote')->willReturnCallback(
+    function() use (&$cartQuote) {
+        return $cartQuote;
+    }
+);
+```
+
+#### **Pattern B: Reflection for Magic Methods**
+
+```php
+// BEFORE: Helper file (50 lines)
+class SessionTestHelper extends Session {
+    private $data = [];
+    public function __construct() { }
+    public function setData($k, $v) { $this->data[$k] = $v; }
+    public function getData($k) { return $this->data[$k] ?? null; }
+}
+
+// AFTER: Test file with reflection
+$sessionMock = $this->createPartialMock(Session::class, []);
+$reflection = new \ReflectionClass($sessionMock);
+$property = $reflection->getProperty('storage');
+$property->setValue($sessionMock, new \Magento\Framework\DataObject());
+
+// Parent's __call now works
+$sessionMock->setData('key', 'value');
+```
+
+#### **Pattern C: Direct Parent Method Usage**
+
+```php
+// BEFORE: Helper overrides getStoreId()
+class ProductTestHelper extends Product {
+    public function getStoreId() { return $this->storeId; }
+}
+
+// AFTER: Set store_id in test, use parent's getStoreId()
+$product = new ProductTestHelper();
+$product->setStoreId(1); // Parent's setData() via magic method
+// Parent's getStoreId() now returns correct value
+```
+
+### **5.5 Helper Optimization Impact Examples**
+
+**Real-world results from optimization:**
+
+| Helper | Before | After | Reduction | Status |
+|--------|--------|-------|-----------|--------|
+| CheckoutCartTestHelper | 123 lines, 8 methods | Deleted | 100% | ✅ Removed |
+| SessionTestHelper | 50 lines, 4 methods | Deleted | 100% | ✅ Removed |
+| ItemUpdateTestHelper | 60 lines, 5 methods | Deleted | 100% | ✅ Removed |
+| ProductTypeTestHelper | 40 lines, 3 methods | Deleted | 100% | ✅ Removed |
+| ProductTypeSimpleTestHelper | 114 lines, 7 methods | 64 lines, 2 methods | 44% | ✅ Optimized |
+| ProductTestHelper | 178 lines, 13 methods | 156 lines, 11 methods | 12% | ✅ Optimized |
+| PriceInfoExtensionInterfaceTestHelper | 99 lines, 8 methods | 99 lines, 4 methods | 50% getters | ✅ Optimized |
+
+### **5.6 Update Migration Rules**
+
+**Add to Essential Rules Summary:**
+
+**Rule 14:** Before creating a helper, exhaust all alternatives: `createMock()`, `createStub()`, **MockCreationTrait**, reflection, parent methods
+
+**Rule 15:** Regularly audit helpers to remove unused methods - check actual usage with `grep`
+
+**Rule 16:** For constructor-only helpers, always prefer `createMock()` over creating a helper file
+
+**Rule 17:** For magic method classes (`__call`), use reflection or MockCreationTrait to set internal storage instead of creating helpers
+
+**Rule 18:** **ALWAYS try MockCreationTrait before creating any helper file** - it solves 90% of helper use cases
+
+---
+
+## **Step 6: Anonymous Class File Organization**
+
+### **6.1 Always Create Separate Files (MANDATORY APPROACH)**
+
+**Always create separate test helper files. Never use inline anonymous classes in test files.**
+
+**Create separate files for all cases:**
+- When you need to implement custom methods not in the original interface/class
+- When the mock will be used in multiple test methods or files
+- When the mock has complex state management or logic
+- When the mock extends concrete classes with many dependencies
+- When you need to add custom properties or methods for testing
+- **Even for simple, one-off mocks** - always create separate files
+- **Even for test-specific logic** - always create separate files
+- **Even for temporary mocks** - always create separate files
+
+### **6.2 Decision Flowchart**
+
+```
+Do you need custom methods not in the original class/interface?
+├─ YES → Create separate file
+└─ NO → Will this mock be used in multiple test methods?
+    ├─ YES → Create separate file
+    └─ NO → Does the mock have complex state or logic?
+        ├─ YES → Create separate file
+        └─ NO → Create separate file (ALWAYS)
+```
+
+**Result: Always create separate files regardless of complexity or usage.**
+
+### **6.3 File Organization Rules**
+
+**Directory Structure:**
+```
+{Module}/Test/Unit/Helper/
+├── ClassNameTestHelper.php
+├── AnotherClassTestHelper.php
+└── InterfaceTestHelper.php
+```
+
+**Naming Convention:**
+- **File:** `{OriginalClass}TestHelper.php`
+- **Class:** `{OriginalClass}TestHelper`
+- **Namespace:** `{Module}\Test\Unit\Helper`
+
+**Module Placement:**
+- Place helpers in the module where the original class is defined
+- Use module root directory: `{Module}/Test/Unit/Helper/`
+- Do NOT create subdirectories based on class path
+
+### **6.4 Test Helper Implementation**
+
+**⚠️ CRITICAL RULE: Only implement addMethods - inherit everything else!**
+
+**✅ CORRECT Approach - Only Custom Methods:**
+```php
+<?php
+declare(strict_types=1);
+
+namespace Magento\Catalog\Test\Unit\Helper;
+
+use Magento\Catalog\Model\Product;
+
+class ProductTestHelper extends Product
+{
+    private $data = [];
+    
+    public function __construct()
+    {
+        // Skip parent constructor to avoid dependency injection issues
+    }
+    
+    // ✅ ONLY implement methods that don't exist in the original class
+    // These are the "addMethods" that were causing the original error
+    public function getCustomMethod()
+    {
+        return $this->data['custom'] ?? 'default-value';
+    }
+    
+    public function setCustomMethod($value)
+    {
+        $this->data['custom'] = $value;
+        return $this;
+    }
+    
+    // ❌ DON'T implement methods that already exist in Product class
+    // getId(), setId(), getName(), setName() etc. are inherited from Product
+}
+```
+
+**❌ WRONG Approach - Duplicating Existing Methods:**
+```php
+class ProductTestHelper extends Product
+{
+    private $data = [];
+    
+    public function __construct() { /* Skip parent constructor */ }
+    
+    // ❌ WRONG: Don't duplicate methods that exist in Product class
+    public function getId() { return $this->data['id'] ?? null; }
+    public function setId($id) { $this->data['id'] = $id; return $this; }
+    public function getName() { return $this->data['name'] ?? null; }
+    public function setName($name) { $this->data['name'] = $name; return $this; }
+    // ... 50+ more methods that already exist in Product class
+}
+```
+
+### **6.5 Usage in Test Files**
+
+```php
+use Magento\Catalog\Test\Unit\Helper\ProductTestHelper;
+
+public function testMethod()
+{
+    $productHelper = new ProductTestHelper();
+    $productHelper->setId(123);
+    
+    // Use the helper in your test
+    $this->assertEquals(123, $productHelper->getId());
+}
+```
+
+### **6.6 addMethods Implementation Principle**
+
+**🚨 CRITICAL: Only implement the methods that don't exist in the original class/interface!**
+
+#### **What to Implement:**
+- **Only custom methods** that were causing the original `addMethods()` error
+- **Methods that don't exist** in the parent class or interface
+- **Test-specific methods** needed for testing scenarios
+
+#### **What NOT to Implement:**
+- **Methods that already exist** in the parent class
+- **Standard getter/setter methods** (getId, setId, getName, setName, etc.)
+- **Interface methods** that are already implemented
+- **Any method** that can be inherited
+
+#### **🚨 CRITICAL: Always Extend Existing Implementations for Interfaces**
+
+**For Interfaces:**
+1. **Find existing concrete class** that implements the interface
+2. **Extend that class** instead of implementing the interface directly
+3. **Only add custom methods** that don't exist in the parent class
+
+**How to Find Existing Implementations:**
+```bash
+# Search for classes that implement the interface
+grep -r "implements.*InterfaceName" app/code/Magento/ --include="*.php" | grep -v "Test"
+
+# Example: Find classes implementing LinkInterface
+grep -r "implements.*LinkInterface" app/code/Magento/ --include="*.php" | grep -v "Test"
+# Result: \Magento\Bundle\Model\Link implements LinkInterface
+```
+
+**Benefits of Extending Existing Classes:**
+- **No duplicate method implementation** - All interface methods are inherited
+- **Leverages existing code** - Uses proven implementations
+- **Smaller helper classes** - Only custom methods needed
+- **Better maintainability** - Less code to maintain
+- **Consistent behavior** - Same logic as production code
+
+#### **Example - Interface Implementation (BEST APPROACH):**
+```php
+// Original error: addMethods(['getCustomId', 'setCustomId'])
+// ✅ BEST: Find existing class that implements LinkInterface and extend it
+class LinkInterfaceTestHelper extends \Magento\Bundle\Model\Link
+{
+    private $data = [];
+    
+    public function __construct() { /* Skip parent constructor */ }
+    
+    // ✅ ONLY implement the custom methods that don't exist in the parent class
+    public function getCustomId() { return $this->data['custom_id'] ?? null; }
+    public function setCustomId($id) { $this->data['custom_id'] = $id; return $this; }
+    
+    // ✅ All LinkInterface methods are inherited from \Magento\Bundle\Model\Link
+    // No need to implement getId(), setId(), getSku(), setSku() etc.
+}
+```
+
+#### **Example - Interface Implementation (AVOID THIS):**
+```php
+// ❌ AVOID: Implementing interface from scratch
+class LinkInterfaceTestHelper implements LinkInterface
+{
+    private $data = [];
+    
+    public function __construct() { /* Skip parent constructor */ }
+    
+    // ❌ WRONG: You'd need to implement ALL LinkInterface methods
+    public function getId() { return $this->data['id'] ?? null; }
+    public function setId($id) { $this->data['id'] = $id; return $this; }
+    public function getSku() { return $this->data['sku'] ?? null; }
+    public function setSku($sku) { $this->data['sku'] = $sku; return $this; }
+    // ... 20+ more methods that need to be implemented
+}
+```
+
+#### **Example - Class Extension:**
+```php
+// Original error: addMethods(['getCustomValue'])
+class ProductTestHelper extends Product
+{
+    private $data = [];
+    
+    public function __construct() { /* Skip parent constructor */ }
+    
+    // ✅ ONLY implement the custom method that doesn't exist in Product
+    public function getCustomValue() { return $this->data['custom'] ?? null; }
+    public function setCustomValue($value) { $this->data['custom'] = $value; return $this; }
+    
+    // ❌ DON'T implement Product methods - they are inherited
+    // getId(), setId(), getName(), setName() etc. are inherited from Product
+}
+```
+
+### **6.7 Why Separate Files Are Mandatory**
+
+**✅ Benefits of Separate Files:**
+- **Reusability** - Can be used across multiple test files
+- **Maintainability** - Easy to update and modify
+- **Code Quality** - Can run PHPCS, PHPMD, PHPStan on helper files
+- **IDE Support** - Better autocomplete and navigation
+- **Documentation** - Can add proper PHPDoc comments
+- **Testing** - Can create unit tests for complex helpers
+- **Organization** - Keeps test files clean and focused
+- **Consistency** - Follows Magento coding standards
+- **Professional Structure** - Maintains clean, organized codebase
+- **Lean Implementation** - Only custom methods, inherit everything else
+
+**❌ Why Inline Anonymous Classes Are Prohibited:**
+- **Code Quality Issues** - Cannot run static analysis tools
+- **Maintenance Nightmare** - Difficult to update and modify
+- **Poor Reusability** - Cannot be shared across test methods
+- **IDE Limitations** - Poor autocomplete and navigation
+- **Cluttered Test Files** - Makes test files hard to read
+- **Inconsistent Standards** - Violates Magento coding practices
+- **No Documentation** - Cannot add proper PHPDoc comments
+- **Method Duplication** - Often duplicates existing methods unnecessarily
+
+---
+
+## **Step 7: Data Provider Migration**
+
+### **7.1 @dataProvider to #[DataProvider] Migration**
+
+```php
+// Before (PHPUnit 9/10)
+/**
+ * @dataProvider methodName
+ */
+public function testMethod($param1, $param2)
+
+// After (PHPUnit 12)
+use PHPUnit\Framework\Attributes\DataProvider;
+
+#[DataProvider('methodName')]
+public function testMethod($param1, $param2)
+```
+
+### **7.2 Common Data Provider Issues**
+
+**Parameter Count Mismatch:**
+```php
+// Error: Data set #0 has more arguments (2) than the test method accepts (1)
+// Solution: Update test method signature
+public function testMethod(array $data, array $postData): void
+```
+
+**Data Provider Structure:**
+```php
+// Wrong: Returns single array
+return ['options' => [...], 'param2', 'param3'];
+
+// Correct: Returns array of arrays
+return [
+    [[...], 'param2', 'param3']
+];
+```
+
+**Static Method Calls:**
+```php
+// Wrong: Static method calls in data provider
+return ['matcher' => \PHPUnit\Framework\TestCase::never()];
+
+// Correct: Return string values
+return ['matcher' => 'never'];
+
+// In test method, convert string to matcher
+public function testMethod($matcher)
+{
+    $matcherMethod = $this->$matcher();
+    $mock->expects($matcherMethod)->method('someMethod');
+}
+```
+
+### **7.3 Data Provider with Matcher Methods (createInvocationMatcher)**
+
+**Problem:** In PHPUnit 12, static data providers cannot call non-static methods like `$this->once()`, `$this->never()`, etc. This creates issues when configuring mock expectations in data providers.
+
+**Solution:** Use string representations of matchers in data providers and convert them to actual `InvocationOrder` objects using the `createInvocationMatcher()` helper method from `MockCreationTrait`.
+
+#### **Pattern:**
+
+**Step 1: In Data Provider - Use String Representations**
+```php
+public static function saveDataProvider(): array
+{
+    return [
+        'test case 1' => [
+            'mockConfig' => [
+                'methodName' => ['expects' => 'once', 'willReturn' => true],     // String, not self::once()
+                'otherMethod' => ['expects' => 'never'],                          // String, not self::never()
+                'anotherMethod' => ['expects' => 'exactly_2', 'willReturn' => 42], // Use exactly_N format
+                'yetAnother' => ['expects' => 'any', 'willReturn' => 'value'],    // String, not self::any()
+            ]
+        ]
+    ];
+}
+```
+
+**Step 2: In Test Method/Helper - Convert Strings to Matchers**
+```php
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
+
+class YourTest extends TestCase
+{
+    use MockCreationTrait;
+    
+    private function configMock(MockObject $mockObject, array $configs): void
+    {
+        foreach ($configs as $method => $config) {
+            // Convert string expectations to InvocationOrder objects
+            $expects = $config['expects'];
+            if (is_string($expects)) {
+                $expects = $this->createInvocationMatcher($expects);
+            }
+            
+            $mockMethod = $mockObject->expects($expects)->method($method);
+            
+            if (isset($config['with'])) {
+                $mockMethod->with(...$config['with']);
+            }
+            if (isset($config['willReturn'])) {
+                $mockMethod->willReturn($config['willReturn']);
+            }
+            if (isset($config['willReturnSelf'])) {
+                $mockMethod->willReturnSelf();
+            }
+        }
+    }
+}
+```
+
+#### **Supported String Formats:**
+
+The `createInvocationMatcher()` method supports these string representations:
+
+| String | PHPUnit Method | Description |
+|--------|----------------|-------------|
+| `'never'` | `$this->never()` | Method should never be called |
+| `'once'` | `$this->once()` | Method should be called exactly once |
+| `'any'` | `$this->any()` | Method can be called any number of times |
+| `'atLeastOnce'` | `$this->atLeastOnce()` | Method should be called at least once |
+| `'exactly_N'` | `$this->exactly(N)` | Method should be called exactly N times (e.g., `'exactly_2'`) |
+| `'atLeast_N'` | `$this->atLeast(N)` | Method should be called at least N times |
+| `'atMost_N'` | `$this->atMost(N)` | Method should be called at most N times |
+
+#### **Real-World Example:**
+
+```php
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
+use PHPUnit\Framework\Attributes\DataProvider;
+
+class StockItemRepositoryTest extends TestCase
+{
+    use MockCreationTrait;
+    
+    #[DataProvider('saveDataProvider')]
+    public function testSave(
+        array $stockStateProviderConfig,
+        array $stockItemConfig
+    ) {
+        $this->configMock($this->stockStateProviderMock, $stockStateProviderConfig);
+        $this->configMock($this->stockItemMock, $stockItemConfig);
+        
+        // ... test logic
+    }
+    
+    public static function saveDataProvider(): array
+    {
+        return [
+            'should set isInStock=true if verifyStock=true' => [
+                'stockStateProviderConfig' => [
+                    'verifyStock' => ['expects' => 'once', 'willReturn' => true],
+                    'verifyNotification' => ['expects' => 'once', 'willReturn' => true],
+                ],
+                'stockItemConfig' => [
+                    'getManageStock' => ['expects' => 'once', 'willReturn' => true],
+                    'setIsInStock' => ['expects' => 'once', 'with' => [true]],
+                    'setStockStatusChangedAuto' => ['expects' => 'never'],
+                ],
+            ],
+            'should call method exactly twice' => [
+                'stockStateProviderConfig' => [
+                    'verifyStock' => ['expects' => 'exactly_2', 'willReturn' => false],
+                ],
+                'stockItemConfig' => [
+                    'getIsInStock' => ['expects' => 'any', 'willReturn' => false],
+                ],
+            ],
+        ];
+    }
+    
+    private function configMock(MockObject $mockObject, array $configs): void
+    {
+        foreach ($configs as $method => $config) {
+            $expects = $config['expects'];
+            if (is_string($expects)) {
+                $expects = $this->createInvocationMatcher($expects);
+            }
+            
+            $mockMethod = $mockObject->expects($expects)->method($method);
+            
+            if (isset($config['with'])) {
+                $mockMethod->with(...$config['with']);
+            }
+            if (isset($config['willReturn'])) {
+                $mockMethod->willReturn($config['willReturn']);
+            }
+            if (isset($config['willReturnSelf'])) {
+                $mockMethod->willReturnSelf();
+            }
+        }
+    }
+}
+```
+
+#### **Why This Approach Works:**
+
+✅ **Benefits:**
+- **Static-Safe**: Data providers remain static as required by PHPUnit 12
+- **Clean Data**: Test data is simple strings, easy to read and maintain
+- **Runtime Conversion**: Matchers are created at test execution time
+- **Type-Safe**: Uses PHPUnit's native `InvocationOrder` objects
+- **Flexible**: Supports all common matcher types
+- **DRY Principle**: Helper method reused across tests
+
+❌ **Common Mistakes:**
+```php
+// ❌ WRONG: Calling non-static methods in static data provider
+public static function dataProvider(): array
+{
+    return [
+        ['expects' => self::once()],  // Fatal error: non-static method
+    ];
+}
+
+// ❌ WRONG: Forgetting to convert string to matcher
+$mockMethod = $mockObject->expects('once')->method('test');  // Type error
+
+// ✅ CORRECT: Use createInvocationMatcher()
+$expects = $this->createInvocationMatcher('once');
+$mockMethod = $mockObject->expects($expects)->method('test');
+```
+
+#### **Migration Checklist:**
+
+When migrating data providers with matcher methods:
+
+1. ✅ Identify static method calls in data providers (`self::once()`, `self::never()`, etc.)
+2. ✅ Replace with string representations (`'once'`, `'never'`, etc.)
+3. ✅ Add `use MockCreationTrait;` to test class if not already present
+4. ✅ Create/update helper method to use `createInvocationMatcher()`
+5. ✅ For `exactly(N)` calls, use format `'exactly_N'` (e.g., `'exactly_2'`)
+6. ✅ Test to ensure matchers work correctly
+7. ✅ Verify all test cases in the data provider pass
+
+---
+
+## **Step 8: Deprecated Methods Removal**
+
+### **8.1 Remove disableArgumentCloning()**
+
+```php
+// Before (PHPUnit 9/10)
+$this->getMockBuilder(Product::class)
+    ->disableOriginalConstructor()
+    ->disableArgumentCloning()
+    ->getMock();
+
+// After (PHPUnit 12)
+$this->getMockBuilder(Product::class)
+    ->disableOriginalConstructor()
+    ->getMock();
+```
+
+### **8.2 Replace onConsecutiveCalls()**
+
+```php
+// Before (PHPUnit 9/10)
+$mock->expects($this->any())
+    ->method('valid')
+    ->will($this->onConsecutiveCalls(true, false));
+
+// After (PHPUnit 12)
+$callCount = 0;
+$mock->method('valid')->willReturnCallback(function() use (&$callCount) {
+    $callCount++;
+    return $callCount === 1; // Return true on first call, false on second
+});
+```
+
+---
+
+## **Step 9: When to Keep vs Remove expects() Calls**
+
+### **9.1 Keep expects() when:**
+
+1. **Method call count matters for business logic**
+2. **You're testing behavior, not just results**
+3. **The exact number of calls is important for correctness**
+4. **You want to catch refactoring bugs**
+
+**Examples:**
+```php
+// Keep: Business logic calls getId() exactly twice
+$company->expects($this->exactly(2))->method('getId')->willReturn($companyId);
+
+// Keep: Critical operations should be called exactly once
+$this->creditBalanceManagement->expects($this->once())->method($reimburseMethod);
+```
+
+### **9.2 Remove expects() when:**
+
+- You've analyzed the code under test
+- You understand why they exist
+- You're certain they don't validate business logic
+- You're only simplifying mock creation, not test validation
+
+---
+
+## **Step 10: Common Issues and Fixes**
+
+### **10.1 Abstract Method Implementation**
+
+**Error:** `Fatal error: Class MockObject_AbstractDb_... contains 1 abstract method`
+
+**Solution:** Add abstract methods to `createPartialMock()` array:
+```php
+$mock = $this->createPartialMock(AbstractDb::class, [
+    'getConnection', 
+    'getMainTable', 
+    '_construct'  // Include abstract methods
+]);
+```
+
+### **10.2 createStub() with expects() Issues**
+
+**Error:** `Call to undefined method TestStub_InterfaceName_12345::expects()`
+
+**Solution:** Remove `expects()` calls with `createStub()`:
+```php
+// Wrong
+$mock = $this->createStub(InterfaceName::class);
+$mock->expects($this->once())->method('someMethod')->willReturn('value');
+
+// Correct
+$mock = $this->createStub(InterfaceName::class);
+$mock->method('someMethod')->willReturn('value');
+```
+
+### **10.3 Malformed Code After Migration**
+
+**Error:** `syntax error, unexpected token "*", expecting "function"`
+
+**Solution:** Remove duplicate closing comment tags:
+```php
+// Wrong: Duplicate closing comment
+#[DataProvider('methodName')]
+     */
+public function testMethod()
+
+// Correct: Single closing comment
+#[DataProvider('methodName')]
+public function testMethod()
+```
+
+---
+
+## **Step 11: ObjectManager Initialization Issues**
+
+### **11.1 The prepareObjectManager() Solution**
+
+**Error:** `RuntimeException: ObjectManager isn't initialized`
+
+**When This Occurs:**
+- Production code calls `ObjectManager::getInstance()` (common in parent classes)
+- Using `ObjectManager` test helper (`new ObjectManager($this)`)
+- Parent class constructors depend on the singleton ObjectManager pattern
+- Block classes that extend framework classes with static ObjectManager dependencies
+
+**Example Error:**
+```
+RuntimeException: ObjectManager isn't initialized
+
+/lib/internal/Magento/Framework/App/ObjectManager.php:36
+/lib/internal/Magento/Framework/View/Element/Html/Link.php:84
+/magento2ee/app/code/Magento/Invitation/Block/Link.php:62
+/magento2ee/app/code/Magento/Invitation/Test/Unit/Block/LinkTest.php:69
+```
+
+### **11.2 The Fix: Add prepareObjectManager() in setUp()**
+
+**Solution:** Initialize the ObjectManager singleton before creating objects
+
+```php
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+
+class LinkTest extends TestCase
+{
+    /**
+     * @var ObjectManager
+     */
+    protected $_objectManagerHelper;
+
+    protected function setUp(): void
+    {
+        $this->_objectManagerHelper = new ObjectManager($this);
+        // Initialize ObjectManager to avoid "ObjectManager isn't initialized" errors
+        $this->_objectManagerHelper->prepareObjectManager();
+    }
+
+    public function testGetHref()
+    {
+        $invitationHelper = $this->createMock(Data::class);
+        $invitationHelper->method('getCustomerInvitationFormUrl')->willReturn('http://test.com');
+
+        // Now ObjectManager::getInstance() won't throw errors
+        $block = $this->_objectManagerHelper->getObject(
+            Link::class,
+            ['invitationHelper' => $invitationHelper]
+        );
+        
+        $this->assertEquals('http://test.com', $block->getHref());
+    }
+}
+```
+
+### **11.3 What prepareObjectManager() Does**
+
+The `prepareObjectManager()` method:
+1. **Initializes the singleton**: Sets up `ObjectManager::getInstance()` to return a valid instance
+2. **Creates a mock ObjectManager**: Returns a basic mock that can handle common method calls
+3. **Prevents runtime exceptions**: Allows production code with `ObjectManager::getInstance()` to work in tests
+4. **Enables parent class construction**: Lets framework classes that depend on ObjectManager work properly
+
+### **11.4 When to Use prepareObjectManager()**
+
+✅ **Use prepareObjectManager() when:**
+- You see `RuntimeException: ObjectManager isn't initialized`
+- Your test extends framework classes (Block, Controller, Model)
+- Parent class constructors call `ObjectManager::getInstance()`
+- Using `ObjectManager` test helper with `getObject()`
+- Production code has hard dependencies on singleton ObjectManager
+
+❌ **Don't use when:**
+- Using pure PHPUnit mocks (`createMock()`, `createPartialMock()`)
+- Not using `ObjectManager` test helper
+- No `ObjectManager::getInstance()` calls in code path
+- Creating simple stubs without framework dependencies
+
+### **11.5 Common Scenarios**
+
+#### **Scenario 1: Block Classes with ObjectManager Dependencies**
+
+```php
+// Production code: Framework\View\Element\Html\Link calls ObjectManager::getInstance()
+class LinkTest extends TestCase
+{
+    protected $_objectManagerHelper;
+
+    protected function setUp(): void
+    {
+        $this->_objectManagerHelper = new ObjectManager($this);
+        $this->_objectManagerHelper->prepareObjectManager(); // ← Fix
+    }
+
+    public function testBlockMethod()
+    {
+        $block = $this->_objectManagerHelper->getObject(
+            MyBlock::class,
+            ['dependency' => $this->createMock(Dependency::class)]
+        );
+        
+        // Test now works without RuntimeException
+        $this->assertEquals('expected', $block->someMethod());
+    }
+}
+```
+
+#### **Scenario 2: Observer Classes with Controller Dependencies**
+
+```php
+// Production code: Controller parent class uses ObjectManager::getInstance()
+class CustomerCreateTest extends TestCase
+{
+    private $objectManager;
+
+    protected function setUp(): void
+    {
+        $this->objectManager = new ObjectManager($this);
+        $this->objectManager->prepareObjectManager(); // ← Fix
+        
+        // Now safe to create controller instances
+        $this->customerCreate = $this->objectManager->getObject(
+            CustomerCreate::class,
+            ['invitationProvider' => $invitationProviderMock]
+        );
+    }
+
+    public function testExecute()
+    {
+        $controller = $this->objectManager->getObject(
+            CreatePost::class,
+            ['request' => $requestMock]
+        );
+        
+        // Works without ObjectManager errors
+        $observer->execute($event);
+    }
+}
+```
+
+#### **Scenario 3: Models with Framework Dependencies**
+
+```php
+class ModelTest extends TestCase
+{
+    protected $objectManager;
+
+    protected function setUp(): void
+    {
+        $this->objectManager = new ObjectManager($this);
+        $this->objectManager->prepareObjectManager(); // ← Fix
+    }
+
+    public function testModelMethod()
+    {
+        // Parent model classes may use ObjectManager::getInstance()
+        $model = $this->objectManager->getObject(
+            CustomModel::class,
+            ['resource' => $this->createMock(ResourceModel::class)]
+        );
+        
+        $this->assertTrue($model->validate());
+    }
+}
+```
+
+### **11.6 Alternative Approaches (When prepareObjectManager() Doesn't Work)**
+
+If `prepareObjectManager()` doesn't solve the issue, try these alternatives:
+
+#### **Alternative 1: Direct Mocking with Constructor Args**
+
+```php
+// Instead of using ObjectManager helper
+$block = $this->getMockBuilder(Link::class)
+    ->setConstructorArgs([
+        'context' => $this->createMock(\Magento\Framework\View\Element\Template\Context::class),
+        'httpContext' => $this->createMock(\Magento\Framework\App\Http\Context::class),
+        'dependency' => $dependencyMock,
+        'data' => []
+    ])
+    ->onlyMethods([]) // Or specific methods to mock
+    ->getMock();
+```
+
+**When to use:**
+- `prepareObjectManager()` doesn't resolve the error
+- You need fine-grained control over constructor arguments
+- Parent class has complex initialization logic
+
+#### **Alternative 2: Mark Test as Skipped (Pre-existing Production Code Issue)**
+
+```php
+public function testMethod()
+{
+    $this->markTestSkipped(
+        'Pre-existing issue: ObjectManager::getInstance() called in production code at ' .
+        'Framework/View/Element/Html/Link.php:84. Requires production code refactoring.'
+    );
+    
+    // Original test code...
+}
+```
+
+**When to use:**
+- The issue is in production code, not test code
+- Fixing requires refactoring production code
+- Migration should not be blocked by pre-existing issues
+- Document for future production code fixes
+
+### **11.7 Debugging ObjectManager Errors**
+
+**Step 1: Identify the Call Stack**
+
+```
+RuntimeException: ObjectManager isn't initialized
+
+/lib/internal/Magento/Framework/App/ObjectManager.php:36  ← ObjectManager::getInstance() called
+/lib/internal/Magento/Framework/View/Element/Html/Link.php:84  ← Parent class needs it
+/magento2ee/app/code/Magento/Invitation/Block/Link.php:62  ← Your class constructor
+/magento2ee/app/code/Magento/Invitation/Test/Unit/Block/LinkTest.php:69  ← Test failure
+```
+
+**Step 2: Check if ObjectManager Helper is Used**
+
+```php
+// Look for ObjectManager usage in test
+$this->_objectManagerHelper = new ObjectManager($this);
+$block = $this->_objectManagerHelper->getObject(Link::class, [...]);
+```
+
+**Step 3: Add prepareObjectManager()**
+
+```php
+protected function setUp(): void
+{
+    $this->_objectManagerHelper = new ObjectManager($this);
+    $this->_objectManagerHelper->prepareObjectManager(); // ← Add this
+}
+```
+
+### **11.8 Best Practices**
+
+**✅ DO:**
+- Always call `prepareObjectManager()` when using `ObjectManager` test helper
+- Call it in `setUp()` method, right after creating the helper instance
+- Use it for any test that creates framework objects (Blocks, Controllers, Models)
+- Document why it's needed if the reason is non-obvious
+
+**❌ DON'T:**
+- Call `prepareObjectManager()` multiple times (once in `setUp()` is enough)
+- Use it when not using `ObjectManager` test helper
+- Rely on it to fix production code issues (those should be refactored)
+- Forget to add it when you see `ObjectManager isn't initialized` errors
+
+### **11.9 Migration Checklist for ObjectManager Issues**
+
+When migrating tests with ObjectManager errors:
+
+1. ✅ Identify if test uses `ObjectManager` helper
+2. ✅ Check error stack trace for `ObjectManager::getInstance()` calls
+3. ✅ Add `$this->objectManager->prepareObjectManager();` in `setUp()`
+4. ✅ Verify the error is resolved
+5. ✅ Test all test methods in the file
+6. ✅ Document the fix if the reason is complex
+7. ✅ Check if any other tests in the module need the same fix
+
+---
+
+## **Step 12: Final __construct() Method Issue**
+
+### **12.1 The Problem: PHPUnit 12 Made __construct() Final**
+
+**Error:** `Fatal error: Cannot override final method PHPUnit\Framework\TestCase::__construct()`
+
+**When This Occurs:**
+- In PHPUnit 12, the `TestCase::__construct()` method was made **final**, preventing it from being overridden by child test classes
+- This is a breaking change from previous versions where test classes could override the constructor
+- Previously, some tests overrode `__construct()` to initialize static properties or perform one-time setup
+
+**Example Error:**
+```
+Fatal error: Cannot override final method PHPUnit\Framework\TestCase::__construct() 
+in /app/code/Magento/Paypal/Test/Unit/Model/CartTest.php on line 44
+```
+
+### **12.2 The Solution: Use setUpBeforeClass()**
+
+**The proper lifecycle method for static property initialization is `setUpBeforeClass()`:**
+
+```php
+// BEFORE (PHPUnit 9/10) - BREAKS in PHPUnit 12
+class CartTest extends TestCase
+{
+    private static $_validItem;
+
+    public function __construct($name = null, array $data = [], string $dataName = '')
+    {
+        parent::__construct($name, $data, $dataName);
+        
+        // Initialize static property
+        self::$_validItem = new DataObject([
+            'product_type' => 'simple',
+            'product_id' => 123,
+            'qty' => 1
+        ]);
+    }
+}
+
+// AFTER (PHPUnit 12) - Proper lifecycle method
+class CartTest extends TestCase
+{
+    private static $_validItem;
+
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+        
+        // Initialize static property
+        self::$_validItem = new DataObject([
+            'product_type' => 'simple',
+            'product_id' => 123,
+            'qty' => 1
+        ]);
+    }
+}
+```
+
+### **12.3 When to Use setUpBeforeClass()**
+
+✅ **Use setUpBeforeClass() when:**
+- You need to initialize static properties shared across test methods
+- You need to perform expensive one-time setup for the entire test class
+- You were previously using `__construct()` for class-level initialization
+- You need setup that runs once before all tests in the class
+
+❌ **Don't use for:**
+- Per-test setup (use `setUp()` instead)
+- Non-static property initialization
+- Setup that needs to run before each test method
+
+### **12.4 PHPUnit Test Lifecycle Methods**
+
+**Correct Order of Test Lifecycle Methods:**
+
+```php
+class ExampleTest extends TestCase
+{
+    private static $sharedResource;  // Static property
+    private $instanceResource;        // Instance property
+
+    /**
+     * Runs ONCE before any test methods in this class
+     * Use for: Static property initialization, expensive one-time setup
+     */
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+        self::$sharedResource = new ExpensiveResource();
+    }
+
+    /**
+     * Runs BEFORE EACH test method
+     * Use for: Instance property initialization, per-test setup
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->instanceResource = new Resource();
+    }
+
+    /**
+     * Runs AFTER EACH test method
+     * Use for: Cleanup, reset state
+     */
+    protected function tearDown(): void
+    {
+        $this->instanceResource = null;
+        parent::tearDown();
+    }
+
+    /**
+     * Runs ONCE after all test methods in this class
+     * Use for: Cleanup of static resources
+     */
+    public static function tearDownAfterClass(): void
+    {
+        self::$sharedResource = null;
+        parent::tearDownAfterClass();
+    }
+
+    public function testSomething(): void
+    {
+        // Test code uses both static and instance resources
+        $this->assertNotNull(self::$sharedResource);
+        $this->assertNotNull($this->instanceResource);
+    }
+}
+```
+
+### **12.5 Common Migration Scenarios**
+
+#### **Scenario 1: Static Test Data Initialization**
+
+```php
+// BEFORE (PHPUnit 9/10)
+class ProductTest extends TestCase
+{
+    private static $testProduct;
+
+    public function __construct($name = null, array $data = [], string $dataName = '')
+    {
+        parent::__construct($name, $data, $dataName);
+        self::$testProduct = new DataObject(['id' => 1, 'name' => 'Test Product']);
+    }
+}
+
+// AFTER (PHPUnit 12)
+class ProductTest extends TestCase
+{
+    private static $testProduct;
+
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+        self::$testProduct = new DataObject(['id' => 1, 'name' => 'Test Product']);
+    }
+}
+```
+
+#### **Scenario 2: Expensive Resource Initialization**
+
+```php
+// BEFORE (PHPUnit 9/10)
+class IntegrationTest extends TestCase
+{
+    private static $dbConnection;
+
+    public function __construct($name = null, array $data = [], string $dataName = '')
+    {
+        parent::__construct($name, $data, $dataName);
+        self::$dbConnection = Database::connect();
+    }
+}
+
+// AFTER (PHPUnit 12)
+class IntegrationTest extends TestCase
+{
+    private static $dbConnection;
+
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+        self::$dbConnection = Database::connect();
+    }
+
+    public static function tearDownAfterClass(): void
+    {
+        self::$dbConnection->disconnect();
+        parent::tearDownAfterClass();
+    }
+}
+```
+
+#### **Scenario 3: Mixed Initialization (Static + Instance)**
+
+```php
+// BEFORE (PHPUnit 9/10)
+class CartTest extends TestCase
+{
+    private static $_validItem;
+    private $_objectManager;
+
+    public function __construct($name = null, array $data = [], string $dataName = '')
+    {
+        parent::__construct($name, $data, $dataName);
+        self::$_validItem = new DataObject(['qty' => 1]);
+        $this->_objectManager = new ObjectManager($this);  // ❌ WRONG: Instance property in __construct()
+    }
+}
+
+// AFTER (PHPUnit 12) - Properly separated
+class CartTest extends TestCase
+{
+    private static $_validItem;
+    private $_objectManager;
+
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+        // Static initialization only
+        self::$_validItem = new DataObject(['qty' => 1]);
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Instance initialization
+        $this->_objectManager = new ObjectManager($this);
+    }
+}
+```
+
+### **12.6 Best Practices**
+
+**✅ DO:**
+- Use `setUpBeforeClass()` for static property initialization
+- Always call `parent::setUpBeforeClass()` first
+- Use `setUp()` for instance property initialization
+- Clean up static resources in `tearDownAfterClass()`
+- Keep static initialization minimal and fast
+
+**❌ DON'T:**
+- Override `__construct()` in PHPUnit 12+ test classes
+- Initialize instance properties in `setUpBeforeClass()` (it's a static method)
+- Forget to call the parent method
+- Create mutable shared state that can leak between tests
+
+### **12.7 Migration Checklist for __construct() Issues**
+
+When migrating tests with custom constructors:
+
+1. ✅ Identify all test classes that override `__construct()`
+2. ✅ Determine what initialization is being performed
+3. ✅ Separate static vs instance initialization
+4. ✅ Move static initialization to `setUpBeforeClass()`
+5. ✅ Move instance initialization to `setUp()`
+6. ✅ Remove the custom `__construct()` method
+7. ✅ Verify tests pass with the new lifecycle methods
+8. ✅ Check for any shared state issues between tests
+
+**Search Command:**
+```bash
+# Find all test files with custom __construct() methods
+grep -r "public function __construct" app/code/*/Test/Unit/ --include="*Test.php"
+```
+
+---
+
+## **Step 13: Code Quality - Avoiding Fully Qualified Names (FQN)**
+
+### **13.1 The Rule: Always Use Imports (Only for Modified Lines)**
+
+**🚨 CRITICAL: When modifying or adding code during migration, NEVER use Fully Qualified Names (FQN). Always add `use` statements at the top of the file and use short class names.**
+
+**⚠️ IMPORTANT SCOPE:**
+- **ONLY apply FQN fixes to lines you are modifying** as part of the PHPUnit 12 migration
+- **DO NOT** change lines that are not being touched by the migration
+- **FOCUS** on the actual migration tasks (data providers, mocks, deprecated methods, etc.)
+- If you're adding imports for migration-related changes, you may replace FQN with short names on those specific lines
+- **PRESERVE** existing FQN usages in lines not being modified to minimize scope of changes
+
+**When to Apply FQN Rule:**
+- ✅ Lines you're adding for migration (new imports, new attributes, new mock creation)
+- ✅ Lines you're modifying for migration (changing `@dataProvider` to `#[DataProvider]`, updating mock creation)
+- ✅ Lines with FQN that are in the same logical block as your migration changes
+- ❌ Lines that are not related to your migration changes
+- ❌ Lines that work fine and don't need to be touched
+
+**Why This Matters:**
+- **Readability**: Short class names are easier to read and understand
+- **Maintainability**: Imports are centralized at the top of the file
+- **IDE Support**: Better autocomplete and navigation
+- **Coding Standards**: Follows PSR-12 and Magento coding standards
+- **Refactoring**: Easier to find and replace class references
+- **Consistency**: Maintains uniform code style across the codebase
+- **Focused Changes**: Keeps migration changes minimal and focused on the actual migration tasks
+
+### **13.2 FQN vs Import Examples**
+
+#### **❌ WRONG: Using FQN in Code**
+
+```php
+<?php
+declare(strict_types=1);
+
+namespace Magento\CatalogInventory\Test\Unit\Model;
+
+use PHPUnit\Framework\TestCase;
+
+class StockRegistryTest extends TestCase
+{
+    public function testGetStockItem()
+    {
+        // ❌ WRONG: Using FQN directly in code
+        $stockItem = $this->createMock(\Magento\CatalogInventory\Api\Data\StockItemInterface::class);
+        $product = $this->createMock(\Magento\Catalog\Model\Product::class);
+        $stockStatus = $this->createMock(\Magento\CatalogInventory\Api\Data\StockStatusInterface::class);
+        
+        // ❌ WRONG: FQN in method parameters
+        $this->assertEquals(
+            \Magento\CatalogInventory\Model\Stock::DEFAULT_STOCK_ID,
+            $stockItem->getStockId()
+        );
+    }
+}
+```
+
+#### **✅ CORRECT: Using Imports**
+
+```php
+<?php
+declare(strict_types=1);
+
+namespace Magento\CatalogInventory\Test\Unit\Model;
+
+use Magento\Catalog\Model\Product;
+use Magento\CatalogInventory\Api\Data\StockItemInterface;
+use Magento\CatalogInventory\Api\Data\StockStatusInterface;
+use Magento\CatalogInventory\Model\Stock;
+use PHPUnit\Framework\TestCase;
+
+class StockRegistryTest extends TestCase
+{
+    public function testGetStockItem()
+    {
+        // ✅ CORRECT: Using short class names
+        $stockItem = $this->createMock(StockItemInterface::class);
+        $product = $this->createMock(Product::class);
+        $stockStatus = $this->createMock(StockStatusInterface::class);
+        
+        // ✅ CORRECT: Short class name with constant
+        $this->assertEquals(
+            Stock::DEFAULT_STOCK_ID,
+            $stockItem->getStockId()
+        );
+    }
+}
+```
+
+#### **✅ PRACTICAL EXAMPLE: When to Apply FQN Rule During Migration**
+
+```php
+<?php
+namespace Magento\Catalog\Test\Unit\Model;
+
+class ProductTest extends \PHPUnit\Framework\TestCase
+{
+    /**
+     * @dataProvider productDataProvider
+     */
+    public function testGetName($productId)
+    {
+        // Line NOT being modified - SKIP FQN fix
+        $product = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->create(
+            \Magento\Catalog\Model\Product::class
+        );
+        
+        // Line NOT being modified - SKIP FQN fix
+        $this->assertEquals('Test Product', $product->getName());
+    }
+    
+    public static function productDataProvider()
+    {
+        return [[1], [2]];
+    }
+}
+```
+
+**After Migration (Focused Changes Only):**
+
+```php
+<?php
+namespace Magento\Catalog\Test\Unit\Model;
+
+use PHPUnit\Framework\Attributes\DataProvider;  // ← Added for migration
+
+class ProductTest extends \PHPUnit\Framework\TestCase
+{
+    #[DataProvider('productDataProvider')]  // ← Modified for migration
+    public function testGetName($productId)
+    {
+        // Line NOT modified during migration - FQN preserved as-is
+        $product = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->create(
+            \Magento\Catalog\Model\Product::class
+        );
+        
+        // Line NOT modified during migration - FQN preserved as-is
+        $this->assertEquals('Test Product', $product->getName());
+    }
+    
+    public static function productDataProvider()
+    {
+        return [[1], [2]];
+    }
+}
+```
+
+**✅ What We Did:**
+- Added `use PHPUnit\Framework\Attributes\DataProvider;` (required for migration)
+- Changed `@dataProvider` to `#[DataProvider('productDataProvider')]` (migration task)
+- **Did NOT** change FQN in lines that weren't being modified
+
+**❌ What We Avoided:**
+- Changing unrelated lines with FQN just for code quality
+- Expanding scope of migration beyond PHPUnit 12 changes
+- Creating unnecessary diffs that aren't migration-related
+
+### **13.3 Common Scenarios**
+
+#### **Scenario 1: Mock Creation**
+
+```php
+// ❌ WRONG
+$mock = $this->createMock(\Magento\Framework\App\RequestInterface::class);
+
+// ✅ CORRECT
+use Magento\Framework\App\RequestInterface;
+$mock = $this->createMock(RequestInterface::class);
+```
+
+#### **Scenario 2: createPartialMockWithReflection**
+
+```php
+// ❌ WRONG
+$mock = $this->createPartialMockWithReflection(
+    \Magento\CatalogInventory\Model\Stock\Item::class,
+    ['getItemId', 'getProductId']
+);
+
+// ✅ CORRECT
+use Magento\CatalogInventory\Model\Stock\Item;
+$mock = $this->createPartialMockWithReflection(
+    Item::class,
+    ['getItemId', 'getProductId']
+);
+```
+
+#### **Scenario 3: Type Hints and Return Types**
+
+```php
+// ❌ WRONG
+private function createStockItem(): \Magento\CatalogInventory\Api\Data\StockItemInterface
+{
+    return $this->createMock(\Magento\CatalogInventory\Api\Data\StockItemInterface::class);
+}
+
+// ✅ CORRECT
+use Magento\CatalogInventory\Api\Data\StockItemInterface;
+
+private function createStockItem(): StockItemInterface
+{
+    return $this->createMock(StockItemInterface::class);
+}
+```
+
+#### **Scenario 4: Attributes (DataProvider, CoversClass, etc.)**
+
+```php
+// ❌ WRONG
+#[CoversClass(\Magento\CatalogInventory\Model\Product\QuantityValidator::class)]
+class QuantityValidatorTest extends TestCase
+{
+}
+
+// ✅ CORRECT
+use Magento\CatalogInventory\Model\Product\QuantityValidator;
+use PHPUnit\Framework\Attributes\CoversClass;
+
+#[CoversClass(QuantityValidator::class)]
+class QuantityValidatorTest extends TestCase
+{
+}
+```
+
+#### **Scenario 5: Exception Handling**
+
+```php
+// ❌ WRONG
+public function testException()
+{
+    $this->expectException(\Magento\Framework\Exception\LocalizedException::class);
+}
+
+// ✅ CORRECT
+use Magento\Framework\Exception\LocalizedException;
+
+public function testException()
+{
+    $this->expectException(LocalizedException::class);
+}
+```
+
+#### **Scenario 6: New Object Instantiation**
+
+```php
+// ❌ WRONG
+$dataObject = new \Magento\Framework\DataObject(['key' => 'value']);
+
+// ✅ CORRECT
+use Magento\Framework\DataObject;
+
+$dataObject = new DataObject(['key' => 'value']);
+```
+
+### **13.4 Import Organization**
+
+**Best Practices for Organizing Imports:**
+
+```php
+<?php
+declare(strict_types=1);
+
+namespace Magento\CatalogInventory\Test\Unit\Model;
+
+// 1. Framework imports (Magento\Framework\*)
+use Magento\Framework\DataObject;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+
+// 2. Module-specific imports (alphabetically)
+use Magento\Catalog\Model\Product;
+use Magento\CatalogInventory\Api\Data\StockItemInterface;
+use Magento\CatalogInventory\Model\Stock\Item;
+
+// 3. PHPUnit imports (last)
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+
+class StockRegistryTest extends TestCase
+{
+    // ... test code
+}
+```
+
+**Grouping Rules:**
+1. **Magento Framework classes** - `Magento\Framework\*`
+2. **Magento module classes** - `Magento\ModuleName\*` (alphabetically)
+3. **PHPUnit classes** - `PHPUnit\*`
+4. **Blank line** between each group
+
+### **13.5 Finding and Replacing FQN (Focused Approach)**
+
+**Command to Find FQN Usage in Lines You're Modifying:**
+```bash
+# Use this only to identify FQN in the specific lines you're changing
+# Don't try to fix all FQN in the file - only the ones in modified lines
+
+# Example: If you're migrating line 45 with @dataProvider
+sed -n '45p' TestFile.php | grep "\\\\"
+```
+
+**Migration Process (Only for Modified Lines):**
+1. ✅ Identify the lines you're modifying for PHPUnit 12 migration
+2. ✅ Check if those specific lines contain FQN
+3. ✅ For FQN in modified lines only:
+   - Extract the class name from FQN
+   - Add `use` statement at the top of the file
+   - Replace FQN with short class name in that line
+4. ✅ Organize imports according to grouping rules
+5. ✅ Run PHPCS to verify coding standards
+6. ✅ **Leave FQN untouched** in lines not being modified
+
+### **13.6 Common Mistakes to Avoid**
+
+**❌ Mistake 1: Mixing FQN and Imports**
+```php
+use Magento\Catalog\Model\Product;
+
+// ❌ WRONG: Mixing imported and FQN
+$product = $this->createMock(Product::class);
+$stockItem = $this->createMock(\Magento\CatalogInventory\Api\Data\StockItemInterface::class);
+```
+
+**✅ Solution: Always use imports consistently**
+```php
+use Magento\Catalog\Model\Product;
+use Magento\CatalogInventory\Api\Data\StockItemInterface;
+
+$product = $this->createMock(Product::class);
+$stockItem = $this->createMock(StockItemInterface::class);
+```
+
+**❌ Mistake 2: Forgetting to Add Use Statement**
+```php
+// ❌ WRONG: Using short name without import
+$mock = $this->createMock(StockItemInterface::class);  // Error: Class not found
+```
+
+**✅ Solution: Always add use statement**
+```php
+use Magento\CatalogInventory\Api\Data\StockItemInterface;
+
+$mock = $this->createMock(StockItemInterface::class);
+```
+
+**❌ Mistake 3: Duplicate Class Names**
+```php
+// ❌ PROBLEM: Two classes with same short name
+use Magento\Catalog\Model\Product;
+use Magento\CatalogInventory\Model\Product;  // Conflict!
+```
+
+**✅ Solution: Use alias for one of them**
+```php
+use Magento\Catalog\Model\Product as CatalogProduct;
+use Magento\CatalogInventory\Model\Product as InventoryProduct;
+
+$catalogProduct = $this->createMock(CatalogProduct::class);
+$inventoryProduct = $this->createMock(InventoryProduct::class);
+```
+
+### **13.7 Migration Checklist for FQN (Focused Approach)**
+
+When migrating a test file:
+
+1. ✅ Identify the lines you're modifying for PHPUnit 12 migration
+2. ✅ For FQN usages **only in lines being modified**:
+   - Extract the class name from FQN
+   - Add `use` statement at the top
+   - Replace FQN with short class name in modified lines
+3. ✅ Organize imports by group (Framework, Module, PHPUnit)
+4. ✅ Sort imports alphabetically within each group
+5. ✅ Remove any duplicate imports
+6. ✅ **DO NOT** modify FQN in lines unrelated to migration
+7. ✅ Run PHPCS to verify: `vendor/bin/phpcs --standard=./dev/tests/static/framework/Magento/ruleset.xml TestFile.php`
+8. ✅ Run tests to ensure everything works
+
+**Remember:** Only fix FQN in lines you're actively changing for migration. This keeps changes focused and minimal.
+
+### **13.8 Best Practice Summary**
+
+**Key Principles for FQN During Migration:**
+
+✅ **DO:**
+- Fix FQN only in lines you're actively modifying for PHPUnit 12
+- Add imports when you're adding new migration-related code
+- Keep changes focused on the actual migration task
+- Use short class names when adding new attributes, mocks, etc.
+
+❌ **DON'T:**
+- Try to fix all FQN usages in the entire file
+- Modify lines that aren't related to PHPUnit 12 migration
+- Create unnecessary diffs for lines that work fine
+- Expand migration scope beyond what's needed
+
+**Example of Focused FQN Fix:**
+```php
+// You're changing this line for migration:
+/**
+ * @dataProvider testDataProvider
+ */
+// ↓ becomes ↓
+#[DataProvider('testDataProvider')]  // Added import: use PHPUnit\Framework\Attributes\DataProvider;
+
+// But DON'T change this working line just because it has FQN:
+$object = \Magento\TestFramework\Helper\Bootstrap::getObjectManager()->create(\Magento\Catalog\Model\Product::class);
+// Leave it as-is unless you're modifying it for migration
+```
+
+---
+
+## **Troubleshooting Guide**
+
+### **Common Error Patterns**
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `Fatal error: Cannot override final method PHPUnit\Framework\TestCase::__construct()` | Custom __construct() in test class | Move initialization to `setUpBeforeClass()` for static properties or `setUp()` for instance properties (See Step 12) |
+| `RuntimeException: ObjectManager isn't initialized` | ObjectManager helper without prepareObjectManager() | Add `$this->objectManager->prepareObjectManager();` in `setUp()` (See Step 11) |
+| `ArgumentCountError: Too few arguments` | @dataProvider migration issue | Migrate to `#[DataProvider('methodName')]` and add import |
+| `Fatal error: Class MockObject_ManagerInterface_... contains 19 abstract methods` | Complex interface with createMock() | Use `createStub(ManagerInterface::class)` |
+| `Call to undefined method TestStub_InterfaceName_12345::expects()` | createStub() with expects() | Remove `expects()` calls with `createStub()` |
+| `Fatal error: Class MockObject_AbstractDb_... contains 1 abstract method` | Missing abstract methods | Add abstract methods to `createPartialMock()` array |
+| `The data provider specified for ... is invalid` | Wrong method name | Use specific method name: `#[DataProvider('getConfigDataProvider')]` |
+| `Unknown named parameter $tax_config` | Inconsistent key names | Make data provider keys consistent (camelCase) |
+| `Non-static method PHPUnit\Framework\TestCase::never() cannot be called statically` | Static method calls in data provider | Use string representations ('once', 'never') and convert with `createInvocationMatcher()` (See Step 7.3) |
+| PHPCS: `\Magento\Class should be imported` | Using FQN instead of imports | Add `use Magento\Class;` at top and use short name (See Step 13) |
+
+### **Migration Success Checklist**
+
+**For Each Test File:**
+- [ ] File analyzed for deprecated PHPUnit 12 patterns
+- [ ] All `getMockBuilder()` calls replaced with appropriate PHPUnit 12 methods
+- [ ] All `@dataProvider` annotations migrated to `#[DataProvider]` attributes
+- [ ] All deprecated methods removed (`disableArgumentCloning()`, `onConsecutiveCalls()`)
+- [ ] Custom `__construct()` methods replaced with `setUpBeforeClass()` or `setUp()`
+- [ ] Complex interfaces use `createStub()` instead of `createMock()`
+- [ ] Abstract methods included in `createPartialMock()` arrays
+- [ ] No inline anonymous classes used (separate files created instead)
+- [ ] **Test integrity preserved** - All assertions work correctly
+- [ ] **Test flow maintained** - Same execution path as before
+- [ ] **Test coverage preserved** - No reduction in coverage
+- [ ] Unit tests pass: `vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist {Module}/{TestFile}`
+- [ ] PHPCS passes: `vendor/bin/phpcs --standard=./dev/tests/static/framework/Magento/ruleset.xml {Module}/{TestFile}`
+- [ ] PHPMD passes: `vendor/bin/phpmd app/code/{Module}/{TestFile}.php ansi dev/tests/static/testsuite/Magento/Test/Php/_files/phpmd/ruleset.xml`
+- [ ] PHPStan passes: `vendor/bin/phpstan analyze app/code/{Module}/{TestFile}.php`
+- [ ] **Patch file created: `git add app/code/{Module}/{TestFile}.php && git diff --cached >> phpunit12_migration_backup.patch`**
+
+**Only proceed to next file when all checks pass for current file AND patch file is created.**
+
+---
+
+## **Essential Migration Considerations**
+
+### **Performance Monitoring**
+
+#### **Memory Usage Optimization**
+```bash
+# Monitor memory usage during migration for large modules
+php -d memory_limit=2G -dxdebug.mode=coverage ./vendor/phpunit/phpunit/phpunit -c dev/tests/unit/phpunit.xml.dist --coverage-html ./report app/code/Magento/{Module}
+
+# For individual test files, use standard memory
+vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist {Module}/{TestFile}
+```
+
+#### **Execution Time Tracking**
+```bash
+# Time individual test execution to monitor performance
+time vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist {Module}/{TestFile}
+
+# Compare execution times before/after migration
+echo "=== Performance Comparison ===" >> migration-report.txt
+echo "PHPUnit 10 Execution Time:" >> migration-report.txt
+time vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist {Module} >> migration-report.txt 2>&1
+echo "PHPUnit 12 Execution Time:" >> migration-report.txt
+time vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist {Module} >> migration-report.txt 2>&1
+```
+
+### **Dependency Management**
+
+#### **Essential Dependency Updates**
+```bash
+# Check for outdated dependencies before migration
+composer outdated
+
+# Update PHPUnit and related packages
+composer update phpunit/phpunit --with-dependencies
+
+# Verify all test dependencies are compatible
+composer install
+```
+
+### **Error Handling and Debugging**
+
+#### **Enhanced Debugging Commands**
+```bash
+# Run tests with verbose output for debugging
+vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist --verbose {Module}/{TestFile}
+
+# Stop on first failure for faster debugging
+vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist --stop-on-failure {Module}/{TestFile}
+
+# Generate detailed test results
+vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist --testdox {Module}/{TestFile}
+```
+
+### **Migration Progress Tracking**
+
+#### **Track Migration Progress**
+```bash
+# Track migration progress for the module
+echo "Migration Progress:" > migration-progress.txt
+echo "Total test files: $(find app/code/Magento/{Module}/Test -name "*Test.php" | wc -l)" >> migration-progress.txt
+echo "Migrated files: $(grep -c "createMock\|createStub\|createPartialMock" app/code/Magento/{Module}/Test -r)" >> migration-progress.txt
+echo "Remaining files: $(find app/code/Magento/{Module}/Test -name "*Test.php" -exec grep -L "createMock\|createStub\|createPartialMock" {} \; | wc -l)" >> migration-progress.txt
+```
+
+### **Rollback Strategy**
+
+#### **Essential Rollback Plan**
+```bash
+# Create rollback patch before starting migration
+git diff > phpunit10-baseline.patch
+
+# If migration fails, rollback to PHPUnit 10
+git checkout HEAD -- composer.json
+git checkout HEAD -- dev/tests/*/phpunit.xml.dist
+git checkout HEAD -- lib/internal/Magento/Framework/TestFramework/Unit/Helper/ObjectManager.php
+composer install
+```
+
+---
+
+## **Essential Rules Summary**
+
+1. **Always analyze the code under test first**
+2. **Try the simplest approach first** (createMock, createStub, createPartialMock)
+3. **Use MockCreationTrait for non-existent methods BEFORE creating helper files**
+4. **Before creating a helper, exhaust all alternatives** (createMock, createStub, MockCreationTrait, reflection, parent methods)
+5. **For constructor-only helpers, always prefer createMock() over creating a helper file**
+6. **For magic methods (__call), use reflection or MockCreationTrait instead of helper files**
+7. **Regularly audit helpers to remove unused methods** - check actual usage with `grep`
+8. **Use createStub() for complex interfaces with 10+ methods**
+9. **Always create separate test helper files - never use inline anonymous classes**
+10. **For interfaces, extend existing implementations instead of implementing from scratch**
+11. **Never remove expects() calls without understanding why they exist**
+12. **Include abstract methods in createPartialMock() arrays**
+13. **Use setter methods instead of constructor parameters in test helpers**
+14. **Place test helpers in the module where the original class is defined**
+15. **Always call prepareObjectManager() when using ObjectManager test helper** - prevents "ObjectManager isn't initialized" errors
+16. **NEVER override __construct() in test classes** - use `setUpBeforeClass()` for static initialization or `setUp()` for instance initialization (See Step 12)
+17. **For data providers with mock expectations, use string representations** ('once', 'never', 'exactly_N') and convert them with `createInvocationMatcher()` (See Step 7.3)
+18. **When modifying lines during migration, avoid Fully Qualified Names (FQN)** - add `use` statements and use short class names for lines being changed; DO NOT modify lines unrelated to migration
+19. **Test your changes to ensure they work**
+20. **Follow the systematic approach in order**
+
+### **🎯 Priority Order for Mocking Approaches:**
+
+1. **createMock()** - For simple mocks with no method configuration
+2. **createStub()** - For return value configuration only
+3. **createPartialMock()** - For mocking existing methods
+4. **MockCreationTrait** - For mocking non-existent methods (BEFORE helper files!)
+5. **Reflection** - For magic methods and internal property access
+6. **Helper File** - LAST RESORT only when above approaches fail
+
+---
+
+**Remember: The goal is to migrate to PHPUnit 12 while preserving the test's validation logic, not to simplify for the sake of simplification.**

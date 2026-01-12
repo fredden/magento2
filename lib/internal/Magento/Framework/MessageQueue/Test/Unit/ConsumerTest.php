@@ -109,7 +109,7 @@ class ConsumerTest extends TestCase
         $this->configuration = $this
             ->getMockBuilder(ConsumerConfigurationInterface::class)
             ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->getMock();
         $this->messageEncoder = $this->getMockBuilder(MessageEncoder::class)
             ->disableOriginalConstructor()
             ->getMock();

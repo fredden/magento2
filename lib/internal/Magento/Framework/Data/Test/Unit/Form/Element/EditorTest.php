@@ -72,6 +72,7 @@ class EditorTest extends TestCase
     protected function setUp(): void
     {
         $this->objectManager = new ObjectManager($this);
+        $this->objectManager->prepareObjectManager();
         $this->factoryMock = $this->createMock(Factory::class);
         $this->collectionFactoryMock = $this->createMock(CollectionFactory::class);
         $this->escaperMock = $this->createMock(Escaper::class);
@@ -109,11 +110,10 @@ class EditorTest extends TestCase
             ]
         );
 
-        $this->formMock =
-            $this->getMockBuilder(Form::class)
-                ->onlyMethods(['getHtmlIdPrefix', 'getHtmlIdSuffix'])
-                ->disableOriginalConstructor()
-                ->getMock();
+        $this->formMock = $this->createPartialMockWithReflection(
+            Form::class,
+            ['getHtmlIdPrefix', 'getHtmlIdSuffix']
+        );
         $this->model->setForm($this->formMock);
     }
 
