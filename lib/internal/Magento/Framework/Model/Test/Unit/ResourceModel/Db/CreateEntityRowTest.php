@@ -41,15 +41,13 @@ class CreateEntityRowTest extends TestCase
 
     protected function setUp(): void
     {
-        // Use createPartialMockWithReflection because lastInsertId doesn't exist in AdapterInterface
-        $this->connection = $this->createPartialMockWithReflection(
-            AdapterInterface::class,
-            ['lastInsertId']
-        );
+        // AdapterInterface has 94 methods - use createMock()
+        $this->connection = $this->createMock(AdapterInterface::class);
 
-        $this->connection->expects($this->any())
-            ->method('lastInsertId')
-            ->willReturn(1);
+        // Removed: lastInsertId() doesn't exist in AdapterInterface - it's a custom Zend method
+        // $this->connection->expects($this->any())
+        //     ->method('lastInsertId')
+        //     ->willReturn(1);
 
         $metadata = $this->createMock(EntityMetadata::class);
 

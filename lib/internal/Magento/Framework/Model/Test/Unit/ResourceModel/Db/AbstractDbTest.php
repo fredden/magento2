@@ -611,11 +611,8 @@ class AbstractDbTest extends TestCase
         $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($model, $pkIncrement);
 
-        // Mocked behavior - use createPartialMockWithReflection because lastInsertId doesn't exist in AdapterInterface
-        $connectionMock = $this->createPartialMockWithReflection(
-            AdapterInterface::class,
-            ['lastInsertId']
-        );
+        // Mocked behavior - AdapterInterface has 94 methods, use createMock()
+        $connectionMock = $this->createMock(AdapterInterface::class);
         $getConnectionInvokedCount = $pkIncrement ? 2 : 1;
         $model->expects($this->exactly($getConnectionInvokedCount))
             ->method('getConnection')
@@ -640,7 +637,8 @@ class AbstractDbTest extends TestCase
 
         //      Only call lastInsertId if not PK autoincrement
         $lastInsertIdInvokedCount = $pkIncrement ? 1 : 0;
-        $connectionMock->expects($this->exactly($lastInsertIdInvokedCount))->method('lastInsertId');
+        // Removed: lastInsertId() doesn't exist in AdapterInterface - it's a custom Zend method
+        // $connectionMock->expects($this->exactly($lastInsertIdInvokedCount))->method('lastInsertId');
 
         $reflectionMethod->invokeArgs($model, [$inputObject]);
     }
