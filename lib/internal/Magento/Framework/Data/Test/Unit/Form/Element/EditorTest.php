@@ -69,16 +69,24 @@ class EditorTest extends TestCase
      */
     private $serializer;
 
+    /**
+     * @var \Magento\Framework\ObjectManagerInterface|null
+     */
+    private $originalObjectManager;
+
     protected function setUp(): void
     {
         $this->objectManager = new ObjectManager($this);
-        $this->objectManager->prepareObjectManager();
+        
         $this->factoryMock = $this->createMock(Factory::class);
         $this->collectionFactoryMock = $this->createMock(CollectionFactory::class);
         $this->escaperMock = $this->createMock(Escaper::class);
         $this->configMock = $this->createPartialMock(DataObject::class, ['getData']);
+        
+        // Create mocks that will be needed by AbstractElement constructor via ObjectManager
         $randomMock = $this->createMock(Random::class);
         $randomMock->method('getRandomString')->willReturn('some-rando-string');
+        
         $secureRendererMock = $this->createMock(SecureHtmlRenderer::class);
         $secureRendererMock->method('renderEventListenerAsTag')
             ->willReturnCallback(
@@ -94,6 +102,26 @@ class EditorTest extends TestCase
                     return "<$tag {$attrs->serialize()}>$content</$tag>";
                 }
             );
+
+        // Save original ObjectManager if it exists, then configure mock to return our mocks
+        try {
+            $this->originalObjectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        } catch (\RuntimeException $e) {
+            $this->originalObjectManager = null;
+        }
+        
+        $objectManagerMock = $this->createMock(\Magento\Framework\App\ObjectManager::class);
+        $objectManagerMock->method('get')
+            ->willReturnCallback(function ($className) use ($randomMock, $secureRendererMock) {
+                if ($className === Random::class) {
+                    return $randomMock;
+                }
+                if ($className === SecureHtmlRenderer::class) {
+                    return $secureRendererMock;
+                }
+                return null;
+            });
+        \Magento\Framework\App\ObjectManager::setInstance($objectManagerMock);
 
         $this->serializer = $this->createMock(Json::class);
 
@@ -115,6 +143,15 @@ class EditorTest extends TestCase
             ['getHtmlIdPrefix', 'getHtmlIdSuffix']
         );
         $this->model->setForm($this->formMock);
+    }
+
+    protected function tearDown(): void
+    {
+        // Restore original ObjectManager instance to avoid affecting other tests
+        if ($this->originalObjectManager) {
+            \Magento\Framework\App\ObjectManager::setInstance($this->originalObjectManager);
+        }
+        parent::tearDown();
     }
 
     public function testConstruct()
