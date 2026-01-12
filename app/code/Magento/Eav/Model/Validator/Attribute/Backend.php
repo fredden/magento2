@@ -40,18 +40,19 @@ class Backend extends \Magento\Framework\Validator\AbstractValidator
             if (!method_exists($backend, 'validate') || !is_callable([$backend, 'validate'])) {
                 continue;
             }
+            $attributeCode = $attribute->getAttributeCode() ?? '';
             try {
                 $result = $backend->validate($entity);
                 if (false === $result) {
-                    $this->_messages[$attribute->getAttributeCode()][] = __(
+                    $this->_messages[$attributeCode][] = __(
                         'The value of attribute "%1" is invalid.',
-                        $attribute->getAttributeCode()
+                        $attributeCode
                     );
                 } elseif (is_string($result)) {
-                    $this->_messages[$attribute->getAttributeCode()][] = $result;
+                    $this->_messages[$attributeCode][] = $result;
                 }
             } catch (\Magento\Framework\Exception\LocalizedException $e) {
-                $this->_messages[$attribute->getAttributeCode()][] = $e->getMessage();
+                $this->_messages[$attributeCode][] = $e->getMessage();
             }
         }
         return 0 == count($this->_messages);

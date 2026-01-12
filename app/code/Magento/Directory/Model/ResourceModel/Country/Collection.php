@@ -299,7 +299,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
                 \Magento\Directory\Helper\Data::XML_PATH_DEFAULT_COUNTRY,
                 ScopeInterface::SCOPE_WEBSITES,
                 $website
-            );
+            ) ?? '';
             $defaultCountry[$defaultCountryConfig][] = $website->getId();
         }
 

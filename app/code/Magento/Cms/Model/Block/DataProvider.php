@@ -69,14 +69,20 @@ class DataProvider extends \Magento\Ui\DataProvider\ModifierPoolDataProvider
         $items = $this->collection->getItems();
         /** @var \Magento\Cms\Model\Block $block */
         foreach ($items as $block) {
-            $this->loadedData[$block->getId()] = $block->getData();
+            $blockId = $block->getId();
+            if ($blockId !== null) {
+                $this->loadedData[$blockId] = $block->getData();
+            }
         }
 
         $data = $this->dataPersistor->get('cms_block');
         if (!empty($data)) {
             $block = $this->collection->getNewEmptyItem();
             $block->setData($data);
-            $this->loadedData[$block->getId()] = $block->getData();
+            $blockId = $block->getId();
+            if ($blockId !== null) {
+                $this->loadedData[$blockId] = $block->getData();
+            }
             $this->dataPersistor->clear('cms_block');
         }
 

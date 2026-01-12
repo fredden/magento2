@@ -116,7 +116,7 @@ class Config extends ConfigData
     public function getFormats()
     {
         $store = $this->getStore();
-        $storeId = $store->getId();
+        $storeId = $store->getId() ?? '';
 
         if (!isset($this->_types[$storeId])) {
             $this->_types[$storeId] = [];

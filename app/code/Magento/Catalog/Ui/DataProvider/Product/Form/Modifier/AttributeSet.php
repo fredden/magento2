@@ -123,10 +123,11 @@ class AttributeSet extends AbstractModifier
      */
     public function modifyData(array $data)
     {
+        $productId = $this->locator->getProduct()->getId() ?? '';
         return array_replace_recursive(
             $data,
             [
-                $this->locator->getProduct()->getId() => [
+                $productId => [
                     self::DATA_SOURCE_DEFAULT => [
                         'attribute_set_id' => $this->locator->getProduct()->getAttributeSetId()
                     ],

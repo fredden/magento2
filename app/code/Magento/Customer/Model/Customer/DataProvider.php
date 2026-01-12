@@ -238,12 +238,14 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
 
                 $this->fileUploaderDataResolver->overrideFileUploaderData($address, $result['address'][$addressId]);
             }
-            $this->loadedData[$customer->getId()] = $result;
+            $customerId = $customer->getId() ?? '';
+            $this->loadedData[$customerId] = $result;
         }
 
         $data = $this->getSession()->getCustomerFormData();
         if (!empty($data)) {
             $customerId = isset($data['customer']['entity_id']) ? $data['customer']['entity_id'] : null;
+            $customerId = $customerId ?? '';
             $this->loadedData[$customerId] = $data;
             $this->getSession()->unsCustomerFormData();
         }

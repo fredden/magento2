@@ -96,10 +96,12 @@ class Factory
     private function updateAttributeData(OptionInterface $attribute, array $item)
     {
         $values = [];
-        foreach ($item['values'] as $value) {
-            $option = $this->optionValueFactory->create();
-            $option->setValueIndex($value['value_index']);
-            $values[] = $option;
+        if (isset($item['values']) && is_array($item['values'])) {
+            foreach ($item['values'] as $value) {
+                $option = $this->optionValueFactory->create();
+                $option->setValueIndex($value['value_index']);
+                $values[] = $option;
+            }
         }
         $attribute->setData(
             array_replace_recursive(

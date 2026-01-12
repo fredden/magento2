@@ -23,7 +23,7 @@ class Status extends \Magento\Backend\Block\Widget\Grid\Column\Filter\Select
     protected function _construct()
     {
         self::$_statuses = [
-            null => null,
+            '' => null,
             Queue::STATUS_SENT => __('Sent'),
             Queue::STATUS_CANCEL => __('Cancel'),
             Queue::STATUS_NEVER => __('Not Sent'),

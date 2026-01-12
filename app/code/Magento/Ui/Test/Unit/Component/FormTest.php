@@ -166,12 +166,8 @@ class FormTest extends TestCase
         $primaryFieldName = 'primary_id';
         $fieldId = null;
         $row = ['key' => 'value'];
-        $data = [
-            $fieldId => $row,
-        ];
-        $dataSource = [
-            'data' => $row,
-        ];
+        $data = [];
+        $dataSource = [];
 
         /** @var DataProviderInterface|MockObject $dataProviderMock */
         $dataProviderMock =

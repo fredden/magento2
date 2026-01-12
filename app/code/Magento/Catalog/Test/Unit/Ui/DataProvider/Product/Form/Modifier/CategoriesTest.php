@@ -82,7 +82,6 @@ class CategoriesTest extends AbstractModifierTestCase
         $this->sessionMock = $this->createPartialMock(Session::class, []);
         $reflection = new \ReflectionClass($this->sessionMock);
         $storageProperty = $reflection->getProperty('storage');
-        $storageProperty->setAccessible(true);
         $storageProperty->setValue($this->sessionMock, new \Magento\Framework\DataObject());
         $this->categoryCollectionFactoryMock->expects($this->any())
             ->method('create')
@@ -149,7 +148,6 @@ class CategoriesTest extends AbstractModifierTestCase
     {
         $class = new \ReflectionClass(Categories::class);
         $method = $class->getMethod($method);
-        $method->setAccessible(true);
 
         return $method->invokeArgs($object, $args);
     }
@@ -262,7 +260,6 @@ class CategoriesTest extends AbstractModifierTestCase
         $this->sessionMock = $this->createPartialMock(Session::class, []);
         $reflection = new \ReflectionClass($this->sessionMock);
         $storageProperty = $reflection->getProperty('storage');
-        $storageProperty->setAccessible(true);
         $storageProperty->setValue($this->sessionMock, new \Magento\Framework\DataObject());
 
         $this->sessionMock->setUser($userAclUser);

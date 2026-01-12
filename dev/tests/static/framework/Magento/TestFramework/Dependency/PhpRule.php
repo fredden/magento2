@@ -541,7 +541,8 @@ class PhpRule implements RuleInterface
      */
     protected function _checkDependencyLayoutBlock(string $currentModule, ?string $area, string $block): array
     {
-        if (isset($this->_mapLayoutBlocks[$area][$block]) || $area === null) {
+        // Evaluate null area first to avoid deprecated null array offset access on PHP 8.1+
+        if ($area === null || isset($this->_mapLayoutBlocks[$area][$block])) {
             // CASE 1: No dependencies
             $modules = [];
             if ($area === null) {

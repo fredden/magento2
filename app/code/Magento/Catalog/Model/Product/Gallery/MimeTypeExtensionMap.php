@@ -25,7 +25,7 @@ class MimeTypeExtensionMap
      */
     public function getMimeTypeExtension($mimeType)
     {
-        if (isset($this->mimeTypeExtensionMap[$mimeType])) {
+        if ($mimeType !==null && isset($this->mimeTypeExtensionMap[$mimeType])) {
             return $this->mimeTypeExtensionMap[$mimeType];
         } else {
             return "";

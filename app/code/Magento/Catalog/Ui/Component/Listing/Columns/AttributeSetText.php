@@ -60,7 +60,7 @@ class AttributeSetText extends \Magento\Ui\Component\Listing\Columns\Column
             return $dataSource;
         }
 
-        $fieldName = $this->getData('name');
+        $fieldName = $this->getData('name') ?? '';
 
         foreach ($dataSource['data']['items'] as &$item) {
             if (!empty($item[static::NAME])) {

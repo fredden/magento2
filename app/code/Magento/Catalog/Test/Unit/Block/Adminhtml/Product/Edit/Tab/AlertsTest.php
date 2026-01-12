@@ -204,7 +204,6 @@ class AlertsTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->alerts);
         $method = $reflection->getMethod('_prepareLayout');
-        $method->setAccessible(true);
         return $method->invoke($this->alerts);
     }
 

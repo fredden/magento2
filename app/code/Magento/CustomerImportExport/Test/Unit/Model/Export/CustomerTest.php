@@ -130,10 +130,11 @@ class CustomerTest extends TestCase
         foreach ($this->_attributes as $attributeData) {
             $attribute = $this->createPartialMock(
                 AbstractAttribute::class,
-                ['_construct', 'getAttributeCode', 'getId']
+                ['_construct', 'getAttributeCode', 'getId', 'getAttributeId']
             );
             $attribute->method('getAttributeCode')->willReturn($attributeData['attribute_code']);
             $attribute->method('getId')->willReturn($attributeData['attribute_id']);
+            $attribute->method('getAttributeId')->willReturn($attributeData['attribute_id']);
             $attributeCollection->addItem($attribute);
         }
 

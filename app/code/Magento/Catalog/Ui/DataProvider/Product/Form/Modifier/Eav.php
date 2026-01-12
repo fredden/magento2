@@ -307,6 +307,9 @@ class Eav extends AbstractModifier
 
             if ($attributes) {
                 $meta[$groupCode]['children'] = $this->getAttributesMeta($attributes, $groupCode);
+            }
+
+            if ($attributes || $groupCode === self::DEFAULT_GENERAL_PANEL) {
                 $meta[$groupCode]['arguments']['data']['config']['componentType'] = Fieldset::NAME;
                 $meta[$groupCode]['arguments']['data']['config']['label'] = __($group->getAttributeGroupName());
                 $meta[$groupCode]['arguments']['data']['config']['collapsible'] = true;
@@ -316,6 +319,13 @@ class Eav extends AbstractModifier
             }
 
             $sortOrder++;
+        }
+
+        if (isset($meta[self::DEFAULT_GENERAL_PANEL])
+            && !isset($meta[self::DEFAULT_GENERAL_PANEL]['arguments']['data']['config']['componentType'])) {
+            $meta[self::DEFAULT_GENERAL_PANEL]['arguments']['data']['config']['componentType'] = Fieldset::NAME;
+            $meta[self::DEFAULT_GENERAL_PANEL]['arguments']['data']['config']['collapsible'] = true;
+            $meta[self::DEFAULT_GENERAL_PANEL]['arguments']['data']['config']['dataScope'] = self::DATA_SCOPE_PRODUCT;
         }
 
         return $meta;
@@ -468,7 +478,7 @@ class Eav extends AbstractModifier
     {
         $persistentData = (array)$this->dataPersistor->get('catalog_product');
         $this->dataPersistor->clear('catalog_product');
-        $productId = $this->locator->getProduct()->getId();
+        $productId = $this->locator->getProduct()->getId() ?? '';
 
         if (empty($data[$productId][self::DATA_SOURCE_DEFAULT])) {
             $data[$productId][self::DATA_SOURCE_DEFAULT] = [];
@@ -513,7 +523,8 @@ class Eav extends AbstractModifier
             $searchCriteria = $this->prepareGroupSearchCriteria()->create();
             $attributeGroupSearchResult = $this->attributeGroupRepository->getList($searchCriteria);
             foreach ($attributeGroupSearchResult->getItems() as $group) {
-                $this->attributeGroups[$this->calculateGroupCode($group)] = $group;
+                $code = $this->calculateGroupCode($group) ?? '';
+                $this->attributeGroups[$code] = $group;
             }
         }
 
@@ -569,8 +580,10 @@ class Eav extends AbstractModifier
         $groupIds = [];
 
         foreach ($groups as $group) {
-            $groupIds[$group->getAttributeGroupId()] = $this->calculateGroupCode($group);
-            $attributes[$this->calculateGroupCode($group)] = [];
+            $groupCode = $this->calculateGroupCode($group) ?? '';
+            $groupId = $group->getAttributeGroupId() ?? '';
+            $groupIds[$groupId] = $groupCode;
+            $attributes[$groupCode] = [];
         }
 
         $collection = $this->attributeCollectionFactory->create();
@@ -579,7 +592,8 @@ class Eav extends AbstractModifier
         $mapAttributeToGroup = [];
 
         foreach ($collection->getItems() as $attribute) {
-            $mapAttributeToGroup[$attribute->getAttributeId()] = $attribute->getAttributeGroupId();
+            $attributeId = $attribute->getAttributeId() ?? '';
+            $mapAttributeToGroup[$attributeId] = $attribute->getAttributeGroupId();
         }
 
         $sortOrder = $this->sortOrderBuilder
@@ -601,8 +615,9 @@ class Eav extends AbstractModifier
             $applyTo = $attribute->getApplyTo();
             $isRelated = !$applyTo || in_array($productType, $applyTo);
             if ($isRelated) {
-                $attributeGroupId = $mapAttributeToGroup[$attribute->getAttributeId()];
-                $attributeGroupCode = $groupIds[$attributeGroupId];
+                $attributeId = $attribute->getAttributeId() ?? '';
+                $attributeGroupId = $mapAttributeToGroup[$attributeId] ?? '';
+                $attributeGroupCode = $groupIds[$attributeGroupId] ?? '';
                 $attributes[$attributeGroupCode][] = $attribute;
             }
         }

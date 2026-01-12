@@ -285,13 +285,16 @@ class Attribute extends \Magento\Eav\Model\Entity\Attribute\AbstractAttribute im
 
         if ($this->getBackendType() == 'decimal' && $hasDefaultValue) {
             $numberFormatter = new \NumberFormatter($this->_localeResolver->getLocale(), \NumberFormatter::DECIMAL);
-            $defaultValue = $numberFormatter->parse($defaultValue);
-            if ($defaultValue === false) {
+            $position = 0;
+            $parsedValue = $numberFormatter->parse($defaultValue, \NumberFormatter::TYPE_DOUBLE, $position);
+            // PHP 8.5 Compatibility: Check if the entire string was parsed
+            // In PHP 8.5, parse() may return a partial result instead of false
+            if ($parsedValue === false || $position !== strlen((string)$defaultValue)) {
                 throw new LocalizedException(
                     __('The default decimal value is invalid. Verify the value and try again.')
                 );
             }
-            $this->setDefaultValue($defaultValue);
+            $this->setDefaultValue($parsedValue);
         }
 
         if ($this->getBackendType() == 'datetime') {

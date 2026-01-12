@@ -256,7 +256,8 @@ class Form extends \Magento\Backend\Block\Widget\Form\Generic
             $this->initFields($fieldset, $group, $section);
         }
 
-        $this->_fieldsets[$group->getId()] = $fieldset;
+        $groupId = $group->getId() ?? '';
+        $this->_fieldsets[$groupId] = $fieldset;
     }
 
     /**

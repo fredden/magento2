@@ -171,7 +171,7 @@ class MetadataProvider
         foreach ($fields as $column) {
             if (isset($options[$column])) {
                 $key = $document->getCustomAttribute($column)->getValue();
-                if (isset($options[$column][$key])) {
+                if ($key !== null && isset($options[$column][$key])) {
                     $row[] = $options[$column][$key];
                 } else {
                     $row[] = $key;

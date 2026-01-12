@@ -262,16 +262,22 @@ class AddressTest extends TestCase
         
         $attributes = [];
         foreach ($this->_attributes as $attributeData) {
-            $attribute = $this->createPartialMock(
-                AbstractAttribute::class,
-                ['_construct', 'getBackend']
-            );
+            $attribute = $this->getMockBuilder(AbstractAttribute::class)
+                ->disableOriginalConstructor()
+                ->onlyMethods(['_construct', 'getBackend', 'getAttributeCode', 'getId', 'getIsRequired', 'isStatic'])
+                ->addMethods(['getValidateRules'])
+                ->getMock();
             
             // Create a backend mock that returns the table
             $backend = $this->createMock(\Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend::class);
             $backend->method('getTable')->willReturn($attributeData['table']);
             
             $attribute->method('getBackend')->willReturn($backend);
+            $attribute->method('getAttributeCode')->willReturn($attributeData['attribute_code']);
+            $attribute->method('getId')->willReturn($attributeData['id']);
+            $attribute->method('getIsRequired')->willReturn($attributeData['is_required']);
+            $attribute->method('isStatic')->willReturn($attributeData['is_static']);
+            $attribute->method('getValidateRules')->willReturn($attributeData['validate_rules']);
             $attributes[] = $attribute;
         }
         $attributeCollection->method('getIterator')->willReturn(new \ArrayIterator($attributes));
@@ -381,7 +387,6 @@ class AddressTest extends TestCase
         );
 
         $property = new \ReflectionProperty($modelMock, '_availableBehaviors');
-        $property->setAccessible(true);
         $property->setValue($modelMock, $this->_availableBehaviors);
 
         return $modelMock;

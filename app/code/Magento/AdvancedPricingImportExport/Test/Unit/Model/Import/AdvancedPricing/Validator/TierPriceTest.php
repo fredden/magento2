@@ -89,7 +89,7 @@ class TierPriceTest extends TestCase
             ->willReturn($groupSearchResult);
 
         $groupTest = $this->createMock(GroupInterface::class);
-        $groupTest->expects($this->once())->method('getCode');
+        $groupTest->expects($this->once())->method('getCode')->willReturn('General');
         $groupTest->method('getId');
         $groups = [$groupTest];
         $groupSearchResult->method('getItems')->willReturn($groups);
@@ -125,7 +125,6 @@ class TierPriceTest extends TestCase
 
         $reflection = new ReflectionClass($this->tierPrice);
         $property = $reflection->getProperty('customerGroups');
-        $property->setAccessible(true);
         $this->assertEquals($expectedCustomerGroups, $property->getValue($this->tierPrice));
     }
 
@@ -163,7 +162,7 @@ class TierPriceTest extends TestCase
             ->willReturn($groupSearchResult);
 
         $groupTest = $this->createMock(GroupInterface::class);
-        $groupTest->expects($this->once())->method('getCode');
+        $groupTest->expects($this->once())->method('getCode')->willReturn('General');
         $groupTest->method('getId');
         $groups = [$groupTest];
         $groupSearchResult->method('getItems')->willReturn($groups);

@@ -768,6 +768,7 @@ class Attribute extends AbstractDb
      */
     public function getStoreLabelsByAttributeId($attributeId)
     {
+        $attributeId = $attributeId ?? '';
         if (!isset($this->storeLabelsCache[$attributeId])) {
             $connection = $this->getConnection();
             $bind = [':attribute_id' => $attributeId];
