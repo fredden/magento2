@@ -99,7 +99,7 @@ class AlternativeSourceTest extends TestCase
 
         $this->lockerProcessMock->expects(self::once())
             ->method('lockProcess')
-            ->with(self::isType('string'));
+            ->with(self::callback('is_string'));
         $this->lockerProcessMock->expects(self::once())
             ->method('unlockProcess');
 
@@ -171,7 +171,7 @@ class AlternativeSourceTest extends TestCase
 
         $this->lockerProcessMock->expects(self::once())
             ->method('lockProcess')
-            ->with(self::isType('string'));
+            ->with(self::callback('is_string'));
         $this->lockerProcessMock->expects(self::once())
             ->method('unlockProcess');
 

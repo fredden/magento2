@@ -280,7 +280,7 @@ class EntityAbstractTest extends TestCase
         $codeGenerator->expects($this->once())->method('addMethods')->willReturnSelf();
         $codeGenerator->expects($this->once())
             ->method('setClassDocBlock')
-            ->with($this->isType('array'))->willReturnSelf();
+            ->with($this->callback('is_array'))->willReturnSelf();
 
         $codeGenerator->expects($this->once())
             ->method('generate')
