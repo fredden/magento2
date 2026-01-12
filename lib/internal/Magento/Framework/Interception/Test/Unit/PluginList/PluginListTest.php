@@ -76,12 +76,21 @@ class PluginListTest extends TestCase
         $readerMock = $this->createMock(Dom::class);
 
         $this->configScopeMock = $this->createMock(ScopeInterface::class);
+        // CacheInterface extends FrontendInterface with 7 methods
         $this->cacheMock = $this->createPartialMockWithReflection(
             CacheInterface::class,
-            ['get', 'save']
+            [
+                'test',               // FrontendInterface methods
+                'load',
+                'save',
+                'remove',
+                'clean',
+                'getBackend',
+                'getLowLevelFrontend'
+            ]
         );
         // turn cache off
-        $this->cacheMock->method('get')->willReturn(false);
+        $this->cacheMock->method('load')->willReturn(false);
 
         $omConfigMock =  $this->createMock(
             ConfigInterface::class
@@ -108,7 +117,6 @@ class PluginListTest extends TestCase
 
         // tested class is a mock to be able to set its protected properties values in closure
         $this->object = $this->getMockBuilder(PluginList::class)
-            ->disableProxyingToOriginalMethods()
             ->onlyMethods(['_inheritPlugins'])
             ->setConstructorArgs(
                 [
