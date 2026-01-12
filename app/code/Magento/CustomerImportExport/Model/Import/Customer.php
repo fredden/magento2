@@ -182,6 +182,9 @@ class Customer extends AbstractCustomer
     /** @var TimezoneInterface */
     private $timezone;
 
+    /** @var \DateTimeZone[] */
+    private $dobTimezoneCache = [];
+
     /**
      * @param \Magento\Framework\Stdlib\StringUtils $string
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
