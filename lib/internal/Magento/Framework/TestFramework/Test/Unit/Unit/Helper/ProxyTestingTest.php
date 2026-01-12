@@ -25,7 +25,7 @@ class ProxyTestingTest extends TestCase
      * @param string $callProxiedMethod
      * @param array $passProxiedParams
      * @param mixed $expectedResult
-     *     */
+     */
     #[DataProvider('invokeWithExpectationsDataProvider')]
     public function testInvokeWithExpectations(
         $method,
@@ -38,18 +38,20 @@ class ProxyTestingTest extends TestCase
         $expectedResult
     ) {
         // Create proxied object with $callProxiedMethod
-        $proxiedObject = $this->getMockBuilder('stdClass')
-            ->onlyMethods([$callProxiedMethod])
-            ->getMock();
+        $proxiedObject = $this->createPartialMockWithReflection(
+            \stdClass::class,
+            [$callProxiedMethod]
+        );
 
         // Create object, which reacts on called $method by calling $callProxiedMethod from proxied object
         $callProxy = function () use ($proxiedObject, $callProxiedMethod, $passProxiedParams) {
             return call_user_func_array([$proxiedObject, $callProxiedMethod], $passProxiedParams);
         };
 
-        $object = $this->getMockBuilder('stdClass')
-            ->onlyMethods([$method])
-            ->getMock();
+        $object = $this->createPartialMockWithReflection(
+            \stdClass::class,
+            [$method]
+        );
         $builder = $object->expects($this->once())->method($method);
         call_user_func_array([$builder, 'with'], $params);
         $builder->willReturnCallback($callProxy);
