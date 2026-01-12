@@ -126,7 +126,7 @@ class UpdaterTest extends TestCase
         $self = $this;
         $this->_objectManager->expects($this->exactly(2))->method('get')->willReturnCallback(
             function ($className) use ($self) {
-                return $self->getMockForAbstractClass($className);
+                return $self->createMock($className);
             }
         );
 

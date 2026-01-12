@@ -71,15 +71,10 @@ class AbstractDbTest extends TestCase
             ->method('getTransactionManager')
             ->willReturn($this->transactionManagerMock);
 
-        $this->_model = $this->createMock(
-            AbstractDb::class,
-            [$contextMock],
-            '',
-            true,
-            true,
-            true,
-            ['_prepareDataForTable']
-        );
+        $this->_model = $this->getMockBuilder(AbstractDb::class)
+            ->setConstructorArgs([$contextMock])
+            ->onlyMethods(['_prepareDataForTable'])
+            ->getMock();
     }
 
     /**

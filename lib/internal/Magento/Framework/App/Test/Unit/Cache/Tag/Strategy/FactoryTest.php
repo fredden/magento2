@@ -74,7 +74,9 @@ class FactoryTest extends TestCase
 
     public function testGetStrategyForCustomClass()
     {
-        $object = $this->createMock('\PDO', [], '', false, false, false, []);
+        $object = $this->getMockBuilder(\PDO::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
         $this->assertEquals($this->customStrategy, $this->model->getStrategy($object));
     }

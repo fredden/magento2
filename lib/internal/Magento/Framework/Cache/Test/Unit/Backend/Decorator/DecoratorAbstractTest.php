@@ -82,7 +82,9 @@ class DecoratorAbstractTest extends TestCase
         }
 
         $this->expectException('Zend_Cache_Exception');
-        $this->createMock(AbstractDecorator::class, [$options]);
+        $this->getMockBuilder(AbstractDecorator::class)
+            ->setConstructorArgs([$options])
+            ->getMock();
     }
 
     /**

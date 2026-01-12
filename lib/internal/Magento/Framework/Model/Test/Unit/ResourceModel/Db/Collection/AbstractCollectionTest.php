@@ -438,7 +438,9 @@ class AbstractCollectionTest extends TestCase
         
         for ($i = 0; $i < 3; $i++) {
             /** @var AbstractModel $item */
-            $item = $this->createMock(AbstractModel::class, [], '', false);
+            $item = $this->getMockBuilder(AbstractModel::class)
+                ->disableOriginalConstructor()
+                ->getMockForAbstractClass();
             $this->uut->addItem($item->setDataChanges(true));
         }
 

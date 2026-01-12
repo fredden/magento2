@@ -85,10 +85,14 @@ class AbstractModelTest extends TestCase
             \Magento\Framework\Data\Collection\AbstractDb::class,
             ['getResource']
         );
-        $this->model = $this->createMock(
-            AbstractModel::class,
-            [$this->contextMock, $this->registryMock, $this->resourceMock, $this->resourceCollectionMock]
-        );
+        $this->model = $this->getMockBuilder(AbstractModel::class)
+            ->setConstructorArgs([
+                $this->contextMock,
+                $this->registryMock,
+                $this->resourceMock,
+                $this->resourceCollectionMock
+            ])
+            ->getMock();
         $this->connectionMock = $this->createMock(AdapterInterface::class);
         $this->resourceMock->expects($this->any())
             ->method('getConnection')

@@ -111,8 +111,9 @@ class ConfigTest extends TestCase
         $this->asset = $this->createMock(File::class);
         $this->remoteAsset = $this->createMock(Remote::class);
         $this->title = $this->createMock(Title::class);
-        $this->localeMock =
-            $this->createMock(ResolverInterface::class, [], '', false);
+        $this->localeMock = $this->getMockBuilder(ResolverInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->localeMock->expects($this->any())
             ->method('getLocale')
             ->willReturn(Resolver::DEFAULT_LOCALE);

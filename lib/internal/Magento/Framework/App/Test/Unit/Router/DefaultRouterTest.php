@@ -34,7 +34,9 @@ class DefaultRouterTest extends TestCase
         $actionFactory->expects($this->once())->method('create')->with(
             Forward::class
         )->willReturn(
-            $this->createMock(AbstractAction::class, [], '', false)
+            $this->getMockBuilder(AbstractAction::class)
+                ->disableOriginalConstructor()
+                ->getMock()
         );
         $noRouteHandler = $this->createMock(NoRouteHandler::class);
         $noRouteHandler->expects($this->any())->method('process')->willReturn(true);
