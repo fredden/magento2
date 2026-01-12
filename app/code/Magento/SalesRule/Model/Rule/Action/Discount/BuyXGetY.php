@@ -31,7 +31,6 @@ class BuyXGetY extends AbstractDiscount
 
         // Use effective per-item price after previously applied discounts
         $itemQtyTotal = $item->getQty();
-        $itemQtyTotal = $itemQtyTotal > 0 ? $itemQtyTotal : 1;
         $perItemPrevDiscount = (float) $item->getDiscountAmount() / $itemQtyTotal;
         $perItemBasePrevDiscount = (float) $item->getBaseDiscountAmount() / $itemQtyTotal;
 
