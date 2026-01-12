@@ -74,7 +74,7 @@ class AbstractDbTest extends TestCase
         $this->_model = $this->getMockBuilder(AbstractDb::class)
             ->setConstructorArgs([$contextMock])
             ->onlyMethods(['_prepareDataForTable', '_construct'])
-            ->getMockForAbstractClass();
+            ->getMock();
     }
 
     /**

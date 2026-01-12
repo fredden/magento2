@@ -51,10 +51,11 @@ class AbstractFactoryTest extends TestCase
     {
         $this->_objectManager = $this->createMock(ObjectManagerInterface::class);
 
-        $this->_factory = $this->createMock(
-            AbstractFactory::class,
-            ['objectManger' => $this->_objectManager]
-        );
+        $this->_factory = $this->getMockBuilder(AbstractFactory::class)
+            ->setConstructorArgs([$this->_objectManager])
+            ->onlyMethods([])
+            ->getMockForAbstractClass();
+            
         $property = new \ReflectionProperty(AbstractFactory::class, 'invokableClasses');
         $property->setAccessible(true);
         $property->setValue($this->_factory, $this->_invokableList);

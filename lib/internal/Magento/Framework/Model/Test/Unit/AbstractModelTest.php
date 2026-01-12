@@ -92,7 +92,8 @@ class AbstractModelTest extends TestCase
                 $this->resourceMock,
                 $this->resourceCollectionMock
             ])
-            ->getMock();
+            ->onlyMethods([])
+            ->getMockForAbstractClass();
         $this->connectionMock = $this->createMock(AdapterInterface::class);
         $this->resourceMock->expects($this->any())
             ->method('getConnection')
