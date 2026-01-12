@@ -22,6 +22,7 @@ use Magento\Framework\Model\ActionValidator\RemoveAction;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Framework\Registry;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -31,6 +32,8 @@ use Psr\Log\LoggerInterface;
  */
 class AbstractExtensibleModelTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var AbstractExtensibleModel
      */
@@ -105,10 +108,10 @@ class AbstractExtensibleModelTest extends TestCase
                     new DataObject(['attribute_code' => 'attribute3']),
                 ]
             );
-        $extensionAttributesFactory = $this->getMockBuilder(ExtensionAttributesFactory::class)
-            ->onlyMethods(['extractExtensionAttributes'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $extensionAttributesFactory = $this->createPartialMockWithReflection(
+            ExtensionAttributesFactory::class,
+            ['extractExtensionAttributes']
+        );
         $extensionAttributesFactory->expects($this->any())
             ->method('extractExtensionAttributes')
             ->willReturnArgument(1);

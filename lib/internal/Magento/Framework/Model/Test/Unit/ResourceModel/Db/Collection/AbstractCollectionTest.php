@@ -18,6 +18,7 @@ use Magento\Framework\Flag\FlagResource;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -29,6 +30,8 @@ use Psr\Log\LoggerInterface;
  */
 class AbstractCollectionTest extends TestCase
 {
+    use MockCreationTrait;
+
     const TABLE_NAME = 'some_table';
 
     /** @var Uut */
@@ -445,10 +448,10 @@ class AbstractCollectionTest extends TestCase
     {
         for ($i = 0; $i < 3; $i++) {
             /** @var DataObject|MockObject $item */
-            $item = $this->getMockBuilder(DataObject::class)
-                ->onlyMethods(['save'])
-                ->disableOriginalConstructor()
-                ->getMock();
+            $item = $this->createPartialMockWithReflection(
+                DataObject::class,
+                ['save']
+            );
             $item->expects($this->once())->method('save');
             $this->uut->addItem($item);
         }

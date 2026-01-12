@@ -14,6 +14,7 @@ use Magento\Framework\DataObject;
 use Magento\Framework\DataObject\Copy;
 use Magento\Framework\DataObject\Copy\Config;
 use Magento\Framework\Event\ManagerInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Quote\Model\Quote\Address;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -23,6 +24,8 @@ use PHPUnit\Framework\TestCase;
  */
 class CopyTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var Copy
      */
@@ -323,16 +326,14 @@ class CopyTest extends TestCase
             ->with('fieldset', 'global')
             ->willReturn($fields);
 
-        $sourceMock = $this->getMockBuilder(Address::class)
-            ->onlyMethods(['getCode'])
-            ->onlyMethods(['getExtensionAttributes'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $targetMock = $this->getMockBuilder(Address::class)
-            ->onlyMethods(['setCode'])
-            ->onlyMethods(['getExtensionAttributes', 'setExtensionAttributes'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $sourceMock = $this->createPartialMockWithReflection(
+            Address::class,
+            ['getCode', 'getExtensionAttributes']
+        );
+        $targetMock = $this->createPartialMockWithReflection(
+            Address::class,
+            ['setCode', 'getExtensionAttributes', 'setExtensionAttributes']
+        );
 
         $sourceMock
             ->expects($this->any())
