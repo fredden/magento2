@@ -32,19 +32,12 @@
                 <argument name="widget" value="CmsBlockWidgetCustomStoreView"/>
             </actionGroup>
             <!-- Delete CMS blocks -->
-            <actionGroup ref="AdminOpenCmsBlocksGridActionGroup" stepKey="openCmsBlocksGridForDelete"/>
-            <click selector="{{BlockPageActionsSection.select(CmsBlockForDefaultStoreView.title)}}" stepKey="clickSelectFirstBlock"/>
-            <waitForElementVisible selector="{{BlockPageActionsSection.delete}}" stepKey="waitForDeleteLinkFirst"/>
-            <click selector="{{BlockPageActionsSection.delete}}" stepKey="clickDeleteFirstBlock"/>
-            <waitForElementVisible selector="{{BlockPageActionsSection.deleteConfirm}}" stepKey="waitForDeleteConfirmFirst"/>
-            <click selector="{{BlockPageActionsSection.deleteConfirm}}" stepKey="confirmDeleteFirstBlock"/>
-            <waitForPageLoad stepKey="waitForFirstBlockDelete"/>
-            <click selector="{{BlockPageActionsSection.select(CmsBlockForCustomStoreView.title)}}" stepKey="clickSelectSecondBlock"/>
-            <waitForElementVisible selector="{{BlockPageActionsSection.delete}}" stepKey="waitForDeleteLinkSecond"/>
-            <click selector="{{BlockPageActionsSection.delete}}" stepKey="clickDeleteSecondBlock"/>
-            <waitForElementVisible selector="{{BlockPageActionsSection.deleteConfirm}}" stepKey="waitForDeleteConfirmSecond"/>
-            <click selector="{{BlockPageActionsSection.deleteConfirm}}" stepKey="confirmDeleteSecondBlock"/>
-            <waitForPageLoad stepKey="waitForSecondBlockDelete"/>
+            <actionGroup ref="deleteBlock" stepKey="deleteFirstBlock">
+                <argument name="Block" value="CmsBlockForDefaultStoreView"/>
+            </actionGroup>
+            <actionGroup ref="deleteBlock" stepKey="deleteSecondBlock">
+                <argument name="Block" value="CmsBlockForCustomStoreView"/>
+            </actionGroup>
             <!-- Delete custom store view -->
             <actionGroup ref="AdminDeleteStoreViewActionGroup" stepKey="deleteCustomStoreView">
                 <argument name="customStore" value="customStoreEN"/>
