@@ -22,7 +22,6 @@
             <!-- Step 1: Admin user with restricted permissions for merchandising only -->
             <!-- Login as default admin to create role and user -->
             <actionGroup ref="AdminLoginActionGroup" stepKey="loginAsDefaultAdmin"/>
-            <!-- Create new role -->
             <actionGroup ref="AdminOpenCreateRolePageActionGroup" stepKey="openCreateRolePage"/>
             <actionGroup ref="AdminFillUserRoleFormActionGroup" stepKey="fillRoleForm">
                 <argument name="role" value="limitedAccessRole"/>
@@ -65,6 +64,17 @@
             </actionGroup>
             <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutDefaultAdmin"/>
         </before>
+        <after>
+            <!-- Delete created user, role and logout from admin -->
+            <actionGroup ref="AdminLoginActionGroup" stepKey="loginDefaultAdminForCleanup"/>
+            <actionGroup ref="AdminDeleteCustomUserActionGroup" stepKey="deleteCreatedUser">
+                <argument name="user" value="NewAdminUser"/>
+            </actionGroup>
+            <actionGroup ref="AdminDeleteUserRoleActionGroup" stepKey="deleteCreatedRole">
+                <argument name="roleName" value="{{limitedAccessRole.rolename}}"/>
+            </actionGroup>
+            <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutAfterCleanup"/>
+        </after>
         <!-- Step 2,3: Login with merchandising-permissions user -->
         <actionGroup ref="AdminLoginActionGroup" stepKey="loginRestrictedUser">
             <argument name="username" value="{{NewAdminUser.username}}"/>
@@ -72,19 +82,8 @@
         </actionGroup>
         <!-- Step 4: Go to content > elements > blocks (expect cms blocks list) -->
         <actionGroup ref="AdminOpenCmsBlocksGridActionGroup" stepKey="openCmsBlocksGrid"/>
-        <waitForElementVisible selector="{{CmsPagesPageActionsSection.gridDataRow}}" stepKey="waitForCmsBlockList"/>
-        <!-- Logout restricted user -->
+        <waitForElementVisible selector="{{AdminBlockGridSection.select}}" stepKey="waitForCmsBlockList"/>
+        <!-- Logout from restricted user -->
         <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutRestrictedUser"/>
-        <after>
-            <!-- Delete created user, role and logout from admin -->
-            <actionGroup ref="AdminLoginActionGroup" stepKey="loginDefaultAdminForCleanup"/>
-            <actionGroup ref="AdminDeleteCreatedUserActionGroup" stepKey="deleteCreatedUser">
-                <argument name="user" value="NewAdminUser"/>
-            </actionGroup>
-            <actionGroup ref="AdminDeleteCreatedRoleActionGroup" stepKey="deleteCreatedRole">
-                <argument name="role" value="limitedAccessRole"/>
-            </actionGroup>
-            <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutAfterCleanup"/>
-        </after>
     </test>
 </tests>
