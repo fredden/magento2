@@ -112,14 +112,16 @@ class DataTest extends TestCase
 
         $stateExistent = $this->createPartialMockWithReflection(
             StateInterface::class,
-            ['__wakeup', 'getViewId', 'delete']
+            ['__wakeup', 'loadByView', 'save', 'delete', 'getViewId', 'getMode', 'setMode', 
+             'getStatus', 'setStatus', 'getVersionId', 'setVersionId', 'getUpdated', 'setUpdated']
         );
         $stateExistent->expects($this->once())->method('getViewId')->willReturn('view1');
         $stateExistent->expects($this->never())->method('delete');
 
         $stateNonexistent = $this->createPartialMockWithReflection(
             StateInterface::class,
-            ['__wakeup', 'getViewId', 'delete']
+            ['__wakeup', 'loadByView', 'save', 'delete', 'getViewId', 'getMode', 'setMode',
+             'getStatus', 'setStatus', 'getVersionId', 'setVersionId', 'getUpdated', 'setUpdated']
         );
         $stateNonexistent->expects($this->once())->method('getViewId')->willReturn('view2');
         $stateNonexistent->expects($this->once())->method('delete');
