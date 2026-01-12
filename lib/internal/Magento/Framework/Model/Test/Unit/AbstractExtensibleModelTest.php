@@ -95,7 +95,10 @@ class AbstractExtensibleModelTest extends TestCase
             'getIdFieldName',
             'rollBack'
         ]);
-        $this->resourceCollectionMock = $this->createMock(\Magento\Framework\Data\Collection\AbstractDb::class);
+        $this->resourceCollectionMock = $this->createPartialMock(
+            \Magento\Framework\Data\Collection\AbstractDb::class,
+            ['getResource']
+        );
         $this->metadataServiceMock = $this->getMockBuilder(MetadataServiceInterface::class)
             ->getMock();
         $this->metadataServiceMock
