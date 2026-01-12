@@ -192,8 +192,14 @@ class CopyTest extends TestCase
             ->with('fieldset', 'global')
             ->willReturn($fields);
 
-        $sourceMock = $this->createMock(ExtensibleDataInterface::class);
-        $targetMock = $this->createMock(ExtensibleDataInterface::class);
+        $sourceMock = $this->createPartialMockWithReflection(
+            ExtensibleDataInterface::class,
+            ['getExtensionAttributes', 'getCode']
+        );
+        $targetMock = $this->createPartialMockWithReflection(
+            ExtensibleDataInterface::class,
+            ['getExtensionAttributes', 'setCode']
+        );
 
         $sourceMock
             ->expects($this->any())
