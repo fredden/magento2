@@ -15,6 +15,7 @@ use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\DB\MapperFactory;
 use Magento\Framework\DB\Select;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -22,6 +23,7 @@ use Psr\Log\LoggerInterface;
 
 class AbstractMapperTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var AbstractDb|MockObject
      */
@@ -113,30 +115,11 @@ class AbstractMapperTest extends TestCase
     public function testMap(array $mapperMethods, array $criteriaParts)
     {
         /** @var AbstractMapper|MockObject $mapper */
-        $mapper = $this->createMock(
+        $mapper = $this->createPartialMockWithReflection(
             AbstractMapper::class,
-            [
-                'logger' => $this->loggerMock,
-                'fetchStrategy' => $this->fetchStrategyMock,
-                'objectFactory' => $this->objectFactoryMock,
-                'mapperFactory' => $this->mapperFactoryMock,
-                'select' => $this->selectMock
-            ],
-            '',
-            true,
-            true,
-            true,
             $mapperMethods
         );
-        $criteriaMock = $this->createMock(
-            CriteriaInterface::class,
-            [],
-            '',
-            false,
-            true,
-            true,
-            ['toArray']
-        );
+        $criteriaMock = $this->createMock(CriteriaInterface::class);
         $criteriaMock->expects($this->once())
             ->method('toArray')
             ->willReturn($criteriaParts);
@@ -237,30 +220,13 @@ class AbstractMapperTest extends TestCase
         $resultCondition = 'sql-condition-value';
 
         /** @var AbstractMapper|MockObject $mapper */
-        $mapper = $this->createMock(
+        $mapper = $this->createPartialMockWithReflection(
             AbstractMapper::class,
-            [
-                'logger' => $this->loggerMock,
-                'fetchStrategy' => $this->fetchStrategyMock,
-                'objectFactory' => $this->objectFactoryMock,
-                'mapperFactory' => $this->mapperFactoryMock,
-                'select' => $this->selectMock
-            ],
-            '',
-            true,
-            true,
-            true,
             ['getConnection']
         );
-        $connectionMock = $this->createMock(
-            AdapterInterface::class,
-            [],
-            '',
-            true,
-            true,
-            true,
-            ['quoteIdentifier', 'prepareSqlCondition']
-        );
+        $connectionMock = $this->getMockBuilder(AdapterInterface::class)
+            ->onlyMethods(['quoteIdentifier', 'prepareSqlCondition'])
+            ->getMock();
 
         $mapper->expects($this->any())
             ->method('getConnection')
