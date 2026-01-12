@@ -24,6 +24,7 @@ use Magento\Framework\ObjectManager\Config\Reader\Dom;
 use Magento\Framework\ObjectManager\Definition\Runtime;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -43,6 +44,7 @@ require_once __DIR__ . '/../Custom/Module/Model/StartingBackslash/Plugin.php';
  */
 class PluginListTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var PluginList
      */
@@ -74,7 +76,10 @@ class PluginListTest extends TestCase
         $readerMock = $this->createMock(Dom::class);
 
         $this->configScopeMock = $this->createMock(ScopeInterface::class);
-        $this->cacheMock = $this->createMock(CacheInterface::class);
+        $this->cacheMock = $this->createPartialMockWithReflection(
+            CacheInterface::class,
+            ['get', 'save']
+        );
         // turn cache off
         $this->cacheMock->method('get')->willReturn(false);
 
