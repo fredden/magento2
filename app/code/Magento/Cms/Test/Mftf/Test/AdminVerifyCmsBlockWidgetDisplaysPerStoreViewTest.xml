@@ -18,8 +18,9 @@
             <group value="Cms"/>
         </annotations>
         <before>
-            <!-- Disable page builder -->
+            <!-- Disable page builder and WYSIWYG -->
             <magentoCLI command="config:set {{DisablePageBuilderConfigData.path}} {{DisablePageBuilderConfigData.value}}" stepKey="disablePageBuilder"/>
+            <actionGroup ref="AdminDisableWYSIWYGActionGroup" stepKey="disableWYSIWYG"/>
             <actionGroup ref="AdminLoginActionGroup" stepKey="loginAsAdmin"/>
         </before>
         <after>
@@ -48,8 +49,9 @@
             <actionGroup ref="AdminDeleteStoreViewActionGroup" stepKey="deleteCustomStoreView">
                 <argument name="customStore" value="customStoreEN"/>
             </actionGroup>
-            <!-- Re-enable page builder -->
+            <!-- Re-enable page builder and WYSIWYG -->
             <magentoCLI command="config:set {{EnablePageBuilderConfigData.path}} {{EnablePageBuilderConfigData.value}}" stepKey="enablePageBuilder"/>
+            <actionGroup ref="AdminEnableWYSIWYGActionGroup" stepKey="enableWYSIWYG"/>
             <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutFromAdmin"/>
         </after>
         <!-- Step 1: Create custom store view -->
