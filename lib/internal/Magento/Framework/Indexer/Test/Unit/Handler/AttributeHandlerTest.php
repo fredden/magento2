@@ -12,11 +12,16 @@ use Magento\Framework\Indexer\Handler\AttributeHandler;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
+
 
 /**
  * Unit test for Magento\Framework\Indexer\Handler\AttributeHandler.
  */
 class AttributeHandlerTest extends TestCase
+{
+    use MockCreationTrait;
+
 {
     /**
      * @var SourceProviderInterface|MockObject
@@ -33,7 +38,10 @@ class AttributeHandlerTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->source = $this->createMock(SourceProviderInterface::class);
+        $this->source = $this->createPartialMockWithReflection(
+            SourceProviderInterface::class,
+            ['joinAttribute']
+        );
 
         $objectManager = new ObjectManager($this);
 
