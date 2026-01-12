@@ -21,7 +21,7 @@ class AdapterAbstractTest extends TestCase
     protected function setUp(): void
     {
         $this->_model = $this->getMockBuilder(AbstractAdapter::class)
-            ->onlyMethods([])
+            ->onlyMethods(['translate', '__'])
             ->getMock();
     }
 
