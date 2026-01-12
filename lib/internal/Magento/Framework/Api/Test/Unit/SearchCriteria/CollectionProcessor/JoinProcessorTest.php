@@ -82,7 +82,8 @@ class JoinProcessorTest extends TestCase
         /** @var AbstractDb|MockObject $searchCriteriarMock */
         $collectionMock = $this->getMockBuilder(AbstractDb::class)
             ->disableOriginalConstructor()
-            ->getMock();
+            ->onlyMethods(['getResource'])
+            ->getMockForAbstractClass();
 
         $customJoinMock->expects($this->once())
             ->method('apply')
@@ -120,7 +121,8 @@ class JoinProcessorTest extends TestCase
         /** @var AbstractDb|MockObject $searchCriteriarMock */
         $collectionMock = $this->getMockBuilder(AbstractDb::class)
             ->disableOriginalConstructor()
-            ->getMock();
+            ->onlyMethods(['getResource'])
+            ->getMockForAbstractClass();
 
         $model->process($searchCriteriaMock, $collectionMock);
     }

@@ -50,7 +50,8 @@ class CollectionProcessorTest extends TestCase
         /** @var AbstractDb|MockObject $searchCriteriarMock */
         $collectionMock = $this->getMockBuilder(AbstractDb::class)
             ->disableOriginalConstructor()
-            ->getMock();
+            ->onlyMethods(['getResource'])
+            ->getMockForAbstractClass();
 
         $processorOneMock->expects($this->once())
             ->method('process')
@@ -83,7 +84,8 @@ class CollectionProcessorTest extends TestCase
         /** @var AbstractDb|MockObject $searchCriteriarMock */
         $collectionMock = $this->getMockBuilder(AbstractDb::class)
             ->disableOriginalConstructor()
-            ->getMock();
+            ->onlyMethods(['getResource'])
+            ->getMockForAbstractClass();
 
         $processorOneMock->expects($this->once())
             ->method('process')

@@ -138,7 +138,8 @@ class FilterProcessorTest extends TestCase
         /** @var AbstractDb|MockObject $searchCriteriarMock */
         $collectionMock = $this->getMockBuilder(AbstractDb::class)
             ->disableOriginalConstructor()
-            ->getMock();
+            ->onlyMethods(['getResource'])
+            ->getMockForAbstractClass();
 
         $customFilterMock->expects($this->once())
             ->method('apply')
@@ -206,7 +207,8 @@ class FilterProcessorTest extends TestCase
         /** @var AbstractDb|MockObject $searchCriteriarMock */
         $collectionMock = $this->getMockBuilder(AbstractDb::class)
             ->disableOriginalConstructor()
-            ->getMock();
+            ->onlyMethods(['getResource'])
+            ->getMockForAbstractClass();
 
         $customFilterMock->expects($this->never())
             ->method('apply');

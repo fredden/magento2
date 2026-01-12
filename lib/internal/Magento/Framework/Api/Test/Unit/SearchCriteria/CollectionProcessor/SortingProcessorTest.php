@@ -101,7 +101,8 @@ class SortingProcessorTest extends TestCase
         /** @var AbstractDb|MockObject $collectionMock */
         $collectionMock = $this->getMockBuilder(AbstractDb::class)
             ->disableOriginalConstructor()
-            ->getMock();
+            ->onlyMethods(['getResource'])
+            ->getMockForAbstractClass();
 
         $collectionMock->expects($this->exactly(3))
             ->method('addOrder')
@@ -163,7 +164,8 @@ class SortingProcessorTest extends TestCase
         /** @var AbstractDb|MockObject $collectionMock */
         $collectionMock = $this->getMockBuilder(AbstractDb::class)
             ->disableOriginalConstructor()
-            ->getMock();
+            ->onlyMethods(['getResource'])
+            ->getMockForAbstractClass();
 
         $collectionMock->expects($this->exactly(3))
             ->method('addOrder')
