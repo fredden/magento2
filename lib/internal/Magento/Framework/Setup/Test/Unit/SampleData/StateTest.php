@@ -44,9 +44,11 @@ class StateTest extends TestCase
             ->onlyMethods(['getDirectoryWrite'])
             ->disableOriginalConstructor()
             ->getMock();
-        $this->writeInterface = $this->getMockBuilder(WriteInterface::class)
-            ->onlyMethods(['write', 'close'])
-            ->getMock();
+        // Use createPartialMockWithReflection for custom methods (close, isExist, read don't exist in WriteInterface)
+        $this->writeInterface = $this->createPartialMockWithReflection(
+            WriteInterface::class,
+            ['openFile', 'write', 'close', 'isExist', 'read']
+        );
         $objectManager = new ObjectManager($this);
         $this->state = $objectManager->getObject(
             State::class,

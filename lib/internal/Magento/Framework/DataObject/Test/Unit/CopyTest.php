@@ -198,7 +198,7 @@ class CopyTest extends TestCase
         );
         $targetMock = $this->createPartialMockWithReflection(
             ExtensibleDataInterface::class,
-            ['getExtensionAttributes', 'setCode']
+            ['getExtensionAttributes', 'setExtensionAttributes', 'setCode']
         );
 
         $sourceMock

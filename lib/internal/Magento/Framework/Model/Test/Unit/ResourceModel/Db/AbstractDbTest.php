@@ -478,8 +478,11 @@ class AbstractDbTest extends TestCase
      */
     public function testPrepareDataForUpdate(): void
     {
-        // AdapterInterface has 91 methods - use createMock() instead of createPartialMockWithReflection
-        $connectionMock = $this->createMock(AdapterInterface::class);
+        // Need createPartialMockWithReflection because 'save' method doesn't exist in AdapterInterface
+        $connectionMock = $this->createPartialMockWithReflection(
+            AdapterInterface::class,
+            ['save', 'quoteInto', 'describeTable', 'prepareColumnValue', 'update', 'select']
+        );
 
         $context = (new ObjectManager($this))->getObject(
             \Magento\Framework\Model\Context::class
@@ -610,8 +613,11 @@ class AbstractDbTest extends TestCase
         $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($model, $pkIncrement);
 
-        // Mocked behavior
-        $connectionMock = $this->createMock(AdapterInterface::class);
+        // Mocked behavior - use createPartialMockWithReflection because lastInsertId doesn't exist in AdapterInterface
+        $connectionMock = $this->createPartialMockWithReflection(
+            AdapterInterface::class,
+            ['lastInsertId']
+        );
         $getConnectionInvokedCount = $pkIncrement ? 2 : 1;
         $model->expects($this->exactly($getConnectionInvokedCount))
             ->method('getConnection')

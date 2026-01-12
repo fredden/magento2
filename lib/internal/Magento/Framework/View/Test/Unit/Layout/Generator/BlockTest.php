@@ -128,12 +128,11 @@ class BlockTest extends TestCase
         /**
          * @var \Magento\Framework\View\Element\AbstractBlock|\PHPUnit\Framework\MockObject\MockObject $blockInstance
          */
-        // explicitly set mocked methods for successful expectation of magic methods
-        $blockInstance = $this->getMockBuilder(AbstractBlock::class)
-            ->onlyMethods(['setType', 'setTemplate', 'setTtl', $methodName])
-            ->onlyMethods(['setNameInLayout', 'addData', 'setLayout'])
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        // Use createPartialMockWithReflection because setType doesn't exist in AbstractBlock
+        $blockInstance = $this->createPartialMockWithReflection(
+            AbstractBlock::class,
+            ['setType', 'setTemplate', 'setTtl', $methodName, 'setNameInLayout', 'addData', 'setLayout']
+        );
         $blockInstance->expects($this->once())->method('setType')->with(get_class($blockInstance));
         $blockInstance->expects($this->once())->method('setNameInLayout')->with($elementName);
         $blockInstance->expects($this->once())->method('addData')->with($argumentData);
