@@ -115,9 +115,11 @@ class AbstractMapperTest extends TestCase
     public function testMap(array $mapperMethods, array $criteriaParts)
     {
         /** @var AbstractMapper|MockObject $mapper */
+        // Add abstract method 'init' to the methods array
+        $methodsToMock = array_merge(['init'], array_values($mapperMethods));
         $mapper = $this->createPartialMockWithReflection(
             AbstractMapper::class,
-            $mapperMethods
+            $methodsToMock
         );
         $criteriaMock = $this->createMock(CriteriaInterface::class);
         $criteriaMock->expects($this->once())
@@ -142,30 +144,21 @@ class AbstractMapperTest extends TestCase
             'my_mapper_method_one' => 'my-test-value1'
         ];
         /** @var AbstractMapper|MockObject $mapper */
-        $mapper = $this->createMock(
-            AbstractMapper::class,
-            [
+        // Add abstract method 'init' to the methods array
+        $methodsToMock = array_merge(['init'], array_values($mapperMethods));
+        $mapper = $this->getMockBuilder(AbstractMapper::class)
+            ->setConstructorArgs([
                 'logger' => $this->loggerMock,
                 'fetchStrategy' => $this->fetchStrategyMock,
                 'objectFactory' => $this->objectFactoryMock,
                 'mapperFactory' => $this->mapperFactoryMock,
                 'select' => $this->selectMock
-            ],
-            '',
-            true,
-            true,
-            true,
-            $mapperMethods
-        );
-        $criteriaMock = $this->createMock(
-            CriteriaInterface::class,
-            [],
-            '',
-            false,
-            true,
-            true,
-            ['toArray']
-        );
+            ])
+            ->onlyMethods($methodsToMock)
+            ->getMock();
+        $criteriaMock = $this->getMockBuilder(CriteriaInterface::class)
+            ->onlyMethods(['toArray'])
+            ->getMock();
         $criteriaMock->expects($this->once())
             ->method('toArray')
             ->willReturn($criteriaParts);
@@ -184,21 +177,16 @@ class AbstractMapperTest extends TestCase
             'key-attribute' => 'value-attribute',
         ];
         /** @var AbstractMapper|MockObject $mapper */
-        $mapper = $this->createMock(
-            AbstractMapper::class,
-            [
+        $mapper = $this->getMockBuilder(AbstractMapper::class)
+            ->setConstructorArgs([
                 'logger' => $this->loggerMock,
                 'fetchStrategy' => $this->fetchStrategyMock,
                 'objectFactory' => $this->objectFactoryMock,
                 'mapperFactory' => $this->mapperFactoryMock,
                 'select' => $this->selectMock
-            ],
-            '',
-            true,
-            true,
-            true,
-            []
-        );
+            ])
+            ->onlyMethods(['init'])
+            ->getMock();
 
         $this->selectMock->expects($this->once())
             ->method('columns')
@@ -222,7 +210,7 @@ class AbstractMapperTest extends TestCase
         /** @var AbstractMapper|MockObject $mapper */
         $mapper = $this->createPartialMockWithReflection(
             AbstractMapper::class,
-            ['getConnection']
+            ['getConnection', 'init']
         );
         $connectionMock = $this->getMockBuilder(AdapterInterface::class)
             ->onlyMethods(['quoteIdentifier', 'prepareSqlCondition'])
