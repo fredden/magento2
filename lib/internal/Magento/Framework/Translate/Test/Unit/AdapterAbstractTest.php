@@ -20,7 +20,9 @@ class AdapterAbstractTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->_model = $this->createMock(AbstractAdapter::class);
+        $this->_model = $this->getMockBuilder(AbstractAdapter::class)
+            ->onlyMethods([])
+            ->getMock();
     }
 
     /**

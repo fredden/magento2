@@ -59,9 +59,9 @@ class ValidatorAbstractTest extends TestCase
     public function testTranslatorGetSetHas()
     {
         /** @var \Magento\Framework\Validator\AbstractValidator $validator */
-        $validator = $this->createMock(
-            AbstractValidator::class
-        );
+        $validator = $this->getMockBuilder(AbstractValidator::class)
+            ->onlyMethods([])
+            ->getMock();
         $translator = $this->_getTranslator();
         $validator->setTranslator($translator);
         $this->assertEquals($translator, $validator->getTranslator());
@@ -74,9 +74,9 @@ class ValidatorAbstractTest extends TestCase
     public function testGetTranslatorDefault()
     {
         /** @var \Magento\Framework\Validator\AbstractValidator $validator */
-        $validator = $this->createMock(
-            AbstractValidator::class
-        );
+        $validator = $this->getMockBuilder(AbstractValidator::class)
+            ->onlyMethods([])
+            ->getMock();
         $translator = $this->_getTranslator();
         AbstractValidator::setDefaultTranslator($translator);
         $this->assertEquals($translator, $validator->getTranslator());

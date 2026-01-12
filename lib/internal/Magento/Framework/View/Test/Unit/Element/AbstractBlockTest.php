@@ -128,13 +128,13 @@ class AbstractBlockTest extends TestCase
             ->method('getLockGuardedCacheLoader')
             ->willReturn($this->lockQuery);
 
-        $this->block = $this->createMock(
-            AbstractBlock::class,
-            [
-                'context' => $contextMock,
-                'data' => []
-            ]
-        );
+        $this->block = $this->getMockBuilder(AbstractBlock::class)
+            ->setConstructorArgs([
+                $contextMock,
+                []
+            ])
+            ->onlyMethods([])
+            ->getMock();
         $this->deploymentConfig = $this->createPartialMock(
             DeploymentConfig::class,
             ['get']

@@ -52,13 +52,7 @@ class TriggerCleanerTest extends TestCase
      * @inheritdoc
      */
     protected function setUp(): void
-    {
-        $this->markTestSkipped(
-            'Pre-existing environment issue: File permission error on generated factory files. ' .
-            'The ViewFactory mock creation triggers autoloader which tries to generate factory file ' .
-            'and fails due to file permissions. Fix: chmod -R 777 dev/tests/unit/tmp/generated/code/'
-        );
-        
+    {   
         $this->resource = $this->createMock(ResourceConnection::class);
         $this->viewCollectionFactory = $this->getMockBuilder(CollectionFactory::class)
             ->disableOriginalConstructor()
