@@ -11,6 +11,7 @@ use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\EntityManager\EntityMetadata;
 use Magento\Framework\EntityManager\MetadataPool;
 use Magento\Framework\Model\ResourceModel\Db\CreateEntityRow;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -20,6 +21,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  */
 class CreateEntityRowTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * Subject of testing.
      *
@@ -39,13 +41,8 @@ class CreateEntityRowTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->connection = $this->createMock(
+        $this->connection = $this->createPartialMockWithReflection(
             AdapterInterface::class,
-            [],
-            '',
-            false,
-            false,
-            true,
             ['lastInsertId']
         );
 
@@ -91,7 +88,8 @@ class CreateEntityRowTest extends TestCase
      * @param $inputData
      * @param $tableData
      * @param $preparedData
-     * @param $finalData     */
+     * @param $finalData     *
+
     #[DataProvider('executeDataProvider')]
     public function testExecute($inputData, $tableData, $preparedData, $finalData)
     {
