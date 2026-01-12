@@ -131,18 +131,11 @@ class MaliciousCodeTest extends TestCase
                 '<scri<script>pt>alert(1);</scri<script>pt>',
                 'alert(1);',
             ],
-            'Nested scripts' => [
-                '<?php echo "test" ?>',
-                '',
-                '<?= "test" ?>',
-                '',
-                '<?   ="test" ?>',
-                '',
-                '<?="test?>',
-                '',
-                '<?=$test?>',
-                '',
-            ],
+            'Nested scripts: php echo' => ['<?php echo "test" ?>', ''],
+            'Nested scripts: short echo 1' => ['<?= "test" ?>', ''],
+            'Nested scripts: short echo 2' => ['<?   ="test" ?>', ''],
+            'Nested scripts: short echo 3' => ['<?="test?>', ''],
+            'Nested scripts: short variable' => ['<?=$test?>', ''],
             'Null Value' => [null, ''],
         ];
     }

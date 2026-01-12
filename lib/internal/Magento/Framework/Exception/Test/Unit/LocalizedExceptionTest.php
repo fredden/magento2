@@ -91,7 +91,6 @@ class LocalizedExceptionTest extends TestCase
                 'message',
                 [],
                 'message',
-                'message',
             ],
         ];
     }

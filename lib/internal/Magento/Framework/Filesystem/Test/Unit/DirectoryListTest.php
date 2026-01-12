@@ -75,7 +75,10 @@ class DirectoryListTest extends TestCase
      */
     public static function assertCodeDataProvider()
     {
-        return [['getPath', 'getUrlPath']];
+        return [
+            ['getPath'],
+            ['getUrlPath']
+        ];
     }
 
     /**

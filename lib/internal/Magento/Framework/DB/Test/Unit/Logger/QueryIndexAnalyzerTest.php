@@ -133,28 +133,19 @@ class QueryIndexAnalyzerTest extends TestCase
         return [
             'no-stats-for-update-query' => [
                 "UPDATE `admin_user_session` SET `updated_at` = '2025-07-23 14:42:02' WHERE (id=5)",
-                [],
-                0,
-                '{}',
-                new QueryAnalyzerException("Can't process query type")
+                []
             ],
             'no-stats-for-insert-query' => [
                 "INSERT INTO `table_logging_event` (`ip`, `x_forwarded_ip`, `event_code`, `time`, `action`, `info`,
                             `status`, `user`, `user_id`, `fullaction`, `error_message`) VALUES
                             (?, ?, ?, '2025-07-23 14:42:02', ?, ?, ?, ?, ?, ?, ?)",
-                [],
-                0,
-                '{}',
-                new QueryAnalyzerException("Can't process query type")
+                []
             ],
             'no-stats-for-delete-query' => [
                 "DELETE FROM `sales_order_grid` WHERE (entity_id IN
                                       (SELECT `magento_sales_order_grid_archive`.`entity_id`
                                        FROM `magento_sales_order_grid_archive`))",
-                [],
-                0,
-                '{}',
-                new QueryAnalyzerException("Can't process query type")
+                []
             ]
         ];
     }

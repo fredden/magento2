@@ -165,9 +165,11 @@ class ConfigTest extends TestCase
 
     /**
      * @param boolean $expectedResult
-     * @param string $type     */
+     * @param string $type
+     * @param array $entityParents
+     */
     #[DataProvider('hasPluginsDataProvider')]
-    public function testHasPluginsWhenDataIsCached($expectedResult, $type)
+    public function testHasPluginsWhenDataIsCached($expectedResult, $type, $entityParents = [])
     {
         $cacheId = 'interception';
         $interceptionData = [

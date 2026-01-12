@@ -119,12 +119,12 @@ class StringBinaryTest extends TestCase
     }
 
     /**
-     * @param array $definition
-     * @param bool $expectedLength
+     * @param string $definition
+     * @param bool|int $expectedLength
      * @dataProvider definitionDataProvider()
      */
     #[DataProvider('definitionDataProvider')]
-    public function testGetBinaryDefaultValueFromDefinition($definition)
+    public function testGetBinaryDefaultValueFromDefinition($definition, $expectedLength = false)
     {
         $defaultValue = 'test';
         if (preg_match('/^(binary|varbinary)/', $definition)) {
