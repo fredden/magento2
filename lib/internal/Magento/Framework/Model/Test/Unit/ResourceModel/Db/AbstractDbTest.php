@@ -478,11 +478,8 @@ class AbstractDbTest extends TestCase
      */
     public function testPrepareDataForUpdate(): void
     {
-        // Need createPartialMockWithReflection because 'save' method doesn't exist in AdapterInterface
-        $connectionMock = $this->createPartialMockWithReflection(
-            AdapterInterface::class,
-            ['save', 'quoteInto', 'describeTable', 'prepareColumnValue', 'update', 'select']
-        );
+        // AdapterInterface has 91 methods - use createMock() and don't configure 'save' (custom method)
+        $connectionMock = $this->createMock(AdapterInterface::class);
 
         $context = (new ObjectManager($this))->getObject(
             \Magento\Framework\Model\Context::class
@@ -524,7 +521,8 @@ class AbstractDbTest extends TestCase
         );
         $idFieldNameReflection->setAccessible(true);
         $idFieldNameReflection->setValue($this->_model, 'idFieldName');
-        $connectionMock->expects($this->any())->method('save')->with('tableName', 'idFieldName');
+        // Removed: save() doesn't exist in AdapterInterface - it's a custom method
+        // $connectionMock->expects($this->any())->method('save')->with('tableName', 'idFieldName');
         $connectionMock->expects($this->any())->method('quoteInto')->willReturn('idFieldName');
         $connectionMock->expects($this->any())
             ->method('describeTable')
