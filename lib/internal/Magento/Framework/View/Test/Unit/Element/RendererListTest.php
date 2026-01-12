@@ -45,9 +45,10 @@ class RendererListTest extends TestCase
     {
         $objectManagerHelper = new ObjectManager($this);
 
-        $this->blockMock = $this->getMockBuilder(AbstractBlock::class)
-            ->onlyMethods(['setRenderedBlock', 'getTemplate', 'setTemplate'])->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->blockMock = $this->createPartialMockWithReflection(
+            AbstractBlock::class,
+            ['setRenderedBlock', 'getTemplate', 'setTemplate']
+        );
 
         $this->layoutMock = $this->getMockBuilder(LayoutInterface::class)
             ->onlyMethods(['getBlock', 'getChildName'])->disableOriginalConstructor()

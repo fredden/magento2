@@ -28,11 +28,10 @@ class FactoryTest extends TestCase
      */
     public function testCreate()
     {
-        $themeMock = $this->getMockBuilder(Theme::class)
-            ->onlyMethods(['getType'])
-            ->onlyMethods(['__wakeup'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $themeMock = $this->createPartialMockWithReflection(
+            Theme::class,
+            ['getType', '__wakeup']
+        );
         $themeMock->expects(
             $this->any()
         )->method(
@@ -65,11 +64,10 @@ class FactoryTest extends TestCase
     public function testCreateWithWrongThemeType()
     {
         $wrongThemeType = 'wrong_theme_type';
-        $themeMock = $this->getMockBuilder(Theme::class)
-            ->onlyMethods(['getType'])
-            ->onlyMethods(['__wakeup'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $themeMock = $this->createPartialMockWithReflection(
+            Theme::class,
+            ['getType', '__wakeup']
+        );
         $themeMock->expects($this->any())->method('getType')->willReturn($wrongThemeType);
 
         $objectManager = $this->createMock(ObjectManagerInterface::class);

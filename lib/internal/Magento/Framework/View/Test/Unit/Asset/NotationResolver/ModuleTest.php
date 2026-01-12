@@ -37,11 +37,10 @@ class ModuleTest extends TestCase
     protected function setUp(): void
     {
         $this->asset = $this->createMock(File::class);
-        $this->assetRepo = $this->getMockBuilder(Repository::class)
-            ->onlyMethods(['createUsingContext'])
-            ->onlyMethods(['createSimilar'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->assetRepo = $this->createPartialMockWithReflection(
+            Repository::class,
+            ['createUsingContext', 'createSimilar']
+        );
         $this->object = new Module($this->assetRepo);
     }
 

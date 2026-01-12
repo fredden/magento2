@@ -20,6 +20,7 @@ use Magento\Framework\DB\Adapter\Pdo\Mysql;
 use Magento\Framework\DB\Select;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb as ResourceModelAbstractDb;
 use Magento\Framework\Mview\View\Collection as MviewCollection;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\View\Element\UiComponent\DataProvider\FulltextFilter;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -30,6 +31,8 @@ use Psr\Log\LoggerInterface;
  */
 class FulltextFilterTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var FulltextFilter
      */
@@ -81,11 +84,10 @@ class FulltextFilterTest extends TestCase
 
         $this->resourceModelAbstractDb = $this->createMock(ResourceModelAbstractDb::class);
 
-        $this->collectionAbstractDbMock = $this->getMockBuilder(CollectionAbstractDb::class)
-            ->onlyMethods(['getMainTable'])
-            ->onlyMethods(['getConnection', 'getSelect'])
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->collectionAbstractDbMock = $this->createPartialMockWithReflection(
+            CollectionAbstractDb::class,
+            ['getMainTable', 'getConnection', 'getSelect']
+        );
 
         $this->fulltextFilter = new FulltextFilter();
     }
