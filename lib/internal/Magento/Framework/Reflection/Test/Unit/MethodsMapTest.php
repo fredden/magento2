@@ -175,7 +175,8 @@ class MethodsMapTest extends TestCase
     /**
      * @param string $type
      * @param string $methodName
-     * @param bool $expectedResult     */
+     * @param bool $expectedResult
+     */
     #[DataProvider('isMethodReturnValueRequiredProvider')]
     public function testIsMethodReturnValueRequired($type, $methodName, $expectedResult)
     {
