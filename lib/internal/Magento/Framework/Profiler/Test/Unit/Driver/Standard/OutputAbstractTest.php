@@ -23,9 +23,9 @@ class OutputAbstractTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->_output = $this->createMock(
-            AbstractOutput::class
-        );
+        $this->_output = $this->getMockBuilder(AbstractOutput::class)
+            ->onlyMethods([])
+            ->getMock();
     }
 
     /**
@@ -67,10 +67,10 @@ class OutputAbstractTest extends TestCase
     {
         $configuration = ['filterPattern' => '/filter pattern/', 'thresholds' => ['fetchKey' => 100]];
         /** @var \Magento\Framework\Profiler\Driver\Standard\AbstractOutput $output  */
-        $output = $this->createMock(
-            AbstractOutput::class,
-            [$configuration]
-        );
+        $output = $this->getMockBuilder(AbstractOutput::class)
+            ->setConstructorArgs([$configuration])
+            ->onlyMethods([])
+            ->getMock();
         $this->assertEquals('/filter pattern/', $output->getFilterPattern());
         $thresholds = $output->getThresholds();
         $this->assertArrayHasKey('fetchKey', $thresholds);
