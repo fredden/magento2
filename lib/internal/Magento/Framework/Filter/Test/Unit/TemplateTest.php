@@ -23,6 +23,8 @@ use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
  */
 class TemplateTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var Template
      */

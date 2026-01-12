@@ -33,6 +33,7 @@ class ObscureTest extends TestCase
         $factoryMock = $this->createMock(Factory::class);
         $collectionFactoryMock = $this->createMock(CollectionFactory::class);
         $this->objectManager = new ObjectManager($this);
+        $this->objectManager->prepareObjectManager();
         $escaper = $this->objectManager->getObject(
             Escaper::class
         );
