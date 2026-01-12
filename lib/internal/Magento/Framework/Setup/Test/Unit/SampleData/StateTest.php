@@ -10,12 +10,14 @@ namespace Magento\Framework\Setup\Test\Unit\SampleData;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\Directory\WriteInterface;
 use Magento\Framework\Setup\SampleData\State;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class StateTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var State|MockObject
      */
@@ -42,15 +44,9 @@ class StateTest extends TestCase
             ->onlyMethods(['getDirectoryWrite'])
             ->disableOriginalConstructor()
             ->getMock();
-        $this->writeInterface = $this->createMock(
-            WriteInterface::class,
-            [],
-            '',
-            false,
-            true,
-            true,
-            ['write', 'close']
-        );
+        $this->writeInterface = $this->getMockBuilder(WriteInterface::class)
+            ->onlyMethods(['write', 'close'])
+            ->getMock();
         $objectManager = new ObjectManager($this);
         $this->state = $objectManager->getObject(
             State::class,
