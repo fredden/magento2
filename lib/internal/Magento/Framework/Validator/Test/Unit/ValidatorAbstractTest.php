@@ -60,7 +60,7 @@ class ValidatorAbstractTest extends TestCase
     {
         /** @var \Magento\Framework\Validator\AbstractValidator $validator */
         $validator = $this->getMockBuilder(AbstractValidator::class)
-            ->onlyMethods([])
+            ->onlyMethods(['isValid'])
             ->getMock();
         $translator = $this->_getTranslator();
         $validator->setTranslator($translator);
@@ -75,7 +75,7 @@ class ValidatorAbstractTest extends TestCase
     {
         /** @var \Magento\Framework\Validator\AbstractValidator $validator */
         $validator = $this->getMockBuilder(AbstractValidator::class)
-            ->onlyMethods([])
+            ->onlyMethods(['isValid'])
             ->getMock();
         $translator = $this->_getTranslator();
         AbstractValidator::setDefaultTranslator($translator);
