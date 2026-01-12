@@ -15,6 +15,7 @@ use Magento\ImportExport\Model\Import;
 use Magento\ImportExport\Model\Import\AbstractSource;
 use Magento\ImportExport\Model\Import\ErrorProcessing\ProcessingErrorAggregatorInterface;
 use Magento\Store\Model\Store;
+use Magento\Customer\Model\Validator\DobFactory;
 
 /**
  * Customer entity import
@@ -172,6 +173,11 @@ class Customer extends AbstractCustomer
      */
     private $indexerProcessor;
 
+    public const ERROR_INVALID_DOB = 'invalidDob';
+
+    /** @var DobFactory */
+    private $dobValidatorFactory;
+
     /**
      * @param \Magento\Framework\Stdlib\StringUtils $string
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -203,7 +209,8 @@ class Customer extends AbstractCustomer
         \Magento\Customer\Model\ResourceModel\Attribute\CollectionFactory $attrCollectionFactory,
         \Magento\Customer\Model\CustomerFactory $customerFactory,
         array $data = [],
-        ?Processor $indexerProcessor = null
+        ?Processor $indexerProcessor = null,
+        ?DobFactory $dobValidatorFactory = null
     ) {
         $this->_resourceHelper = $resourceHelper;
 
@@ -261,6 +268,14 @@ class Customer extends AbstractCustomer
         $customerResource = $this->_customerModel->getResource();
         $this->_entityTable = $customerResource->getEntityTable();
         $this->indexerProcessor = $indexerProcessor ?: ObjectManager::getInstance()->get(Processor::class);
+
+        $this->addMessageTemplate(
+            self::ERROR_INVALID_DOB,
+            __('The Date of Birth should not be greater than today.')
+        );
+
+        $this->dobValidatorFactory = $dobValidatorFactory
+            ?: ObjectManager::getInstance()->get(DobFactory::class);
     }
 
     /**
@@ -645,6 +660,21 @@ class Customer extends AbstractCustomer
                         $this->_parameters[Import::FIELD_FIELD_MULTIPLE_VALUE_SEPARATOR]
                         ?? Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR
                     );
+
+                    if ($attributeCode === CustomerInterface::DOB) {
+                        $storeId = isset($rowData[self::COLUMN_STORE], $this->_storeCodeToId[$rowData[self::COLUMN_STORE]])
+                            ? (int)$this->_storeCodeToId[$rowData[self::COLUMN_STORE]]
+                            : 0;
+
+                        $customer = clone $this->_customerModel;
+                        $customer->setStoreId($storeId);
+                        $customer->setDob($rowData[$attributeCode]);
+
+                        $dobValidator = $this->dobValidatorFactory->create();
+                        if (!$dobValidator->isValid($customer)) {
+                            $this->addRowError(self::ERROR_INVALID_DOB, $rowNumber, $attributeCode);
+                        }
+                    }
                 }
             }
         }
