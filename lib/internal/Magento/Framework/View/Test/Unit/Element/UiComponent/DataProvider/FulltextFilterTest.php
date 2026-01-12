@@ -86,7 +86,7 @@ class FulltextFilterTest extends TestCase
 
         $this->collectionAbstractDbMock = $this->createPartialMockWithReflection(
             CollectionAbstractDb::class,
-            ['getMainTable', 'getConnection', 'getSelect']
+            ['getResource', 'getMainTable', 'getConnection', 'getSelect']
         );
 
         $this->fulltextFilter = new FulltextFilter();
