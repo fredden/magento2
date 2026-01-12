@@ -21,8 +21,6 @@ use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 class AttributeHandlerTest extends TestCase
 {
     use MockCreationTrait;
-
-{
     /**
      * @var SourceProviderInterface|MockObject
      */
@@ -40,7 +38,14 @@ class AttributeHandlerTest extends TestCase
     {
         $this->source = $this->createPartialMockWithReflection(
             SourceProviderInterface::class,
-            ['joinAttribute']
+            [
+                'joinAttribute',  // Custom method not in interface
+                'getMainTable',   // Interface methods
+                'getIdFieldName',
+                'addFieldToSelect',
+                'getSelect',
+                'addFieldToFilter'
+            ]
         );
 
         $objectManager = new ObjectManager($this);
