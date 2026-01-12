@@ -72,7 +72,7 @@ class CalculatorTest extends TestCase
 
         $productMock = $this->createPartialMockWithReflection(
             SaleableInterface::class,
-            ['__wakeup', 'getPriceInfo']
+            ['__wakeup', 'getPriceInfo', 'getTypeId', 'getId', 'getQty']
         );
 
         $weeeAdjustmentMock = $this->createMock(AdjustmentInterface::class);
@@ -135,7 +135,7 @@ class CalculatorTest extends TestCase
 
         $productMock = $this->createPartialMockWithReflection(
             SaleableInterface::class,
-            ['__wakeup', 'getPriceInfo']
+            ['__wakeup', 'getPriceInfo', 'getTypeId', 'getId', 'getQty']
         );
 
         $taxAdjustmentMock = $this->createMock(AdjustmentInterface::class);
