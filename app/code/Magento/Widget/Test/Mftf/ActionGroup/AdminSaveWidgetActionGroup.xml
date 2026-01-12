@@ -16,4 +16,3 @@
         <waitForText userInput="The widget instance has been saved." stepKey="seeSuccessMessage"/>
     </actionGroup>
 </actionGroups>
-

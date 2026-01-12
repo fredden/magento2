@@ -15,4 +15,3 @@
         <waitForPageLoad stepKey="waitForNewWidgetPageLoad"/>
     </actionGroup>
 </actionGroups>
-
