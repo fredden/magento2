@@ -12,6 +12,7 @@ use Magento\Framework\App\ScopeResolverInterface;
 use Magento\Framework\Data\Argument\InterpreterInterface;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\View\Element\AbstractBlock;
 use Magento\Framework\View\Element\BlockFactory;
 use Magento\Framework\View\Layout\Data\Structure;
@@ -30,6 +31,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  */
 class BlockTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @covers \Magento\Framework\View\Layout\Generator\Block::process()
      * @covers \Magento\Framework\View\Layout\Generator\Block::createBlock()
@@ -59,6 +61,20 @@ class BlockTest extends TestCase
         $setTtlCount,
         $setIsFlag
     ) {
+        // Convert string expectations to matchers
+        $addToParentGroupCount = is_string($addToParentGroupCount) 
+            ? $this->createInvocationMatcher($addToParentGroupCount) 
+            : $addToParentGroupCount;
+        $setTemplateCount = is_string($setTemplateCount) 
+            ? $this->createInvocationMatcher($setTemplateCount) 
+            : $setTemplateCount;
+        $setTtlCount = is_string($setTtlCount) 
+            ? $this->createInvocationMatcher($setTtlCount) 
+            : $setTtlCount;
+        $setIsFlag = is_string($setIsFlag) 
+            ? $this->createInvocationMatcher($setIsFlag) 
+            : $setIsFlag;
+        
         $elementName = 'test_block';
         $methodName = 'setTest';
         $literal = 'block';
@@ -200,10 +216,10 @@ class BlockTest extends TestCase
                 ['argument' => ['name' => 'argument', 'xsi:type' => 'type', 'value' => 'value']],
                 true,
                 true,
-                self::once(),
-                self::never(),
-                self::once(),
-                self::once(),
+                'once',
+                'never',
+                'once',
+                'once',
             ],
             [
                 '',
@@ -212,10 +228,10 @@ class BlockTest extends TestCase
                 ['argument' => 'value'],
                 false,
                 false,
-                self::never(),
-                self::once(),
-                self::never(),
-                self::never(),
+                'never',
+                'once',
+                'never',
+                'never',
             ],
         ];
     }

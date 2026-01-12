@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Magento\Framework\View\Test\Unit\Layout\Reader;
 
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\View\Layout\AclCondition;
 use Magento\Framework\View\Layout\ConfigCondition;
 use Magento\Framework\View\Layout\Element;
@@ -27,6 +28,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 class BlockTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var ScheduledStructure|MockObject
      */
@@ -182,7 +184,7 @@ class BlockTest extends TestCase
         return [
             [
                 'block',
-                self::once(),
+                'once',
                 '',
                 [
                     'acl' => [
@@ -192,14 +194,14 @@ class BlockTest extends TestCase
                         ],
                     ],
                 ],
-                self::once(),
-                self::once(),
+                'once',
+                'once',
                 'acl',
                 'test',
             ],
             [
                 'block',
-                self::once(),
+                'once',
                 'config_path',
                 [
                     'acl' => [
@@ -215,14 +217,14 @@ class BlockTest extends TestCase
                         ],
                     ],
                 ],
-                self::once(),
-                self::once(),
+                'once',
+                'once',
                 'aclResource',
                 'test',
             ],
             [
                 'page',
-                self::never(),
+                'never',
                 '',
                 [
                     'acl' => [
@@ -238,8 +240,8 @@ class BlockTest extends TestCase
                         ],
                     ],
                 ],
-                self::never(),
-                self::never(),
+                'never',
+                'never',
                 'aclResource',
                 'test',
             ],
@@ -328,10 +330,10 @@ class BlockTest extends TestCase
     public static function processReferenceDataProvider()
     {
         return [
-            ['referenceBlock', 'false', self::once(), self::once(), self::never()],
-            ['referenceBlock', 'true', self::never(), self::never(), self::once()],
-            ['page', 'false', self::never(), self::never(), self::never()],
-            ['page', 'true', self::never(), self::never(), self::never()],
+            ['referenceBlock', 'false', 'once', 'once', 'never'],
+            ['referenceBlock', 'true', 'never', 'never', 'once'],
+            ['page', 'false', 'never', 'never', 'never'],
+            ['page', 'true', 'never', 'never', 'never'],
         ];
     }
 }

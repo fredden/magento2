@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Magento\Framework\View\Test\Unit\Layout\Reader;
 
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\View\Layout\Element;
 use Magento\Framework\View\Layout\Reader\Container;
 use Magento\Framework\View\Layout\Reader\Context;
@@ -22,6 +23,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 class ContainerTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var ObjectManagerHelper
      */
@@ -150,9 +152,9 @@ class ContainerTest extends TestCase
                         'unchanged' => 'unchanged_value',
                     ],
                 ],
-                'getStructureCondition' => self::once(),
-                'setStructureCondition' => self::once(),
-                'setRemoveCondition' => self::never(),
+                'getStructureCondition' => 'once',
+                'setStructureCondition' => 'once',
+                'setRemoveCondition' => 'never',
             ],
             'referenceContainer' => [
                 'elementCurrent' => self::getElement(
@@ -170,9 +172,9 @@ class ContainerTest extends TestCase
                         Container::CONTAINER_OPT_DISPLAY    => null,
                     ],
                 ],
-                'getStructureCondition' => self::once(),
-                'setStructureCondition' => self::once(),
-                'setRemoveCondition' => self::never(),
+                'getStructureCondition' => 'once',
+                'setStructureCondition' => 'once',
+                'setRemoveCondition' => 'never',
             ],
             'referenceContainerNoRemove' => [
                 'elementCurrent' => self::getElement(
@@ -190,9 +192,9 @@ class ContainerTest extends TestCase
                         Container::CONTAINER_OPT_DISPLAY    => null,
                     ],
                 ],
-                'getStructureCondition' => self::once(),
-                'setStructureCondition' => self::once(),
-                'setRemoveCondition' => self::never(),
+                'getStructureCondition' => 'once',
+                'setStructureCondition' => 'once',
+                'setRemoveCondition' => 'never',
             ],
             'referenceContainerRemove' => [
                 'elementCurrent' => self::getElement(
@@ -202,9 +204,9 @@ class ContainerTest extends TestCase
                 'containerName' => 'reference',
                 'structureElement' => [],
                 'expectedData' => [],
-                'getStructureCondition' => self::never(),
-                'setStructureCondition' => self::never(),
-                'setRemoveCondition' => self::once(),
+                'getStructureCondition' => 'never',
+                'setStructureCondition' => 'never',
+                'setRemoveCondition' => 'once',
             ],
             'referenceContainerRemove2' => [
                 'elementCurrent' => self::getElement(
@@ -214,9 +216,9 @@ class ContainerTest extends TestCase
                 'containerName' => 'reference',
                 'structureElement' => [],
                 'expectedData' => [],
-                'getStructureCondition' => self::never(),
-                'setStructureCondition' => self::never(),
-                'setRemoveCondition' => self::once(),
+                'getStructureCondition' => 'never',
+                'setStructureCondition' => 'never',
+                'setRemoveCondition' => 'once',
             ],
             'referenceContainerDisplayFalse' => [
                 'elementCurrent' => self::getElement(
@@ -235,9 +237,9 @@ class ContainerTest extends TestCase
                         Container::CONTAINER_OPT_DISPLAY    => 'true',
                     ],
                 ],
-                'getStructureCondition' => self::once(),
-                'setStructureCondition' => self::once(),
-                'setRemoveCondition' => self::never(),
+                'getStructureCondition' => 'once',
+                'setStructureCondition' => 'once',
+                'setRemoveCondition' => 'never',
             ]
         ];
     }

@@ -9,6 +9,7 @@ namespace Magento\Framework\View\Test\Unit\Layout\ScheduledStructure;
 
 use Magento\Framework\App\State;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\View\Layout\Data\Structure;
 use Magento\Framework\View\Layout\Element;
 use Magento\Framework\View\Layout\ScheduledStructure;
@@ -24,6 +25,7 @@ use Psr\Log\LoggerInterface;
  */
 class HelperTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var ScheduledStructure|MockObject
      */
@@ -204,15 +206,15 @@ class HelperTest extends TestCase
     {
         return [
             [
-                'loggerExpects' => self::once(),
+                'loggerExpects' => 'once',
                 'stateMode' => State::MODE_DEVELOPER
             ],
             [
-                'loggerExpects' => self::never(),
+                'loggerExpects' => 'never',
                 'stateMode' => State::MODE_DEFAULT
             ],
             [
-                'loggerExpects' => self::never(),
+                'loggerExpects' => 'never',
                 'stateMode' => State::MODE_PRODUCTION
             ]
         ];

@@ -19,6 +19,7 @@ use Magento\Framework\Exception\RuntimeException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Framework\Session\SidResolverInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\View\ConfigInterface;
 use Magento\Framework\View\Element\AbstractBlock;
@@ -34,6 +35,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  */
 class AbstractBlockTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var AbstractBlock
      */
@@ -314,7 +316,10 @@ class AbstractBlockTest extends TestCase
         $this->block->setData('module_name', $moduleName);
         $this->block->setData('cache_lifetime', $cacheLifetime);
 
-        $this->eventManagerMock->expects($expectsDispatchEvent)
+        $expects = is_string($expectsDispatchEvent) 
+            ? $this->createInvocationMatcher($expectsDispatchEvent) 
+            : $expectsDispatchEvent;
+        $this->eventManagerMock->expects($expects)
             ->method('dispatch');
         $this->scopeConfigMock->expects($this->once())
             ->method('getValue')
@@ -347,31 +352,31 @@ class AbstractBlockTest extends TestCase
             [
                 'cacheLifetime' => null,
                 'dataFromCache' => 'dataFromCache',
-                'expectsDispatchEvent' => self::exactly(2),
+                'expectsDispatchEvent' => 'exactly_2',
                 'expectedResult' => '',
             ],
             [
                 'cacheLifetime' => false,
                 'dataFromCache' => 'dataFromCache',
-                'expectsDispatchEvent' => self::exactly(2),
+                'expectsDispatchEvent' => 'exactly_2',
                 'expectedResult' => '',
             ],
             [
                 'cacheLifetime' => 120,
                 'dataFromCache' => 'dataFromCache',
-                'expectsDispatchEvent' => self::exactly(2),
+                'expectsDispatchEvent' => 'exactly_2',
                 'expectedResult' => 'dataFromCache',
             ],
             [
                 'cacheLifetime' => '120string',
                 'dataFromCache' => 'dataFromCache',
-                'expectsDispatchEvent' => self::exactly(2),
+                'expectsDispatchEvent' => 'exactly_2',
                 'expectedResult' => 'dataFromCache',
             ],
             [
                 'cacheLifetime' => 120,
                 'dataFromCache' => false,
-                'expectsDispatchEvent' => self::exactly(2),
+                'expectsDispatchEvent' => 'exactly_2',
                 'expectedResult' => '',
             ],
         ];

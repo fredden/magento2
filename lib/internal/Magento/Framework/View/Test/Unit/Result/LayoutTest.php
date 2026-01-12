@@ -10,6 +10,7 @@ namespace Magento\Framework\View\Test\Unit\Result;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\Translate\InlineInterface;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Framework\View\Layout;
@@ -24,6 +25,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  */
 class LayoutTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var Http|MockObject
      */
@@ -163,8 +165,8 @@ class LayoutTest extends TestCase
     public static function renderResultDataProvider()
     {
         return [
-            [200, 'content-type', 'text/html', true, self::once(), self::once()],
-            [0, '', '', false, self::never(), self::never()]
+            [200, 'content-type', 'text/html', true, 'once', 'once'],
+            [0, '', '', false, 'never', 'never']
         ];
     }
 

@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Magento\Framework\View\Test\Unit\Layout\Data;
 
 use Magento\Framework\App\State;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 use Magento\Framework\View\Layout\Data\Structure;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -18,6 +19,7 @@ use Psr\Log\LoggerInterface;
 
 class StructureTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var LoggerInterface|MockObject
      */
@@ -70,7 +72,10 @@ class StructureTest extends TestCase
         $this->stateMock->expects($this->once())
             ->method('getMode')
             ->willReturn($stateMode);
-        $this->loggerMock->expects($loggerExpects)
+        $expects = is_string($loggerExpects) 
+            ? $this->createInvocationMatcher($loggerExpects) 
+            : $loggerExpects;
+        $this->loggerMock->expects($expects)
             ->method('info')
             ->with(
                 "Broken reference: the '{$childName}' tries to reorder itself towards '', but " .
@@ -87,15 +92,15 @@ class StructureTest extends TestCase
     {
         return [
             [
-                'loggerExpects' => self::once(),
+                'loggerExpects' => 'once',
                 'stateMode' => State::MODE_DEVELOPER
             ],
             [
-                'loggerExpects' => self::never(),
+                'loggerExpects' => 'never',
                 'stateMode' => State::MODE_DEFAULT
             ],
             [
-                'loggerExpects' => self::never(),
+                'loggerExpects' => 'never',
                 'stateMode' => State::MODE_PRODUCTION
             ]
         ];
