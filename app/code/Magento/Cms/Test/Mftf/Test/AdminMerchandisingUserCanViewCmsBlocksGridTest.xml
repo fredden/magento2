@@ -82,7 +82,9 @@
         </actionGroup>
         <!-- Step 4: Go to content > elements > blocks (expect cms blocks list) -->
         <actionGroup ref="AdminOpenCmsBlocksGridActionGroup" stepKey="openCmsBlocksGrid"/>
-        <waitForElementVisible selector="{{AdminBlockGridSection.select}}" stepKey="waitForCmsBlockList"/>
+        <seeInCurrentUrl url="{{CmsBlocksPage.url}}" stepKey="assertCmsBlocksUrl"/>
+        <waitForElementVisible selector="{{BlockPageActionsSection.addNewBlock}}" stepKey="waitAddNewBlockButtonVisible"/>
+        <waitForElementVisible selector="{{BlockPageActionsSection.idColumn}}" stepKey="waitForCmsBlockList"/>
         <!-- Logout from restricted user -->
         <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutRestrictedUser"/>
     </test>
