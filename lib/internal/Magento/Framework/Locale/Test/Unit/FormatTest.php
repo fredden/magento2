@@ -13,6 +13,7 @@ use Magento\Framework\App\ScopeInterface;
 use Magento\Framework\App\ScopeResolverInterface;
 use Magento\Framework\Locale\Format;
 use Magento\Framework\Locale\ResolverInterface;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -22,6 +23,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  */
 class FormatTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var Format
      */
@@ -55,7 +57,10 @@ class FormatTest extends TestCase
         $this->currency = $this->getMockBuilder(Currency::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $this->scope = $this->createMock(ScopeInterface::class);
+        $this->scope = $this->createPartialMockWithReflection(
+            ScopeInterface::class,
+            ['getCurrentCurrency']
+        );
 
         $this->scopeResolver = $this->createMock(ScopeResolverInterface::class);
         $this->scopeResolver->expects($this->any())
