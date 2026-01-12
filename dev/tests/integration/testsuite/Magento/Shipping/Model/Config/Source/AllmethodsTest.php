@@ -34,17 +34,11 @@ class AllmethodsTest extends TestCase
     private $allmethods;
 
     /**
-     * @var ScopeConfigInterface
-     */
-    private $scopeConfig;
-
-    /**
      * @inheritdoc
      */
     protected function setUp(): void
     {
         $this->objectManager = Bootstrap::getObjectManager();
-        $this->scopeConfig = $this->objectManager->get(ScopeConfigInterface::class);
         $this->allmethods = $this->objectManager->create(Allmethods::class);
     }
 
@@ -260,7 +254,7 @@ class AllmethodsTest extends TestCase
         
         // Count active carriers (excluding the empty option at index 0)
         $activeCarrierCount = 0;
-        foreach ($result as $key => $value) {
+        foreach (array_keys($result) as $key) {
             if ($key !== 0 && is_string($key)) {
                 $activeCarrierCount++;
             }
