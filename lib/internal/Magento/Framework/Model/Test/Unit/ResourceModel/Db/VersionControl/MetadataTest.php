@@ -50,7 +50,7 @@ class MetadataTest extends TestCase
         $this->model = $this->createMock(AbstractModel::class);
         $this->resource = $this->createPartialMockWithReflection(
             AbstractDb::class,
-            ['getConnection', 'getMainTable']
+            ['getConnection', 'getMainTable', '_construct']  // _construct is abstract method
         );
         $this->connection = $this->createMock(AdapterInterface::class);
         $this->model->expects($this->any())->method('getResource')->willReturn($this->resource);
