@@ -159,7 +159,7 @@ class DateTest extends TestCase
         $this->model->getValue();
     }
 
-    public function providerGetValue()
+    public static function providerGetValue()
     {
         return [
             [null, 'yyyy-mm-dd', 'hh:mm:ss', 'yyyy-mm-dd hh:mm:ss'],

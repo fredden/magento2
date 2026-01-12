@@ -32,7 +32,7 @@ class PaginationProcessorTest extends TestCase
         /** @var AbstractDb|MockObject $searchCriteriarMock */
         $collectionMock = $this->getMockBuilder(AbstractDb::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['getResource'])
+            ->onlyMethods(['getResource', 'setCurPage', 'setPageSize'])
             ->getMock();
         $collectionMock->expects($this->once())
             ->method('setCurPage')

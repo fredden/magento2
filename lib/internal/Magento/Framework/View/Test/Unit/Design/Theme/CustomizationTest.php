@@ -17,12 +17,14 @@ use Magento\Framework\View\Design\Theme\FileProviderInterface;
 use Magento\Framework\View\Design\ThemeInterface;
 use Magento\Theme\Model\Theme;
 use Magento\Theme\Model\Theme\File;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 class CustomizationTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var Customization
      */
@@ -187,7 +189,10 @@ class CustomizationTest extends TestCase
         $type = 'sample-type';
         foreach ($filesContent as $fileContent) {
             $file = $this->createPartialMock(File::class, ['__wakeup', 'save']);
-            $file->expects($fileContent['isCalled'])->method('save')->willReturnSelf();
+            $expects = is_string($fileContent['isCalled']) 
+                ? $this->createInvocationMatcher($fileContent['isCalled']) 
+                : $fileContent['isCalled'];
+            $file->expects($expects)->method('save')->willReturnSelf();
             $file->setData($fileContent['content']);
             $files[] = $file;
         }
@@ -219,7 +224,7 @@ class CustomizationTest extends TestCase
                 'sequence' => [3, 2, 1],
                 'filesContent' => [
                     [
-                        'isCalled' => self::once(),
+                        'isCalled' => 'once',
                         'content' => [
                             'id' => 1,
                             'theme_id' => 123,
@@ -229,7 +234,7 @@ class CustomizationTest extends TestCase
                         ],
                     ],
                     [
-                        'isCalled' => self::never(),
+                        'isCalled' => 'never',
                         'content' => [
                             'id' => 2,
                             'theme_id' => 123,
@@ -239,7 +244,7 @@ class CustomizationTest extends TestCase
                         ]
                     ],
                     [
-                        'isCalled' => self::once(),
+                        'isCalled' => 'once',
                         'content' => [
                             'id' => 3,
                             'theme_id' => 123,
