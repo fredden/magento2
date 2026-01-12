@@ -62,13 +62,13 @@ class ChangePriceAttributeScopeOnCreateTest extends TestCase
         $this->objectManager = new ObjectManager($this);
         $this->catalogDataMock = $this->createMock(CatalogHelper::class);
         $this->observerMock = $this->createMock(Observer::class);
-        
+
         // Event uses magic methods from DataObject, so we need to add getAttribute method
         $this->eventMock = $this->getMockBuilder(Event::class)
             ->disableOriginalConstructor()
             ->addMethods(['getAttribute'])
             ->getMock();
-        
+
         // Attribute uses magic properties, so we need to configure getId as property and methods
         $this->attributeMock = $this->getMockBuilder(Attribute::class)
             ->disableOriginalConstructor()
@@ -184,7 +184,7 @@ class ChangePriceAttributeScopeOnCreateTest extends TestCase
             ->willReturn($this->attributeMock);
 
         $this->attributeMock
-            ->expects($this->never())
+            ->expects($this->once())
             ->method('getFrontendInput');
 
         $this->catalogDataMock
