@@ -51,8 +51,8 @@ class RendererListTest extends TestCase
         );
 
         $this->layoutMock = $this->getMockBuilder(LayoutInterface::class)
-            ->onlyMethods(['getBlock', 'getChildName'])->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+            ->onlyMethods(['getBlock', 'getChildName'])
+            ->getMock();
 
         $this->layoutMock->expects($this->any())
             ->method('getBlock')

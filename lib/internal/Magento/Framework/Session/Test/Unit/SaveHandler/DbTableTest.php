@@ -23,32 +23,31 @@ class DbTableTest extends TestCase
     /**
      * Session table name
      */
-    const SESSION_TABLE = 'session_table_name';
+    private const SESSION_TABLE = 'session_table_name';
 
     /**#@+
      * Table column names
      */
-    const COLUMN_SESSION_ID = 'session_id';
+    private const COLUMN_SESSION_ID = 'session_id';
 
-    const COLUMN_SESSION_DATA = 'session_data';
+    private const COLUMN_SESSION_DATA = 'session_data';
 
-    const COLUMN_SESSION_EXPIRES = 'session_expires';
+    private const COLUMN_SESSION_EXPIRES = 'session_expires';
 
     /**#@-*/
 
     /**
      * Test select object
      */
-    const SELECT_OBJECT = 'select_object';
+    private const SELECT_OBJECT = 'select_object';
 
     /**#@+
      * Test session data
      */
-    const SESSION_ID = 'custom_session_id';
+    private const SESSION_ID = 'custom_session_id';
 
-    const SESSION_DATA = 'custom_session_data';
+    private const SESSION_DATA = 'custom_session_data';
 
-    /**#@-*/
     /**
      * Model under test
      *
@@ -141,7 +140,7 @@ class DbTableTest extends TestCase
 
     /**
      * @param bool $isDataEncoded
-     *     */
+     */
     #[DataProvider('readDataProvider')]
     public function testRead($isDataEncoded)
     {

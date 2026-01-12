@@ -62,7 +62,7 @@ class AbstractTest extends TestCase
 
         $this->_model = $this->getMockBuilder(AbstractAdapter::class)
             ->setConstructorArgs([$this->filesystemMock, $this->loggerMock])
-            ->getMockForAbstractClass();
+            ->getMock();
     }
 
     protected function tearDown(): void
