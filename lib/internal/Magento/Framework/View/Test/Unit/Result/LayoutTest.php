@@ -123,6 +123,14 @@ class LayoutTest extends TestCase
         $setHttpResponseCodeCount,
         $setHeaderCount
     ) {
+        // Convert string expectations to matchers
+        $setHttpResponseCodeCount = is_string($setHttpResponseCodeCount) 
+            ? $this->createInvocationMatcher($setHttpResponseCodeCount) 
+            : $setHttpResponseCodeCount;
+        $setHeaderCount = is_string($setHeaderCount) 
+            ? $this->createInvocationMatcher($setHeaderCount) 
+            : $setHeaderCount;
+        
         $layoutOutput = 'output';
 
         $this->layout->expects($this->once())->method('getOutput')->willReturn($layoutOutput);

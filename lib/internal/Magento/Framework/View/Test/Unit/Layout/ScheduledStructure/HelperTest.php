@@ -160,6 +160,11 @@ class HelperTest extends TestCase
     #[DataProvider('scheduleElementLogDataProvider')]
     public function testScheduleElementLog($loggerExpects, $stateMode)
     {
+        // Convert string expectation to matcher
+        $loggerExpects = is_string($loggerExpects) 
+            ? $this->createInvocationMatcher($loggerExpects) 
+            : $loggerExpects;
+        
         $key = 'key';
         $parentName = 'parent';
         $alias = 'alias';

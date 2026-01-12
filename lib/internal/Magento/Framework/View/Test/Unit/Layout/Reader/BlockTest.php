@@ -120,6 +120,17 @@ class BlockTest extends TestCase
         $aclKey,
         $aclValue
     ) {
+        // Convert string expectations to matchers
+        $scheduleStructureCount = is_string($scheduleStructureCount) 
+            ? $this->createInvocationMatcher($scheduleStructureCount) 
+            : $scheduleStructureCount;
+        $getCondition = is_string($getCondition) 
+            ? $this->createInvocationMatcher($getCondition) 
+            : $getCondition;
+        $setCondition = is_string($setCondition) 
+            ? $this->createInvocationMatcher($setCondition) 
+            : $setCondition;
+        
         $this->context->expects($this->once())->method('getScheduledStructure')
             ->willReturn($this->scheduledStructure);
         $this->scheduledStructure->expects($getCondition)
@@ -262,6 +273,17 @@ class BlockTest extends TestCase
         $setCondition,
         $setRemoveCondition
     ) {
+        // Convert string expectations to matchers
+        $getCondition = is_string($getCondition) 
+            ? $this->createInvocationMatcher($getCondition) 
+            : $getCondition;
+        $setCondition = is_string($setCondition) 
+            ? $this->createInvocationMatcher($setCondition) 
+            : $setCondition;
+        $setRemoveCondition = is_string($setRemoveCondition) 
+            ? $this->createInvocationMatcher($setRemoveCondition) 
+            : $setRemoveCondition;
+        
         if ($literal == 'referenceBlock' && $remove == 'false') {
             $this->scheduledStructure->expects($this->once())
                 ->method('unsetElementFromListToRemove')

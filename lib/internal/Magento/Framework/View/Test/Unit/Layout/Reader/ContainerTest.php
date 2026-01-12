@@ -83,6 +83,17 @@ class ContainerTest extends TestCase
         $setStructureCondition,
         $setRemoveCondition
     ) {
+        // Convert string expectations to matchers
+        $getStructureCondition = is_string($getStructureCondition) 
+            ? $this->createInvocationMatcher($getStructureCondition) 
+            : $getStructureCondition;
+        $setStructureCondition = is_string($setStructureCondition) 
+            ? $this->createInvocationMatcher($setStructureCondition) 
+            : $setStructureCondition;
+        $setRemoveCondition = is_string($setRemoveCondition) 
+            ? $this->createInvocationMatcher($setRemoveCondition) 
+            : $setRemoveCondition;
+        
         /** @var ScheduledStructure|MockObject $scheduledStructureMock */
         $scheduledStructureMock = $this->getMockBuilder(ScheduledStructure::class)
             ->disableOriginalConstructor()
