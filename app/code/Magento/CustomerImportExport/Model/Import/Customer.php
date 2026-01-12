@@ -690,6 +690,8 @@ class Customer extends AbstractCustomer
     }
 
     /**
+     * Validate that the given DOB is not in the future date
+     *
      * @param string $dobValue
      * @param int $storeId
      * @return bool
