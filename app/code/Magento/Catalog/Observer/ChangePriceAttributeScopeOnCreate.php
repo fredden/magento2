@@ -36,7 +36,9 @@ class ChangePriceAttributeScopeOnCreate implements ObserverInterface
     public function execute(EventObserver $observer)
     {
         $attribute = $observer->getEvent()->getAttribute();
-        if (empty($attribute->getId) && $attribute->getFrontendInput() == 'price') {
+
+        // Only set scope if attribute is new, is a price type, and scope hasn't been explicitly set
+        if (empty($attribute->getId()) && $attribute->getFrontendInput() == 'price' && $attribute->getScope() == 'store') {
             $scope = $this->catalogData->getPriceScope();
             $scope = ($scope == Store::PRICE_SCOPE_WEBSITE)
                 ? ProductAttributeInterface::SCOPE_WEBSITE_TEXT

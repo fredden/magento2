@@ -8,7 +8,13 @@ declare(strict_types=1);
 namespace Magento\Catalog\Model\Product\Attribute\Save;
 
 use Magento\Catalog\Api\Data\ProductAttributeInterface;
+use Magento\Catalog\Test\Fixture\Attribute as AttributeFixture;
 use Magento\Eav\Model\Entity\Attribute\Exception;
+use Magento\TestFramework\Fixture\AppArea;
+use Magento\TestFramework\Fixture\Config;
+use Magento\TestFramework\Fixture\DataFixture;
+use Magento\TestFramework\Fixture\DataFixtureStorageManager;
+use Magento\TestFramework\Helper\Bootstrap;
 
 /**
  * @magentoDbIsolation enabled
@@ -52,13 +58,26 @@ class AttributePriceTest extends AbstractAttributeTest
         // product price attribute does not support default value
     }
 
-    /**
-     * @magentoDataFixture Magento/Catalog/_files/product_decimal_attribute.php
-     * @magentoConfigFixture current_store catalog/price/scope 1
-     */
+    #[
+        AppArea('adminhtml'),
+        Config('catalog/price/scope', '2', 'store'),
+        DataFixture(
+            AttributeFixture::class,
+            ['frontend_input' => 'price', 'backend_type' => 'decimal'],
+            'decimalAttr'
+        ),
+    ]
     public function testScopePriceAttribute()
     {
-        $this->assertTrue($this->getAttribute()->isScopeWebsite());
+        $attributeFixtures = Bootstrap::getObjectManager()
+            ->get(DataFixtureStorageManager::class)->getStorage();
+        $attribute = $this->attributeRepository->get(
+            ProductAttributeInterface::ENTITY_TYPE_CODE,
+            $attributeFixtures->get('decimalAttr')->getAttributeCode()
+        );
+
+        $this->assertFalse($attribute->isScopeStore());
+        $this->assertTrue($attribute->isScopeGlobal());
     }
 
     /**
