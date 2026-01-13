@@ -17,6 +17,9 @@ use Magento\Catalog\Model\Product\Attribute\Backend\Price as BackendPrice;
  */
 class Decimal extends AbstractBaseAttributeData
 {
+    /**
+     * @inheritdoc
+     */
     public function __construct()
     {
         parent::__construct();
