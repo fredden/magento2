@@ -307,7 +307,7 @@ class IdentifierForSaveTest extends TestCase
             ->willReturnArgument(0);
 
         $expected = sha1(json_encode([true, 'http://example.com/path1/', '', $expectedVaryString]));
-        $this->assertEquals($expected, $this->model->getValue());
+        $this->assertSame($expected, $this->model->getValue());
     }
 
     /**
