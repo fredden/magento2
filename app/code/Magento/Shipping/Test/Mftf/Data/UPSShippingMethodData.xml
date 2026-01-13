@@ -60,6 +60,13 @@
         <data key="label">No</data>
         <data key="value">0</data>
     </entity>
+    <entity name="UPSRestCredentials" type="ups_rest_credentials">
+        <data key="username">hHckwInwgFJGZ9nOFLRNzGj5LCyY08RV8hcb6qDmvNX9mstq</data>
+        <data key="password">Dmk1HozzRlHV9Wd6hGhbRibTZpmAX4yRaqTsn0fFJ2tMlcIOJGRjITUCuSObMV9S</data>
+        <data key="shipperNumber">C5823F</data>
+        <data key="gatewayRestUrl">https://wwwcie.ups.com/api/rating/</data>
+        <data key="trackingRestUrl">https://wwwcie.ups.com/api/track/</data>
+    </entity>
     <entity name="AdminUPSOriginShipmentEUConfigData" type="ups_config">
         <data key="path">carriers/ups/origin_shipment</data>
         <data key="value">Shipments Originating in the European Union</data>
@@ -75,5 +82,9 @@
     <entity name="AdminUPSIncludeTaxesConfigData" type="ups_config">
         <data key="path">carriers/ups/include_taxes</data>
         <data key="value">1</data>
+    </entity>
+    <entity name="UPSShippingMethodLabels" type="ups_method_labels">
+        <data key="carrierTitle">United Parcel Service</data>
+        <data key="expressMethodTitle">UPS Express</data>
     </entity>
 </entities>

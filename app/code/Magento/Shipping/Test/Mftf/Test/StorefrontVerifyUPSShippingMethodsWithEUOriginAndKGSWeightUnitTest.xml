@@ -29,9 +29,7 @@
             <createData entity="Simple_US_Customer" stepKey="createCustomer"/>
             <!-- Step 1: Navigate to shipping method configuration and enable UPS -->
             <actionGroup ref="AdminOpenShippingMethodsConfigPageActionGroup" stepKey="openShippingMethodConfigPageForEnablingUPS"/>
-            <actionGroup ref="AdminEnableUpsRestShippingMethodActionGroup" stepKey="enableUPSShippingMethod">
-                <argument name="shipping" value="UPSShippingMethod"/>
-            </actionGroup>
+            <actionGroup ref="AdminEnableUPSActionGroup" stepKey="enableUPSShippingMethod"/>
             <!-- Step 2: Set UPS origin, weight, negotiated rates, include taxes via CLI -->
             <magentoCLI command="config:set {{AdminUPSOriginShipmentEUConfigData.path}} '{{AdminUPSOriginShipmentEUConfigData.value}}'" stepKey="setUpsOriginShipment"/>
             <magentoCLI command="config:set {{AdminUPSWeightUnitKGSConfigData.path}} {{AdminUPSWeightUnitKGSConfigData.value}}" stepKey="setUpsWeightUnit"/>
@@ -50,10 +48,7 @@
             <magentoCLI command="config:set {{AdminGeneralSetCountryConfigData.path}} GB" stepKey="setStoreInformationCountry"/>
             <magentoCLI command="config:set {{AdminGeneralSetCityConfigData.path}} London" stepKey="setStoreInformationCity"/>
             <magentoCLI command="config:set {{AdminGeneralSetPostcodeConfigData.path}} 'E1 7AA'" stepKey="setStoreInformationPostcode"/>
-            <!-- Step 6: Reindex and clear cache -->
-            <actionGroup ref="CliIndexerReindexActionGroup" stepKey="runReindex">
-                <argument name="indices" value=""/>
-            </actionGroup>
+            <!-- Step 6:  Clear cache -->
             <actionGroup ref="CliCacheFlushActionGroup" stepKey="flushCache">
                 <argument name="tags" value=""/>
             </actionGroup>
@@ -94,9 +89,9 @@
         </actionGroup>
         <!-- Step 8: Click on proceed to checkout and verify UPS shipping methods are displayed -->
         <actionGroup ref="StorefrontOpenCheckoutPageActionGroup" stepKey="goToCheckout"/>
-        <waitForElementVisible selector="{{CheckoutShippingMethodsSection.checkShippingMethodByName('United Parcel Service')}}" stepKey="verifyUPSShippingMethodIsDisplayed"/>
+        <waitForElementVisible selector="{{CheckoutShippingMethodsSection.checkShippingMethodByName(UPSShippingMethodLabels.carrierTitle)}}" stepKey="verifyUPSShippingMethodIsDisplayed"/>
         <!-- Step 9: Select UPS shipping method -->
-        <click selector="{{CheckoutShippingMethodsSection.checkShippingMethodByName('UPS Express')}}" stepKey="selectUPSShippingMethod"/>
+        <click selector="{{CheckoutShippingMethodsSection.checkShippingMethodByName(UPSShippingMethodLabels.expressMethodTitle)}}" stepKey="selectUPSShippingMethod"/>
         <waitForLoadingMaskToDisappear stepKey="waitForLoadingMask"/>
         <!-- Step 10: Click on next and go to billing information -->
         <actionGroup ref="StorefrontCheckoutClickNextOnShippingStepActionGroup" stepKey="goToCheckoutPaymentPage"/>
