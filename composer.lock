@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "20d127af3a85bbacaf1cac4df62912b7",
+    "content-hash": "b2612609d5a750c09b29bc8dfd23377e",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -7149,7 +7149,7 @@
         },
         {
             "name": "stomp-php/stomp-php",
-            "version": "dev-master",
+            "version": "5.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/stomp-php/stomp-php.git",
@@ -7167,7 +7167,6 @@
             "require-dev": {
                 "phpunit/phpunit": "^9.5"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -7207,7 +7206,7 @@
             ],
             "support": {
                 "issues": "https://github.com/stomp-php/stomp-php/issues",
-                "source": "https://github.com/stomp-php/stomp-php/tree/master"
+                "source": "https://github.com/stomp-php/stomp-php/tree/5.1.4"
             },
             "funding": [
                 {
@@ -15343,8 +15342,7 @@
         "magento/composer": 20,
         "magento/magento2-functional-testing-framework": 20,
         "pdepend/pdepend": 20,
-        "phpmd/phpmd": 20,
-        "stomp-php/stomp-php": 20
+        "phpmd/phpmd": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
