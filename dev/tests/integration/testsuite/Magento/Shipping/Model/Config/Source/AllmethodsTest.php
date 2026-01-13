@@ -11,6 +11,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Shipping\Model\Config;
 use Magento\TestFramework\Helper\Bootstrap;
+use Magento\TestFramework\Fixture\ConfigFixture;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -47,14 +48,13 @@ class AllmethodsTest extends TestCase
      *
      * This test verifies that when the flag is false, the method calls getAllCarriers()
      * and returns options for both active and inactive carriers.
-     *
-     * @magentoConfigFixture default/carriers/flatrate/active 1
-     * @magentoConfigFixture default/carriers/flatrate/title Flat Rate
-     * @magentoConfigFixture default/carriers/freeshipping/active 0
-     * @magentoConfigFixture default/carriers/freeshipping/title Free Shipping
-     * @magentoConfigFixture default/carriers/tablerate/active 0
-     * @magentoConfigFixture default/carriers/tablerate/title Best Way
      */
+    #[ConfigFixture('default/carriers/flatrate/active', 1)]
+    #[ConfigFixture('default/carriers/flatrate/title', 'Flat Rate')]
+    #[ConfigFixture('default/carriers/freeshipping/active', 0)]
+    #[ConfigFixture('default/carriers/freeshipping/title', 'Free Shipping')]
+    #[ConfigFixture('default/carriers/tablerate/active', 0)]
+    #[ConfigFixture('default/carriers/tablerate/title', 'Best Way')]
     public function testToOptionArrayReturnsAllCarriersWhenFlagIsFalse(): void
     {
         $result = $this->allmethods->toOptionArray(false);
@@ -62,7 +62,7 @@ class AllmethodsTest extends TestCase
         // Verify structure includes empty option
         $this->assertIsArray($result);
         $this->assertArrayHasKey(0, $result);
-        $this->assertEquals(['value' => '', 'label' => ''], $result[0]);
+        $this->assertSame(['value' => '', 'label' => ''], $result[0]);
 
         // Count total carriers (excluding the empty option)
         $carrierCount = count($result) - 1;
@@ -73,7 +73,7 @@ class AllmethodsTest extends TestCase
 
         // Verify flatrate (active) is present
         $this->assertArrayHasKey('flatrate', $result);
-        $this->assertEquals('Flat Rate', $result['flatrate']['label']);
+        $this->assertSame('Flat Rate', $result['flatrate']['label']);
         $this->assertIsArray($result['flatrate']['value']);
     }
 
@@ -82,14 +82,13 @@ class AllmethodsTest extends TestCase
      *
      * This test verifies that when the flag is true, the method calls getActiveCarriers()
      * and returns options only for active carriers, excluding inactive ones.
-     *
-     * @magentoConfigFixture default/carriers/flatrate/active 1
-     * @magentoConfigFixture default/carriers/flatrate/title Flat Rate
-     * @magentoConfigFixture default/carriers/freeshipping/active 0
-     * @magentoConfigFixture default/carriers/freeshipping/title Free Shipping
-     * @magentoConfigFixture default/carriers/tablerate/active 0
-     * @magentoConfigFixture default/carriers/tablerate/title Best Way
      */
+    #[ConfigFixture('default/carriers/flatrate/active', 1)]
+    #[ConfigFixture('default/carriers/flatrate/title', 'Flat Rate')]
+    #[ConfigFixture('default/carriers/freeshipping/active', 0)]
+    #[ConfigFixture('default/carriers/freeshipping/title', 'Free Shipping')]
+    #[ConfigFixture('default/carriers/tablerate/active', 0)]
+    #[ConfigFixture('default/carriers/tablerate/title', 'Best Way')]
     public function testToOptionArrayReturnsOnlyActiveCarriersWhenFlagIsTrue(): void
     {
         $result = $this->allmethods->toOptionArray(true);
@@ -97,11 +96,11 @@ class AllmethodsTest extends TestCase
         // Verify structure includes empty option
         $this->assertIsArray($result);
         $this->assertArrayHasKey(0, $result);
-        $this->assertEquals(['value' => '', 'label' => ''], $result[0]);
+        $this->assertSame(['value' => '', 'label' => ''], $result[0]);
 
         // Verify flatrate (active) is present
         $this->assertArrayHasKey('flatrate', $result);
-        $this->assertEquals('Flat Rate', $result['flatrate']['label']);
+        $this->assertSame('Flat Rate', $result['flatrate']['label']);
         $this->assertIsArray($result['flatrate']['value']);
 
         // Verify inactive carriers are NOT present
@@ -111,10 +110,9 @@ class AllmethodsTest extends TestCase
 
     /**
      * Test that active carriers have properly formatted method options
-     *
-     * @magentoConfigFixture default/carriers/flatrate/active 1
-     * @magentoConfigFixture default/carriers/flatrate/title Flat Rate
      */
+    #[ConfigFixture('default/carriers/flatrate/active', 1)]
+    #[ConfigFixture('default/carriers/flatrate/title', 'Flat Rate')]
     public function testActiveCarrierMethodsAreFormattedCorrectly(): void
     {
         $result = $this->allmethods->toOptionArray(true);
@@ -124,7 +122,7 @@ class AllmethodsTest extends TestCase
 
         $this->assertArrayHasKey('label', $carrierOptions);
         $this->assertArrayHasKey('value', $carrierOptions);
-        $this->assertEquals('Flat Rate', $carrierOptions['label']);
+        $this->assertSame('Flat Rate', $carrierOptions['label']);
 
         // Verify methods array structure
         $methods = $carrierOptions['value'];
@@ -148,10 +146,9 @@ class AllmethodsTest extends TestCase
      *
      * This test verifies that carriers returning null or empty array from getAllowedMethods()
      * are not included in the results.
-     *
-     * @magentoConfigFixture default/carriers/flatrate/active 1
-     * @magentoConfigFixture default/carriers/flatrate/title Flat Rate
      */
+    #[ConfigFixture('default/carriers/flatrate/active', 1)]
+    #[ConfigFixture('default/carriers/flatrate/title', 'Flat Rate')]
     public function testCarriersWithoutAllowedMethodsAreSkipped(): void
     {
         $result = $this->allmethods->toOptionArray(true);
@@ -174,12 +171,11 @@ class AllmethodsTest extends TestCase
      *
      * This test verifies that the correct Config method is invoked based on the flag value,
      * which is the core of the performance improvement fix.
-     *
-     * @magentoConfigFixture default/carriers/flatrate/active 1
-     * @magentoConfigFixture default/carriers/flatrate/title Flat Rate
-     * @magentoConfigFixture default/carriers/freeshipping/active 0
-     * @magentoConfigFixture default/carriers/freeshipping/title Free Shipping
      */
+    #[ConfigFixture('default/carriers/flatrate/active', 1)]
+    #[ConfigFixture('default/carriers/flatrate/title', 'Flat Rate')]
+    #[ConfigFixture('default/carriers/freeshipping/active', 0)]
+    #[ConfigFixture('default/carriers/freeshipping/title', 'Free Shipping')]
     public function testCorrectConfigMethodIsCalledBasedOnFlag(): void
     {
         // Create a spy Config object to track method calls
@@ -236,12 +232,11 @@ class AllmethodsTest extends TestCase
 
     /**
      * Test with multiple active carriers
-     *
-     * @magentoConfigFixture default/carriers/flatrate/active 1
-     * @magentoConfigFixture default/carriers/flatrate/title Flat Rate
-     * @magentoConfigFixture default/carriers/tablerate/active 1
-     * @magentoConfigFixture default/carriers/tablerate/title Best Way
      */
+    #[ConfigFixture('default/carriers/flatrate/active', 1)]
+    #[ConfigFixture('default/carriers/flatrate/title', 'Flat Rate')]
+    #[ConfigFixture('default/carriers/tablerate/active', 1)]
+    #[ConfigFixture('default/carriers/tablerate/title', 'Best Way')]
     public function testMultipleActiveCarriersAreReturnedWhenFlagIsTrue(): void
     {
         $result = $this->allmethods->toOptionArray(true);
@@ -250,7 +245,7 @@ class AllmethodsTest extends TestCase
         
         // Should include at least flatrate
         $this->assertArrayHasKey('flatrate', $result);
-        $this->assertEquals('Flat Rate', $result['flatrate']['label']);
+        $this->assertSame('Flat Rate', $result['flatrate']['label']);
         
         // Count active carriers (excluding the empty option at index 0)
         $activeCarrierCount = 0;
@@ -267,10 +262,9 @@ class AllmethodsTest extends TestCase
 
     /**
      * Test default parameter value (should behave as false)
-     *
-     * @magentoConfigFixture default/carriers/flatrate/active 1
-     * @magentoConfigFixture default/carriers/flatrate/title Flat Rate
      */
+    #[ConfigFixture('default/carriers/flatrate/active', 1)]
+    #[ConfigFixture('default/carriers/flatrate/title', 'Flat Rate')]
     public function testDefaultParameterBehavesAsFalse(): void
     {
         $resultDefault = $this->allmethods->toOptionArray();
@@ -287,6 +281,6 @@ class AllmethodsTest extends TestCase
         $keysFalse = array_keys($resultFalse);
         sort($keysDefault);
         sort($keysFalse);
-        $this->assertEquals($keysFalse, $keysDefault, 'Both results should have the same carrier keys');
+        $this->assertSame($keysFalse, $keysDefault, 'Both results should have the same carrier keys');
     }
 }
