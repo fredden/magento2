@@ -199,7 +199,8 @@ class WysiwygTest extends TestCase
                         public function toHtml(): string
                         {
                             return '<button class="action-wysiwyg" '
-                                . 'data-mage-init=\'' . $this->initJson . '\'>WYSIWYG Editor</button><!-- wysiwygSetup -->';
+                                . 'data-mage-init=\'' . $this->initJson . '\'>'
+                                . 'WYSIWYG Editor</button>';
                         }
                     };
                 }
