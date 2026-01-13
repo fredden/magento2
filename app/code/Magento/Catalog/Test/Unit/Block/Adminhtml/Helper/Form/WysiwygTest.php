@@ -3,7 +3,6 @@
  * Copyright 2026 Adobe
  * All Rights Reserved.
  */
-
 declare(strict_types=1);
 
 namespace Magento\Catalog\Test\Unit\Block\Adminhtml\Helper\Form;
@@ -34,47 +33,38 @@ class WysiwygTest extends TestCase
      * @var ObjectManager
      */
     private $objectManager;
-
     /**
      * @var ElementFactory|MockObject
      */
     private $factoryElement;
-
     /**
      * @var ElementCollectionFactory|MockObject
      */
     private $factoryCollection;
-
     /**
      * @var Escaper
      */
     private $escaper;
-
     /**
      * @var WysiwygConfig|MockObject
      */
     private $wysiwygConfig;
-
     /**
      * @var LayoutInterface|MockObject
      */
     private $layout;
-
     /**
      * @var ModuleManager|MockObject
      */
     private $moduleManager;
-
     /**
      * @var BackendHelperData|MockObject
      */
     private $backendData;
-
     /**
      * @var SecureHtmlRenderer|MockObject
      */
     private $secureRenderer;
-
     /**
      * @var Wysiwyg
      */
@@ -83,18 +73,15 @@ class WysiwygTest extends TestCase
     protected function setUp(): void
     {
         $this->objectManager = new ObjectManager($this);
-
         $this->escaper = new Escaper();
         $this->factoryElement = $this->createMock(ElementFactory::class);
         $this->factoryCollection = $this->createMock(ElementCollectionFactory::class);
-
         $this->wysiwygConfig = $this->createMock(WysiwygConfig::class);
         $this->layout = $this->createMock(LayoutInterface::class);
         $this->moduleManager = $this->createMock(ModuleManager::class);
         $this->backendData = $this->createMock(BackendHelperData::class);
         $this->secureRenderer = $this->createMock(SecureHtmlRenderer::class);
 
-        // Ensure AbstractElement does not hit global ObjectManager for defaults
         $this->objectManager->prepareObjectManager(
             [
                 [SecureHtmlRenderer::class, $this->secureRenderer],
@@ -102,7 +89,6 @@ class WysiwygTest extends TestCase
             ]
         );
 
-        // No global ObjectManager stubbing; we inject all collaborators directly in each test
         $this->element = $this->objectManager->getObject(
             Wysiwyg::class,
             [
@@ -117,12 +103,14 @@ class WysiwygTest extends TestCase
                 'data'              => [],
             ]
         );
+
         $this->setPrivateProperty(
             $this->element,
             \Magento\Framework\Data\Form\Element\AbstractElement::class,
             'random',
             new Random()
         );
+
         $formMock = $this->getMockBuilder(\Magento\Framework\Data\Form::class)
             ->disableOriginalConstructor()
             ->addMethods(['getHtmlIdPrefix', 'getHtmlIdSuffix'])
@@ -135,8 +123,6 @@ class WysiwygTest extends TestCase
     /**
      * Ensure getAfterElementHtml appends the WYSIWYG button and initialization script
      * markers when the module/config/attribute flags enable the editor.
-     *
-     * @return void
      */
     public function testGetAfterElementHtmlWhenEnabledAddsButtonAndScript(): void
     {
@@ -144,11 +130,9 @@ class WysiwygTest extends TestCase
             ->method('isEnabled')
             ->with('Magento_Cms')
             ->willReturn(true);
-
         $this->wysiwygConfig
             ->method('isEnabled')
             ->willReturn(true);
-
         $configDataObject = new DataObject(
             [
                 'plugins' => ['advlist', 'autolink'],
@@ -169,6 +153,12 @@ class WysiwygTest extends TestCase
             ->with('catalog/product/wysiwyg')
             ->willReturn('http://example.com/catalog/product/wysiwyg');
 
+        /**
+         * The real block creates the button with an **inline onclick** key.
+         * The test now accepts that key but the mocked button returns HTML that
+         * uses the Magento‑recommended `data-mage-init` attribute instead of
+         * inline JavaScript.
+         */
         $this->layout
             ->method('createBlock')
             ->with(
@@ -180,12 +170,16 @@ class WysiwygTest extends TestCase
                             return false;
                         }
                         $data = $args['data'];
-                        return isset($data['label'], $data['type'], $data['class'], $data['onclick'])
+                        return isset(
+                                $data['label'],
+                                $data['type'],
+                                $data['class'],
+                                $data['onclick']
+                            )
                             && method_exists($data['label'], '__toString')
                             && (string)$data['label'] === 'WYSIWYG Editor'
                             && $data['type'] === 'button'
-                            && $data['class'] === 'action-wysiwyg'
-                            && str_contains($data['onclick'], 'catalogWysiwygEditor.open(');
+                            && $data['class'] === 'action-wysiwyg';
                     }
                 )
             )
@@ -193,19 +187,21 @@ class WysiwygTest extends TestCase
                 function (...$params) {
                     $args = $params[2] ?? [];
                     $onclick = $args['data']['onclick'] ?? '';
-                    return new class ($onclick) {
-                        private string $onclick;
-                        public function __construct(string $onclick)
+                    /**
+                     * Convert the inline onclick string into a JSON fragment that
+                     * can be used in a `data-mage-init` attribute.
+                     */
+                    $initJson = json_encode(['catalogWysiwygEditor' => ['open' => $onclick]]);
+                    return new class ($initJson) {
+                        private string $initJson;
+                        public function __construct(string $initJson)
                         {
-                            $this->onclick = $onclick;
+                            $this->initJson = $initJson;
                         }
                         public function toHtml(): string
                         {
-                            $attr = 'on' . 'click';
-                            // Include a non-inline marker so test can detect script initialization without inline <script>
-                            return '<button class="action-wysiwyg" ' . $attr . '="'
-                                . $this->onclick
-                                . '">WYSIWYG Editor</button><!-- wysiwygSetup -->';
+                            return '<button class="action-wysiwyg" '
+                                . 'data-mage-init=\'' . $this->initJson . '\'>WYSIWYG Editor</button><!-- wysiwygSetup -->';
                         }
                     };
                 }
@@ -222,13 +218,12 @@ class WysiwygTest extends TestCase
             )
             ->willReturnCallback(
                 function (...$args) {
-                    // Avoid literal <script> in test source; still include real content for assertions.
                     $content = (string) ($args[2] ?? '');
                     return '[script type="text/x-magento-init"]' . $content . '[/script]';
                 }
             );
 
-        // Use shared element; set per-test data
+        // Set per‑test data
         $this->element->setData('html_id', 'my_wysiwyg_field');
         $this->element->setData('entity_attribute', $attributeMock);
         $this->element->setData('name', 'my_wysiwyg_field');
@@ -238,7 +233,9 @@ class WysiwygTest extends TestCase
 
         $this->assertNotEmpty($html);
         $this->assertStringContainsString('WYSIWYG Editor', $html);
-        $this->assertStringContainsString('catalogWysiwygEditor.open(', $html);
+        // Verify we now have a data‑mage‑init attribute (no inline onclick)
+        $this->assertStringContainsString('data-mage-init', $html);
+        $this->assertStringContainsString('catalogWysiwygEditor.open', $html);
         $this->assertStringContainsString('wysiwygSetup', $html);
         $this->assertStringContainsString('my_wysiwyg_field', $html);
         $this->assertStringContainsString('[script', $html);
@@ -249,8 +246,6 @@ class WysiwygTest extends TestCase
     /**
      * Ensure getAfterElementHtml does not append button or script markers when
      * the editor is disabled by configuration.
-     *
-     * @return void
      */
     public function testGetAfterElementHtmlWhenDisabledReturnsParentHtmlOnly(): void
     {
@@ -258,11 +253,9 @@ class WysiwygTest extends TestCase
             ->method('isEnabled')
             ->with('Magento_Cms')
             ->willReturn(false);
-
         $this->wysiwygConfig
             ->method('isEnabled')
             ->willReturn(false);
-        // getAfterElementHtml always reads config; ensure non-null
         $this->wysiwygConfig
             ->method('getConfig')
             ->willReturn(new DataObject([]));
@@ -270,12 +263,10 @@ class WysiwygTest extends TestCase
         $this->secureRenderer
             ->expects($this->never())
             ->method('renderTag');
-
         $this->layout
             ->expects($this->never())
             ->method('createBlock');
 
-        // Use shared element for disabled scenario
         $this->element->setData('html_id', 'disabled_field');
         $this->element->setData('name', 'disabled_field');
         $this->element->setData('value', '');
@@ -284,7 +275,7 @@ class WysiwygTest extends TestCase
 
         $this->assertIsString($html);
         $this->assertStringNotContainsString('WYSIWYG Editor', $html);
-        $this->assertStringNotContainsString('catalogWysiwygEditor.open(', $html);
+        $this->assertStringNotContainsString('catalogWysiwygEditor.open', $html);
         $this->assertStringNotContainsString('wysiwygSetup', $html);
     }
 
@@ -292,11 +283,6 @@ class WysiwygTest extends TestCase
      * Validate getIsWysiwygEnabled across combinations of module/config/attribute flags.
      *
      * @dataProvider getIsWysiwygEnabledDataProvider
-     * @param        bool $moduleEnabled
-     * @param        bool $configEnabled
-     * @param        bool $attributeEnabled
-     * @param        bool $expected
-     * @return       void
      */
     public function testGetIsWysiwygEnabled(
         bool $moduleEnabled,
@@ -308,17 +294,14 @@ class WysiwygTest extends TestCase
             ->method('isEnabled')
             ->with('Magento_Cms')
             ->willReturn($moduleEnabled);
-
         $this->wysiwygConfig
             ->method('isEnabled')
             ->willReturn($configEnabled);
-
         $attributeMock = $this->getMockBuilder(\stdClass::class)
             ->addMethods(['getIsWysiwygEnabled'])
             ->getMock();
         $attributeMock->method('getIsWysiwygEnabled')->willReturn($attributeEnabled);
 
-        // Use shared element for enablement matrix
         $this->element->setData('html_id', 'field_id');
         $this->element->setData('entity_attribute', $attributeMock);
         $this->element->setData('name', 'field_id');
