@@ -95,14 +95,42 @@ class BindCustomerLoginObserverTest extends TestCase
     #[
         AppArea(Area::AREA_FRONTEND),
         DbIsolation(true),
+
         // Create a second store view in default website/group
-        DataFixtureBeforeTransaction(StoreFixture::class, ['code' => 'fixture_second_store', 'name' => 'Fixture Store', 'is_active' => 1], 'second_store'),
+        DataFixtureBeforeTransaction(
+            StoreFixture::class,
+            [
+                'code'      => 'fixture_second_store',
+                'name'      => 'Fixture Store',
+                'is_active'=> 1,
+            ],
+            'second_store'
+        ),
+
         // Create a simple product
-        DataFixture(ProductFixture::class, ['sku' => 'simple', 'name' => 'Simple Product', 'price' => 10], 'simple_product'),
+        DataFixture(
+            ProductFixture::class,
+            [
+                'sku'   => 'simple',
+                'name'  => 'Simple Product',
+                'price' => 10,
+            ],
+            'simple_product'
+        ),
+
         // Create a customer
-        DataFixture(CustomerFixture::class, ['email' => 'customer@example.com', 'firstname' => 'John', 'lastname' => 'Doe'], 'customer'),
+        DataFixture(
+            CustomerFixture::class,
+            [
+                'email'     => 'customer@example.com',
+                'firstname' => 'John',
+                'lastname'  => 'Doe',
+            ],
+            'customer'
+        ),
+
         // Website-scoped customer sharing
-        Config('customer/account_share/scope', 1)
+        Config('customer/account_share/scope', 1),
     ]
     public function testExecuteWithItemsAcrossTwoStores(): void
     {
@@ -167,7 +195,15 @@ class BindCustomerLoginObserverTest extends TestCase
     #[
         DataFixture(ProductFixture::class, ['sku' => 'simple', 'name' => 'Simple', 'price' => 10], 'p1'),
         DataFixture(ProductFixture::class, ['sku' => 'simple2', 'name' => 'Simple 2', 'price' => 20], 'p2'),
-        DataFixture(CustomerFixture::class, ['email' => 'customer2@example.com', 'firstname' => 'Jane', 'lastname' => 'Doe'], 'cust2'),
+        DataFixture(
+            CustomerFixture::class,
+            [
+                'email'     => 'customer2@example.com',
+                'firstname' => 'Jane',
+                'lastname'  => 'Doe',
+            ],
+            'cust2'
+        ),
     ]
     public function testExecuteWithSameProducts(): void
     {
