@@ -22,7 +22,7 @@ class AppAreaTest extends \PHPUnit\Framework\TestCase
      */
     protected $_object;
 
-    /**
+    /* 
      * @var \Magento\TestFramework\Application|\PHPUnit\Framework\MockObject\MockObject
      */
     protected $_applicationMock;
@@ -44,7 +44,7 @@ class AppAreaTest extends \PHPUnit\Framework\TestCase
     {
         /** @var ObjectManagerInterface|MockObject $objectManager */
         $objectManager = $this->getMockBuilder(ObjectManagerInterface::class)
-            ->onlyMethods(['get', 'create'])
+            ->onlyMethods(['get', 'create', 'configure'])
             ->disableOriginalConstructor()
             ->getMock();
 
