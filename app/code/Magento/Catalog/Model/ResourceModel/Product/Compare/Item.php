@@ -185,6 +185,8 @@ class Item extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      *
      * @param \Magento\Catalog\Model\Product\Compare\Item $object
      * @return $this
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function updateCustomerFromVisitor($object)
     {
