@@ -299,14 +299,14 @@ class ContentTest extends TestCase
     private function isValidWysiwygConfig(array $config): bool
     {
         return isset(
-                $config['document_base_url'],
-                $config['store_id'],
-                $config['add_variables'],
-                $config['add_widgets'],
-                $config['add_directives'],
-                $config['use_container'],
-                $config['container_class']
-            )
+            $config['document_base_url'],
+            $config['store_id'],
+            $config['add_variables'],
+            $config['add_widgets'],
+            $config['add_directives'],
+            $config['use_container'],
+            $config['container_class']
+        )
             && $config['add_variables'] === false
             && $config['add_widgets'] === false
             && $config['add_directives'] === true

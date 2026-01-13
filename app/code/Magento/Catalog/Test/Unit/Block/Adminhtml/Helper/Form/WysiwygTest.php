@@ -170,14 +170,9 @@ class WysiwygTest extends TestCase
                             return false;
                         }
                         $data = $args['data'];
-                        return isset(
-                                $data['label'],
-                                $data['type'],
-                                $data['class'],
-                                $data['onclick']
-                            )
+                        return isset($data['label'], $data['type'], $data['class'], $data['onclick'])
                             && method_exists($data['label'], '__toString')
-                            && (string)$data['label'] === 'WYSIWYG Editor'
+                            && (string) $data['label'] === 'WYSIWYG Editor'
                             && $data['type'] === 'button'
                             && $data['class'] === 'action-wysiwyg';
                     }
@@ -193,6 +188,9 @@ class WysiwygTest extends TestCase
                      */
                     $initJson = json_encode(['catalogWysiwygEditor' => ['open' => $onclick]]);
                     return new class ($initJson) {
+                        /**
+                         * @var string
+                         */
                         private string $initJson;
                         public function __construct(string $initJson)
                         {
