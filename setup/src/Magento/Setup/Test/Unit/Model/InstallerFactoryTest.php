@@ -31,6 +31,7 @@ use Magento\Setup\Model\Installer;
 use Magento\Setup\Model\InstallerFactory;
 use Magento\Setup\Model\ObjectManagerProvider;
 use Magento\Setup\Model\PhpReadinessCheck;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager as ObjectManagerHelper;
 use Magento\Setup\Module\ConnectionFactory;
 use Magento\Setup\Module\DataSetupFactory;
 use Magento\Setup\Module\ResourceFactory;
@@ -51,6 +52,10 @@ class InstallerFactoryTest extends TestCase
 
     public function testCreate()
     {
+        // Initialize ObjectManager to avoid "ObjectManager isn't initialized" errors
+        $objectManagerHelper = new ObjectManagerHelper($this);
+        $objectManagerHelper->prepareObjectManager();
+        
         $this->objectManagerProviderMock = $this->getMockBuilder(ObjectManagerProvider::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['get'])
@@ -75,13 +80,13 @@ class InstallerFactoryTest extends TestCase
         $serviceLocatorMock = $this->getMockBuilder(
             ServiceLocatorInterface::class
         )->onlyMethods(
-            ['get']
-        )->getMockForAbstractClass();
+            ['get', 'has', 'build']
+        )->getMock();
         $serviceLocatorMock->expects($this->any())->method('get')
             ->willReturnMap($this->getReturnValueMap());
 
         /** @var ConsoleLoggerInterface|MockObject $log */
-        $log = $this->getMockForAbstractClass(ConsoleLoggerInterface::class);
+        $log = $this->createMock(ConsoleLoggerInterface::class);
         /** @var ResourceFactory|MockObject $resourceFactoryMock */
         $resourceFactoryMock = $this->createMock(ResourceFactory::class);
         $resourceFactoryMock
