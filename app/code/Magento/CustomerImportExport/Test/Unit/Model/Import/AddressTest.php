@@ -200,11 +200,11 @@ class AddressTest extends TestCase
         );
         $dataSourceModel->method('getNextBunch')->willReturn([]);
         $dataSourceModel->method('getColNames')->willReturn([]);
-        
+
         $connection = $this->createMock(\stdClass::class);
         $attributeCollection = $this->_createAttrCollectionMock();
         $customerStorage = $this->_createCustomerStorageMock();
-        
+
         // Create mock for customer entity
         $customerEntity = $this->createPartialMockWithReflection(
             \Magento\Framework\Model\AbstractModel::class,
@@ -212,7 +212,7 @@ class AddressTest extends TestCase
         );
         $customerEntity->method('filterEntityCollection')->willReturnArgument(0);
         $customerEntity->method('getEntityTable')->willReturn('customer_entity');
-        
+
         $addressCollection = new Collection(
             $this->createMock(EntityFactory::class)
         );
@@ -259,29 +259,23 @@ class AddressTest extends TestCase
         $attributeCollection->method('setEntityTypeCode')->with('customer_address')->willReturnSelf();
         $attributeCollection->method('getEntityTypeCode')->willReturn('customer_address');
         $attributeCollection->method('addItem')->willReturnSelf();
-        
+
         $attributes = [];
         foreach ($this->_attributes as $attributeData) {
-            $attribute = $this->getMockBuilder(AbstractAttribute::class)
-                ->disableOriginalConstructor()
-                ->onlyMethods(['_construct', 'getBackend', 'getAttributeCode', 'getId', 'getIsRequired', 'isStatic'])
-                ->addMethods(['getValidateRules'])
-                ->getMock();
-            
+            $attribute = $this->createPartialMock(
+                AbstractAttribute::class,
+                ['_construct', 'getBackend']
+            );
+
             // Create a backend mock that returns the table
             $backend = $this->createMock(\Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend::class);
             $backend->method('getTable')->willReturn($attributeData['table']);
-            
+
             $attribute->method('getBackend')->willReturn($backend);
-            $attribute->method('getAttributeCode')->willReturn($attributeData['attribute_code']);
-            $attribute->method('getId')->willReturn($attributeData['id']);
-            $attribute->method('getIsRequired')->willReturn($attributeData['is_required']);
-            $attribute->method('isStatic')->willReturn($attributeData['is_static']);
-            $attribute->method('getValidateRules')->willReturn($attributeData['validate_rules']);
             $attributes[] = $attribute;
         }
         $attributeCollection->method('getIterator')->willReturn(new \ArrayIterator($attributes));
-        
+
         return $attributeCollection;
     }
 

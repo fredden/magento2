@@ -89,7 +89,7 @@ class TierPriceTest extends TestCase
             ->willReturn($groupSearchResult);
 
         $groupTest = $this->createMock(GroupInterface::class);
-        $groupTest->expects($this->once())->method('getCode')->willReturn('General');
+        $groupTest->expects($this->once())->method('getCode');
         $groupTest->method('getId');
         $groups = [$groupTest];
         $groupSearchResult->method('getItems')->willReturn($groups);
@@ -162,7 +162,7 @@ class TierPriceTest extends TestCase
             ->willReturn($groupSearchResult);
 
         $groupTest = $this->createMock(GroupInterface::class);
-        $groupTest->expects($this->once())->method('getCode')->willReturn('General');
+        $groupTest->expects($this->once())->method('getCode');
         $groupTest->method('getId');
         $groups = [$groupTest];
         $groupSearchResult->method('getItems')->willReturn($groups);
