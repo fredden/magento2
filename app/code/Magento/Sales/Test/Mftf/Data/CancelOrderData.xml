@@ -13,4 +13,8 @@
     <entity name="CancelOrder" type="CancelOrder">
        <var key="quote_id" entityKey="return" entityType="CustomerCart"/>
     </entity>
+    <entity name="OrderCancellationModalTitleData">
+        <data key="englishTitle">Cancel Order</data>
+        <data key="frenchTitle">Annuler la commande</data>
+    </entity>
 </entities>
