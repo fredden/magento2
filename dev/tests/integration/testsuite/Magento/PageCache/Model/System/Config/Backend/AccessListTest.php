@@ -49,9 +49,8 @@ class AccessListTest extends TestCase
      *
      * @dataProvider validIpAddressesDataProvider
      * @param string $value
-     * @param string $description
      */
-    public function testValidIpAddresses(string $value, string $description): void
+    public function testValidIpAddresses(string $value): void
     {
         $this->model->setValue($value);
         $this->model->setPath('system/full_page_cache/caching_application/access_list');
@@ -61,7 +60,7 @@ class AccessListTest extends TestCase
         $result = $this->model->beforeSave();
         
         $this->assertInstanceOf(AccessList::class, $result);
-        $this->assertEquals($value, $this->model->getValue(), "Failed for: {$description}");
+        $this->assertSame($value, $this->model->getValue());
     }
 
     /**
@@ -72,16 +71,16 @@ class AccessListTest extends TestCase
     public static function validIpAddressesDataProvider(): array
     {
         return [
-            ['127.0.0.1', 'IPv4 localhost'],
-            ['192.168.1.1', 'IPv4 private network'],
-            ['10.0.0.1', 'IPv4 private network (10.x)'],
-            ['172.16.0.1', 'IPv4 private network (172.16.x)'],
-            ['8.8.8.8', 'IPv4 public DNS'],
-            ['::1', 'IPv6 localhost'],
-            ['2001:0db8:85a3:0000:0000:8a2e:0370:7334', 'IPv6 full notation'],
-            ['2001:db8::1', 'IPv6 compressed notation'],
-            ['fe80::1', 'IPv6 link-local'],
-            ['::ffff:192.0.2.1', 'IPv6 mapped IPv4'],
+            'IPv4 localhost' => ['127.0.0.1'],
+            'IPv4 private network' => ['192.168.1.1'],
+            'IPv4 private network (10.x)' => ['10.0.0.1'],
+            'IPv4 private network (172.16.x)' => ['172.16.0.1'],
+            'IPv4 public DNS' => ['8.8.8.8'],
+            'IPv6 localhost' => ['::1'],
+            'IPv6 full notation' => ['2001:0db8:85a3:0000:0000:8a2e:0370:7334'],
+            'IPv6 compressed notation' => ['2001:db8::1'],
+            'IPv6 link-local' => ['fe80::1'],
+            'IPv6 mapped IPv4' => ['::ffff:192.0.2.1'],
         ];
     }
 
@@ -90,9 +89,8 @@ class AccessListTest extends TestCase
      *
      * @dataProvider validHostnamesDataProvider
      * @param string $value
-     * @param string $description
      */
-    public function testValidHostnames(string $value, string $description): void
+    public function testValidHostnames(string $value): void
     {
         $this->model->setValue($value);
         $this->model->setPath('system/full_page_cache/caching_application/access_list');
@@ -101,7 +99,7 @@ class AccessListTest extends TestCase
         $result = $this->model->beforeSave();
         
         $this->assertInstanceOf(AccessList::class, $result);
-        $this->assertEquals($value, $this->model->getValue(), "Failed for: {$description}");
+        $this->assertSame($value, $this->model->getValue());
     }
 
     /**
@@ -112,12 +110,12 @@ class AccessListTest extends TestCase
     public static function validHostnamesDataProvider(): array
     {
         return [
-            ['localhost', 'localhost'],
-            ['example.com', 'domain'],
-            ['sub.example.com', 'subdomain'],
-            ['my-server.local', 'hyphenated hostname'],
-            ['server01', 'alphanumeric hostname'],
-            ['cache-server-01.internal.corp', 'complex hostname'],
+            'localhost' => ['localhost'],
+            'domain' => ['example.com'],
+            'subdomain' => ['sub.example.com'],
+            'hyphenated hostname' => ['my-server.local'],
+            'alphanumeric hostname' => ['server01'],
+            'complex hostname' => ['cache-server-01.internal.corp'],
         ];
     }
 
@@ -126,9 +124,8 @@ class AccessListTest extends TestCase
      *
      * @dataProvider validCidrIpv4DataProvider
      * @param string $value
-     * @param string $description
      */
-    public function testValidCidrNotationIpv4(string $value, string $description): void
+    public function testValidCidrNotationIpv4(string $value): void
     {
         $this->model->setValue($value);
         $this->model->setPath('system/full_page_cache/caching_application/access_list');
@@ -137,7 +134,7 @@ class AccessListTest extends TestCase
         $result = $this->model->beforeSave();
         
         $this->assertInstanceOf(AccessList::class, $result);
-        $this->assertEquals($value, $this->model->getValue(), "Failed for: {$description}");
+        $this->assertSame($value, $this->model->getValue());
     }
 
     /**
@@ -148,14 +145,14 @@ class AccessListTest extends TestCase
     public static function validCidrIpv4DataProvider(): array
     {
         return [
-            ['192.168.1.0/24', 'IPv4 /24 network'],
-            ['10.0.0.0/8', 'IPv4 /8 network'],
-            ['172.16.0.0/12', 'IPv4 /12 network'],
-            ['192.168.1.0/32', 'IPv4 single host /32'],
-            ['0.0.0.0/0', 'IPv4 all addresses /0'],
-            ['192.168.1.128/25', 'IPv4 /25 subnet'],
-            ['10.10.10.0/30', 'IPv4 /30 point-to-point'],
-            ['192.168.0.0/16', 'IPv4 /16 network'],
+            'IPv4 /24 network' => ['192.168.1.0/24'],
+            'IPv4 /8 network' => ['10.0.0.0/8'],
+            'IPv4 /12 network' => ['172.16.0.0/12'],
+            'IPv4 single host /32' => ['192.168.1.0/32'],
+            'IPv4 all addresses /0' => ['0.0.0.0/0'],
+            'IPv4 /25 subnet' => ['192.168.1.128/25'],
+            'IPv4 /30 point-to-point' => ['10.10.10.0/30'],
+            'IPv4 /16 network' => ['192.168.0.0/16'],
         ];
     }
 
@@ -164,9 +161,8 @@ class AccessListTest extends TestCase
      *
      * @dataProvider validCidrIpv6DataProvider
      * @param string $value
-     * @param string $description
      */
-    public function testValidCidrNotationIpv6(string $value, string $description): void
+    public function testValidCidrNotationIpv6(string $value): void
     {
         $this->model->setValue($value);
         $this->model->setPath('system/full_page_cache/caching_application/access_list');
@@ -175,7 +171,7 @@ class AccessListTest extends TestCase
         $result = $this->model->beforeSave();
         
         $this->assertInstanceOf(AccessList::class, $result);
-        $this->assertEquals($value, $this->model->getValue(), "Failed for: {$description}");
+        $this->assertSame($value, $this->model->getValue());
     }
 
     /**
@@ -186,11 +182,11 @@ class AccessListTest extends TestCase
     public static function validCidrIpv6DataProvider(): array
     {
         return [
-            ['2001:db8::/32', 'IPv6 /32 network'],
-            ['fe80::/10', 'IPv6 link-local /10'],
-            ['::/0', 'IPv6 all addresses /0'],
-            ['ff00::/8', 'IPv6 multicast /8'],
-            ['2001:0db8:/32', 'IPv6 partial notation with CIDR'],
+            'IPv6 /32 network' => ['2001:db8::/32'],
+            'IPv6 link-local /10' => ['fe80::/10'],
+            'IPv6 all addresses /0' => ['::/0'],
+            'IPv6 multicast /8' => ['ff00::/8'],
+            'IPv6 partial notation with CIDR' => ['2001:0db8:/32'],
         ];
     }
 
@@ -199,9 +195,8 @@ class AccessListTest extends TestCase
      *
      * @dataProvider validMultipleValuesDataProvider
      * @param string $value
-     * @param string $description
      */
-    public function testValidMultipleValues(string $value, string $description): void
+    public function testValidMultipleValues(string $value): void
     {
         $this->model->setValue($value);
         $this->model->setPath('system/full_page_cache/caching_application/access_list');
@@ -210,7 +205,7 @@ class AccessListTest extends TestCase
         $result = $this->model->beforeSave();
         
         $this->assertInstanceOf(AccessList::class, $result);
-        $this->assertEquals($value, $this->model->getValue(), "Failed for: {$description}");
+        $this->assertSame($value, $this->model->getValue());
     }
 
     /**
@@ -221,12 +216,12 @@ class AccessListTest extends TestCase
     public static function validMultipleValuesDataProvider(): array
     {
         return [
-            ['127.0.0.1, localhost', 'IPv4 and hostname'],
-            ['192.168.1.0/24, 10.0.0.0/8', 'Multiple IPv4 CIDR'],
-            ['::1, 127.0.0.1, localhost', 'IPv6, IPv4, and hostname'],
-            ['2001:db8::/32, fe80::/10', 'Multiple IPv6 CIDR'],
-            ['192.168.1.1, 192.168.1.0/24, example.com', 'Mixed types'],
-            ['10.0.0.1, 172.16.0.0/12, cache.local, 2001:db8::1', 'Complex mixed list'],
+            'IPv4 and hostname' => ['127.0.0.1, localhost'],
+            'Multiple IPv4 CIDR' => ['192.168.1.0/24, 10.0.0.0/8'],
+            'IPv6, IPv4, and hostname' => ['::1, 127.0.0.1, localhost'],
+            'Multiple IPv6 CIDR' => ['2001:db8::/32, fe80::/10'],
+            'Mixed types' => ['192.168.1.1, 192.168.1.0/24, example.com'],
+            'Complex mixed list' => ['10.0.0.1, 172.16.0.0/12, cache.local, 2001:db8::1'],
         ];
     }
 
@@ -252,9 +247,8 @@ class AccessListTest extends TestCase
      *
      * @dataProvider invalidCidrDataProvider
      * @param string $value
-     * @param string $description
      */
-    public function testInvalidCidrNotation(string $value, string $description): void
+    public function testInvalidCidrNotation(string $value): void
     {
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('is not valid');
@@ -269,16 +263,17 @@ class AccessListTest extends TestCase
     /**
      * Data provider for invalid CIDR notation
      *
+     * Edge cases not covered in unit tests
+     *
      * @return array
      */
     public static function invalidCidrDataProvider(): array
     {
         return [
-            ['192.168.1.0/33', 'IPv4 CIDR > 32'],
-            ['192.168.1.0/99', 'IPv4 CIDR > 32 (large)'],
-            ['192.168.1.0/-1', 'IPv4 CIDR negative'],
-            ['192.168.1.0/', 'IPv4 CIDR empty'],
-            ['192.168.1.0/abc', 'IPv4 CIDR non-numeric'],
+            'IPv4 CIDR > 32 (large)' => ['192.168.1.0/99'],
+            'IPv4 CIDR negative' => ['192.168.1.0/-1'],
+            'IPv4 CIDR empty' => ['192.168.1.0/'],
+            'IPv4 CIDR non-numeric' => ['192.168.1.0/abc'],
         ];
     }
 
@@ -287,9 +282,8 @@ class AccessListTest extends TestCase
      *
      * @dataProvider invalidCharactersDataProvider
      * @param string $value
-     * @param string $description
      */
-    public function testInvalidCharacters(string $value, string $description): void
+    public function testInvalidCharacters(string $value): void
     {
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('is not valid');
@@ -304,18 +298,18 @@ class AccessListTest extends TestCase
     /**
      * Data provider for invalid characters
      *
+     * Security-focused test cases not covered in unit tests
+     *
      * @return array
      */
     public static function invalidCharactersDataProvider(): array
     {
         return [
-            ['192.168.1.1;rm -rf /', 'Command injection attempt'],
-            ['<script>alert("xss")</script>', 'XSS attempt'],
-            ['{*I am not an IP*}', 'Invalid characters in braces'],
-            ['\\invalid\\path\\', 'Backslashes'],
-            ['192.168.1.1 OR 1=1', 'SQL injection attempt'],
-            ['192.168.1.1`whoami`', 'Command substitution attempt'],
-            ['../../etc/passwd', 'Path traversal attempt'],
+            'Command injection attempt' => ['192.168.1.1;rm -rf /'],
+            'XSS attempt' => ['<script>alert("xss")</script>'],
+            'SQL injection attempt' => ['192.168.1.1 OR 1=1'],
+            'Command substitution attempt' => ['192.168.1.1`whoami`'],
+            'Path traversal attempt' => ['../../etc/passwd'],
         ];
     }
 
@@ -324,9 +318,8 @@ class AccessListTest extends TestCase
      *
      * @dataProvider invalidTypeDataProvider
      * @param mixed $value
-     * @param string $description
      */
-    public function testInvalidValueTypes($value, string $description): void
+    public function testInvalidValueTypes($value): void
     {
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('is not valid');
@@ -341,15 +334,16 @@ class AccessListTest extends TestCase
     /**
      * Data provider for invalid value types
      *
+     * Additional type validation not covered in unit tests
+     *
      * @return array
      */
     public static function invalidTypeDataProvider(): array
     {
         return [
-            [123, 'Integer value'],
-            [123.456, 'Float value'],
-            [true, 'Boolean value'],
-            [['192.168.1.1'], 'Array value'],
+            'Float value' => [123.456],
+            'Boolean value' => [true],
+            'Array value' => [['192.168.1.1']],
         ];
     }
 
@@ -358,9 +352,8 @@ class AccessListTest extends TestCase
      *
      * @dataProvider mixedValidInvalidDataProvider
      * @param string $value
-     * @param string $description
      */
-    public function testMixedValidAndInvalidValues(string $value, string $description): void
+    public function testMixedValidAndInvalidValues(string $value): void
     {
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('is not valid because of item');
@@ -380,10 +373,10 @@ class AccessListTest extends TestCase
     public static function mixedValidInvalidDataProvider(): array
     {
         return [
-            ['127.0.0.1, invalid@#$, localhost', 'Valid IPs with invalid middle'],
-            ['192.168.1.0/24, 10.0.0.0/33', 'Valid CIDR with invalid CIDR'],
-            ['example.com, <script>, localhost', 'Valid hosts with XSS attempt'],
-            ['::1, invalid!value, 127.0.0.1', 'Valid with invalid characters'],
+            'Valid IPs with invalid middle' => ['127.0.0.1, invalid@#$, localhost'],
+            'Valid CIDR with invalid CIDR' => ['192.168.1.0/24, 10.0.0.0/33'],
+            'Valid hosts with XSS attempt' => ['example.com, <script>, localhost'],
+            'Valid with invalid characters' => ['::1, invalid!value, 127.0.0.1'],
         ];
     }
 
