@@ -282,6 +282,7 @@ class IdentifierForSaveTest extends TestCase
      * @param bool $expectContextCall
      * @return void
      * @dataProvider varyStringDataProvider
+     * @covers \Magento\PageCache\Model\App\Request\Http\IdentifierForSave::getValue
      */
     public function testGetValueVaryStringResolution(
         ?string $cookieVaryString,
@@ -289,10 +290,17 @@ class IdentifierForSaveTest extends TestCase
         string $expectedVaryString,
         bool $expectContextCall
     ): void {
-        $this->identifierMock->method('getMarketingParameterPatterns')->willReturn([]);
-        $this->requestMock->method('isSecure')->willReturn(true);
-        $this->requestMock->method('getUriString')->willReturn('http://example.com/path1/');
-        $this->requestMock->method('get')
+        $this->identifierMock->expects($this->once())
+            ->method('getMarketingParameterPatterns')
+            ->willReturn([]);
+        $this->requestMock->expects($this->once())
+            ->method('isSecure')
+            ->willReturn(true);
+        $this->requestMock->expects($this->once())
+            ->method('getUriString')
+            ->willReturn('http://example.com/path1/');
+        $this->requestMock->expects($this->once())
+            ->method('get')
             ->with(Http::COOKIE_VARY_STRING)
             ->willReturn($cookieVaryString);
 
@@ -301,9 +309,14 @@ class IdentifierForSaveTest extends TestCase
             ->willReturn($contextVaryString);
 
         $uri = $this->createMock(HttpUri::class);
-        $uri->method('getQueryAsArray')->willReturn([]);
-        $this->requestMock->method('getUri')->willReturn($uri);
-        $this->identifierStoreReader->method('getPageTagsWithStoreCacheTags')
+        $uri->expects($this->once())
+            ->method('getQueryAsArray')
+            ->willReturn([]);
+        $this->requestMock->expects($this->once())
+            ->method('getUri')
+            ->willReturn($uri);
+        $this->identifierStoreReader->expects($this->once())
+            ->method('getPageTagsWithStoreCacheTags')
             ->willReturnArgument(0);
 
         $expected = sha1(json_encode([true, 'http://example.com/path1/', '', $expectedVaryString]));
