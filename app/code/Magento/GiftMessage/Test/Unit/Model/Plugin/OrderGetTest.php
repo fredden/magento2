@@ -93,7 +93,7 @@ class OrderGetTest extends TestCase
             Order::class,
             ['getGiftMessageId', 'getEntityId', 'getExtensionAttributes', 'setExtensionAttributes', 'getItems']
         );
-        $this->orderExtensionMock = $this->createMock(OrderExtensionInterface::class);
+        $this->orderExtensionMock = $this->createMock(OrderExtension::class);
         $this->giftMessageMock = $this->createMock(
             MessageInterface::class
         );
@@ -101,10 +101,7 @@ class OrderGetTest extends TestCase
             OrderItem::class,
             ['getGiftMessageId', 'getExtensionAttributes', 'setExtensionAttributes', 'getItemId']
         );
-        $this->orderItemExtensionMock = $this->createPartialMockWithReflection(
-            OrderItemExtension::class,
-            ['getGiftMessage', 'setGiftMessage']
-        );
+        $this->orderItemExtensionMock = $this->createMock(OrderItemExtension::class);
         $this->orderRepositoryMock = $this->createMock(
             SalesOrderRepositoryInterface::class
         );

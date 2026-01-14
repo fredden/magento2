@@ -142,10 +142,7 @@ class HelperTest extends TestCase
             Product::class,
             ['getId', 'isLockedAttribute', 'lockAttribute', 'getAttributes', 'unlockAttribute', 'getSku']
         );
-        $productExtensionAttributes = $this->createPartialMockWithReflection(
-            ProductExtensionInterface::class,
-            ['getCategoryLinks', 'setCategoryLinks']
-        );
+        $productExtensionAttributes = $this->createStub(ProductExtensionInterface::class);
         $this->productMock->setExtensionAttributes($productExtensionAttributes);
 
         $this->customOptionFactoryMock = $this->createPartialMock(

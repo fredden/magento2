@@ -84,10 +84,7 @@ class SaveHandlerTest extends TestCase
                 ->willReturn($this->hydrator);
         }
 
-        $extensionAttributes = $this->createPartialMockWithReflection(
-            ProductExtensionInterface::class,
-            ['getCategoryLinks']
-        );
+        $extensionAttributes = $this->createMock(ProductExtensionInterface::class);
         $extensionAttributes->expects(static::any())
             ->method('getCategoryLinks')
             ->willReturn($categoryLinks);

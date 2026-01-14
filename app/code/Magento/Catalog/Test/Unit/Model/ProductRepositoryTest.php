@@ -9,6 +9,7 @@ namespace Magento\Catalog\Test\Unit\Model;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Magento\Framework\Exception\CouldNotSaveException;
+use Magento\Catalog\Api\Data\ProductExtension;
 use Magento\Catalog\Api\Data\ProductExtensionInterface;
 use Magento\Catalog\Api\Data\ProductSearchResultsInterface;
 use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
@@ -275,10 +276,7 @@ class ProductRepositoryTest extends TestCase
         $this->imageProcessor = $this->createMock(ImageProcessorInterface::class);
 
         $this->storeManager = $this->createMock(StoreManagerInterface::class);
-        $this->productExtension = $this->createPartialMockWithReflection(
-            ProductExtensionInterface::class,
-            ['__toArray']
-        );
+        $this->productExtension = $this->createMock(ProductExtension::class);
         $this->productExtension
             ->method('__toArray')
             ->willReturn([]);

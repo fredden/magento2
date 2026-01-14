@@ -31,10 +31,7 @@ class ReadHandlerTest extends TestCase
     protected function setUp(): void
     {
         $this->websiteLinkMock = $this->createMock(Link::class);
-        $this->extensionAttributesMock = $this->createPartialMockWithReflection(
-            ProductExtensionInterface::class,
-            ['setWebsiteIds', 'getWebsiteIds']
-        );
+        $this->extensionAttributesMock = $this->createStub(ProductExtensionInterface::class);
         $websiteIds = null;
         $this->extensionAttributesMock->method('setWebsiteIds')->willReturnCallback(
             function ($value) use (&$websiteIds) {

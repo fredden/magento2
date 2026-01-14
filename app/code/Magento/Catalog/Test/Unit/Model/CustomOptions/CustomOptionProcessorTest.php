@@ -86,10 +86,7 @@ class CustomOptionProcessorTest extends TestCase
             Item::class,
             ['getOptionByCode', 'getProductOption', 'setProductOption']
         );
-        $this->extensibleAttribute = $this->createPartialMockWithReflection(
-            ProductOptionExtensionInterface::class,
-            ['getCustomOptions', 'setCustomOptions']
-        );
+        $this->extensibleAttribute = $this->createMock(ProductOptionExtensionInterface::class);
         $this->productOption = $this->createMock(ProductOption::class);
         $this->customOption = $this->createMock(CustomOptionInterface::class);
         $this->buyRequest = $this->createMock(DataObject::class);
