@@ -11,7 +11,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Shipping\Model\Config;
 use Magento\TestFramework\Helper\Bootstrap;
-use Magento\TestFramework\Fixture\ConfigFixture;
+use Magento\TestFramework\Fixture\Config as ConfigFixture;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -49,12 +49,12 @@ class AllmethodsTest extends TestCase
      * This test verifies that when the flag is false, the method calls getAllCarriers()
      * and returns options for both active and inactive carriers.
      */
-    #[ConfigFixture('default/carriers/flatrate/active', 1)]
-    #[ConfigFixture('default/carriers/flatrate/title', 'Flat Rate')]
-    #[ConfigFixture('default/carriers/freeshipping/active', 0)]
-    #[ConfigFixture('default/carriers/freeshipping/title', 'Free Shipping')]
-    #[ConfigFixture('default/carriers/tablerate/active', 0)]
-    #[ConfigFixture('default/carriers/tablerate/title', 'Best Way')]
+    #[ConfigFixture('carriers/flatrate/active', 1)]
+    #[ConfigFixture('carriers/flatrate/title', 'Flat Rate')]
+    #[ConfigFixture('carriers/freeshipping/active', 0)]
+    #[ConfigFixture('carriers/freeshipping/title', 'Free Shipping')]
+    #[ConfigFixture('carriers/tablerate/active', 0)]
+    #[ConfigFixture('carriers/tablerate/title', 'Best Way')]
     public function testToOptionArrayReturnsAllCarriersWhenFlagIsFalse(): void
     {
         $result = $this->allmethods->toOptionArray(false);
@@ -83,12 +83,12 @@ class AllmethodsTest extends TestCase
      * This test verifies that when the flag is true, the method calls getActiveCarriers()
      * and returns options only for active carriers, excluding inactive ones.
      */
-    #[ConfigFixture('default/carriers/flatrate/active', 1)]
-    #[ConfigFixture('default/carriers/flatrate/title', 'Flat Rate')]
-    #[ConfigFixture('default/carriers/freeshipping/active', 0)]
-    #[ConfigFixture('default/carriers/freeshipping/title', 'Free Shipping')]
-    #[ConfigFixture('default/carriers/tablerate/active', 0)]
-    #[ConfigFixture('default/carriers/tablerate/title', 'Best Way')]
+    #[ConfigFixture('carriers/flatrate/active', 1)]
+    #[ConfigFixture('carriers/flatrate/title', 'Flat Rate')]
+    #[ConfigFixture('carriers/freeshipping/active', 0)]
+    #[ConfigFixture('carriers/freeshipping/title', 'Free Shipping')]
+    #[ConfigFixture('carriers/tablerate/active', 0)]
+    #[ConfigFixture('carriers/tablerate/title', 'Best Way')]
     public function testToOptionArrayReturnsOnlyActiveCarriersWhenFlagIsTrue(): void
     {
         $result = $this->allmethods->toOptionArray(true);
@@ -111,8 +111,8 @@ class AllmethodsTest extends TestCase
     /**
      * Test that active carriers have properly formatted method options
      */
-    #[ConfigFixture('default/carriers/flatrate/active', 1)]
-    #[ConfigFixture('default/carriers/flatrate/title', 'Flat Rate')]
+    #[ConfigFixture('carriers/flatrate/active', 1)]
+    #[ConfigFixture('carriers/flatrate/title', 'Flat Rate')]
     public function testActiveCarrierMethodsAreFormattedCorrectly(): void
     {
         $result = $this->allmethods->toOptionArray(true);
@@ -147,8 +147,8 @@ class AllmethodsTest extends TestCase
      * This test verifies that carriers returning null or empty array from getAllowedMethods()
      * are not included in the results.
      */
-    #[ConfigFixture('default/carriers/flatrate/active', 1)]
-    #[ConfigFixture('default/carriers/flatrate/title', 'Flat Rate')]
+    #[ConfigFixture('carriers/flatrate/active', 1)]
+    #[ConfigFixture('carriers/flatrate/title', 'Flat Rate')]
     public function testCarriersWithoutAllowedMethodsAreSkipped(): void
     {
         $result = $this->allmethods->toOptionArray(true);
@@ -172,10 +172,10 @@ class AllmethodsTest extends TestCase
      * This test verifies that the correct Config method is invoked based on the flag value,
      * which is the core of the performance improvement fix.
      */
-    #[ConfigFixture('default/carriers/flatrate/active', 1)]
-    #[ConfigFixture('default/carriers/flatrate/title', 'Flat Rate')]
-    #[ConfigFixture('default/carriers/freeshipping/active', 0)]
-    #[ConfigFixture('default/carriers/freeshipping/title', 'Free Shipping')]
+    #[ConfigFixture('carriers/flatrate/active', 1)]
+    #[ConfigFixture('carriers/flatrate/title', 'Flat Rate')]
+    #[ConfigFixture('carriers/freeshipping/active', 0)]
+    #[ConfigFixture('carriers/freeshipping/title', 'Free Shipping')]
     public function testCorrectConfigMethodIsCalledBasedOnFlag(): void
     {
         // Create a spy Config object to track method calls
@@ -233,10 +233,10 @@ class AllmethodsTest extends TestCase
     /**
      * Test with multiple active carriers
      */
-    #[ConfigFixture('default/carriers/flatrate/active', 1)]
-    #[ConfigFixture('default/carriers/flatrate/title', 'Flat Rate')]
-    #[ConfigFixture('default/carriers/tablerate/active', 1)]
-    #[ConfigFixture('default/carriers/tablerate/title', 'Best Way')]
+    #[ConfigFixture('carriers/flatrate/active', 1)]
+    #[ConfigFixture('carriers/flatrate/title', 'Flat Rate')]
+    #[ConfigFixture('carriers/tablerate/active', 1)]
+    #[ConfigFixture('carriers/tablerate/title', 'Best Way')]
     public function testMultipleActiveCarriersAreReturnedWhenFlagIsTrue(): void
     {
         $result = $this->allmethods->toOptionArray(true);
@@ -263,8 +263,8 @@ class AllmethodsTest extends TestCase
     /**
      * Test default parameter value (should behave as false)
      */
-    #[ConfigFixture('default/carriers/flatrate/active', 1)]
-    #[ConfigFixture('default/carriers/flatrate/title', 'Flat Rate')]
+    #[ConfigFixture('carriers/flatrate/active', 1)]
+    #[ConfigFixture('carriers/flatrate/title', 'Flat Rate')]
     public function testDefaultParameterBehavesAsFalse(): void
     {
         $resultDefault = $this->allmethods->toOptionArray();
