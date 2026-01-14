@@ -75,21 +75,7 @@ class OrderDateLocaleFormattingTest extends GraphQlAbstract
     }
 
     /**
-     * Test order_date format and date integrity with French locale
-     *
-     * Manual Test Steps:
-     * 1. Navigate to storefront > add product to cart > checkout > place order
-     * 2. Generate customer token via GraphQL
-     * 3. Query orders using GraphQL
-     * 4. Verify order_date format AND date values
-     *
-     * Verifies TWO critical aspects:
-     * 1. Format: orderDateFAIL should be in d/m/Y H:i:s format (not Y-m-d)
-     * 2. Date Integrity: orderDateFAIL should represent the SAME date as orderDateOK
-     *
-     * Bug Symptoms:
-     * - Format issue: "2025-04-02" instead of "02/04/2025 13:35:00"
-     * - Date corruption: "2007-10-16 13:35:00" instead of "02/04/2025 13:35:00"
+     * Verify order_date field formatting with French locale
      *
      * @return void
      * @throws AuthenticationException
@@ -171,11 +157,7 @@ class OrderDateLocaleFormattingTest extends GraphQlAbstract
     }
 
     /**
-     * Get GraphQL query for customer orders
-     *
-     * This query matches the manual test scenario structure with field aliases:
-     * - orderDateOK: created_at (standard format, always works correctly)
-     * - orderDateFAIL: order_date (the field with the formatting bug)
+     * Get GraphQL query for customer orders with field aliases
      *
      * @return string
      */
