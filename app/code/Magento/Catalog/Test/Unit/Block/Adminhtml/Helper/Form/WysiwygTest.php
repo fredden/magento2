@@ -126,6 +126,34 @@ class WysiwygTest extends TestCase
      */
     public function testGetAfterElementHtmlWhenEnabledAddsButtonAndScript(): void
     {
+        $this->givenEnabledFlags();
+        $this->givenWysiwygConfig();
+        $attributeMock = $this->givenEnabledAttribute();
+        $this->givenBackendUrlAndLayoutButton();
+        $this->givenSecureRendererForInitScript();
+        $this->givenElementDataForEnabled($attributeMock, 'my_wysiwyg_field');
+
+        $html = $this->element->getAfterElementHtml();
+
+        $this->assertNotEmpty($html);
+        $this->assertStringContainsString('WYSIWYG Editor', $html);
+        // Verify we now have a data‑mage‑init attribute (no inline onclick)
+        $this->assertStringContainsString('data-mage-init', $html);
+        $this->assertStringContainsString('catalogWysiwygEditor.open', $html);
+        $this->assertStringContainsString('wysiwygSetup', $html);
+        $this->assertStringContainsString('my_wysiwyg_field', $html);
+        $this->assertStringContainsString('[script', $html);
+        $this->assertStringContainsString('text/x-magento-init', $html);
+        $this->assertStringContainsString('[/script]', $html);
+    }
+
+    /**
+     * Set module/config flags to enabled.
+     *
+     * @return void
+     */
+    private function givenEnabledFlags(): void
+    {
         $this->moduleManager
             ->method('isEnabled')
             ->with('Magento_Cms')
@@ -133,32 +161,53 @@ class WysiwygTest extends TestCase
         $this->wysiwygConfig
             ->method('isEnabled')
             ->willReturn(true);
-        $configDataObject = new DataObject(
-            [
-                'plugins' => ['advlist', 'autolink'],
-                'menubar' => false,
-            ]
-        );
+    }
+
+    /**
+     * Stub WYSIWYG config object returned by getConfig.
+     *
+     * @return void
+     */
+    private function givenWysiwygConfig(): void
+    {
         $this->wysiwygConfig
             ->method('getConfig')
-            ->willReturn($configDataObject);
+            ->willReturn(
+                new DataObject(
+                    [
+                        'plugins' => ['advlist', 'autolink'],
+                        'menubar' => false,
+                    ]
+                )
+            );
+    }
 
+    /**
+     * Provide an attribute whose getIsWysiwygEnabled returns true.
+     *
+     * @return object
+     */
+    private function givenEnabledAttribute(): object
+    {
         $attributeMock = $this->getMockBuilder(\stdClass::class)
             ->addMethods(['getIsWysiwygEnabled'])
             ->getMock();
         $attributeMock->method('getIsWysiwygEnabled')->willReturn(true);
+        return $attributeMock;
+    }
 
+    /**
+     * Stub backend URL and return a button block that outputs data-mage-init instead of inline onclick.
+     *
+     * @return void
+     */
+    private function givenBackendUrlAndLayoutButton(): void
+    {
         $this->backendData
             ->method('getUrl')
             ->with('catalog/product/wysiwyg')
             ->willReturn('http://example.com/catalog/product/wysiwyg');
 
-        /**
-         * The real block creates the button with an **inline onclick** key.
-         * The test now accepts that key but the mocked button returns HTML that
-         * uses the Magento‑recommended `data-mage-init` attribute instead of
-         * inline JavaScript.
-         */
         $this->layout
             ->method('createBlock')
             ->with(
@@ -182,10 +231,6 @@ class WysiwygTest extends TestCase
                 function (...$params) {
                     $args = $params[2] ?? [];
                     $onclick = $args['data']['onclick'] ?? '';
-                    /**
-                     * Convert the inline onclick string into a JSON fragment that
-                     * can be used in a `data-mage-init` attribute.
-                     */
                     $initJson = json_encode(['catalogWysiwygEditor' => ['open' => $onclick]]);
                     return new class ($initJson) {
                         /**
@@ -205,7 +250,15 @@ class WysiwygTest extends TestCase
                     };
                 }
             );
+    }
 
+    /**
+     * Stub secure renderer to emit a text/x-magento-init script wrapper.
+     *
+     * @return void
+     */
+    private function givenSecureRendererForInitScript(): void
+    {
         $this->secureRenderer
             ->expects($this->once())
             ->method('renderTag')
@@ -221,25 +274,21 @@ class WysiwygTest extends TestCase
                     return '[script type="text/x-magento-init"]' . $content . '[/script]';
                 }
             );
+    }
 
-        // Set per‑test data
-        $this->element->setData('html_id', 'my_wysiwyg_field');
+    /**
+     * Set the per-test element data for the enabled scenario.
+     *
+     * @param  object $attributeMock
+     * @param  string $htmlId
+     * @return void
+     */
+    private function givenElementDataForEnabled(object $attributeMock, string $htmlId): void
+    {
+        $this->element->setData('html_id', $htmlId);
         $this->element->setData('entity_attribute', $attributeMock);
-        $this->element->setData('name', 'my_wysiwyg_field');
+        $this->element->setData('name', $htmlId);
         $this->element->setData('value', '');
-
-        $html = $this->element->getAfterElementHtml();
-
-        $this->assertNotEmpty($html);
-        $this->assertStringContainsString('WYSIWYG Editor', $html);
-        // Verify we now have a data‑mage‑init attribute (no inline onclick)
-        $this->assertStringContainsString('data-mage-init', $html);
-        $this->assertStringContainsString('catalogWysiwygEditor.open', $html);
-        $this->assertStringContainsString('wysiwygSetup', $html);
-        $this->assertStringContainsString('my_wysiwyg_field', $html);
-        $this->assertStringContainsString('[script', $html);
-        $this->assertStringContainsString('text/x-magento-init', $html);
-        $this->assertStringContainsString('[/script]', $html);
     }
 
     /**
