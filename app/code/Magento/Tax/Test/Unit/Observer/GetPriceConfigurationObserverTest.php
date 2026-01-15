@@ -207,7 +207,8 @@ class GetPriceConfigurationObserverTest extends TestCase
                             'optionId' => 1,
                             'prices' => [
                                 'finalPrice' => ['amount' => 35.50],
-                                'basePrice' => ['amount' => 30.50],
+                                'basePrice' => ['amount' => 35],
+                                'oldPrice' => ['amount' => 35],
                             ],
                         ],
                         [
