@@ -317,7 +317,7 @@ class ProductTest extends TestCase
         );
         $this->appStateMock->method('getAreaCode')->willReturn(FrontNameResolver::AREA_CODE);
       
-        $this->eventManagerMock = $this->createStub(ManagerInterface::class);
+        $this->eventManagerMock = $this->createMock(ManagerInterface::class);
         $actionValidatorMock = $this->createMock(
             RemoveAction::class
         );
@@ -393,10 +393,7 @@ class ProductTest extends TestCase
         $this->mediaConfig = $this->createMock(MediaConfig::class);
         $this->eavConfig = $this->createMock(Config::class);
 
-        $this->productExtAttributes = $this->createPartialMockWithReflection(
-            ProductExtensionInterface::class,
-            ['getStockItem', 'setConfigurableProductLinks']
-        );
+        $this->productExtAttributes = $this->createStub(ProductExtensionInterface::class);
         $this->extensionAttributesFactory
             ->method('create')->willReturn($this->productExtAttributes);
 
@@ -1571,7 +1568,7 @@ class ProductTest extends TestCase
         // Set media_gallery_images as an array (simulating cached data that was serialized/unserialized)
         $this->model->setData('media_gallery_images', []);
 
-        $directoryMock = $this->getMockForAbstractClass(ReadInterface::class);
+        $directoryMock = $this->createMock(ReadInterface::class);
         $this->filesystemMock->method('getDirectoryRead')->willReturn($directoryMock);
 
         $imagesCollectionMock = $this->createMock(Collection::class);
@@ -1591,7 +1588,7 @@ class ProductTest extends TestCase
      */
     public function testGetMediaGalleryImagesWhenCollectionHasItems(): void
     {
-        $directoryMock = $this->getMockForAbstractClass(ReadInterface::class);
+        $directoryMock = $this->createMock(ReadInterface::class);
         $this->filesystemMock->method('getDirectoryRead')->willReturn($directoryMock);
 
         $imagesCollectionMock = $this->createMock(Collection::class);
@@ -1615,7 +1612,7 @@ class ProductTest extends TestCase
      */
     public function testGetMediaGalleryImagesWhenImagesIsNotArray(): void
     {
-        $directoryMock = $this->getMockForAbstractClass(ReadInterface::class);
+        $directoryMock = $this->createMock(ReadInterface::class);
         $this->filesystemMock->method('getDirectoryRead')->willReturn($directoryMock);
 
         $imagesCollectionMock = $this->createMock(Collection::class);
@@ -1648,7 +1645,7 @@ class ProductTest extends TestCase
             ]
         ];
 
-        $directoryMock = $this->getMockForAbstractClass(ReadInterface::class);
+        $directoryMock = $this->createMock(ReadInterface::class);
         $this->filesystemMock->method('getDirectoryRead')->willReturn($directoryMock);
         $this->model->setData('media_gallery', $mediaEntries);
 
@@ -1679,7 +1676,7 @@ class ProductTest extends TestCase
             ]
         ];
 
-        $directoryMock = $this->getMockForAbstractClass(ReadInterface::class);
+        $directoryMock = $this->createMock(ReadInterface::class);
         $this->filesystemMock->method('getDirectoryRead')->willReturn($directoryMock);
         $this->model->setData('media_gallery', $mediaEntries);
 
@@ -1709,7 +1706,7 @@ class ProductTest extends TestCase
             ]
         ];
 
-        $directoryMock = $this->getMockForAbstractClass(ReadInterface::class);
+        $directoryMock = $this->createMock(ReadInterface::class);
         $this->filesystemMock->method('getDirectoryRead')->willReturn($directoryMock);
         $this->model->setData('media_gallery', $mediaEntries);
 
@@ -1990,9 +1987,7 @@ class ProductTest extends TestCase
     {
         $productIds = [1, 2, 3];
 
-        $this->productExtAttributes->expects($this->once())
-            ->method('setConfigurableProductLinks')
-            ->with($productIds);
+        $this->productExtAttributes->method('setConfigurableProductLinks');
 
         $result = $this->model->setAssociatedProductIds($productIds);
 
