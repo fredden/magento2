@@ -221,7 +221,7 @@ class BootstrapTest extends TestCase
         $this->bootstrapMock->expects($this->once())->method('assertMaintenance')->willReturn(null);
         $this->bootstrapMock->expects($this->once())->method('assertInstalled')->willReturn(null);
         $this->application->expects($this->once())->method('launch')->willReturn($responseMock);
-        $this->bootstrapMock->run($this->application);
+        $this->runAndRestoreErrorHandler($this->bootstrapMock, $this->application);
     }
 
     public function testRunWithMaintenanceErrors()
@@ -231,7 +231,7 @@ class BootstrapTest extends TestCase
             ->willThrowException($expectedException);
         $this->bootstrapMock->expects($this->once())->method('terminate')->with($expectedException);
         $this->application->expects($this->once())->method('catchException')->willReturn(false);
-        $this->bootstrapMock->run($this->application);
+        $this->runAndRestoreErrorHandler($this->bootstrapMock, $this->application);
     }
 
     public function testRunWithInstallErrors()
@@ -242,7 +242,7 @@ class BootstrapTest extends TestCase
             ->willThrowException($expectedException);
         $this->bootstrapMock->expects($this->once())->method('terminate')->with($expectedException);
         $this->application->expects($this->once())->method('catchException')->willReturn(false);
-        $this->bootstrapMock->run($this->application);
+        $this->runAndRestoreErrorHandler($this->bootstrapMock, $this->application);
     }
 
     public function testRunWithBothErrors()
@@ -253,7 +253,7 @@ class BootstrapTest extends TestCase
         $this->bootstrapMock->expects($this->never())->method('assertInstalled');
         $this->bootstrapMock->expects($this->once())->method('terminate')->with($expectedMaintenanceException);
         $this->application->expects($this->once())->method('catchException')->willReturn(false);
-        $this->bootstrapMock->run($this->application);
+        $this->runAndRestoreErrorHandler($this->bootstrapMock, $this->application);
     }
 
         /**
@@ -266,7 +266,7 @@ class BootstrapTest extends TestCase
         $this->remoteAddress->expects($this->once())->method('getRemoteAddress')->willReturn(false);
         $this->application->expects($this->never())->method('launch');
         $this->application->expects($this->once())->method('catchException')->willReturn(true);
-        $bootstrap->run($this->application);
+        $this->runAndRestoreErrorHandler($bootstrap, $this->application);
         $this->assertEquals(Bootstrap::ERR_MAINTENANCE, $bootstrap->getErrorCode());
     }
 
@@ -290,7 +290,7 @@ class BootstrapTest extends TestCase
         $this->deploymentConfig->expects($this->once())->method('isAvailable')->willReturn($isInstalled);
         $this->application->expects($this->never())->method('launch');
         $this->application->expects($this->once())->method('catchException')->willReturn(true);
-        $bootstrap->run($this->application);
+        $this->runAndRestoreErrorHandler($bootstrap, $this->application);
         $this->assertEquals(Bootstrap::ERR_IS_INSTALLED, $bootstrap->getErrorCode());
     }
 
@@ -305,12 +305,12 @@ class BootstrapTest extends TestCase
         ];
     }
 
-    /**
-     * Restore error handler after Bootstrap->run method
-     */
-    protected function tearDown(): void
+    private function runAndRestoreErrorHandler(Bootstrap $bootstrap, AppInterface $application): void
     {
-        restore_error_handler();
-        setCustomErrorHandler();
+        try {
+            $bootstrap->run($application);
+        } finally {
+            restore_error_handler();
+        }
     }
 }

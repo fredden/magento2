@@ -201,7 +201,10 @@ class OrderSaveTest extends TestCase
      */
     private function getOrderExtensionMock(): MockObject
     {
-        return $this->createMock(OrderExtension::class);
+        return $this->createPartialMockWithReflection(
+            OrderExtension::class,
+            ['getGiftMessage', 'setGiftMessage']
+        );
     }
 
     /**
@@ -211,6 +214,9 @@ class OrderSaveTest extends TestCase
      */
     private function getOrderItemExtensionMock(): MockObject
     {
-        return $this->createMock(OrderItemExtension::class);
+        return $this->createPartialMockWithReflection(
+            OrderItemExtension::class,
+            ['getGiftMessage', 'setGiftMessage']
+        );
     }
 }

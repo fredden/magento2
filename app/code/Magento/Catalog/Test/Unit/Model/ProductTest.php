@@ -296,7 +296,10 @@ class ProductTest extends TestCase
             Manager::class,
             ['isEnabled']
         );
-        $this->extensionAttributes = $this->createStub(ProductExtensionInterface::class);
+        $this->extensionAttributes = $this->createPartialMockWithReflection(
+            ProductExtensionInterface::class,
+            $this->getProductExtensionMethods()
+        );
 
         $this->stockItemFactoryMock = $this->createPartialMock(
             StockItemInterfaceFactory::class,
@@ -393,7 +396,10 @@ class ProductTest extends TestCase
         $this->mediaConfig = $this->createMock(MediaConfig::class);
         $this->eavConfig = $this->createMock(Config::class);
 
-        $this->productExtAttributes = $this->createStub(ProductExtensionInterface::class);
+        $this->productExtAttributes = $this->createPartialMockWithReflection(
+            ProductExtensionInterface::class,
+            $this->getProductExtensionMethods()
+        );
         $this->extensionAttributesFactory
             ->method('create')->willReturn($this->productExtAttributes);
 
@@ -830,7 +836,10 @@ class ProductTest extends TestCase
 
     protected function getMockForExtensionAttribute()
     {
-        $extensionAttributesMock = $this->createStub(ProductExtensionInterface::class);
+        $extensionAttributesMock = $this->createPartialMockWithReflection(
+            ProductExtensionInterface::class,
+            $this->getProductExtensionMethods()
+        );
         $stockItemMock = $this->createStub(StockItemInterface::class);
         $extensionAttributesMock->method('getStockItem')->willReturn($stockItemMock);
         return $extensionAttributesMock;
@@ -1819,6 +1828,32 @@ class ProductTest extends TestCase
         $reflectionProperty->setAccessible(true);
 
         return $reflectionProperty->getValue($object);
+    }
+
+    private function getProductExtensionMethods(): array
+    {
+        return [
+            'getWebsiteIds',
+            'setWebsiteIds',
+            'getCategoryLinks',
+            'setCategoryLinks',
+            'getBundleProductOptions',
+            'setBundleProductOptions',
+            'getStockItem',
+            'setStockItem',
+            'getDiscounts',
+            'setDiscounts',
+            'getConfigurableProductOptions',
+            'setConfigurableProductOptions',
+            'getConfigurableProductLinks',
+            'setConfigurableProductLinks',
+            'getDownloadableProductLinks',
+            'setDownloadableProductLinks',
+            'getDownloadableProductSamples',
+            'setDownloadableProductSamples',
+            'getGiftcardAmounts',
+            'setGiftcardAmounts',
+        ];
     }
 
     /**

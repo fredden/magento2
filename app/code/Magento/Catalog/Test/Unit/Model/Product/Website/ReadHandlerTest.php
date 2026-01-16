@@ -31,7 +31,10 @@ class ReadHandlerTest extends TestCase
     protected function setUp(): void
     {
         $this->websiteLinkMock = $this->createMock(Link::class);
-        $this->extensionAttributesMock = $this->createStub(ProductExtensionInterface::class);
+        $this->extensionAttributesMock = $this->createPartialMockWithReflection(
+            ProductExtensionInterface::class,
+            $this->getProductExtensionMethods()
+        );
         $websiteIds = null;
         $this->extensionAttributesMock->method('setWebsiteIds')->willReturnCallback(
             function ($value) use (&$websiteIds) {
@@ -83,5 +86,31 @@ class ReadHandlerTest extends TestCase
             ->method('getExtensionAttributes')
             ->willReturn($this->extensionAttributesMock);
         $this->assertEquals($this->readHandler->execute($product, []), $product);
+    }
+
+    private function getProductExtensionMethods(): array
+    {
+        return [
+            'getWebsiteIds',
+            'setWebsiteIds',
+            'getCategoryLinks',
+            'setCategoryLinks',
+            'getBundleProductOptions',
+            'setBundleProductOptions',
+            'getStockItem',
+            'setStockItem',
+            'getDiscounts',
+            'setDiscounts',
+            'getConfigurableProductOptions',
+            'setConfigurableProductOptions',
+            'getConfigurableProductLinks',
+            'setConfigurableProductLinks',
+            'getDownloadableProductLinks',
+            'setDownloadableProductLinks',
+            'getDownloadableProductSamples',
+            'setDownloadableProductSamples',
+            'getGiftcardAmounts',
+            'setGiftcardAmounts',
+        ];
     }
 }

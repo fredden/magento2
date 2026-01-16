@@ -91,7 +91,10 @@ class ReadHandlerTest extends TestCase
         $product = $this->createPartialMock(Product::class, ['getExtensionAttributes', 'setExtensionAttributes']);
 
         /** @var ProductExtensionInterface $extensionAttributes */
-        $extensionAttributes = $this->createMock(ProductExtensionInterface::class);
+        $extensionAttributes = $this->createPartialMockWithReflection(
+            ProductExtensionInterface::class,
+            $this->getProductExtensionMethods()
+        );
         $extensionAttributes->method('getCategoryLinks')->willReturn($dtoCategoryLinks);
         $extensionAttributes->expects(static::once())->method('setCategoryLinks')->with($dtoCategoryLinks);
 
@@ -120,7 +123,10 @@ class ReadHandlerTest extends TestCase
         $product = $this->createPartialMock(Product::class, ['getExtensionAttributes', 'setExtensionAttributes']);
 
         /** @var ProductExtensionInterface $extensionAttributes */
-        $extensionAttributes = $this->createMock(ProductExtensionInterface::class);
+        $extensionAttributes = $this->createPartialMockWithReflection(
+            ProductExtensionInterface::class,
+            $this->getProductExtensionMethods()
+        );
         $extensionAttributes->method('getCategoryLinks')->willReturn(null);
         $extensionAttributes->expects(static::once())->method('setCategoryLinks')->with(null);
 
@@ -139,5 +145,31 @@ class ReadHandlerTest extends TestCase
 
         $entity = $this->readHandler->execute($product);
         static::assertSame($product, $entity);
+    }
+
+    private function getProductExtensionMethods(): array
+    {
+        return [
+            'getWebsiteIds',
+            'setWebsiteIds',
+            'getCategoryLinks',
+            'setCategoryLinks',
+            'getBundleProductOptions',
+            'setBundleProductOptions',
+            'getStockItem',
+            'setStockItem',
+            'getDiscounts',
+            'setDiscounts',
+            'getConfigurableProductOptions',
+            'setConfigurableProductOptions',
+            'getConfigurableProductLinks',
+            'setConfigurableProductLinks',
+            'getDownloadableProductLinks',
+            'setDownloadableProductLinks',
+            'getDownloadableProductSamples',
+            'setDownloadableProductSamples',
+            'getGiftcardAmounts',
+            'setGiftcardAmounts',
+        ];
     }
 }

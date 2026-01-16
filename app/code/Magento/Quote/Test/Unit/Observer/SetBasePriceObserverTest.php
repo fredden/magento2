@@ -142,10 +142,9 @@ class SetBasePriceObserverTest extends TestCase
 
     private function createQuoteItemMock(): Item
     {
-        return $this->getMockBuilder(Item::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['getProduct', 'getPrice'])
-            ->addMethods(['getBasePrice', 'setBasePrice'])
-            ->getMock();
+        return $this->createPartialMockWithReflection(
+            Item::class,
+            ['getProduct', 'getPrice', 'getBasePrice', 'setBasePrice']
+        );
     }
 }

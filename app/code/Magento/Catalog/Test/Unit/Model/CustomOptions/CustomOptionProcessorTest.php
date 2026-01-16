@@ -86,7 +86,10 @@ class CustomOptionProcessorTest extends TestCase
             Item::class,
             ['getOptionByCode', 'getProductOption', 'setProductOption']
         );
-        $this->extensibleAttribute = $this->createMock(ProductOptionExtensionInterface::class);
+        $this->extensibleAttribute = $this->createPartialMockWithReflection(
+            ProductOptionExtensionInterface::class,
+            $this->getProductOptionExtensionMethods()
+        );
         $this->productOption = $this->createMock(ProductOption::class);
         $this->customOption = $this->createMock(CustomOptionInterface::class);
         $this->buyRequest = $this->createMock(DataObject::class);
@@ -167,5 +170,23 @@ class CustomOptionProcessorTest extends TestCase
             ->with($this->productOption);
 
         $this->assertSame($this->cartItem, $this->processor->processOptions($this->cartItem));
+    }
+
+    private function getProductOptionExtensionMethods(): array
+    {
+        return [
+            'getCustomOptions',
+            'setCustomOptions',
+            'getBundleOptions',
+            'setBundleOptions',
+            'getConfigurableItemOptions',
+            'setConfigurableItemOptions',
+            'getDownloadableOption',
+            'setDownloadableOption',
+            'getGiftcardItemOption',
+            'setGiftcardItemOption',
+            'getGroupedOptions',
+            'setGroupedOptions',
+        ];
     }
 }

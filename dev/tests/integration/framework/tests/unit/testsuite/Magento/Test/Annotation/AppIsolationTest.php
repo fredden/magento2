@@ -28,11 +28,18 @@ class AppIsolationTest extends \PHPUnit\Framework\TestCase
 
     protected function setUp(): void
     {
+        if (!class_exists(AppIsolation::class)) {
+            require_once __DIR__ . '/../../../../../../Magento/TestFramework/Fixture/ParserInterface.php';
+            require_once __DIR__ . '/../../../../../../Magento/TestFramework/Fixture/AppIsolation.php';
+            require_once __DIR__ . '/../../../../../../Magento/TestFramework/Fixture/Parser/AppIsolation.php';
+            require_once __DIR__ . '/../../../../../../Magento/TestFramework/Helper/Bootstrap.php';
+            require_once __DIR__ . '/../../../../../../Magento/TestFramework/Application.php';
+            require_once __DIR__ . '/../../../../../../Magento/TestFramework/Annotation/AppIsolation.php';
+            require_once __DIR__ . '/../../../../../../Magento/TestFramework/Workaround/Override/Fixture/ResolverInterface.php';
+            require_once __DIR__ . '/../../../../../../Magento/TestFramework/Workaround/Override/Fixture/Resolver.php';
+        }
         /** @var ObjectManagerInterface|MockObject $objectManager */
-        $objectManager = $this->getMockBuilder(ObjectManagerInterface::class)
-            ->onlyMethods(['get', 'create'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $objectManager = $this->createMock(ObjectManagerInterface::class);
 
         $sharedInstances = [
             AppIsolation::class => $this->createConfiguredMock(AppIsolation::class, ['parse' => []])

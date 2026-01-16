@@ -55,47 +55,51 @@ class InstallerFactoryTest extends TestCase
         // Initialize ObjectManager to avoid "ObjectManager isn't initialized" errors
         $objectManagerHelper = new ObjectManagerHelper($this);
         $objectManagerHelper->prepareObjectManager();
-        
-        $this->objectManagerProviderMock = $this->getMockBuilder(ObjectManagerProvider::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['get'])
-            ->getMock();
 
-        $objectManagerMock = $this->getMockBuilder(ObjectManager::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['get'])
-            ->getMock();
-        $objectManagerMock->expects($this->any())
-            ->method('get')
-            ->willReturnMap(
-                [
-                    [DeclarationInstaller::class, $this->createMock(DeclarationInstaller::class)],
-                    [SchemaPersistor::class, $this->createMock(SchemaPersistor::class)],
-                ]
-            );
-        $this->objectManagerProviderMock->expects($this->any())
-            ->method('get')
-            ->willReturn($objectManagerMock);
-        /** @var ServiceLocatorInterface|MockObject $serviceLocatorMock */
-        $serviceLocatorMock = $this->getMockBuilder(
-            ServiceLocatorInterface::class
-        )->onlyMethods(
-            ['get', 'has', 'build']
-        )->getMock();
-        $serviceLocatorMock->expects($this->any())->method('get')
-            ->willReturnMap($this->getReturnValueMap());
+        try {
+            $this->objectManagerProviderMock = $this->getMockBuilder(ObjectManagerProvider::class)
+                ->disableOriginalConstructor()
+                ->onlyMethods(['get'])
+                ->getMock();
 
-        /** @var ConsoleLoggerInterface|MockObject $log */
-        $log = $this->createMock(ConsoleLoggerInterface::class);
-        /** @var ResourceFactory|MockObject $resourceFactoryMock */
-        $resourceFactoryMock = $this->createMock(ResourceFactory::class);
-        $resourceFactoryMock
-            ->expects($this->any())
-            ->method('create')
-            ->willReturn($this->createMock(ResourceConnection::class));
-        $installerFactory = new InstallerFactory($serviceLocatorMock, $resourceFactoryMock);
-        $installer = $installerFactory->create($log);
-        $this->assertInstanceOf(Installer::class, $installer);
+            $objectManagerMock = $this->getMockBuilder(ObjectManager::class)
+                ->disableOriginalConstructor()
+                ->onlyMethods(['get'])
+                ->getMock();
+            $objectManagerMock->expects($this->any())
+                ->method('get')
+                ->willReturnMap(
+                    [
+                        [DeclarationInstaller::class, $this->createMock(DeclarationInstaller::class)],
+                        [SchemaPersistor::class, $this->createMock(SchemaPersistor::class)],
+                    ]
+                );
+            $this->objectManagerProviderMock->expects($this->any())
+                ->method('get')
+                ->willReturn($objectManagerMock);
+            /** @var ServiceLocatorInterface|MockObject $serviceLocatorMock */
+            $serviceLocatorMock = $this->getMockBuilder(
+                ServiceLocatorInterface::class
+            )->onlyMethods(
+                ['get', 'has', 'build']
+            )->getMock();
+            $serviceLocatorMock->expects($this->any())->method('get')
+                ->willReturnMap($this->getReturnValueMap());
+
+            /** @var ConsoleLoggerInterface|MockObject $log */
+            $log = $this->createMock(ConsoleLoggerInterface::class);
+            /** @var ResourceFactory|MockObject $resourceFactoryMock */
+            $resourceFactoryMock = $this->createMock(ResourceFactory::class);
+            $resourceFactoryMock
+                ->expects($this->any())
+                ->method('create')
+                ->willReturn($this->createMock(ResourceConnection::class));
+            $installerFactory = new InstallerFactory($serviceLocatorMock, $resourceFactoryMock);
+            $installer = $installerFactory->create($log);
+            $this->assertInstanceOf(Installer::class, $installer);
+        } finally {
+            restore_error_handler();
+        }
     }
 
     /**
