@@ -45,6 +45,42 @@ class AccessListTest extends TestCase
     }
 
     /**
+     * @inheritdoc
+     */
+    protected function tearDown(): void
+    {
+        // Clean up any saved configuration changes to prevent test pollution
+        if ($this->model !== null) {
+            try {
+                // If the model was saved to database, delete it
+                if ($this->model->getId()) {
+                    $this->model->delete();
+                }
+            } catch (\Magento\Framework\Exception\LocalizedException $e) {
+                // Suppress Magento exceptions during cleanup to avoid masking test failures
+            } catch (\Exception $e) {
+                // Suppress any other exceptions during cleanup
+            }
+        }
+        
+        parent::tearDown();
+    }
+
+    /**
+     * Prepare model with value, path and field
+     *
+     * @param mixed $value
+     * @param string $path
+     * @return void
+     */
+    private function prepareModel($value, string $path = 'system/full_page_cache/caching_application/access_list'): void
+    {
+        $this->model->setValue($value);
+        $this->model->setPath($path);
+        $this->model->setField('access_list');
+    }
+
+    /**
      * Test that valid IP addresses are accepted
      *
      * @dataProvider validIpAddressesDataProvider
@@ -52,9 +88,7 @@ class AccessListTest extends TestCase
      */
     public function testValidIpAddresses(string $value): void
     {
-        $this->model->setValue($value);
-        $this->model->setPath('system/full_page_cache/caching_application/access_list');
-        $this->model->setField('access_list');
+        $this->prepareModel($value);
         
         // Should not throw exception
         $result = $this->model->beforeSave();
@@ -92,9 +126,7 @@ class AccessListTest extends TestCase
      */
     public function testValidHostnames(string $value): void
     {
-        $this->model->setValue($value);
-        $this->model->setPath('system/full_page_cache/caching_application/access_list');
-        $this->model->setField('access_list');
+        $this->prepareModel($value);
         
         $result = $this->model->beforeSave();
         
@@ -127,9 +159,7 @@ class AccessListTest extends TestCase
      */
     public function testValidCidrNotationIpv4(string $value): void
     {
-        $this->model->setValue($value);
-        $this->model->setPath('system/full_page_cache/caching_application/access_list');
-        $this->model->setField('access_list');
+        $this->prepareModel($value);
         
         $result = $this->model->beforeSave();
         
@@ -164,9 +194,7 @@ class AccessListTest extends TestCase
      */
     public function testValidCidrNotationIpv6(string $value): void
     {
-        $this->model->setValue($value);
-        $this->model->setPath('system/full_page_cache/caching_application/access_list');
-        $this->model->setField('access_list');
+        $this->prepareModel($value);
         
         $result = $this->model->beforeSave();
         
@@ -186,7 +214,7 @@ class AccessListTest extends TestCase
             'IPv6 link-local /10' => ['fe80::/10'],
             'IPv6 all addresses /0' => ['::/0'],
             'IPv6 multicast /8' => ['ff00::/8'],
-            'IPv6 partial notation with CIDR' => ['2001:0db8:/32'],
+            'IPv6 partial notation with CIDR' => ['2001:0db8::/32'],
         ];
     }
 
@@ -198,9 +226,7 @@ class AccessListTest extends TestCase
      */
     public function testValidMultipleValues(string $value): void
     {
-        $this->model->setValue($value);
-        $this->model->setPath('system/full_page_cache/caching_application/access_list');
-        $this->model->setField('access_list');
+        $this->prepareModel($value);
         
         $result = $this->model->beforeSave();
         
@@ -232,14 +258,12 @@ class AccessListTest extends TestCase
     {
         $value = '  192.168.1.1  ,  localhost  ,  10.0.0.0/8  ';
         
-        $this->model->setValue($value);
-        $this->model->setPath('system/full_page_cache/caching_application/access_list');
-        $this->model->setField('access_list');
+        $this->prepareModel($value);
         
         $result = $this->model->beforeSave();
         
         $this->assertInstanceOf(AccessList::class, $result);
-        $this->assertEquals($value, $this->model->getValue());
+        $this->assertSame($value, $this->model->getValue());
     }
 
     /**
@@ -253,9 +277,7 @@ class AccessListTest extends TestCase
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('is not valid');
         
-        $this->model->setValue($value);
-        $this->model->setPath('system/full_page_cache/caching_application/access_list');
-        $this->model->setField('access_list');
+        $this->prepareModel($value);
         
         $this->model->beforeSave();
     }
@@ -288,9 +310,7 @@ class AccessListTest extends TestCase
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('is not valid');
         
-        $this->model->setValue($value);
-        $this->model->setPath('system/full_page_cache/caching_application/access_list');
-        $this->model->setField('access_list');
+        $this->prepareModel($value);
         
         $this->model->beforeSave();
     }
@@ -324,9 +344,7 @@ class AccessListTest extends TestCase
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('is not valid');
         
-        $this->model->setValue($value);
-        $this->model->setPath('system/full_page_cache/caching_application/access_list');
-        $this->model->setField('access_list');
+        $this->prepareModel($value);
         
         $this->model->beforeSave();
     }
@@ -358,9 +376,7 @@ class AccessListTest extends TestCase
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('is not valid because of item');
         
-        $this->model->setValue($value);
-        $this->model->setPath('system/full_page_cache/caching_application/access_list');
-        $this->model->setField('access_list');
+        $this->prepareModel($value);
         
         $this->model->beforeSave();
     }
@@ -395,9 +411,7 @@ class AccessListTest extends TestCase
         ];
 
         foreach ($validBoundaries as $value) {
-            $this->model->setValue($value);
-            $this->model->setPath('system/full_page_cache/caching_application/access_list');
-            $this->model->setField('access_list');
+            $this->prepareModel($value);
             
             $result = $this->model->beforeSave();
             $this->assertInstanceOf(AccessList::class, $result, "Failed for CIDR: {$value}");
@@ -413,9 +427,7 @@ class AccessListTest extends TestCase
     {
         $value = '192.168.1.0/24, localhost, ::1';
         
-        $this->model->setValue($value);
-        $this->model->setPath('system/full_page_cache/caching_application/access_list_test');
-        $this->model->setField('access_list');
+        $this->prepareModel($value, 'system/full_page_cache/caching_application/access_list_test');
         $this->model->setScope('default');
         $this->model->setScopeId(0);
         
@@ -424,7 +436,7 @@ class AccessListTest extends TestCase
         
         // Verify it was saved
         $this->assertNotNull($this->model->getId());
-        $this->assertEquals($value, $this->model->getValue());
+        $this->assertSame($value, $this->model->getValue());
     }
 
     /**
@@ -434,9 +446,7 @@ class AccessListTest extends TestCase
      */
     public function testEmptyValueUsesDefault(): void
     {
-        $this->model->setValue('');
-        $this->model->setPath('system/full_page_cache/caching_application/access_list');
-        $this->model->setField('access_list');
+        $this->prepareModel('');
         
         $result = $this->model->beforeSave();
         
