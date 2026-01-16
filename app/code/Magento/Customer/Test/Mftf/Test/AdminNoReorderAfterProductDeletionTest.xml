@@ -68,7 +68,7 @@
         <actionGroup ref="AdminSubmitOrderActionGroup" stepKey="submitOrder"/>
         <actionGroup ref="VerifyCreatedOrderInformationActionGroup" stepKey="verifyCreatedOrderInformation"/>
         <!-- Grab increment id from success page -->
-        <grabTextFrom selector="|Order # (\d+)|" stepKey="getOrderId"/>
+        <grabTextFrom selector="{{AdminOrderDetailsInformationSection.orderId}}" stepKey="getOrderId"/>
         <!--Step 2 Delete product post-order -->
         <deleteData createDataKey="createConfigChildProduct1" stepKey="deleteConfigChildProduct1AfterOrder"/>
         <deleteData createDataKey="createConfigProduct" stepKey="deleteProductAfterOrder"/>
