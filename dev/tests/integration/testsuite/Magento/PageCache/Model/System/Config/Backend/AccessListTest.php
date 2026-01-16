@@ -451,7 +451,7 @@ class AccessListTest extends TestCase
         $result = $this->model->beforeSave();
         
         $this->assertInstanceOf(AccessList::class, $result);
-        // Value should be set to default (handled by parent Varnish class)
-        $this->assertNotEmpty($this->model->getValue());
+        // Value should be set to default 'localhost' (from config.xml system/full_page_cache/default/access_list)
+        $this->assertSame('localhost', $this->model->getValue());
     }
 }
