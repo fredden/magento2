@@ -37,10 +37,10 @@
             </createData>
             <!-- Create customer -->
             <createData entity="Simple_US_Customer" stepKey="createCustomer"/>
-            <!-- Clear cache after locale change -->
+            <!-- Clear relevant caches after locale change -->
             <actionGroup ref="CliCacheCleanActionGroup" stepKey="cleanCache">
-                <argument name="tags" value=""/>
-            </actionGroup>
+                <argument name="tags" value="config full_page"/>
+            </actionGroup> 
             <!-- Create order via API -->
             <createData entity="CustomerCart" stepKey="createCustomerCart">
                 <requiredEntity createDataKey="createCustomer"/>
@@ -77,13 +77,13 @@
         <!-- Step 2: Go to my account > my orders -->
         <actionGroup ref="StorefrontNavigateToCustomerOrdersHistoryPageActionGroup" stepKey="navigateToOrderHistoryPage"/>
         <!-- Step 3: Click cancel on an order that is cancellable -->
-        <waitForElementVisible selector="{{CustomerOrderCancellationSection.linkToOpenModal}}" stepKey="waitForCancelLinkVisible"/>
+        <waitForElementClickable selector="{{CustomerOrderCancellationSection.linkToOpenModal}}" stepKey="waitForCancelLinkVisible"/>
         <click selector="{{CustomerOrderCancellationSection.linkToOpenModal}}" stepKey="clickOnLinkToOpenModal"/>
         <!-- Step 4: Verify that the modal appears with a translatable title (English) -->
         <waitForElementVisible selector="{{StorefrontInstantPurchasePopupSection.modalTitle}}" stepKey="waitForModalTitleVisible"/>
         <grabTextFrom selector="{{StorefrontInstantPurchasePopupSection.modalTitle}}" stepKey="grabModalTitleEnglish"/>
         <assertEquals message="Modal title should be 'Cancel Order' in English locale" stepKey="assertModalTitleEnglish">
-            <expectedResult type="string">{{OrderCancellationModalTitleData.englishTitle}}</expectedResult>
+            <expectedResult type="string">{{OrderCancellationModalTitleEnglish.title}}</expectedResult>
             <actualResult type="variable">grabModalTitleEnglish</actualResult>
         </assertEquals>
         <!-- Close the modal -->
@@ -96,13 +96,13 @@
         <!-- Navigate back to order history after store view switch -->
         <actionGroup ref="StorefrontNavigateToCustomerOrdersHistoryPageActionGroup" stepKey="navigateToOrderHistoryPageFrench"/>
         <!-- Click cancel to open modal again -->
-        <waitForElementVisible selector="{{CustomerOrderCancellationSection.linkToOpenModal}}" stepKey="waitForCancelLinkVisibleFrench"/>
+        <waitForElementClickable selector="{{CustomerOrderCancellationSection.linkToOpenModal}}" stepKey="waitForCancelLinkVisibleFrench"/>
         <click selector="{{CustomerOrderCancellationSection.linkToOpenModal}}" stepKey="clickOnLinkToOpenModalFrench"/>
         <!-- Verify that the modal title is correctly translated to French -->
         <waitForElementVisible selector="{{StorefrontInstantPurchasePopupSection.modalTitle}}" stepKey="waitForModalTitleVisibleFrench"/>
         <grabTextFrom selector="{{StorefrontInstantPurchasePopupSection.modalTitle}}" stepKey="grabModalTitleFrench"/>
         <assertEquals message="Modal title should be translated to French in French locale" stepKey="assertModalTitleFrench">
-            <expectedResult type="string">{{OrderCancellationModalTitleData.frenchTitle}}</expectedResult>
+            <expectedResult type="string">{{OrderCancellationModalTitleFrench.title}}</expectedResult>
             <actualResult type="variable">grabModalTitleFrench</actualResult>
         </assertEquals>
     </test>
