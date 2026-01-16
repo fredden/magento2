@@ -27,6 +27,7 @@ use Symfony\Component\Mime\Message as SymfonyMessage;
  * Tests for email transport functionality.
  *
  * @coversDefaultClass \Magento\Email\Model\Transport
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class TransportTest extends TestCase
 {
