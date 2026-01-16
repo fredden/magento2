@@ -107,6 +107,7 @@ class CategoryTest extends TestCase
 
     /**
      * @inheritDoc
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     protected function setUp(): void
     {
