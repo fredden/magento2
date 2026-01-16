@@ -28,6 +28,8 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.ExcessivePublicCount)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class CategoryTest extends TestCase
 {
@@ -124,12 +126,24 @@ class CategoryTest extends TestCase
         $this->eavConfigMock->method('getEntityType')->willReturn($this->entityType);
         $this->contextMock->method('getEavConfig')->willReturn($this->eavConfigMock);
         $this->contextMock->method('getResource')->willReturn($this->resourceMock);
-        $this->contextMock->method('getAttributeSetEntity')->willReturn($this->createMock(\Magento\Eav\Model\Entity\Attribute\Set::class));
-        $this->contextMock->method('getLocaleFormat')->willReturn($this->createMock(\Magento\Framework\Locale\FormatInterface::class));
-        $this->contextMock->method('getResourceHelper')->willReturn($this->createMock(\Magento\Eav\Model\ResourceModel\Helper::class));
-        $this->contextMock->method('getUniversalFactory')->willReturn($this->createMock(\Magento\Framework\Validator\UniversalFactory::class));
-        $this->contextMock->method('getTransactionManager')->willReturn($this->createMock(\Magento\Framework\Model\ResourceModel\Db\TransactionManagerInterface::class));
-        $this->contextMock->method('getObjectRelationProcessor')->willReturn($this->createMock(\Magento\Framework\Model\ResourceModel\Db\ObjectRelationProcessor::class));
+        $this->contextMock->method('getAttributeSetEntity')->willReturn(
+            $this->createMock(\Magento\Eav\Model\Entity\Attribute\Set::class)
+        );
+        $this->contextMock->method('getLocaleFormat')->willReturn(
+            $this->createMock(\Magento\Framework\Locale\FormatInterface::class)
+        );
+        $this->contextMock->method('getResourceHelper')->willReturn(
+            $this->createMock(\Magento\Eav\Model\ResourceModel\Helper::class)
+        );
+        $this->contextMock->method('getUniversalFactory')->willReturn(
+            $this->createMock(\Magento\Framework\Validator\UniversalFactory::class)
+        );
+        $this->contextMock->method('getTransactionManager')->willReturn(
+            $this->createMock(\Magento\Framework\Model\ResourceModel\Db\TransactionManagerInterface::class)
+        );
+        $this->contextMock->method('getObjectRelationProcessor')->willReturn(
+            $this->createMock(\Magento\Framework\Model\ResourceModel\Db\ObjectRelationProcessor::class)
+        );
         $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
         $this->factoryMock = $this->createMock(Factory::class);
         $this->managerMock = $this->createMock(ManagerInterface::class);
@@ -463,7 +477,6 @@ class CategoryTest extends TestCase
         $this->assertIsArray($result);
     }
 
-
     public function testLoad(): void
     {
         $categoryMock = $this->getMockBuilder(\Magento\Catalog\Model\Category::class)
@@ -557,7 +570,6 @@ class CategoryTest extends TestCase
         $result = $method->invoke($this->category);
         $this->assertInstanceOf(\Magento\Catalog\Model\ResourceModel\Category\Tree::class, $result);
     }
-
 
     public function testSavePath(): void
     {
@@ -1542,11 +1554,25 @@ class CategoryTest extends TestCase
         
         $categoryMock = $this->getMockBuilder(\Magento\Catalog\Model\Category::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['isObjectNew', 'getPosition', 'getPath', 'getId', 'getData', 'setPosition', 
-                          'setLevel', 'setParentId', 'setPath', 'getChildrenCount'])
-            ->addMethods(['getAttributeSetId', 'setAttributeSetId', 'setChildrenCount',
-                         'hasPosition', 'hasLevel', 'hasParentId'])
-            ->getMock();
+            ->onlyMethods([
+                'isObjectNew',
+                'getPosition',
+                'getPath',
+                'getId',
+                'getData',
+                'setPosition',
+                'setLevel',
+                'setParentId',
+                'setPath',
+                'getChildrenCount'
+            ])->addMethods([
+                'getAttributeSetId',
+                'setAttributeSetId',
+                'setChildrenCount',
+                'hasPosition',
+                'hasLevel',
+                'hasParentId'
+            ])->getMock();
         
         $categoryMock->method('isObjectNew')->willReturn(true);
         $categoryMock->method('getChildrenCount')->willReturn(0);
@@ -1673,9 +1699,15 @@ class CategoryTest extends TestCase
         
         $collectionMock = $this->getMockBuilder(\Magento\Catalog\Model\ResourceModel\Category\Collection::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['setStore', 'addAttributeToSelect', 'addFieldToFilter', 'addAttributeToFilter', 
-                          'setOrder', 'load', 'getFirstItem'])
-            ->getMock();
+            ->onlyMethods([
+                'setStore',
+                'addAttributeToSelect',
+                'addFieldToFilter',
+                'addAttributeToFilter',
+                'setOrder',
+                'load',
+                'getFirstItem'
+            ])->getMock();
         
         $collectionMock->method('setStore')->willReturnSelf();
         $collectionMock->method('addAttributeToSelect')->willReturnSelf();
@@ -1696,5 +1728,4 @@ class CategoryTest extends TestCase
         $result = $this->category->getParentDesignCategory($categoryMock);
         $this->assertSame($firstItemMock, $result);
     }
-
 }
