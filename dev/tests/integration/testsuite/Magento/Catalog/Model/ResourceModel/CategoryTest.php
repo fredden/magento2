@@ -263,4 +263,89 @@ class CategoryTest extends TestCase
         return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA)
             . self::BASE_TMP_PATH . DIRECTORY_SEPARATOR . $file;
     }
+
+    /**
+     * Test _beforeSave - created_in = 1 increments children_count
+     *
+     * @magentoDataFixture Magento/Catalog/_files/category.php
+     * @magentoDbIsolation disabled
+     * @return void
+     */
+    public function testBeforeSaveCreatedInEqualsOneIncrementsChildrenCount(): void
+    {
+        $parentCategory = $this->categoryRepository->get(333);
+
+        // Get initial children count directly from DB
+        $connection = $this->categoryResource->getConnection();
+        $select = $connection->select()
+            ->from($this->categoryResource->getEntityTable(), ['children_count'])
+            ->where('entity_id = ?', 333)
+            ->where('created_in = ?', 1);
+        $initialChildrenCount = (int)$connection->fetchOne($select);
+
+        // Create category with created_in = 1
+        $newCategory = $this->objectManager->create(CategoryModel::class);
+        $newCategory->setName('Test Category Created In 1');
+        $newCategory->setIsActive(true);
+        $newCategory->setPath($parentCategory->getPath());
+        $newCategory->setParentId($parentCategory->getId());
+        $newCategory->setData('created_in', 1);
+
+        $this->categoryResource->save($newCategory);
+
+        // Verify parent children_count was incremented
+        $select = $connection->select()
+            ->from($this->categoryResource->getEntityTable(), ['children_count'])
+            ->where('entity_id = ?', 333)
+            ->where('created_in = ?', 1);
+        $finalChildrenCount = (int)$connection->fetchOne($select);
+
+        $this->assertEquals(
+            $initialChildrenCount + 1,
+            $finalChildrenCount,
+            'Children count should increment when created_in = 1'
+        );
+    }
+
+    /**
+     * Test _beforeSave - created_in = null increments children_count
+     *
+     * @magentoDataFixture Magento/Catalog/_files/category.php
+     * @magentoDbIsolation disabled
+     * @return void
+     */
+    public function testBeforeSaveCreatedInNullIncrementsChildrenCount(): void
+    {
+        $parentCategory = $this->categoryRepository->get(333);
+
+        // Get initial children count directly from DB
+        $connection = $this->categoryResource->getConnection();
+        $select = $connection->select()
+            ->from($this->categoryResource->getEntityTable(), ['children_count'])
+            ->where('entity_id = ?', 333)
+            ->where('created_in = ?', 1);
+        $initialChildrenCount = (int)$connection->fetchOne($select);
+
+        // Create category without created_in
+        $newCategory = $this->objectManager->create(CategoryModel::class);
+        $newCategory->setName('Test Category Created In Null');
+        $newCategory->setIsActive(true);
+        $newCategory->setPath($parentCategory->getPath());
+        $newCategory->setParentId($parentCategory->getId());
+
+        $this->categoryResource->save($newCategory);
+
+        // Verify parent children_count was incremented
+        $select = $connection->select()
+            ->from($this->categoryResource->getEntityTable(), ['children_count'])
+            ->where('entity_id = ?', 333)
+            ->where('created_in = ?', 1);
+        $finalChildrenCount = (int)$connection->fetchOne($select);
+
+        $this->assertEquals(
+            $initialChildrenCount + 1,
+            $finalChildrenCount,
+            'Children count should increment when created_in is null'
+        );
+    }
 }
