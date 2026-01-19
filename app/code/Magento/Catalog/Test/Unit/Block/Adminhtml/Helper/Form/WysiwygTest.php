@@ -73,7 +73,7 @@ class WysiwygTest extends TestCase
      */
     private Wysiwyg $element;
 
-  /**
+    /**
      * @return void
      * @throws \PHPUnit\Framework\MockObject\Exception
      */
