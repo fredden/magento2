@@ -91,9 +91,9 @@
             <argument name="widget" value="CmsBlockWidgetCustomStoreView"/>
             <argument name="block" value="{{CmsBlockForCustomStoreView.title}}"/>
         </actionGroup>
-        <!-- Flush full page cache to ensure widgets appear on storefront -->
-        <actionGroup ref="CliCacheFlushActionGroup" stepKey="flushFullPageCache">
-            <argument name="tags" value="full_page"/>
+        <!-- Flush cache to ensure widgets appear on storefront -->
+        <actionGroup ref="CliCacheFlushActionGroup" stepKey="flushCache">
+            <argument name="tags" value=""/>
         </actionGroup>
         <!-- Step 6: Verify first CMS block displays on default store view -->
         <actionGroup ref="StorefrontOpenHomePageActionGroup" stepKey="goToHomePage"/>
