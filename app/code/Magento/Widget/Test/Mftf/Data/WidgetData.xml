@@ -50,8 +50,10 @@
     </entity>
     <entity name="CmsBlockWidgetDefaultStoreView" extends="WidgetWithBlockMainContent">
         <data key="name" unique="suffix">WidgetDefaultStoreView</data>
+        <data key="store_id">Default Store View</data>
     </entity>
     <entity name="CmsBlockWidgetCustomStoreView" extends="WidgetWithBlockMainContent">
         <data key="name" unique="suffix">WidgetCustomStoreView</data>
+        <data key="store_id">EN</data>
     </entity>
 </entities>

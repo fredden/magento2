@@ -40,7 +40,7 @@
             </actionGroup>
             <!-- Delete custom store view -->
             <actionGroup ref="AdminDeleteStoreViewActionGroup" stepKey="deleteCustomStoreView">
-                <argument name="customStore" value="customStoreEN"/>
+                <argument name="customStore" value="customStoreENNotUnique"/>
             </actionGroup>
             <!-- Re-enable page builder and WYSIWYG -->
             <magentoCLI command="config:set {{EnablePageBuilderConfigData.path}} {{EnablePageBuilderConfigData.value}}" stepKey="enablePageBuilder"/>
@@ -49,7 +49,7 @@
         </after>
         <!-- Step 1: Create custom store view -->
         <actionGroup ref="AdminCreateStoreViewActionGroup" stepKey="createCustomStoreView">
-            <argument name="customStore" value="customStoreEN"/>
+            <argument name="customStore" value="customStoreENNotUnique"/>
         </actionGroup>
         <!-- Step 2: Create first CMS block for default store view -->
         <actionGroup ref="AdminOpenCmsBlocksGridActionGroup" stepKey="openCmsBlocksGridForFirstBlock"/>
@@ -75,30 +75,28 @@
             <argument name="cmsBlockDataContent" value="{{CmsBlockForCustomStoreView.content}}"/>
         </actionGroup>
         <actionGroup ref="AdminSelectCMSBlockStoreViewActionGroup" stepKey="selectCustomStoreViewForBlock">
-            <argument name="storeViewName" value="{{customStoreEN.name}}"/>
+            <argument name="storeViewName" value="{{customStoreENNotUnique.name}}"/>
         </actionGroup>
         <actionGroup ref="AdminPressSaveCmsBlockButtonActionGroup" stepKey="saveSecondCmsBlock"/>
         <actionGroup ref="AssertMessageInAdminPanelActionGroup" stepKey="assertSecondBlockSaved">
             <argument name="message" value="You saved the block."/>
         </actionGroup>
         <!-- Step 4: Create widget for default store view with first CMS block -->
-        <actionGroup ref="AdminCreateWidgetWithEnabledBlockAndStoreViewActionGroup" stepKey="createWidgetForDefaultStoreView">
+        <actionGroup ref="AdminCreateWidgetWithEnabledBlockActionGroup" stepKey="createWidgetForDefaultStoreView">
             <argument name="widget" value="CmsBlockWidgetDefaultStoreView"/>
             <argument name="block" value="{{CmsBlockForDefaultStoreView.title}}"/>
-            <argument name="storeName" value="{{_defaultStore.name}}"/>
         </actionGroup>
         <!-- Step 5: Create widget for custom store view with second CMS block -->
-        <actionGroup ref="AdminCreateWidgetWithEnabledBlockAndStoreViewActionGroup" stepKey="createWidgetForCustomStoreView">
+        <actionGroup ref="AdminCreateWidgetWithEnabledBlockActionGroup" stepKey="createWidgetForCustomStoreView">
             <argument name="widget" value="CmsBlockWidgetCustomStoreView"/>
             <argument name="block" value="{{CmsBlockForCustomStoreView.title}}"/>
-            <argument name="storeName" value="{{customStoreEN.name}}"/>
         </actionGroup>
         <!-- Step 6: Verify first CMS block displays on default store view -->
         <actionGroup ref="StorefrontOpenHomePageActionGroup" stepKey="goToHomePage"/>
         <waitForText userInput="{{CmsBlockForDefaultStoreView.content}}" stepKey="seeFirstBlockContent"/>
         <!-- Step 7: Verify second CMS block displays on custom store view -->
         <actionGroup ref="StorefrontSwitchStoreViewActionGroup" stepKey="switchToCustomStoreView">
-            <argument name="storeView" value="customStoreEN"/>
+            <argument name="storeView" value="customStoreENNotUnique"/>
         </actionGroup>
         <waitForText userInput="{{CmsBlockForCustomStoreView.content}}" stepKey="seeSecondBlockContent"/>
         <!-- Verify first block content is not visible on custom store view -->
