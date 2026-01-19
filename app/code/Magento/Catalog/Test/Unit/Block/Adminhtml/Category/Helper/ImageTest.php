@@ -44,8 +44,6 @@ class ImageTest extends TestCase
     {
         $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
         $this->storeMock = $this->createMock(Store::class);
-
-        // Using createPartialMock to avoid parent constructor ObjectManager::getInstance() calls
         $this->model = $this->createPartialMock(Image::class, []);
 
         // Inject the storeManager dependency using reflection

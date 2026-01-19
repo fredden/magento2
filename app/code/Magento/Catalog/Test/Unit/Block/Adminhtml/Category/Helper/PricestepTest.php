@@ -104,7 +104,6 @@ class PricestepTest extends TestCase
         $this->formMock->method('getHtmlIdSuffix')->willReturn('');
         $this->formMock->method('addSuffixToName')->willReturnArgument(0);
 
-        // Using createPartialMock to avoid parent constructor ObjectManager::getInstance() calls
         $this->model = $this->createPartialMock(Pricestep::class, []);
 
         // Inject dependencies using reflection to avoid parent constructor issues

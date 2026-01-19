@@ -27,7 +27,7 @@ class ExportInfoFactoryTest extends TestCase
 {
     /**
      * Summary of testCreateBuildsExportInfoAndAdapterParameters
-     * @return 
+     * @return
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function testCreateBuildsExportInfoAndAdapterParameters(): void

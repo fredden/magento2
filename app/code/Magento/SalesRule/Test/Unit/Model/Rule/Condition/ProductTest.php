@@ -20,21 +20,25 @@ use Magento\Eav\Model\Entity\AbstractEntity;
 use Magento\Eav\Model\Entity\AttributeLoaderInterface;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\Collection;
 use Magento\Framework\App\ScopeResolverInterface;
+use Magento\Framework\Data\Form\Element\AbstractElement;
 use Magento\Framework\DataObject;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\DB\Select;
 use Magento\Framework\Locale\Format;
 use Magento\Framework\Locale\FormatInterface;
 use Magento\Framework\Locale\ResolverInterface;
-use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Framework\View\LayoutInterface;
 use Magento\Quote\Model\Quote\Item\AbstractItem;
 use Magento\Quote\Model\Quote\Item as QuoteItem;
 use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
+use Magento\Rule\Block\Editable;
+use Magento\Rule\Model\Condition\AbstractCondition;
 use Magento\Rule\Model\Condition\Context;
 use Magento\SalesRule\Model\Rule\Condition\Product as SalesRuleProduct;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -636,9 +640,9 @@ class ProductTest extends TestCase
         // Ensure scope is set to "parent" so it should be passed as hidden field value
         $this->model->setAttribute('parent::quote_item_qty');
 
-        $elementHidden = $this->createMock(\Magento\Framework\Data\Form\Element\AbstractElement::class);
+        $elementHidden = $this->createMock(AbstractElement::class);
         $elementHidden->method('getHtml')->willReturn('HIDDEN_HTML');
-        $elementSelect = $this->createMock(\Magento\Framework\Data\Form\Element\AbstractElement::class);
+        $elementSelect = $this->createMock(AbstractElement::class);
         $elementSelect->method('getHtml')->willReturn('ATTR_HTML');
 
         $capturedConfig = null;
@@ -663,12 +667,12 @@ class ProductTest extends TestCase
         $this->model->setRule($rule);
         $this->model->setFormName('form-name');
         // Inject a layout so getBlockSingleton() calls succeed
-        $layout = $this->createMock(\Magento\Framework\View\LayoutInterface::class);
-        $editable = $this->getMockBuilder(\Magento\Rule\Block\Editable::class)
+        $layout = $this->createMock(LayoutInterface::class);
+        $editable = $this->getMockBuilder(Editable::class)
             ->disableOriginalConstructor()
             ->getMock();
         $layout->method('getBlockSingleton')->willReturn($editable);
-        $ref = new \ReflectionProperty(\Magento\Rule\Model\Condition\AbstractCondition::class, '_layout');
+        $ref = new ReflectionProperty(AbstractCondition::class, '_layout');
         $ref->setAccessible(true);
         $ref->setValue($this->model, $layout);
         $html = $this->model->getAttributeElementHtml();

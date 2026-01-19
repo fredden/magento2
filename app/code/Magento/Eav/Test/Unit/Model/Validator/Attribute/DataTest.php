@@ -71,7 +71,7 @@ class DataTest extends TestCase
 
     /**
      * Testing  \Magento\Eav\Model\Validator\Attribute\Data::isValid
-     *     *
+     *
      * @param array $attributeData
      * @param array|bool $result
      * @param bool $expected

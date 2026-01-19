@@ -18,6 +18,7 @@ use Magento\Framework\App\ViewInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Filesystem;
+use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
@@ -105,7 +106,7 @@ abstract class ThemeTestCase extends TestCase
         $this->_request = $this->createMock(RequestHttp::class);
         $this->eventManager = $this->createMock(ManagerInterface::class);
         $this->view = $this->createMock(ViewInterface::class);
-        $this->messageManager = $this->createMock(\Magento\Framework\Message\ManagerInterface::class);
+        $this->messageManager = $this->createMock(MessageManagerInterface::class);
         $this->resultFactory = $this->createMock(ResultFactory::class);
         $this->assetRepo = $this->createMock(Repository::class);
         $this->appFileSystem = $this->createMock(Filesystem::class);
