@@ -13,6 +13,8 @@ use Magento\Backend\Helper\Data as BackendHelperData;
 use Magento\Cms\Model\Wysiwyg\Config as WysiwygConfig;
 use Magento\Framework\Data\Form\Element\CollectionFactory as ElementCollectionFactory;
 use Magento\Framework\Data\Form\Element\Factory as ElementFactory;
+use Magento\Framework\Data\Form;
+use Magento\Framework\Data\Form\Element\AbstractElement;
 use Magento\Framework\DataObject;
 use Magento\Framework\Escaper;
 use Magento\Framework\Math\Random;
@@ -20,6 +22,7 @@ use Magento\Framework\Module\Manager as ModuleManager;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Framework\View\Helper\SecureHtmlRenderer;
 use Magento\Framework\View\LayoutInterface;
+use ReflectionClass;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 
@@ -68,12 +71,23 @@ class WysiwygTest extends TestCase
     /**
      * @var Wysiwyg
      */
-    private $element;
+    private Wysiwyg $element;
 
+  /**
+     * @return void
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
     protected function setUp(): void
     {
         $this->objectManager = new ObjectManager($this);
-        $this->escaper = new Escaper();
+        $this->escaper = $this->createMock(Escaper::class);
+        $this->escaper
+            ->method('escapeHtml')
+            ->willReturnCallback(
+                function ($value) {
+                    return (string)$value;
+                }
+            );
         $this->factoryElement = $this->createMock(ElementFactory::class);
         $this->factoryCollection = $this->createMock(ElementCollectionFactory::class);
         $this->wysiwygConfig = $this->createMock(WysiwygConfig::class);
@@ -100,18 +114,17 @@ class WysiwygTest extends TestCase
                 'moduleManager'     => $this->moduleManager,
                 'backendData'       => $this->backendData,
                 'secureRenderer'    => $this->secureRenderer,
-                'data'              => [],
             ]
         );
 
         $this->setPrivateProperty(
             $this->element,
-            \Magento\Framework\Data\Form\Element\AbstractElement::class,
+            AbstractElement::class,
             'random',
             new Random()
         );
 
-        $formMock = $this->getMockBuilder(\Magento\Framework\Data\Form::class)
+        $formMock = $this->getMockBuilder(Form::class)
             ->disableOriginalConstructor()
             ->addMethods(['getHtmlIdPrefix', 'getHtmlIdSuffix'])
             ->getMock();
@@ -123,6 +136,9 @@ class WysiwygTest extends TestCase
     /**
      * Ensure getAfterElementHtml appends the WYSIWYG button and initialization script
      * markers when the module/config/attribute flags enable the editor.
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Helper\Form\Wysiwyg::getAfterElementHtml
+     * @return void
      */
     public function testGetAfterElementHtmlWhenEnabledAddsButtonAndScript(): void
     {
@@ -155,10 +171,12 @@ class WysiwygTest extends TestCase
     private function givenEnabledFlags(): void
     {
         $this->moduleManager
+            ->expects($this->once())
             ->method('isEnabled')
             ->with('Magento_Cms')
             ->willReturn(true);
         $this->wysiwygConfig
+            ->expects($this->once())
             ->method('isEnabled')
             ->willReturn(true);
     }
@@ -171,6 +189,7 @@ class WysiwygTest extends TestCase
     private function givenWysiwygConfig(): void
     {
         $this->wysiwygConfig
+            ->expects($this->once())
             ->method('getConfig')
             ->willReturn(
                 new DataObject(
@@ -189,7 +208,8 @@ class WysiwygTest extends TestCase
      */
     private function givenEnabledAttribute(): object
     {
-        $attributeMock = $this->getMockBuilder(\stdClass::class)
+        $attributeMock = $this->getMockBuilder(DataObject::class)
+            ->disableOriginalConstructor()
             ->addMethods(['getIsWysiwygEnabled'])
             ->getMock();
         $attributeMock->method('getIsWysiwygEnabled')->willReturn(true);
@@ -294,17 +314,22 @@ class WysiwygTest extends TestCase
     /**
      * Ensure getAfterElementHtml does not append button or script markers when
      * the editor is disabled by configuration.
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Helper\Form\Wysiwyg::getAfterElementHtml
+     * @return void
      */
     public function testGetAfterElementHtmlWhenDisabledReturnsParentHtmlOnly(): void
     {
         $this->moduleManager
+            ->expects($this->once())
             ->method('isEnabled')
             ->with('Magento_Cms')
             ->willReturn(false);
         $this->wysiwygConfig
-            ->method('isEnabled')
-            ->willReturn(false);
+            ->expects($this->never())
+            ->method('isEnabled');
         $this->wysiwygConfig
+            ->expects($this->once())
             ->method('getConfig')
             ->willReturn(new DataObject([]));
 
@@ -330,7 +355,14 @@ class WysiwygTest extends TestCase
     /**
      * Validate getIsWysiwygEnabled across combinations of module/config/attribute flags.
      *
+     * @covers \Magento\Catalog\Block\Adminhtml\Helper\Form\Wysiwyg::getIsWysiwygEnabled
      * @dataProvider getIsWysiwygEnabledDataProvider
+     * @param bool $moduleEnabled
+     * @param bool $configEnabled
+     * @param bool $attributeEnabled
+     * @param bool $expected
+     *
+     * @return void
      */
     public function testGetIsWysiwygEnabled(
         bool $moduleEnabled,
@@ -339,13 +371,22 @@ class WysiwygTest extends TestCase
         bool $expected
     ): void {
         $this->moduleManager
+            ->expects($this->once())
             ->method('isEnabled')
             ->with('Magento_Cms')
             ->willReturn($moduleEnabled);
-        $this->wysiwygConfig
-            ->method('isEnabled')
-            ->willReturn($configEnabled);
-        $attributeMock = $this->getMockBuilder(\stdClass::class)
+        if ($moduleEnabled) {
+            $this->wysiwygConfig
+                ->expects($this->once())
+                ->method('isEnabled')
+                ->willReturn($configEnabled);
+        } else {
+            $this->wysiwygConfig
+                ->expects($this->never())
+                ->method('isEnabled');
+        }
+        $attributeMock = $this->getMockBuilder(DataObject::class)
+            ->disableOriginalConstructor()
             ->addMethods(['getIsWysiwygEnabled'])
             ->getMock();
         $attributeMock->method('getIsWysiwygEnabled')->willReturn($attributeEnabled);
@@ -387,7 +428,7 @@ class WysiwygTest extends TestCase
      */
     private function setPrivateProperty(object $object, string $declaringClass, string $property, $value): void
     {
-        $ref = new \ReflectionClass($declaringClass);
+        $ref = new ReflectionClass($declaringClass);
         $prop = $ref->getProperty($property);
         $prop->setAccessible(true);
         $prop->setValue($object, $value);

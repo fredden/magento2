@@ -33,6 +33,19 @@ use ReflectionClass;
 class ContentTest extends TestCase
 {
     /**
+     * Admin WYSIWYG save action URL used across tests.
+     *
+     * @var string
+     */
+    private const ACTION_URL = '/admin/catalog/wysiwyg/save';
+    /**
+     * Base media URL used across tests.
+     *
+     * @var string
+     */
+    private const STORE_MEDIA_URL = 'https://example.com/media/';
+
+    /**
      * @var Content
      */
     private Content $block;
@@ -122,15 +135,10 @@ class ContentTest extends TestCase
     }
 
     /**
-     * @return void
-     */
-    protected function tearDown(): void
-    {
-        unset($this->block);
-    }
-
-    /**
      * Verify that the constructor stores the Wysiwyg config dependency.
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Helper\Form\Wysiwyg\Content::__construct
+     * @return void
      */
     public function testConstructorStoresWysiwygConfig(): void
     {
@@ -140,23 +148,24 @@ class ContentTest extends TestCase
 
     /**
      * Ensure _prepareForm creates a form and assigns it to the block.
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Helper\Form\Wysiwyg\Content::_prepareForm
+     * @return void
      */
     public function testPrepareFormSetsFormOnBlock(): void
     {
-        $actionUrl       = '/admin/catalog/wysiwyg/save';
-        $storeMediaUrl   = 'https://example.com/media/';
         $storeId         = 3;
         $editorElementId = 'content_editor';
 
-        $this->block->setData('action', $actionUrl);
-        $this->block->setData('store_media_url', $storeMediaUrl);
+        $this->block->setData('action', self::ACTION_URL);
+        $this->block->setData('store_media_url', self::STORE_MEDIA_URL);
         $this->block->setData('store_id', $storeId);
         $this->block->setData('editor_element_id', $editorElementId);
 
         $expectedCreateArgs = [
             'data' => [
                 'id'     => 'wysiwyg_edit_form',
-                'action' => $actionUrl,
+                'action' => self::ACTION_URL,
                 'method' => 'post',
             ],
         ];
@@ -173,7 +182,7 @@ class ContentTest extends TestCase
             ->willReturn(new DataObject(['sample' => 'value']));
 
         $this->formMock
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('addField')
             ->willReturnCallback(function ($id, $type, array $fieldConfig) use ($editorElementId) {
                 self::assertSame($editorElementId, $id);
@@ -189,16 +198,17 @@ class ContentTest extends TestCase
 
     /**
      * Verify that the expected configuration array is passed to the Wysiwyg config.
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Helper\Form\Wysiwyg\Content::_prepareForm
+     * @return void
      */
     public function testPrepareFormPassesExpectedConfigToWysiwyg(): void
     {
-        $actionUrl       = '/admin/catalog/wysiwyg/save';
-        $storeMediaUrl   = 'https://example.com/media/';
         $storeId         = 5;
         $editorElementId = 'content_editor';
 
-        $this->block->setData('action', $actionUrl);
-        $this->block->setData('store_media_url', $storeMediaUrl);
+        $this->block->setData('action', self::ACTION_URL);
+        $this->block->setData('store_media_url', self::STORE_MEDIA_URL);
         $this->block->setData('store_id', $storeId);
         $this->block->setData('editor_element_id', $editorElementId);
 
@@ -217,7 +227,7 @@ class ContentTest extends TestCase
             });
 
         $this->formMock
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('addField')
             ->willReturnCallback(function ($id, $type, array $fieldConfig) use ($editorElementId) {
                 self::assertSame($editorElementId, $id);
@@ -233,16 +243,17 @@ class ContentTest extends TestCase
 
     /**
      * Ensure the editor field is added with the exact parameters Magento expects.
+     *
+     * @covers \Magento\Catalog\Block\Adminhtml\Helper\Form\Wysiwyg\Content::_prepareForm
+     * @return void
      */
     public function testPrepareFormAddsEditorFieldWithExpectedParams(): void
     {
-        $actionUrl       = '/admin/catalog/wysiwyg/save';
-        $storeMediaUrl   = 'https://example.com/media/';
         $storeId         = 7;
         $editorElementId = 'content_editor';
 
-        $this->block->setData('action', $actionUrl);
-        $this->block->setData('store_media_url', $storeMediaUrl);
+        $this->block->setData('action', self::ACTION_URL);
+        $this->block->setData('store_media_url', self::STORE_MEDIA_URL);
         $this->block->setData('store_id', $storeId);
         $this->block->setData('editor_element_id', $editorElementId);
 
@@ -261,7 +272,7 @@ class ContentTest extends TestCase
             ->willReturn($returnedEditorConfig);
 
         $this->formMock
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('addField')
             ->willReturnCallback(
                 function (
@@ -295,6 +306,9 @@ class ContentTest extends TestCase
 
     /**
      * Callback used to validate the Wysiwyg config array.
+     *
+     * @param array $config
+     * @return bool
      */
     private function isValidWysiwygConfig(array $config): bool
     {
