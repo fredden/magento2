@@ -25,8 +25,6 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
 /**
- * Unit tests for {@see \Magento\Catalog\Block\Adminhtml\Helper\Form\Wysiwyg\Content}
- *
  * @covers \Magento\Catalog\Block\Adminhtml\Helper\Form\Wysiwyg\Content
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -38,6 +36,7 @@ class ContentTest extends TestCase
      * @var string
      */
     private const ACTION_URL = '/admin/catalog/wysiwyg/save';
+
     /**
      * Base media URL used across tests.
      *
