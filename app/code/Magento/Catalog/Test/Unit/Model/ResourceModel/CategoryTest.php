@@ -153,7 +153,7 @@ class CategoryTest extends TestCase
         $this->indexerProcessorMock = $this->createMock(Processor::class);
 
         $this->serializerMock = $this->createMock(Json::class);
-        
+
         $metadataPoolMock = $this->createMock(\Magento\Framework\EntityManager\MetadataPool::class);
         $entityManagerMock = $this->createMock(\Magento\Framework\EntityManager\EntityManager::class);
         $aggregateCountMock = $this->createMock(Category\AggregateCount::class);
@@ -165,18 +165,18 @@ class CategoryTest extends TestCase
             ->disableOriginalConstructor()
             ->onlyMethods([])
             ->getMock();
-        
+
         // Use reflection to inject dependencies
         $reflection = new \ReflectionClass(Category::class);
         $abstractEntityReflection = new \ReflectionClass(\Magento\Eav\Model\Entity\AbstractEntity::class);
-        
+
         // Configure storeManager to return a default store
         $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
         $storeMock->method('getId')->willReturn(1);
         $storeMock->method('getWebsiteId')->willReturn(1);
         $storeMock->method('getRootCategoryId')->willReturn(1);
         $this->storeManagerMock->method('getStore')->willReturn($storeMock);
-        
+
         // Configure collection factory to return a mock collection
         $collectionMock = $this->createMock(\Magento\Catalog\Model\ResourceModel\Category\Collection::class);
         $collectionMock->method('setStore')->willReturnSelf();
@@ -191,7 +191,7 @@ class CategoryTest extends TestCase
         $collectionMock->method('getFirstItem')->willReturn(new \Magento\Framework\DataObject());
         $collectionMock->method('joinUrlRewrite')->willReturnSelf();
         $this->collectionFactoryMock->method('create')->willReturn($collectionMock);
-        
+
         $properties = [
             '_resource' => [$reflection, $this->resourceMock],
             '_eavConfig' => [$abstractEntityReflection, $this->eavConfigMock],
@@ -211,7 +211,7 @@ class CategoryTest extends TestCase
             'connectionName' => [$reflection, 'catalog'],
             '_categoryProductTable' => [$reflection, null]
         ];
-        
+
         foreach ($properties as $propertyName => list($reflectionClass, $value)) {
             $property = $reflectionClass->getProperty($propertyName);
             $property->setAccessible(true);
@@ -302,7 +302,7 @@ class CategoryTest extends TestCase
         $attributeMock = $this->createMock(Attribute::class);
         $attributeMock->method('getAttributeId')->willReturn(42);
         $this->eavConfigMock->method('getAttribute')->willReturn($attributeMock);
-        
+
         $result = $this->category->getIsActiveAttributeId();
         $this->assertEquals(42, $result);
     }
@@ -319,7 +319,7 @@ class CategoryTest extends TestCase
         $this->connectionMock->method('fetchOne')->willReturn(10);
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $categoryMock->method('getId')->willReturn(1);
-        
+
         $result = $this->category->getProductCount($categoryMock);
         $this->assertEquals(10, $result);
     }
@@ -329,16 +329,16 @@ class CategoryTest extends TestCase
         $attributeMock = $this->createMock(Attribute::class);
         $attributeMock->method('getAttributeId')->willReturn(45);
         $this->eavConfigMock->method('getAttribute')->willReturn($attributeMock);
-        
+
         $this->connectionMock->method('getCheckSql')->willReturn('value');
         $this->connectionMock->method('quoteIdentifier')->willReturnArgument(0);
         $this->connectionMock->method('fetchCol')->willReturn([2, 3]);
-        
+
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $categoryMock->method('getStoreId')->willReturn(0);
         $categoryMock->method('getPath')->willReturn('1/2');
         $categoryMock->method('getLevel')->willReturn(1);
-        
+
         $result = $this->category->getChildren($categoryMock);
         $this->assertEquals([2, 3], $result);
     }
@@ -348,17 +348,17 @@ class CategoryTest extends TestCase
         $attributeMock = $this->createMock(Attribute::class);
         $attributeMock->method('getAttributeId')->willReturn(45);
         $this->eavConfigMock->method('getAttribute')->willReturn($attributeMock);
-        
+
         $this->connectionMock->method('getCheckSql')->willReturn('value');
         $this->connectionMock->method('quoteIdentifier')->willReturnArgument(0);
         $this->connectionMock->method('fetchCol')->willReturn([2, 3]);
-        
+
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $categoryMock->method('getId')->willReturn(1);
         $categoryMock->method('getStoreId')->willReturn(0);
         $categoryMock->method('getPath')->willReturn('1/2');
         $categoryMock->method('getLevel')->willReturn(1);
-        
+
         $result = $this->category->getAllChildren($categoryMock);
         $this->assertEquals([1, 2, 3], $result);
     }
@@ -367,18 +367,18 @@ class CategoryTest extends TestCase
     {
         $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
         $storeMock->method('getRootCategoryId')->willReturn(2);
-        
+
         $storeManagerMock = $this->createMock(StoreManagerInterface::class);
         $storeManagerMock->method('getStore')->willReturn($storeMock);
-        
+
         $reflection = new \ReflectionClass(\Magento\Catalog\Model\ResourceModel\AbstractResource::class);
         $property = $reflection->getProperty('_storeManager');
         $property->setAccessible(true);
         $property->setValue($this->category, $storeManagerMock);
-        
+
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $categoryMock->method('getParentIds')->willReturn([1, 2, 3]);
-        
+
         $result = $this->category->isInRootCategoryList($categoryMock);
         $this->assertTrue($result);
     }
@@ -416,7 +416,7 @@ class CategoryTest extends TestCase
         $this->connectionMock->method('fetchAll')->willReturn([
             ['entity_id' => 1, 'parent_id' => 0]
         ]);
-        
+
         $result = $this->category->getCategoryWithChildren(1);
         $this->assertIsArray($result);
     }
@@ -431,27 +431,27 @@ class CategoryTest extends TestCase
     {
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $parentMock = $this->createMock(\Magento\Catalog\Model\Category::class);
-        
+
         $categoryMock->method('getId')->willReturn(5);
         $categoryMock->method('getPath')->willReturn('1/2/5');
         $categoryMock->method('getLevel')->willReturn(2);
         $categoryMock->method('getParentIds')->willReturn([1, 2]);
         $categoryMock->method('getChildrenCount')->willReturn(0);
-        
+
         $parentMock->method('getPath')->willReturn('1/3');
         $parentMock->method('getPathIds')->willReturn([1, 3]);
         $parentMock->method('getLevel')->willReturn(1);
         $parentMock->method('getId')->willReturn(3);
-        
+
         $attributeMock = $this->createMock(\Magento\Eav\Model\Entity\Attribute::class);
         $attributeMock->method('getAttributeId')->willReturn(45);
         $this->eavConfigMock->method('getAttribute')->willReturn($attributeMock);
-        
+
         $this->connectionMock->method('update')->willReturn(1);
         $this->connectionMock->method('getCheckSql')->willReturn('value');
         $this->connectionMock->method('quoteIdentifier')->willReturnArgument(0);
         $this->connectionMock->method('fetchCol')->willReturn([]);
-        
+
         $result = $this->category->changeParent($categoryMock, $parentMock, null);
         $this->assertInstanceOf(Category::class, $result);
     }
@@ -461,19 +461,19 @@ class CategoryTest extends TestCase
         $nodeMock = $this->createMock(\Magento\Framework\Data\Tree\Node::class);
         $nodeMock->method('loadChildren')->willReturnSelf();
         $nodeMock->method('getChildren')->willReturn([]);
-        
+
         $treeMock = $this->createMock(\Magento\Catalog\Model\ResourceModel\Category\Tree::class);
         $treeMock->method('loadNode')->willReturn($nodeMock);
         $treeMock->method('addCollectionData')->willReturnSelf();
-        
+
         $treeFactoryMock = $this->createMock(TreeFactory::class);
         $treeFactoryMock->method('create')->willReturn($treeMock);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('_categoryTreeFactory');
         $property->setAccessible(true);
         $property->setValue($this->category, $treeFactoryMock);
-        
+
         $result = $this->category->getCategories(1);
         $this->assertIsArray($result);
     }
@@ -490,30 +490,30 @@ class CategoryTest extends TestCase
         $categoryMock->method('addData')->willReturnSelf();
         $categoryMock->method('getDataByKey')->willReturn(3);
         $categoryMock->method('isObjectNew')->willReturnSelf();
-        
+
         $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
         $storeMock->method('getId')->willReturn(1);
-        
+
         $storeManagerMock = $this->createMock(StoreManagerInterface::class);
         $storeManagerMock->method('getStore')->willReturn($storeMock);
-        
+
         $entityManagerMock = $this->createMock(\Magento\Framework\EntityManager\EntityManager::class);
         $entityManagerMock->method('load')->willReturn($categoryMock);
         $entityManagerMock->method('has')->willReturn(true);
-        
+
         $reflection = new \ReflectionClass(Category::class);
-        
+
         $storeProperty = $reflection->getProperty('_storeManager');
         $storeProperty->setAccessible(true);
         $storeProperty->setValue($this->category, $storeManagerMock);
-        
+
         $entityProperty = $reflection->getProperty('entityManager');
         $entityProperty->setAccessible(true);
         $entityProperty->setValue($this->category, $entityManagerMock);
-        
+
         $this->connectionMock->method('fetchRow')->willReturn(['entity_id' => 1, 'attribute_set_id' => 3]);
         $this->connectionMock->method('fetchAll')->willReturn([]);
-        
+
         $result = $this->category->load($categoryMock, 1, []);
         $this->assertInstanceOf(Category::class, $result);
     }
@@ -522,15 +522,15 @@ class CategoryTest extends TestCase
     {
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $categoryMock->method('getId')->willReturn(1);
-        
+
         $entityManagerMock = $this->createMock(\Magento\Framework\EntityManager\EntityManager::class);
         $entityManagerMock->expects($this->once())->method('save')->with($categoryMock);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('entityManager');
         $property->setAccessible(true);
         $property->setValue($this->category, $entityManagerMock);
-        
+
         $this->category->save($categoryMock);
         $this->assertTrue(true);
     }
@@ -539,15 +539,15 @@ class CategoryTest extends TestCase
     {
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $categoryMock->method('getId')->willReturn(1);
-        
+
         $entityManagerMock = $this->createMock(\Magento\Framework\EntityManager\EntityManager::class);
         $entityManagerMock->expects($this->once())->method('delete')->with($categoryMock);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('entityManager');
         $property->setAccessible(true);
         $property->setValue($this->category, $entityManagerMock);
-        
+
         $this->category->delete($categoryMock);
         $this->assertTrue(true);
     }
@@ -556,18 +556,18 @@ class CategoryTest extends TestCase
     {
         $treeMock = $this->createMock(\Magento\Catalog\Model\ResourceModel\Category\Tree::class);
         $treeMock->expects($this->once())->method('load')->willReturnSelf();
-        
+
         $treeFactoryMock = $this->createMock(TreeFactory::class);
         $treeFactoryMock->method('create')->willReturn($treeMock);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('_categoryTreeFactory');
         $property->setAccessible(true);
         $property->setValue($this->category, $treeFactoryMock);
-        
+
         $method = $reflection->getMethod('_getTree');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->category);
         $this->assertInstanceOf(\Magento\Catalog\Model\ResourceModel\Category\Tree::class, $result);
     }
@@ -578,16 +578,16 @@ class CategoryTest extends TestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['getId', 'getPath', 'unsetData'])
             ->getMock();
-        
+
         $categoryMock->method('getId')->willReturn(3);
         $categoryMock->method('getPath')->willReturn('1/2/3');
-        
+
         $this->connectionMock->expects($this->once())->method('update')->willReturn(1);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_savePath');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->category, $categoryMock);
         $this->assertInstanceOf(Category::class, $result);
     }
@@ -595,11 +595,11 @@ class CategoryTest extends TestCase
     public function testGetMaxPosition(): void
     {
         $this->connectionMock->method('fetchOne')->willReturn(10);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_getMaxPosition');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->category, '1/2');
         $this->assertEquals(10, $result);
     }
@@ -611,11 +611,11 @@ class CategoryTest extends TestCase
             'posted_products' => null,
             'products_position' => []
         ]);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_saveCategoryProducts');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->category, $categoryMock);
         $this->assertInstanceOf(Category::class, $result);
     }
@@ -627,14 +627,14 @@ class CategoryTest extends TestCase
             'posted_products' => [1 => 10, 2 => 20],
             'products_position' => []
         ]);
-        
+
         $this->connectionMock->method('delete')->willReturn(1);
         $this->connectionMock->method('insertMultiple')->willReturn(1);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_saveCategoryProducts');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->category, $categoryMock);
         $this->assertInstanceOf(Category::class, $result);
     }
@@ -642,7 +642,7 @@ class CategoryTest extends TestCase
     public function testDeleteChildrenWithSkip(): void
     {
         $categoryMock = new \Magento\Framework\DataObject(['skip_delete_children' => true]);
-        
+
         $result = $this->category->deleteChildren($categoryMock);
         $this->assertInstanceOf(Category::class, $result);
     }
@@ -654,22 +654,22 @@ class CategoryTest extends TestCase
             'path' => '1/2/3',
             'entity_id' => 3
         ]);
-        
+
         $collectionMock = $this->createMock(\Magento\Catalog\Model\ResourceModel\Category\Collection::class);
         $collectionMock->method('addAttributeToFilter')->willReturnSelf();
         $collectionMock->method('getAllIds')->willReturn([4, 5]);
         $collectionMock->method('getIterator')->willReturn(new \ArrayIterator([]));
-        
+
         $collectionFactoryMock = $this->createMock(CollectionFactory::class);
         $collectionFactoryMock->method('create')->willReturn($collectionMock);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('_categoryCollectionFactory');
         $property->setAccessible(true);
         $property->setValue($this->category, $collectionFactoryMock);
-        
+
         $this->connectionMock->method('delete')->willReturn(1);
-        
+
         $result = $this->category->deleteChildren($categoryMock);
         $this->assertInstanceOf(Category::class, $result);
     }
@@ -678,21 +678,21 @@ class CategoryTest extends TestCase
     {
         $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
         $storeMock->method('getId')->willReturn(5);
-        
+
         $storeManagerMock = $this->createMock(StoreManagerInterface::class);
         $storeManagerMock->method('getStore')->willReturn($storeMock);
-        
+
         $reflection = new \ReflectionClass(\Magento\Catalog\Model\ResourceModel\AbstractResource::class);
         $property = $reflection->getProperty('_storeManager');
         $property->setAccessible(true);
         $property->setValue($this->category, $storeManagerMock);
-        
+
         // Clear the _storeId to force it to fetch from store manager
         $categoryReflection = new \ReflectionClass(Category::class);
         $storeIdProperty = $categoryReflection->getProperty('_storeId');
         $storeIdProperty->setAccessible(true);
         $storeIdProperty->setValue($this->category, null);
-        
+
         $result = $this->category->getStoreId();
         $this->assertEquals(5, $result);
     }
@@ -703,12 +703,12 @@ class CategoryTest extends TestCase
             ->method('getEntityType')
             ->with(\Magento\Catalog\Model\Category::ENTITY)
             ->willReturn($this->entityType);
-        
+
         $reflection = new \ReflectionClass(\Magento\Eav\Model\Entity\AbstractEntity::class);
         $property = $reflection->getProperty('_type');
         $property->setAccessible(true);
         $property->setValue($this->category, null);
-        
+
         $result = $this->category->getEntityType();
         $this->assertInstanceOf(\Magento\Eav\Model\Entity\Type::class, $result);
     }
@@ -718,26 +718,26 @@ class CategoryTest extends TestCase
         // Test that constructor initializes all the key properties
         // We verify this by checking the properties on our existing $this->category object
         $this->assertInstanceOf(Category::class, $this->category);
-        
+
         // Verify key properties are initialized
         $reflection = new \ReflectionClass(Category::class);
-        
+
         $categoryTreeFactoryProp = $reflection->getProperty('_categoryTreeFactory');
         $categoryTreeFactoryProp->setAccessible(true);
         $this->assertInstanceOf(TreeFactory::class, $categoryTreeFactoryProp->getValue($this->category));
-        
+
         $categoryCollectionFactoryProp = $reflection->getProperty('_categoryCollectionFactory');
         $categoryCollectionFactoryProp->setAccessible(true);
         $this->assertInstanceOf(CollectionFactory::class, $categoryCollectionFactoryProp->getValue($this->category));
-        
+
         $eventManagerProp = $reflection->getProperty('_eventManager');
         $eventManagerProp->setAccessible(true);
         $this->assertInstanceOf(ManagerInterface::class, $eventManagerProp->getValue($this->category));
-        
+
         $indexerProcessorProp = $reflection->getProperty('indexerProcessor');
         $indexerProcessorProp->setAccessible(true);
         $this->assertInstanceOf(Processor::class, $indexerProcessorProp->getValue($this->category));
-        
+
         // Verify aggregateCount is initialized
         $aggregateCountProp = $reflection->getProperty('aggregateCount');
         $aggregateCountProp->setAccessible(true);
@@ -749,18 +749,18 @@ class CategoryTest extends TestCase
         // Create a proper category mock
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $categoryMock->method('getId')->willReturn(3);
-        
+
         $aggregateCountMock = $this->createMock(Category\AggregateCount::class);
         $aggregateCountMock->expects($this->once())->method('processDelete')->with($categoryMock);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('aggregateCount');
         $property->setAccessible(true);
         $property->setValue($this->category, $aggregateCountMock);
-        
+
         $method = $reflection->getMethod('_beforeDelete');
         $method->setAccessible(true);
-        
+
         try {
             $method->invoke($this->category, $categoryMock);
             $this->assertTrue(true);
@@ -776,18 +776,18 @@ class CategoryTest extends TestCase
             'is_active' => 1,
             'deleted_children_ids' => [4, 5]
         ]);
-        
+
         $indexerProcessorMock = $this->createMock(Processor::class);
         $indexerProcessorMock->expects($this->once())->method('markIndexerAsInvalid');
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('indexerProcessor');
         $property->setAccessible(true);
         $property->setValue($this->category, $indexerProcessorMock);
-        
+
         $method = $reflection->getMethod('_afterDelete');
         $method->setAccessible(true);
-        
+
         try {
             $method->invoke($this->category, $categoryMock);
             $this->assertTrue(true);
@@ -809,14 +809,14 @@ class CategoryTest extends TestCase
             'parent_id' => 2,
             'created_in' => 1
         ]);
-        
+
         $this->connectionMock->method('update')->willReturn(1);
         $this->connectionMock->method('fetchOne')->willReturn(5);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_beforeSave');
         $method->setAccessible(true);
-        
+
         try {
             $method->invoke($this->category, $categoryMock);
             $this->assertTrue(true);
@@ -834,13 +834,13 @@ class CategoryTest extends TestCase
             'posted_products' => null,
             'products_position' => []
         ]);
-        
+
         $this->connectionMock->method('update')->willReturn(1);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_afterSave');
         $method->setAccessible(true);
-        
+
         try {
             $method->invoke($this->category, $categoryMock);
             $this->assertTrue(true);
@@ -855,11 +855,11 @@ class CategoryTest extends TestCase
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $categoryMock->method('getId')->willReturn(1);
         $categoryMock->method('getStoreId')->willReturn(1);
-        
+
         $this->connectionMock->method('fetchPairs')->willReturn([1 => 10]);
-        
+
         try {
-            $result = $this->category->getProductsPosition($categoryMock);
+            $this->category->getProductsPosition($categoryMock);
             // If it succeeds, verify result
             $this->assertTrue(true);
         } catch (\Throwable $e) {
@@ -873,9 +873,9 @@ class CategoryTest extends TestCase
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $categoryMock->method('getPathInStore')->willReturn('1/2/3');
         $categoryMock->method('getStoreId')->willReturn(1);
-        
+
         try {
-            $result = $this->category->getParentCategories($categoryMock);
+            $this->category->getParentCategories($categoryMock);
             // If it succeeds, verify result
             $this->assertTrue(true);
         } catch (\Throwable $e) {
@@ -889,9 +889,9 @@ class CategoryTest extends TestCase
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $categoryMock->method('getPathIds')->willReturn([1, 2, 3]);
         $categoryMock->method('getId')->willReturn(3);
-        
+
         try {
-            $result = $this->category->getParentDesignCategory($categoryMock);
+            $this->category->getParentDesignCategory($categoryMock);
             // If it succeeds, verify result
             $this->assertTrue(true);
         } catch (\Throwable $e) {
@@ -908,11 +908,11 @@ class CategoryTest extends TestCase
         $collectionMock->method('addIdFilter')->willReturnSelf();
         $collectionMock->method('setOrder')->willReturnSelf();
         $collectionMock->method('joinUrlRewrite')->willReturnSelf();
-        
+
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $categoryMock->method('getCollection')->willReturn($collectionMock);
         $categoryMock->method('getChildren')->willReturn('4,5,6');
-        
+
         $result = $this->category->getChildrenCategories($categoryMock);
         $this->assertInstanceOf(\Magento\Catalog\Model\ResourceModel\Category\Collection::class, $result);
     }
@@ -922,17 +922,17 @@ class CategoryTest extends TestCase
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $categoryMock->method('getId')->willReturn(1);
         $categoryMock->method('getData')->willReturn(null);
-        
+
         $attributeMock = $this->createMock(\Magento\Eav\Model\Entity\Attribute::class);
         $attributeMock->method('getAttributeId')->willReturn(45);
         $this->eavConfigMock->method('getAttribute')->willReturn($attributeMock);
-        
+
         $this->connectionMock->method('getCheckSql')->willReturn('value');
         $this->connectionMock->method('quoteIdentifier')->willReturnArgument(0);
         $this->connectionMock->method('fetchOne')->willReturn(3);
-        
+
         try {
-            $result = $this->category->getChildrenAmount($categoryMock);
+            $this->category->getChildrenAmount($categoryMock);
             // If it succeeds, verify result
             $this->assertTrue(true);
         } catch (\Throwable $e) {
@@ -951,16 +951,16 @@ class CategoryTest extends TestCase
             'path' => '1/2',
             'created_in' => null
         ]);
-        
+
         $this->entityType->method('getDefaultAttributeSetId')->willReturn(3);
         $this->connectionMock->method('update')->willReturn(1);
         $this->connectionMock->method('fetchOne')->willReturn(5);
         $this->connectionMock->method('quoteIdentifier')->willReturnArgument(0);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_beforeSave');
         $method->setAccessible(true);
-        
+
         try {
             $method->invoke($this->category, $categoryMock);
             $this->assertTrue(true);
@@ -979,15 +979,15 @@ class CategoryTest extends TestCase
             'path' => '1/2',
             'created_in' => 2
         ]);
-        
+
         $this->entityType->method('getDefaultAttributeSetId')->willReturn(3);
         $this->connectionMock->method('fetchOne')->willReturn(5);
         $this->connectionMock->method('quoteIdentifier')->willReturnArgument(0);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_beforeSave');
         $method->setAccessible(true);
-        
+
         try {
             $method->invoke($this->category, $categoryMock);
             $this->assertTrue(true);
@@ -1007,7 +1007,7 @@ class CategoryTest extends TestCase
             $selectMock->method('limit')->willReturnSelf();
             $selectMock->method('join')->willReturnSelf();
             $selectMock->method('order')->willReturnSelf();
-            
+
             $connectionMock = $this->createMock(\Magento\Framework\DB\Adapter\AdapterInterface::class);
             $connectionMock->method('select')->willReturn($selectMock);
             $connectionMock->method('fetchOne')->willReturn(45);
@@ -1015,23 +1015,23 @@ class CategoryTest extends TestCase
                 ['entity_id' => 1, 'parent_id' => 0, 'path' => '1', 'is_anchor' => 1],
                 ['entity_id' => 2, 'parent_id' => 1, 'path' => '1/2', 'is_anchor' => 1]
             ]);
-            
+
             // Inject connection using reflection
             $reflection = new \ReflectionClass(\Magento\Eav\Model\Entity\AbstractEntity::class);
             $property = $reflection->getProperty('_connection');
             $property->setAccessible(true);
             $property->setValue($this->category, $connectionMock);
-            
+
             $metadataMock = $this->createMock(\Magento\Framework\EntityManager\EntityMetadataInterface::class);
             $metadataMock->method('getLinkField')->willReturn('row_id');
-            
+
             $reflection2 = new \ReflectionClass(Category::class);
             $property2 = $reflection2->getProperty('metadataPool');
             $property2->setAccessible(true);
             $metadataPoolMock = $this->createMock(\Magento\Framework\EntityManager\MetadataPool::class);
             $metadataPoolMock->method('getMetadata')->willReturn($metadataMock);
             $property2->setValue($this->category, $metadataPoolMock);
-            
+
             $result = $this->category->getCategoryWithChildren(1);
             $this->assertIsArray($result);
         } catch (\Throwable $e) {
@@ -1043,17 +1043,17 @@ class CategoryTest extends TestCase
     public function testGetCategoryWithChildrenEmptyAttributeId(): void
     {
         $this->connectionMock->method('fetchOne')->willReturn(0);
-        
+
         $metadataMock = $this->createMock(\Magento\Framework\EntityManager\EntityMetadataInterface::class);
         $metadataMock->method('getLinkField')->willReturn('row_id');
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('metadataPool');
         $property->setAccessible(true);
         $metadataPoolMock = $this->createMock(\Magento\Framework\EntityManager\MetadataPool::class);
         $metadataPoolMock->method('getMetadata')->willReturn($metadataMock);
         $property->setValue($this->category, $metadataPoolMock);
-        
+
         $result = $this->category->getCategoryWithChildren(1);
         $this->assertEquals([], $result);
     }
@@ -1062,15 +1062,15 @@ class CategoryTest extends TestCase
     {
         $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
         $storeMock->method('getWebsiteId')->willReturn(1);
-        
+
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $categoryMock->method('getId')->willReturn(1);
         $categoryMock->method('getStore')->willReturn($storeMock);
-        
+
         $this->connectionMock->method('fetchPairs')->willReturn([1 => 10]);
-        
+
         try {
-            $result = $this->category->getProductsPosition($categoryMock);
+            $this->category->getProductsPosition($categoryMock);
             $this->assertTrue(true);
         } catch (\Throwable $e) {
             $this->assertTrue(true);
@@ -1081,15 +1081,15 @@ class CategoryTest extends TestCase
     {
         $storeMock = $this->createMock(\Magento\Store\Model\Store::class);
         $storeMock->method('getWebsiteId')->willReturn(0);
-        
+
         $categoryMock = $this->createMock(\Magento\Catalog\Model\Category::class);
         $categoryMock->method('getId')->willReturn(1);
         $categoryMock->method('getStore')->willReturn($storeMock);
-        
+
         $this->connectionMock->method('fetchPairs')->willReturn([]);
-        
+
         try {
-            $result = $this->category->getProductsPosition($categoryMock);
+            $this->category->getProductsPosition($categoryMock);
             $this->assertTrue(true);
         } catch (\Throwable $e) {
             $this->assertTrue(true);
@@ -1099,7 +1099,7 @@ class CategoryTest extends TestCase
     public function testDeleteChildrenWithSkipFlag(): void
     {
         $categoryMock = new \Magento\Framework\DataObject(['skip_delete_children' => true]);
-        
+
         $result = $this->category->deleteChildren($categoryMock);
         $this->assertInstanceOf(Category::class, $result);
     }
@@ -1110,21 +1110,21 @@ class CategoryTest extends TestCase
             'skip_delete_children' => false,
             'path' => '1/2'
         ]);
-        
+
         $collectionMock = $this->createMock(\Magento\Catalog\Model\ResourceModel\Category\Collection::class);
         $collectionMock->method('addAttributeToFilter')->willReturnSelf();
         $collectionMock->method('getAllIds')->willReturn([3, 4]);
         $collectionMock->method('getIterator')->willReturn(new \ArrayIterator([]));
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('_categoryCollectionFactory');
         $property->setAccessible(true);
         $factoryMock = $this->createMock(CollectionFactory::class);
         $factoryMock->method('create')->willReturn($collectionMock);
         $property->setValue($this->category, $factoryMock);
-        
+
         try {
-            $result = $this->category->deleteChildren($categoryMock);
+            $this->category->deleteChildren($categoryMock);
             $this->assertTrue(true);
         } catch (\Throwable $e) {
             $this->assertTrue(true);
@@ -1138,13 +1138,13 @@ class CategoryTest extends TestCase
             'entity_id' => 3,
             'posted_products' => null
         ]);
-        
+
         $this->connectionMock->method('update')->willReturn(1);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_afterSave');
         $method->setAccessible(true);
-        
+
         try {
             $method->invoke($this->category, $categoryMock);
             $this->assertTrue(true);
@@ -1160,15 +1160,15 @@ class CategoryTest extends TestCase
             'posted_products' => [2 => 10, 3 => 20],
             'products_position' => [3 => 15, 4 => 25]
         ]);
-        
+
         $this->connectionMock->expects($this->atLeastOnce())->method('delete');
         $this->connectionMock->expects($this->atLeastOnce())->method('insertOnDuplicate');
         $this->connectionMock->expects($this->atLeastOnce())->method('update');
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_saveCategoryProducts');
         $method->setAccessible(true);
-        
+
         try {
             $method->invoke($this->category, $categoryMock);
             $this->assertTrue(true);
@@ -1182,7 +1182,7 @@ class CategoryTest extends TestCase
         // Test that getCategories returns nodes when asCollection = false
         // This method invokes tree operations which are complex to mock fully in unit tests
         try {
-            $result = $this->category->getCategories(1, 1, false, false, true);
+            $this->category->getCategories(1, 1, false, false, true);
             $this->assertTrue(true);  // Code executed
         } catch (\Throwable $e) {
             $this->assertTrue(true);  // Code executed even if it throws
@@ -1193,11 +1193,11 @@ class CategoryTest extends TestCase
     {
         $this->connectionMock->method('fetchOne')->willReturn(false);
         $this->connectionMock->method('quoteIdentifier')->willReturnArgument(0);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_getMaxPosition');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->category, '1/2');
         $this->assertEquals(0, $result);
     }
@@ -1205,18 +1205,18 @@ class CategoryTest extends TestCase
     public function testLoadWithNoRow(): void
     {
         $categoryMock = new \Magento\Framework\DataObject();
-        
+
         $this->connectionMock->method('fetchRow')->willReturn(false);
-        
+
         $entityManagerMock = $this->createMock(\Magento\Framework\EntityManager\EntityManager::class);
         $entityManagerMock->method('load')->willReturn($categoryMock);
         $entityManagerMock->method('has')->willReturn(false);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('entityManager');
         $property->setAccessible(true);
         $property->setValue($this->category, $entityManagerMock);
-        
+
         try {
             $this->category->load($categoryMock, 1, []);
             $this->assertTrue(true);
@@ -1228,18 +1228,18 @@ class CategoryTest extends TestCase
     public function testLoadWithRow(): void
     {
         $categoryMock = new \Magento\Framework\DataObject();
-        
+
         $this->connectionMock->method('fetchRow')->willReturn(['entity_id' => 1, 'name' => 'Test']);
-        
+
         $entityManagerMock = $this->createMock(\Magento\Framework\EntityManager\EntityManager::class);
         $entityManagerMock->method('load')->willReturn($categoryMock);
         $entityManagerMock->method('has')->willReturn(true);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('entityManager');
         $property->setAccessible(true);
         $property->setValue($this->category, $entityManagerMock);
-        
+
         try {
             $this->category->load($categoryMock, 1, []);
             $this->assertTrue(true);
@@ -1254,19 +1254,19 @@ class CategoryTest extends TestCase
             'parent_id' => 1,
             'position' => 5
         ]);
-        
+
         $newParentMock = new \Magento\Framework\DataObject([
             'entity_id' => 2
         ]);
-        
+
         $this->connectionMock->method('fetchOne')->willReturn(10);
         $this->connectionMock->method('quoteIdentifier')->willReturnArgument(0);
         $this->connectionMock->expects($this->atLeastOnce())->method('update');
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_processPositions');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->category, $categoryMock, $newParentMock, 5);
         $this->assertEquals(11, $result);
     }
@@ -1277,18 +1277,18 @@ class CategoryTest extends TestCase
             'parent_id' => 1,
             'position' => 5
         ]);
-        
+
         $newParentMock = new \Magento\Framework\DataObject([
             'entity_id' => 2
         ]);
-        
+
         $this->connectionMock->method('quoteIdentifier')->willReturnArgument(0);
         $this->connectionMock->expects($this->atLeastOnce())->method('update');
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_processPositions');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->category, $categoryMock, $newParentMock, null);
         $this->assertEquals(1, $result);
     }
@@ -1300,15 +1300,15 @@ class CategoryTest extends TestCase
             'store_id' => 1,
             'level' => 2
         ]);
-        
+
         $attributeMock = $this->createMock(\Magento\Eav\Model\Entity\Attribute::class);
         $attributeMock->method('getAttributeId')->willReturn(45);
         $this->eavConfigMock->method('getAttribute')->willReturn($attributeMock);
-        
+
         $this->connectionMock->method('getCheckSql')->willReturn('check');
         $this->connectionMock->method('quoteIdentifier')->willReturnArgument(0);
         $this->connectionMock->method('fetchCol')->willReturn([3, 4]);
-        
+
         $result = $this->category->getChildren($categoryMock, false);
         $this->assertIsArray($result);
     }
@@ -1316,7 +1316,7 @@ class CategoryTest extends TestCase
     public function testIsForbiddenToDeleteTrue(): void
     {
         $this->connectionMock->method('fetchOne')->willReturn(1);
-        
+
         $result = $this->category->isForbiddenToDelete(1);
         $this->assertTrue($result);
     }
@@ -1329,7 +1329,7 @@ class CategoryTest extends TestCase
             $categoryMock = new \Magento\Framework\DataObject([
                 'path_ids' => [1, 2, 3]
             ]);
-            $result = $this->category->getParentDesignCategory($categoryMock);
+            $this->category->getParentDesignCategory($categoryMock);
             $this->assertTrue(true);  // Code executed
         } catch (\Throwable $e) {
             $this->assertTrue(true);  // Code executed even if it throws
@@ -1347,16 +1347,16 @@ class CategoryTest extends TestCase
             'entity_id' => null, // No ID - will append '/'
             'created_in' => 1    // Will increment children_count
         ]);
-        
+
         $this->entityType->method('getDefaultAttributeSetId')->willReturn(3);
         $this->connectionMock->method('update')->willReturn(1);
         $this->connectionMock->method('fetchOne')->willReturn(5);
         $this->connectionMock->method('quoteIdentifier')->willReturnArgument(0);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_beforeSave');
         $method->setAccessible(true);
-        
+
         try {
             $method->invoke($this->category, $categoryMock);
             $this->assertTrue(true);
@@ -1376,16 +1376,16 @@ class CategoryTest extends TestCase
             'entity_id' => 3,  // Has ID
             'created_in' => null  // No created_in - should increment
         ]);
-        
+
         $this->entityType->method('getDefaultAttributeSetId')->willReturn(3);
         $this->connectionMock->method('update')->willReturn(1);
         $this->connectionMock->method('fetchOne')->willReturn(5);
         $this->connectionMock->method('quoteIdentifier')->willReturnArgument(0);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_beforeSave');
         $method->setAccessible(true);
-        
+
         try {
             $method->invoke($this->category, $categoryMock);
             $this->assertTrue(true);
@@ -1401,13 +1401,13 @@ class CategoryTest extends TestCase
             'children_count' => 5,
             'attribute_set_id' => 3
         ]);
-        
+
         $this->entityType->method('getDefaultAttributeSetId')->willReturn(3);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_beforeSave');
         $method->setAccessible(true);
-        
+
         try {
             $method->invoke($this->category, $categoryMock);
             $this->assertTrue(true);
@@ -1424,13 +1424,13 @@ class CategoryTest extends TestCase
             $selectMock1->method('from')->willReturnSelf();
             $selectMock1->method('where')->willReturnSelf();
             $selectMock1->method('limit')->willReturnSelf();
-            
+
             $selectMock2 = $this->createMock(\Magento\Framework\DB\Select::class);
             $selectMock2->method('from')->willReturnSelf();
             $selectMock2->method('join')->willReturnSelf();
             $selectMock2->method('where')->willReturnSelf();
             $selectMock2->method('order')->willReturnSelf();
-            
+
             $connectionMock = $this->createMock(\Magento\Framework\DB\Adapter\AdapterInterface::class);
             $connectionMock->method('select')
                 ->willReturnOnConsecutiveCalls($selectMock1, $selectMock2);
@@ -1438,23 +1438,23 @@ class CategoryTest extends TestCase
             $connectionMock->method('fetchAll')->willReturn([
                 ['row_id' => 1, 'entity_id' => 1, 'parent_id' => 0, 'path' => '1', 'is_anchor' => 1]
             ]);
-            
+
             $metadataMock = $this->createMock(\Magento\Framework\EntityManager\EntityMetadataInterface::class);
             $metadataMock->method('getLinkField')->willReturn('row_id');
-            
+
             $metadataPoolMock = $this->createMock(\Magento\Framework\EntityManager\MetadataPool::class);
             $metadataPoolMock->method('getMetadata')->willReturn($metadataMock);
-            
+
             $reflection = new \ReflectionClass(\Magento\Eav\Model\Entity\AbstractEntity::class);
             $property = $reflection->getProperty('_connection');
             $property->setAccessible(true);
             $property->setValue($this->category, $connectionMock);
-            
+
             $reflection2 = new \ReflectionClass(Category::class);
             $property2 = $reflection2->getProperty('metadataPool');
             $property2->setAccessible(true);
             $property2->setValue($this->category, $metadataPoolMock);
-            
+
             $result = $this->category->getCategoryWithChildren(1);
             $this->assertIsArray($result);
         } catch (\Throwable $e) {
@@ -1470,31 +1470,31 @@ class CategoryTest extends TestCase
             ->getMock();
         $childCategory1->expects($this->once())->method('setSkipDeleteChildren')->with(true);
         $childCategory1->expects($this->once())->method('delete');
-        
+
         $childCategory2 = $this->getMockBuilder(\Magento\Framework\DataObject::class)
             ->addMethods(['setSkipDeleteChildren', 'delete'])
             ->getMock();
         $childCategory2->expects($this->once())->method('setSkipDeleteChildren')->with(true);
         $childCategory2->expects($this->once())->method('delete');
-        
+
         $collectionMock = $this->createMock(\Magento\Catalog\Model\ResourceModel\Category\Collection::class);
         $collectionMock->method('addAttributeToFilter')->willReturnSelf();
         $collectionMock->method('getAllIds')->willReturn([3, 4]);
         $collectionMock->method('getIterator')->willReturn(new \ArrayIterator([$childCategory1, $childCategory2]));
-        
+
         $factoryMock = $this->createMock(CollectionFactory::class);
         $factoryMock->method('create')->willReturn($collectionMock);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('_categoryCollectionFactory');
         $property->setAccessible(true);
         $property->setValue($this->category, $factoryMock);
-        
+
         $categoryMock = new \Magento\Framework\DataObject([
             'skip_delete_children' => false,
             'path' => '1/2'
         ]);
-        
+
         $result = $this->category->deleteChildren($categoryMock);
         $this->assertInstanceOf(Category::class, $result);
         $this->assertEquals([3, 4], $categoryMock->getDeletedChildrenIds());
@@ -1505,7 +1505,7 @@ class CategoryTest extends TestCase
         // Test getCategories with asCollection=true to cover the return branch
         // This is a complex method with tree operations, wrap in try-catch
         try {
-            $result = $this->category->getCategories(1, 1, false, true, true);
+            $this->category->getCategories(1, 1, false, true, true);
             $this->assertTrue(true);  // Code executed
         } catch (\Throwable $e) {
             $this->assertTrue(true);  // Code executed even if throws
@@ -1516,18 +1516,18 @@ class CategoryTest extends TestCase
     {
         // Test load to cover the loadAttributesForObject call
         $categoryMock = new \Magento\Framework\DataObject();
-        
+
         $this->connectionMock->method('fetchRow')->willReturn(['entity_id' => 1]);
-        
+
         $entityManagerMock = $this->createMock(\Magento\Framework\EntityManager\EntityManager::class);
         $entityManagerMock->method('load')->willReturn($categoryMock);
         $entityManagerMock->method('has')->willReturn(true);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('entityManager');
         $property->setAccessible(true);
         $property->setValue($this->category, $entityManagerMock);
-        
+
         try {
             // Call with specific attributes to cover loadAttributesForObject
             $this->category->load($categoryMock, 1, ['name', 'url_key']);
@@ -1541,7 +1541,7 @@ class CategoryTest extends TestCase
     {
         // Test constructor property assignments
         $reflection = new \ReflectionClass(Category::class);
-        
+
         $prop = $reflection->getProperty('connectionName');
         $prop->setAccessible(true);
         $this->assertEquals('catalog', $prop->getValue($this->category));
@@ -1552,7 +1552,7 @@ class CategoryTest extends TestCase
         // Test _beforeSave for new category with isObjectNew() = true
         // Note: parent::_beforeSave requires full EAV framework
         // Complete coverage is provided by integration tests
-        
+
         $categoryMock = $this->getMockBuilder(\Magento\Catalog\Model\Category::class)
             ->disableOriginalConstructor()
             ->onlyMethods([
@@ -1574,7 +1574,7 @@ class CategoryTest extends TestCase
                 'hasLevel',
                 'hasParentId'
             ])->getMock();
-        
+
         $categoryMock->method('isObjectNew')->willReturn(true);
         $categoryMock->method('getChildrenCount')->willReturn(0);
         $categoryMock->method('getAttributeSetId')->willReturn(null);
@@ -1589,21 +1589,21 @@ class CategoryTest extends TestCase
         $categoryMock->method('setParentId')->willReturn($categoryMock);
         $categoryMock->method('setPath')->willReturn($categoryMock);
         $categoryMock->method('getData')->with('created_in')->willReturn(1);
-        
+
         $this->entityType->method('getDefaultAttributeSetId')->willReturn(3);
         $this->connectionMock->method('update')->willReturn(1);
         $this->connectionMock->method('fetchOne')->willReturn(10);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $method = $reflection->getMethod('_beforeSave');
         $method->setAccessible(true);
-        
+
         try {
             $method->invoke($this->category, $categoryMock);
         } catch (\Throwable $e) {
             // Expected: parent::_beforeSave needs EAV framework
         }
-        
+
         $this->assertTrue(true);
     }
 
@@ -1611,26 +1611,26 @@ class CategoryTest extends TestCase
     {
         // Test getCategories returns collection when asCollection = true
         $collectionMock = $this->createMock(\Magento\Catalog\Model\ResourceModel\Category\Collection::class);
-        
+
         $nodeMock = $this->getMockBuilder(\Magento\Framework\Data\Tree\Node::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['getChildren', 'loadChildren'])
             ->getMock();
-        
+
         $nodeMock->method('loadChildren')->willReturnSelf();
         $nodeMock->method('getChildren')->willReturn([]);
-        
+
         $treeMock = $this->getMockBuilder(\Magento\Catalog\Model\ResourceModel\Category\Tree::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['loadNode', 'addCollectionData', 'getCollection'])
             ->getMock();
-        
+
         $treeMock->method('loadNode')->willReturn($nodeMock);
         $treeMock->method('addCollectionData')->willReturnSelf();
         $treeMock->method('getCollection')->willReturn($collectionMock);
-        
+
         $this->treeFactoryMock->method('create')->willReturn($treeMock);
-        
+
         $result = $this->category->getCategories(1, 0, false, true, true);
         $this->assertSame($collectionMock, $result);
     }
@@ -1641,24 +1641,24 @@ class CategoryTest extends TestCase
         $this->selectMock->method('join')->willReturnSelf();
         $this->selectMock->method('order')->willReturnSelf();
         $this->selectMock->method('limit')->willReturnSelf();
-        
+
         $this->connectionMock->method('fetchOne')->willReturn(45);
         $this->connectionMock->method('fetchAll')->willReturn([
             ['row_id' => 1, 'entity_id' => 1, 'parent_id' => 0, 'path' => '1', 'is_anchor' => 1],
             ['row_id' => 2, 'entity_id' => 2, 'parent_id' => 1, 'path' => '1/2', 'is_anchor' => 1]
         ]);
-        
+
         $metadataMock = $this->createMock(\Magento\Framework\EntityManager\EntityMetadataInterface::class);
         $metadataMock->method('getLinkField')->willReturn('row_id');
-        
+
         $metadataPoolMock = $this->createMock(\Magento\Framework\EntityManager\MetadataPool::class);
         $metadataPoolMock->method('getMetadata')->willReturn($metadataMock);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('metadataPool');
         $property->setAccessible(true);
         $property->setValue($this->category, $metadataPoolMock);
-        
+
         $result = $this->category->getCategoryWithChildren(1);
         $this->assertIsArray($result);
     }
@@ -1670,21 +1670,21 @@ class CategoryTest extends TestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['addData', 'isObjectNew'])
             ->getMock();
-        
+
         $categoryMock->expects($this->once())->method('addData');
         $categoryMock->expects($this->once())->method('isObjectNew')->with(true);
-        
+
         $this->connectionMock->method('fetchRow')->willReturn(['entity_id' => 1]);
-        
+
         $entityManagerMock = $this->createMock(\Magento\Framework\EntityManager\EntityManager::class);
         $entityManagerMock->method('load')->willReturn($categoryMock);
         $entityManagerMock->method('has')->willReturn(false);
-        
+
         $reflection = new \ReflectionClass(Category::class);
         $property = $reflection->getProperty('entityManager');
         $property->setAccessible(true);
         $property->setValue($this->category, $entityManagerMock);
-        
+
         try {
             $this->category->load($categoryMock, 1);
             $this->assertTrue(true);
@@ -1697,7 +1697,7 @@ class CategoryTest extends TestCase
     {
         // Test getParentDesignCategory loads collection and gets first item
         $firstItemMock = $this->createMock(\Magento\Catalog\Model\Category::class);
-        
+
         $collectionMock = $this->getMockBuilder(\Magento\Catalog\Model\ResourceModel\Category\Collection::class)
             ->disableOriginalConstructor()
             ->onlyMethods([
@@ -1709,7 +1709,7 @@ class CategoryTest extends TestCase
                 'load',
                 'getFirstItem'
             ])->getMock();
-        
+
         $collectionMock->method('setStore')->willReturnSelf();
         $collectionMock->method('addAttributeToSelect')->willReturnSelf();
         $collectionMock->method('addFieldToFilter')->willReturnSelf();
@@ -1717,15 +1717,15 @@ class CategoryTest extends TestCase
         $collectionMock->method('setOrder')->willReturnSelf();
         $collectionMock->method('load')->willReturnSelf();
         $collectionMock->method('getFirstItem')->willReturn($firstItemMock);
-        
+
         $categoryMock = $this->getMockBuilder(\Magento\Catalog\Model\Category::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['getPathIds', 'getCollection'])
             ->getMock();
-        
+
         $categoryMock->method('getPathIds')->willReturn([1, 2, 3]);
         $categoryMock->method('getCollection')->willReturn($collectionMock);
-        
+
         $result = $this->category->getParentDesignCategory($categoryMock);
         $this->assertSame($firstItemMock, $result);
     }

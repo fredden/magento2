@@ -265,13 +265,16 @@ class CategoryTest extends TestCase
     }
 
     /**
-     * Test _beforeSave - created_in = 1 increments children_count
+     * Test _beforeSave children_count increment logic with category updates
+     * Scenario: When creating a NEW category (isObjectNew() = true), children_count should increment.
+     * When updating an EXISTING category (isObjectNew() = false), children_count should NOT increment.
+     * This prevents duplicate increments when scheduled updates are modified.
      *
      * @magentoDataFixture Magento/Catalog/_files/category.php
      * @magentoDbIsolation disabled
      * @return void
      */
-    public function testBeforeSaveCreatedInEqualsOneIncrementsChildrenCount(): void
+    public function testBeforeSaveIncrementsChildrenCountOnlyForNewCategories(): void
     {
         $parentCategory = $this->categoryRepository->get(333);
 
@@ -279,73 +282,49 @@ class CategoryTest extends TestCase
         $connection = $this->categoryResource->getConnection();
         $select = $connection->select()
             ->from($this->categoryResource->getEntityTable(), ['children_count'])
-            ->where('entity_id = ?', 333)
-            ->where('created_in = ?', 1);
+            ->where('entity_id = ?', 333);
         $initialChildrenCount = (int)$connection->fetchOne($select);
 
-        // Create category with created_in = 1
+        // Step 1: Create NEW category with created_in = 1 (base version)
+        // This should increment children_count because isObjectNew() = true
         $newCategory = $this->objectManager->create(CategoryModel::class);
-        $newCategory->setName('Test Category Created In 1');
+        $newCategory->setName('Test New Category');
         $newCategory->setIsActive(true);
         $newCategory->setPath($parentCategory->getPath());
         $newCategory->setParentId($parentCategory->getId());
-        $newCategory->setData('created_in', 1);
+        $newCategory->setData('created_in', 1); // Base version
 
         $this->categoryResource->save($newCategory);
+        $categoryId = $newCategory->getId();
 
-        // Verify parent children_count was incremented
+        // Verify children_count was incremented after creating NEW category
         $select = $connection->select()
             ->from($this->categoryResource->getEntityTable(), ['children_count'])
-            ->where('entity_id = ?', 333)
-            ->where('created_in = ?', 1);
-        $finalChildrenCount = (int)$connection->fetchOne($select);
+            ->where('entity_id = ?', 333);
+        $childrenCountAfterCreate = (int)$connection->fetchOne($select);
 
         $this->assertEquals(
             $initialChildrenCount + 1,
-            $finalChildrenCount,
-            'Children count should increment when created_in = 1'
+            $childrenCountAfterCreate,
+            'Children count should increment when creating NEW category'
         );
-    }
 
-    /**
-     * Test _beforeSave - created_in = null increments children_count
-     *
-     * @magentoDataFixture Magento/Catalog/_files/category.php
-     * @magentoDbIsolation disabled
-     * @return void
-     */
-    public function testBeforeSaveCreatedInNullIncrementsChildrenCount(): void
-    {
-        $parentCategory = $this->categoryRepository->get(333);
+        // Step 2: Update the EXISTING category (simulating a scheduled update modification)
+        // This should NOT increment children_count because isObjectNew() = false
+        $existingCategory = $this->categoryRepository->get($categoryId);
+        $existingCategory->setName('Updated Category Name');
+        $this->categoryResource->save($existingCategory);
 
-        // Get initial children count directly from DB
-        $connection = $this->categoryResource->getConnection();
+        // Verify children_count was NOT incremented after updating existing category
         $select = $connection->select()
             ->from($this->categoryResource->getEntityTable(), ['children_count'])
-            ->where('entity_id = ?', 333)
-            ->where('created_in = ?', 1);
-        $initialChildrenCount = (int)$connection->fetchOne($select);
-
-        // Create category without created_in
-        $newCategory = $this->objectManager->create(CategoryModel::class);
-        $newCategory->setName('Test Category Created In Null');
-        $newCategory->setIsActive(true);
-        $newCategory->setPath($parentCategory->getPath());
-        $newCategory->setParentId($parentCategory->getId());
-
-        $this->categoryResource->save($newCategory);
-
-        // Verify parent children_count was incremented
-        $select = $connection->select()
-            ->from($this->categoryResource->getEntityTable(), ['children_count'])
-            ->where('entity_id = ?', 333)
-            ->where('created_in = ?', 1);
-        $finalChildrenCount = (int)$connection->fetchOne($select);
+            ->where('entity_id = ?', 333);
+        $childrenCountAfterUpdate = (int)$connection->fetchOne($select);
 
         $this->assertEquals(
-            $initialChildrenCount + 1,
-            $finalChildrenCount,
-            'Children count should increment when created_in is null'
+            $childrenCountAfterCreate,
+            $childrenCountAfterUpdate,
+            'Children count should NOT increment when updating EXISTING category'
         );
     }
 }
