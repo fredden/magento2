@@ -13,7 +13,8 @@ class DiRuleTest extends \PHPUnit\Framework\TestCase
     /**
      * @param string $module
      * @param string $contents
-     * @param array $expected     */
+     * @param array $expected
+     */
     #[DataProvider('getDependencyInfoDataProvider')]
     public function testGetDependencyInfo($module, $contents, array $expected)
     {

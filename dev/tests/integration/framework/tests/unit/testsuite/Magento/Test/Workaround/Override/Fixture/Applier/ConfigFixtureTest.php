@@ -29,7 +29,7 @@ class ConfigFixtureTest extends TestCase
         $this->object = new ConfigFixture();
     }
 
-    /**     *
+    /**
      * @param string $fixture
      * @param array $attributes
      * @return  void
@@ -139,7 +139,7 @@ class ConfigFixtureTest extends TestCase
         ];
     }
 
-    /**     *
+    /**
      * @param string $fixture
      * @param array $attributes
      * @return void
@@ -222,7 +222,7 @@ class ConfigFixtureTest extends TestCase
         ];
     }
 
-    /**     *
+    /**
      * @param array $attributes
      * @param string $expectedValue
      * @return void
@@ -290,7 +290,7 @@ class ConfigFixtureTest extends TestCase
         ];
     }
 
-    /**     *
+    /**
      * @param array $existingFixtures
      * @param array $config
      * @param array $expectedOrder
@@ -330,7 +330,7 @@ class ConfigFixtureTest extends TestCase
         ];
     }
 
-    /**     *
+    /**
      * @param array $existingFixtures
      * @param array $config
      * @param array $expectedOrder
@@ -393,7 +393,7 @@ class ConfigFixtureTest extends TestCase
         ];
     }
 
-    /**     *
+    /**
      * @param array $existingFixtures
      * @param array $config
      * @param array $expectedOrder

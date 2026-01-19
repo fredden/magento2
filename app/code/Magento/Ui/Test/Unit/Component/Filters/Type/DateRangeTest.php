@@ -47,7 +47,7 @@ class DateRangeTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->contextMock = $this->createMock(\Magento\Framework\View\Element\UiComponent\ContextInterface::class);
+        $this->contextMock = $this->createMock(originalClassName: ContextInterface::class);
         $this->uiComponentFactory = $this->createPartialMock(
             UiComponentFactory::class,
             ['create']
@@ -83,7 +83,7 @@ class DateRangeTest extends TestCase
      * @param string $name
      * @param array $filterData
      * @param array|null $expectedCondition
-     * */
+     */
     #[DataProvider('getPrepareDataProvider')]
     public function testPrepare($name, $filterData, $expectedCondition)
     {

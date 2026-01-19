@@ -6,6 +6,8 @@
 
 namespace Magento\Test\Helper;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+
 class MemoryTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -53,7 +55,8 @@ class MemoryTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $number
-     * @param string $expected     */
+     * @param string $expected
+     */
     #[DataProvider('convertToBytesDataProvider')]
     public function testConvertToBytes($number, $expected)
     {
@@ -79,7 +82,8 @@ class MemoryTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @param string $number     */
+     * @param string $number
+     */
     #[DataProvider('convertToBytesBadFormatDataProvider')]
     public function testConvertToBytesBadFormat($number)
     {
@@ -102,7 +106,8 @@ class MemoryTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $number
-     * @param string $expected     */
+     * @param string $expected
+     */
     #[DataProvider('convertToBytes64DataProvider')]
     public function testConvertToBytes64($number, $expected)
     {

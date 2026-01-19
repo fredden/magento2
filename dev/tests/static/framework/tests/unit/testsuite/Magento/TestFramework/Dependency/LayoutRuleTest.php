@@ -18,7 +18,8 @@ class LayoutRuleTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $contents
-     * @param array $expected     */
+     * @param array $expected
+     */
     #[DataProvider('getDependencyInfoDataProvider')]
     public function testGetDependencyInfo($contents, array $expected)
     {

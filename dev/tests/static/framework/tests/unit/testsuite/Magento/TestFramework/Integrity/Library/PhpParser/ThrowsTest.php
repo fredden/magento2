@@ -35,7 +35,7 @@ class ThrowsTest extends TestCase
 
     /**
      * Test get throws dependencies
-     *     */
+     */
     #[DataProvider('tokensDataProvider')]
     public function testGetDependencies(array $tokens)
     {

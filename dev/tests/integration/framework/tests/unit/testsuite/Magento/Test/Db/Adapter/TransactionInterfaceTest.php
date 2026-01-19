@@ -13,10 +13,13 @@
  */
 namespace Magento\Test\Db\Adapter;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+
 class TransactionInterfaceTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @param string $class     */
+     * @param string $class
+     */
     #[DataProvider('transparentTransactionDataProvider')]
     public function testBeginTransparentTransaction($class)
     {
@@ -29,7 +32,8 @@ class TransactionInterfaceTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @param string $class     */
+     * @param string $class
+     */
     #[DataProvider('transparentTransactionDataProvider')]
     public function testRollbackTransparentTransaction($class)
     {
@@ -42,7 +46,8 @@ class TransactionInterfaceTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @param string $class     */
+     * @param string $class
+     */
     #[DataProvider('transparentTransactionDataProvider')]
     public function testCommitTransparentTransaction($class)
     {

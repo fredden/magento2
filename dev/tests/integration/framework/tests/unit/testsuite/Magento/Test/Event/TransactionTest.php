@@ -9,6 +9,8 @@
  */
 namespace Magento\Test\Event;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+
 class TransactionTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -101,7 +103,8 @@ class TransactionTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $method
-     * @param string $eventName     */
+     * @param string $eventName
+     */
     #[DataProvider('startAndRollbackTransactionDataProvider')]
     public function testStartAndRollbackTransaction($method, $eventName)
     {
@@ -131,7 +134,8 @@ class TransactionTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $method
-     * @param string $eventName     */
+     * @param string $eventName
+     */
     #[DataProvider('startAndRollbackTransactionDataProvider')]
     public function testDoNotStartAndRollbackTransaction($method, $eventName)
     {

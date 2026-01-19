@@ -205,7 +205,8 @@ class ControllerAbstractTest extends AbstractController
      * @param array $expectedMessages
      * @param string|null $messageTypeFilter
      *
-     * @return void     */
+     * @return void
+     */
     #[DataProvider('assertSessionMessagesDataProvider')]
     public function testAssertSessionMessagesSuccess(array $expectedMessages, ?string $messageTypeFilter): void
     {

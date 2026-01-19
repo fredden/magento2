@@ -23,7 +23,8 @@ class DbRuleTest extends \PHPUnit\Framework\TestCase
      * @param string $module
      * @param string $file
      * @param string $contents
-     * @param array $expected     */
+     * @param array $expected
+     */
     #[DataProvider('getDependencyInfoDataProvider')]
     public function testGetDependencyInfo($module, $file, $contents, array $expected)
     {

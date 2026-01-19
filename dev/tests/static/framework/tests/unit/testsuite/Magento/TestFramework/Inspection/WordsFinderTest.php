@@ -12,7 +12,8 @@ class WordsFinderTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @param string $configFile
-     * @param string $baseDir     */
+     * @param string $baseDir
+     */
     #[DataProvider('constructorExceptionDataProvider')]
     public function testConstructorException($configFile, $baseDir)
     {
@@ -36,7 +37,8 @@ class WordsFinderTest extends \PHPUnit\Framework\TestCase
     /**
      * @param string|array $configFiles
      * @param string $file
-     * @param array $expected     */
+     * @param array $expected
+     */
     #[DataProvider('findWordsDataProvider')]
     public function testFindWords($configFiles, $file, $expected)
     {

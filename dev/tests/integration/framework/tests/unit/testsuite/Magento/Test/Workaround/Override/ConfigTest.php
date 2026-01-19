@@ -32,7 +32,7 @@ class ConfigTest extends TestCase
             ->getMock();
     }
 
-    /**     *
+    /**
      * @param bool $skip
      * @param string $skipMessage
      * @return void
@@ -74,7 +74,7 @@ class ConfigTest extends TestCase
         }
     }
 
-    /**     *
+    /**
      * @param bool $skip
      * @param string $skipMessage
      * @return void

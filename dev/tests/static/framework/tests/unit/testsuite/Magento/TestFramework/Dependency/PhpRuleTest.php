@@ -86,7 +86,8 @@ class PhpRuleTest extends \PHPUnit\Framework\TestCase
      * @param int $expectedScans
      * @param array $expected
      *
-     * @throws \Exception     */
+     * @throws \Exception
+     */
     #[DataProvider('getDependencyInfoDataProvider')]
     public function testGetDependencyInfo(string $class, string $content, int $expectedScans, array $expected): void
     {
@@ -232,7 +233,8 @@ class PhpRuleTest extends \PHPUnit\Framework\TestCase
      * @param string $class
      * @param string $content
      * @param array $expected
-     * @throws \Exception     */
+     * @throws \Exception
+     */
     #[DataProvider('getDependencyInfoDataCaseGetUrlDataProvider')]
     public function testGetDependencyInfoCaseGetUrl(
         string $class,
@@ -315,7 +317,8 @@ class PhpRuleTest extends \PHPUnit\Framework\TestCase
      * @param string $template
      * @param string $content
      * @param array $expected
-     * @throws \Exception     */
+     * @throws \Exception
+     */
     #[DataProvider('getDependencyInfoDataCaseGetTemplateUrlDataProvider')]
     public function testGetDependencyInfoCaseTemplateGetUrl(
         string $template,
@@ -341,7 +344,8 @@ class PhpRuleTest extends \PHPUnit\Framework\TestCase
     /**
      * @param string $class
      * @param string $content
-     * @param array $expected     */
+     * @param array $expected
+     */
     #[DataProvider('processWildcardUrlDataProvider')]
     public function testProcessWildcardUrl(
         string $class,
@@ -411,7 +415,8 @@ class PhpRuleTest extends \PHPUnit\Framework\TestCase
      * @param string $class
      * @param string $content
      * @param \Exception $expected
-     * @throws \Exception     */
+     * @throws \Exception
+     */
     #[DataProvider('getDependencyInfoDataCaseGetUrlExceptionDataProvider')]
     public function testGetDependencyInfoCaseGetUrlException(
         string $class,

@@ -29,7 +29,7 @@ class AdminConfigFixtureTest extends TestCase
         $this->object = new AdminConfigFixture();
     }
 
-    /**     *
+    /**
      * @param string $fixture
      * @param array $attributes
      * @return  void
@@ -63,7 +63,7 @@ class AdminConfigFixtureTest extends TestCase
         ];
     }
 
-    /**     *
+    /**
      * @param string $fixture
      * @param array $attributes
      * @return void
@@ -90,7 +90,7 @@ class AdminConfigFixtureTest extends TestCase
         ];
     }
 
-    /**     *
+    /**
      * @param array $attributes
      * @param string $expectedValue
      * @return void

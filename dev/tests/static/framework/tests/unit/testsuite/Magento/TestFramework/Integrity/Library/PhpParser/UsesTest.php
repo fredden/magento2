@@ -158,7 +158,8 @@ class UsesTest extends \PHPUnit\Framework\TestCase
     /**
      * Covered getClassNameWithNamespace
      *
-     * @test     */
+     * @test
+     */
     #[DataProvider('classNamesDataProvider')]
     public function testGetClassNameWithNamespace($className, $tokens)
     {

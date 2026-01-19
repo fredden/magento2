@@ -20,6 +20,7 @@ use Magento\TestFramework\Application;
 use Magento\TestFramework\Helper\Bootstrap as TestFrameworkBootstrap;
 use Magento\TestFramework\Db\Mysql;
 use ReflectionClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Provides tests for \Magento\TestFramework\Application.
@@ -144,7 +145,8 @@ class ApplicationTest extends \PHPUnit\Framework\TestCase
      * @param string $globalConfigFilePath
      * @param string|null $postInstallSetupCommandsFilePath
      * @param array $expectedShellExecutionCalls
-     * @param bool $isExceptionExpected     */
+     * @param bool $isExceptionExpected
+     */
     #[DataProvider('installDataProvider')]
     public function testInstall(
         string $installConfigFilePath,
@@ -318,7 +320,7 @@ class ApplicationTest extends \PHPUnit\Framework\TestCase
 
     /**
      * Test \Magento\TestFramework\Application will correctly load specified areas.
-     *     * @param string $areaCode
+     * @param string $areaCode
      * @return void
      */
     #[DataProvider('partialLoadAreaDataProvider')]

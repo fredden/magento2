@@ -59,7 +59,8 @@ class LegacyDataFixturePathResolverTest extends TestCase
      * Test that fixture full path is resolved correctly
      *
      * @param string $fixture
-     * @param string $path     */
+     * @param string $path
+     */
     #[DataProvider('fixtureDataProvider')]
     public function testResolve(string $fixture, string $path): void
     {

@@ -9,6 +9,8 @@
  */
 namespace Magento\Test\Event;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+
 class MagentoTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -42,7 +44,8 @@ class MagentoTest extends \PHPUnit\Framework\TestCase
         $this->testInitStoreAfter();
     }
 
-    /**     * @param mixed $eventManager
+    /**
+     * @param mixed $eventManager
      */
     #[DataProvider('constructorExceptionDataProvider')]
     public function testConstructorException($eventManager)

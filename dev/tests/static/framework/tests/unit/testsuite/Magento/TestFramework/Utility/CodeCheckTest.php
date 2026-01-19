@@ -50,7 +50,8 @@ class CodeCheckTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $fileContent
-     * @param bool $isDirectDescendant     */
+     * @param bool $isDirectDescendant
+     */
     #[DataProvider('isDirectDescendantDataProvider')]
     public function testIsDirectDescendant($fileContent, $isDirectDescendant)
     {

@@ -9,6 +9,8 @@
  */
 namespace Magento\Test;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+
 class EventManagerTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -41,7 +43,8 @@ class EventManagerTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param bool $reverseOrder
-     * @param array $expectedSubscribers     */
+     * @param array $expectedSubscribers
+     */
     #[DataProvider('fireEventDataProvider')]
     public function testFireEvent($reverseOrder, $expectedSubscribers)
     {

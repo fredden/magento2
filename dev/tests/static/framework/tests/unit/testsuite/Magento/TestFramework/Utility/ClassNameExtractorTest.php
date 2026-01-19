@@ -11,7 +11,8 @@ class ClassNameExtractorTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @param string $file
-     * @param string $className     */
+     * @param string $className
+     */
     #[DataProvider('getNameWithNamespaceDataProvider')]
     public function testGetNameWithNamespace($file, $className)
     {
@@ -61,7 +62,8 @@ class ClassNameExtractorTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $file
-     * @param string $className     */
+     * @param string $className
+     */
     #[DataProvider('getNameDataProvider')]
     public function testGetName($file, $className)
     {
@@ -99,7 +101,8 @@ class ClassNameExtractorTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param string $file
-     * @param string $className     */
+     * @param string $className
+     */
     #[DataProvider('getNamespaceDataProvider')]
     public function testGetNamespace($file, $className)
     {

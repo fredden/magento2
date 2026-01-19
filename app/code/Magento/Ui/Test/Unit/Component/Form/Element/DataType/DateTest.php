@@ -161,6 +161,45 @@ class DateTest extends TestCase
      * @param bool $setUtcTimeZone
      * @param string $convertedDate
      */
+    #[DataProvider('convertDatetimeDataProvider')]
+    public function testConvertDatetime(string $dateStr, bool $setUtcTimeZone, string $convertedDate)
+    {
+        $this->localeDateMock->method('getConfigTimezone')
+            ->willReturn('America/Los_Angeles');
+
+        $this->date = $this->objectManagerHelper->getObject(
+            Date::class,
+            [
+                'localeDate' => $this->localeDateMock,
+            ]
+        );
+
+        $this->assertEquals(
+            $convertedDate,
+            $this->date->convertDatetime($dateStr, $setUtcTimeZone)->format('Y-m-d H:i:s'),
+            "The date value wasn't converted"
+        );
+    }
+
+    /**
+     * @return array
+     */
+    public static function convertDatetimeDataProvider(): array
+    {
+        return [
+            ['2019-09-30T12:32:00.000Z', false, '2019-09-30 12:32:00'],
+            ['2019-09-30T12:32:00.000', false, '2019-09-30 12:32:00'],
+            ['2019-09-30T12:32:00.000Z', true, '2019-09-30 19:32:00'],
+        ];
+    }
+
+    /**
+     * Test to Convert given date to default (UTC) timezone
+     *
+     * @param string $dateStr
+     * @param bool $setUtcTimeZone
+     * @param string $convertedDate
+     */
     #[DataProvider('convertDateFormatDataProvider')]
     public function testConvertDateFormat(
         string $date,

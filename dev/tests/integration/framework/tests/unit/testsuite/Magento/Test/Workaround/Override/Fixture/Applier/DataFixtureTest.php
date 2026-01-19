@@ -60,7 +60,7 @@ class DataFixtureTest extends TestCase
         $this->assertEquals($expectedResult, $reflectionMethod->invoke($this->object));
     }
 
-    /**     *
+    /**
      * @param array $existingFixtures
      * @param array $config
      * @param array $expectedOrder
@@ -147,7 +147,7 @@ class DataFixtureTest extends TestCase
         ];
     }
 
-    /**     *
+    /**
      * @param array $existingFixtures
      * @param array $config
      * @param array $expectedOrder
@@ -215,7 +215,7 @@ class DataFixtureTest extends TestCase
         ];
     }
 
-    /**     *
+    /**
      * @param array $existingFixtures
      * @param array $config
      * @param array $expectedOrder

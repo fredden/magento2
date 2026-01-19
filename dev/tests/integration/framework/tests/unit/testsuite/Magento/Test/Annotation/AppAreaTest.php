@@ -22,7 +22,7 @@ class AppAreaTest extends \PHPUnit\Framework\TestCase
      */
     protected $_object;
 
-    /* 
+    /**
      * @var \Magento\TestFramework\Application|\PHPUnit\Framework\MockObject\MockObject
      */
     protected $_applicationMock;
@@ -83,7 +83,8 @@ class AppAreaTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param array $annotations
-     * @param string $expectedArea     */
+     * @param string $expectedArea
+     */
     #[DataProvider('getTestAppAreaDataProvider')]
     public function testGetTestAppArea($annotations, $expectedArea)
     {
@@ -113,8 +114,6 @@ class AppAreaTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    /**
-     */
     public function testGetTestAppAreaWithInvalidArea()
     {
         $this->expectException(\PHPUnit\Framework\Exception::class);
@@ -130,7 +129,7 @@ class AppAreaTest extends \PHPUnit\Framework\TestCase
 
     /**
      * Check startTest() with different allowed area codes.
-     *     * @param string $areaCode
+     * @param string $areaCode
      */
     #[DataProvider('startTestWithDifferentAreaCodes')]
     public function testStartTestWithDifferentAreaCodes(string $areaCode)

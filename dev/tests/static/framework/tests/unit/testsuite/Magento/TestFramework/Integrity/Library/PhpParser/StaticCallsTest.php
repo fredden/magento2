@@ -35,7 +35,7 @@ class StaticCallsTest extends TestCase
 
     /**
      * Test get static call dependencies
-     *     */
+     */
     #[DataProvider('tokensDataProvider')]
     public function testGetDependencies(array $tokens)
     {
