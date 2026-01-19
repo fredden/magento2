@@ -25,6 +25,11 @@ use Psr\Log\LoggerInterface;
  */
 class ExportInfoFactoryTest extends TestCase
 {
+    /**
+     * Summary of testCreateBuildsExportInfoAndAdapterParameters
+     * @return 
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
     public function testCreateBuildsExportInfoAndAdapterParameters(): void
     {
         $objectManager = $this->createMock(ObjectManagerInterface::class);
