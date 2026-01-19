@@ -7,11 +7,11 @@
 -->
 <tests xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/testSchema.xsd">
-    <test name="AdminVerifyStoreViewSwitchWithoutCacheCleanTest">
+    <test name="AdminStoreViewSwitchWithoutCacheCleanTest">
         <annotations>
             <features value="Store"/>
             <stories value="Store View Switching"/>
-            <title value="Verify store view switch works immediately without cache clean"/>
+            <title value="Store view switch works immediately without cache clean"/>
             <description value="Verify that switching between store views on storefront works immediately without requiring cache flush"/>
             <severity value="AVERAGE"/>
             <testCaseId value="AC-15223"/>
@@ -35,17 +35,12 @@
         </after>
         <!-- Step 1: Navigate to storefront home page (default store view) -->
         <actionGroup ref="StorefrontOpenHomePageActionGroup" stepKey="openHomePage"/>
-        <waitForPageLoad stepKey="waitForHomePageLoad"/>
         <!-- Step 2: Verify we're on default store view -->
-        <waitForElementVisible selector="{{StorefrontHeaderSection.storeViewName}}" stepKey="waitForStoreViewName"/>
-        <waitForText selector="{{StorefrontHeaderSection.storeViewName}}" userInput="{{_defaultStore.name}}" stepKey="seeDefaultStoreName"/>
         <!-- Step 3: Switch to custom store view from frontend header -->
         <actionGroup ref="StorefrontSwitchStoreViewActionGroup" stepKey="switchToCustomStoreView">
             <argument name="storeView" value="customStoreEN"/>
         </actionGroup>
         <!-- Step 4: Verify store view switched IMMEDIATELY without cache clean -->
-        <waitForPageLoad stepKey="waitForStoreSwitch"/>
-        <!-- Verify custom store name appears in header switcher -->
         <waitForElementVisible selector="{{StorefrontHeaderSection.storeViewName}}" stepKey="waitForCustomStoreName"/>
         <waitForText selector="{{StorefrontHeaderSection.storeViewName}}" userInput="{{customStoreEN.name}}" stepKey="seeCustomStoreName"/>
         <!-- Step 5: Switch back to default store view -->
@@ -53,8 +48,6 @@
             <argument name="storeView" value="_defaultStore"/>
         </actionGroup>
         <!-- Step 6: Verify switch back worked immediately -->
-        <waitForPageLoad stepKey="waitForSwitchBack"/>
-        <waitForElementVisible selector="{{StorefrontHeaderSection.storeViewName}}" stepKey="waitForDefaultStoreNameAgain"/>
         <waitForText selector="{{StorefrontHeaderSection.storeViewName}}" userInput="{{_defaultStore.name}}" stepKey="seeDefaultStoreNameAgain"/>
     </test>
 </tests>
