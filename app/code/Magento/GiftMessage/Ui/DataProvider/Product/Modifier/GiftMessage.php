@@ -3,6 +3,8 @@
  * Copyright 2016 Adobe
  * All Rights Reserved.
  */
+declare(strict_types=1);
+
 namespace Magento\GiftMessage\Ui\DataProvider\Product\Modifier;
 
 use Magento\Catalog\Model\Locator\LocatorInterface;
@@ -20,7 +22,7 @@ use Magento\Catalog\Model\Product\Attribute\Source\Boolean;
  */
 class GiftMessage extends AbstractModifier
 {
-    const FIELD_MESSAGE_AVAILABLE = 'gift_message_available';
+    public const FIELD_MESSAGE_AVAILABLE = 'gift_message_available';
 
     /**
      * @var ScopeConfigInterface

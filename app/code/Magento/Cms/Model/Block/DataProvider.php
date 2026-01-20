@@ -3,6 +3,8 @@
  * Copyright 2015 Adobe
  * All Rights Reserved.
  */
+declare(strict_types=1);
+
 namespace Magento\Cms\Model\Block;
 
 use Magento\Cms\Model\ResourceModel\Block\CollectionFactory;
@@ -10,7 +12,7 @@ use Magento\Framework\App\Request\DataPersistorInterface;
 use Magento\Ui\DataProvider\Modifier\PoolInterface;
 
 /**
- * Class DataProvider
+ * CMS block data provider for admin UI forms.
  */
 class DataProvider extends \Magento\Ui\DataProvider\ModifierPoolDataProvider
 {

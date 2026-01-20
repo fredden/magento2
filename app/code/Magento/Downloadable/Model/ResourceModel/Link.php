@@ -14,7 +14,7 @@ namespace Magento\Downloadable\Model\ResourceModel;
 class Link extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
-     * Catalog data
+     * Catalog helper for price configuration.
      *
      * @var \Magento\Catalog\Helper\Data
      */

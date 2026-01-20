@@ -3,6 +3,8 @@
  * Copyright 2016 Adobe
  * All Rights Reserved.
  */
+declare(strict_types=1);
+
 namespace Magento\ConfigurableProduct\Helper\Product\Options;
 
 use Magento\ConfigurableProduct\Api\Data\OptionInterface;
@@ -13,7 +15,8 @@ use Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable\AttributeFactory;
 
 /**
- * Class Factory
+ * Builds configurable product option attributes from request data.
+ *
  * @api
  * @since 100.1.0
  */

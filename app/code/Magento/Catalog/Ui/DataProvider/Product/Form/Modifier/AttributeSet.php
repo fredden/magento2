@@ -3,6 +3,8 @@
  * Copyright 2016 Adobe
  * All Rights Reserved.
  */
+declare(strict_types=1);
+
 namespace Magento\Catalog\Ui\DataProvider\Product\Form\Modifier;
 
 use Magento\Catalog\Api\Data\ProductAttributeInterface;
@@ -23,7 +25,7 @@ class AttributeSet extends AbstractModifier
     /**
      * Sort order of "Attribute Set" field inside of fieldset
      */
-    const ATTRIBUTE_SET_FIELD_ORDER = 30;
+    public const ATTRIBUTE_SET_FIELD_ORDER = 30;
 
     /**
      * Set collection factory

@@ -3,32 +3,38 @@
  * Copyright 2013 Adobe
  * All Rights Reserved.
  */
+declare(strict_types=1);
+
 namespace Magento\Eav\Model\Validator\Attribute;
 
+use Magento\Eav\Model\Entity\AbstractEntity;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Model\AbstractModel;
+use Magento\Framework\Validator\AbstractValidator;
+use InvalidArgumentException;
+
 /**
- * Validation EAV entity via EAV attributes' backend models
- *
- * @author     Magento Core Team <core@magentocommerce.com>
+ * Validate EAV entities using attribute backend models.
  */
-class Backend extends \Magento\Framework\Validator\AbstractValidator
+class Backend extends AbstractValidator
 {
     /**
      * Returns true if and only if $value meets the validation requirements.
      *
-     * @param \Magento\Framework\Model\AbstractModel $entity
+     * @param AbstractModel $entity
      * @return bool
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function isValid($entity)
     {
         $this->_messages = [];
-        if (!$entity instanceof \Magento\Framework\Model\AbstractModel) {
-            throw new \InvalidArgumentException('Model must be extended from \Magento\Framework\Model\AbstractModel');
+        if (!$entity instanceof AbstractModel) {
+            throw new InvalidArgumentException('Model must be extended from \Magento\Framework\Model\AbstractModel');
         }
-        /** @var \Magento\Eav\Model\Entity\AbstractEntity $resource */
+        /** @var AbstractEntity $resource */
         $resource = $entity->getResource();
-        if (!$resource instanceof \Magento\Eav\Model\Entity\AbstractEntity) {
-            throw new \InvalidArgumentException(
+        if (!$resource instanceof AbstractEntity) {
+            throw new InvalidArgumentException(
                 'Model resource must be extended from \Magento\Eav\Model\Entity\AbstractEntity'
             );
         }
@@ -51,7 +57,7 @@ class Backend extends \Magento\Framework\Validator\AbstractValidator
                 } elseif (is_string($result)) {
                     $this->_messages[$attributeCode][] = $result;
                 }
-            } catch (\Magento\Framework\Exception\LocalizedException $e) {
+            } catch (LocalizedException $e) {
                 $this->_messages[$attributeCode][] = $e->getMessage();
             }
         }

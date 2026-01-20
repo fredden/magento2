@@ -20,9 +20,9 @@ class Status extends AbstractSource implements SourceInterface, OptionSourceInte
     /**#@+
      * Product Status values
      */
-    const STATUS_ENABLED = 1;
+    public const STATUS_ENABLED = 1;
 
-    const STATUS_DISABLED = 2;
+    public const STATUS_DISABLED = 2;
 
     /**#@-*/
 

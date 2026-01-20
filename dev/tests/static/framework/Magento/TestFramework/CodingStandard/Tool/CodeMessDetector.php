@@ -52,21 +52,20 @@ class CodeMessDetector implements ToolInterface
     public function run(array $whiteList)
     {
         if (empty($whiteList)) {
-            return \PHPMD\TextUI\ExitCode::Success;
+            return class_exists(\PHPMD\TextUI\ExitCode::class) ? \PHPMD\TextUI\ExitCode::Success : 0;
         }
 
-        $commandLineArguments = [
-            'run_file_mock', //emulate script name in console arguments
-            implode(',', $whiteList),
-            'text', //report format
-            $this->rulesetFile,
-            '--reportfile',
-            $this->reportFile,
-        ];
-
-        $options = new \PHPMD\TextUI\CommandLineOptions($commandLineArguments);
-
         $command = new \PHPMD\TextUI\Command(new CodeMessOutput());
+        $input = new \Symfony\Component\Console\Input\ArrayInput(
+            [
+                'input' => implode(',', $whiteList),
+                'format' => 'text',
+                'rulesets' => $this->rulesetFile,
+                '--reportfile' => $this->reportFile,
+            ],
+            $command->getDefinition()
+        );
+        $options = new \PHPMD\TextUI\CommandLineOptions($input);
 
         return $command->run($options, new \PHPMD\RuleSetFactory());
     }

@@ -120,7 +120,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     }
 
     /**
-     * Foreground countries
+     * Highlighted country codes list.
      *
      * @var array
      */
@@ -137,9 +137,10 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     }
 
     /**
-     * Return Allowed Countries reader
+     * Return allowed countries reader.
      *
-     * @deprecated 100.1.2
+     * @deprecated 100.1.2 Use constructor-injected AllowedCountries instead.
+     * @see AllowedCountries
      * @return \Magento\Directory\Model\AllowedCountries
      */
     private function getAllowedCountriesReader()

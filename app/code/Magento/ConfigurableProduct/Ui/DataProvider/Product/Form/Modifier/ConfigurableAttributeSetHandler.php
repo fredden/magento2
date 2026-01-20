@@ -3,6 +3,8 @@
  * Copyright 2016 Adobe
  * All Rights Reserved.
  */
+declare(strict_types=1);
+
 namespace Magento\ConfigurableProduct\Ui\DataProvider\Product\Form\Modifier;
 
 use Magento\Catalog\Ui\DataProvider\Product\Form\Modifier\AbstractModifier;
@@ -16,7 +18,7 @@ use Magento\Framework\UrlInterface;
  */
 class ConfigurableAttributeSetHandler extends AbstractModifier
 {
-    const ATTRIBUTE_SET_HANDLER_MODAL = 'configurable_attribute_set_handler_modal';
+    public const ATTRIBUTE_SET_HANDLER_MODAL = 'configurable_attribute_set_handler_modal';
 
     /**
      * @var UrlInterface

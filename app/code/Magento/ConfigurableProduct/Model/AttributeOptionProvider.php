@@ -34,7 +34,7 @@ class AttributeOptionProvider implements AttributeOptionProviderInterface
 
     /**
      * @param Attribute $attributeResource
-     * @param ScopeResolverInterface $scopeResolver,
+     * @param ScopeResolverInterface $scopeResolver
      * @param OptionSelectBuilderInterface $optionSelectBuilder
      */
     public function __construct(
@@ -48,7 +48,7 @@ class AttributeOptionProvider implements AttributeOptionProviderInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getAttributeOptions(AbstractAttribute $superAttribute, $productId)
     {

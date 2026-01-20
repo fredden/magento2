@@ -8,7 +8,7 @@ namespace Magento\Catalog\Model\Product\Gallery;
 class MimeTypeExtensionMap
 {
     /**
-     * MIME type/extension map
+     * Mapping of image MIME types to file extensions.
      *
      * @var array
      */
@@ -20,6 +20,8 @@ class MimeTypeExtensionMap
     ];
 
     /**
+     * Resolve extension from a MIME type.
+     *
      * @param string $mimeType
      * @return string
      */
