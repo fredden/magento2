@@ -88,7 +88,7 @@ class Set extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 
         if ($this->eavConfig->isCacheEnabled()) {
             $this->eavConfig->getCache()->remove($this->getCacheKey());
-            $this->eavConfig->getCache()->remove($this->getCacheKey($object->getEntityId()));
+            $this->eavConfig->getCache()->remove($this->getCacheKey($object->getId()));
         }
 
         return parent::_afterSave($object);
@@ -111,6 +111,8 @@ class Set extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     }
 
     /**
+     *  Get cache key for attribute set
+     *
      * @param null|int|string $setId
      * @return string
      */
