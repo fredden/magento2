@@ -16,40 +16,6 @@
         "preferred-install": "dist",
         "sort-packages": true
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "git@github.com:sandesh-as/laminas-di.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@github.com:sandesh-as/laminas-soap.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@github.com:sandesh-as/laminas-json.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@github.com:sandesh-as/laminas-server.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@github.com:sandesh-as/laminas-captcha.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@github.com:sandesh-as/laminas-text.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@github.com:sandesh-as/laminas-config.git"
-        },
-        {
-            "type": "vcs",
-            "url": "git@github.com:sandesh-as/duo_api_php.git"
-        }
-    ],
     "require": {
         "php": "~8.3.0||~8.4.0||~8.5.0",
         "ext-bcmath": "*",
@@ -74,32 +40,32 @@
         "colinmollenhour/cache-backend-redis": "^1.16",
         "colinmollenhour/credis": "^1.15",
         "colinmollenhour/php-redis-session-abstract": "^2.0",
-        "composer/composer": "~2.9.0",
+        "composer/composer": "^2.2",
         "elasticsearch/elasticsearch": "^8.15",
-        "duosecurity/duo_api_php": "dev-php_85_deprecation_fix as 1.2.0",
+        "magento/magento-zf-duo_api_php": "^1.0",
         "duosecurity/duo_universal_php": "^1.0",
         "ezyang/htmlpurifier": "^4.17",
         "guzzlehttp/guzzle": "^7.5",
-        "laminas/laminas-captcha": "dev-php_85_support",
-        "laminas/laminas-config": "dev-Php-8.5-support as 3.10.2",
+        "magento/magento-zf-captcha": "^1.0",
+        "magento/magento-zf-config": "^1.0",
         "laminas/laminas-session": "^2.26",
         "laminas/laminas-code": "^4.13",
-        "laminas/laminas-di": "dev-Php-8.5-support",
+        "magento/magento-zf-di": "^1.0",
         "laminas/laminas-escaper": "^2.13",
         "laminas/laminas-eventmanager": "^3.11",
         "laminas/laminas-feed": "^2.26",
         "laminas/laminas-filter": "^2.33",
         "laminas/laminas-http": "^2.23",
         "laminas/laminas-i18n": "^2.17",
-        "laminas/laminas-json": "dev-Php-8.5-support as 3.7.2",
+        "magento/magento-zf-json": "^1.0",
         "laminas/laminas-modulemanager": "^2.19",
         "laminas/laminas-permissions-acl": "^2.18",
-        "laminas/laminas-server": "dev-Php-8.5-support as 2.19.0",
+        "magento/magento-zf-server": "^1.0",
         "laminas/laminas-servicemanager": "^3.16",
-        "laminas/laminas-soap": "dev-Php-8.5-support",
+        "magento/magento-zf-soap": "^1.0",
         "laminas/laminas-stdlib": "^3.11",
-        "laminas/laminas-text": "dev-Php-8.5-support as 2.13.0",
-        "laminas/laminas-uri": "^2.14.0",
+        "magento/magento-zf-text": "^1.0",
+        "laminas/laminas-uri": "^2.14",
         "laminas/laminas-validator": "^2.23",
         "laminas/laminas-view": "^2.36",
         "league/flysystem": "^3.0",
@@ -136,12 +102,12 @@
         "wikimedia/less.php": "^5.5"
     },
     "require-dev": {
-        "allure-framework/allure-phpunit": "dev-main",
+        "allure-framework/allure-phpunit": "^3.2",
         "dealerdirect/phpcodesniffer-composer-installer": "^0.7 || ^1.0",
         "dg/bypass-finals": "^1.4",
         "friendsofphp/php-cs-fixer": "^3.22",
         "magento/magento-coding-standard": "*",
-        "magento/magento2-functional-testing-framework": "dev-develop",
+        "magento/magento2-functional-testing-framework": "^5.2",
         "pdepend/pdepend": "^3@dev",
         "phpmd/phpmd": "^3@dev",
         "phpstan/phpstan": "^1.9",

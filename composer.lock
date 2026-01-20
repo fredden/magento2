@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f06029aea75779a503e334f1cc08cc0c",
+    "content-hash": "5a6f330153d6d28a4dd55c4f054d5e5b",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -62,16 +62,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.369.10",
+            "version": "3.369.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "e179090bf2d658be7be37afc146111966ba6f41b"
+                "reference": "7c62f41fb0460c3e5d5c1f70e93e726f1daa75f5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/e179090bf2d658be7be37afc146111966ba6f41b",
-                "reference": "e179090bf2d658be7be37afc146111966ba6f41b",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/7c62f41fb0460c3e5d5c1f70e93e726f1daa75f5",
+                "reference": "7c62f41fb0460c3e5d5c1f70e93e726f1daa75f5",
                 "shasum": ""
             },
             "require": {
@@ -153,9 +153,9 @@
             "support": {
                 "forum": "https://github.com/aws/aws-sdk-php/discussions",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.369.10"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.369.15"
             },
-            "time": "2026-01-09T19:08:12+00:00"
+            "time": "2026-01-16T19:18:57+00:00"
         },
         {
             "name": "brick/math",
@@ -1147,53 +1147,6 @@
             "time": "2024-02-05T11:56:58+00:00"
         },
         {
-            "name": "duosecurity/duo_api_php",
-            "version": "dev-php_85_deprecation_fix",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sandesh-as/duo_api_php.git",
-                "reference": "7ef94932ec905806e5ee804286945501d830f314"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/sandesh-as/duo_api_php/zipball/7ef94932ec905806e5ee804286945501d830f314",
-                "reference": "7ef94932ec905806e5ee804286945501d830f314",
-                "shasum": ""
-            },
-            "require": {
-                "ext-curl": "*",
-                "php": ">=8.0"
-            },
-            "require-dev": {
-                "php-coveralls/php-coveralls": "dev-master",
-                "phpunit/phpunit": "~9",
-                "squizlabs/php_codesniffer": "2.*"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.1.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "DuoAPI\\": "src/"
-                }
-            },
-            "autoload-dev": {
-                "psr-4": {
-                    "Unit\\": "tests/Unit/"
-                }
-            },
-            "description": "A PHP implementation of the Duo API.",
-            "homepage": "https://duo.com/",
-            "support": {
-                "email": "support@duosecurity.com",
-                "source": "https://github.com/sandesh-as/duo_api_php/tree/php_85_deprecation_fix"
-            },
-            "time": "2025-12-15T07:15:40+00:00"
-        },
-        {
             "name": "duosecurity/duo_universal_php",
             "version": "1.1.1",
             "source": {
@@ -2054,89 +2007,6 @@
             "time": "2025-12-19T15:01:32+00:00"
         },
         {
-            "name": "laminas/laminas-captcha",
-            "version": "dev-php_85_support",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sandesh-as/laminas-captcha.git",
-                "reference": "67dfa7289734983dfa78f116bc3a8dc0d69a65b7"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/sandesh-as/laminas-captcha/zipball/67dfa7289734983dfa78f116bc3a8dc0d69a65b7",
-                "reference": "67dfa7289734983dfa78f116bc3a8dc0d69a65b7",
-                "shasum": ""
-            },
-            "require": {
-                "laminas/laminas-recaptcha": "^3.4.0",
-                "laminas/laminas-session": "^2.25 || ^3.0",
-                "laminas/laminas-stdlib": "^3.10.1",
-                "laminas/laminas-text": "^2.12.1",
-                "laminas/laminas-validator": "^2.19.0 || ^3.0",
-                "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0"
-            },
-            "conflict": {
-                "zendframework/zend-captcha": "*"
-            },
-            "require-dev": {
-                "ext-gd": "*",
-                "laminas/laminas-coding-standard": "~2.5.0",
-                "phpunit/phpunit": "^9.5.26",
-                "psalm/plugin-phpunit": "^0.19.0",
-                "vimeo/psalm": "^6.13"
-            },
-            "suggest": {
-                "laminas/laminas-i18n-resources": "Translations of captcha messages"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Laminas\\Captcha\\": "src/"
-                }
-            },
-            "autoload-dev": {
-                "psr-4": {
-                    "LaminasTest\\Captcha\\": "test/"
-                }
-            },
-            "scripts": {
-                "check": [
-                    "@cs-check",
-                    "@test"
-                ],
-                "cs-check": [
-                    "phpcs"
-                ],
-                "cs-fix": [
-                    "phpcbf"
-                ],
-                "test": [
-                    "phpunit --colors=always"
-                ],
-                "test-coverage": [
-                    "phpunit --colors=always --coverage-clover clover.xml"
-                ]
-            },
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "description": "Generate and validate CAPTCHAs using Figlets, images, ReCaptcha, and more",
-            "homepage": "https://laminas.dev",
-            "keywords": [
-                "captcha",
-                "laminas"
-            ],
-            "support": {
-                "docs": "https://docs.laminas.dev/laminas-captcha/",
-                "issues": "https://github.com/laminas/laminas-captcha/issues",
-                "source": "https://github.com/laminas/laminas-captcha",
-                "rss": "https://github.com/laminas/laminas-captcha/releases.atom",
-                "chat": "https://laminas.dev/chat",
-                "forum": "https://discourse.laminas.dev"
-            },
-            "time": "2026-01-02T08:48:16+00:00"
-        },
-        {
             "name": "laminas/laminas-code",
             "version": "4.17.0",
             "source": {
@@ -2198,196 +2068,6 @@
                 }
             ],
             "time": "2025-11-01T09:38:14+00:00"
-        },
-        {
-            "name": "laminas/laminas-config",
-            "version": "dev-Php-8.5-support",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sandesh-as/laminas-config.git",
-                "reference": "e47f287fdadbf92e64c862c4971952b0c9d197b1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/sandesh-as/laminas-config/zipball/e47f287fdadbf92e64c862c4971952b0c9d197b1",
-                "reference": "e47f287fdadbf92e64c862c4971952b0c9d197b1",
-                "shasum": ""
-            },
-            "require": {
-                "ext-json": "*",
-                "laminas/laminas-stdlib": "^3.6",
-                "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
-                "psr/container": "^1.0"
-            },
-            "conflict": {
-                "container-interop/container-interop": "<1.2.0",
-                "zendframework/zend-config": "*"
-            },
-            "require-dev": {
-                "laminas/laminas-coding-standard": "^3.0.1",
-                "laminas/laminas-filter": "^2.39.0",
-                "laminas/laminas-i18n": "^2.29.0",
-                "laminas/laminas-servicemanager": "^3.23.0",
-                "phpunit/phpunit": "^10.5.38"
-            },
-            "suggest": {
-                "laminas/laminas-filter": "^2.7.2; install if you want to use the Filter processor",
-                "laminas/laminas-i18n": "^2.7.4; install if you want to use the Translator processor",
-                "laminas/laminas-servicemanager": "^2.7.8 || ^3.3; if you need an extensible plugin manager for use with the Config Factory"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Laminas\\Config\\": "src/"
-                }
-            },
-            "autoload-dev": {
-                "psr-4": {
-                    "LaminasTest\\Config\\": "test/"
-                }
-            },
-            "scripts": {
-                "check": [
-                    "@license-check",
-                    "@cs-check",
-                    "@test"
-                ],
-                "cs-check": [
-                    "phpcs"
-                ],
-                "cs-fix": [
-                    "phpcbf"
-                ],
-                "test": [
-                    "phpunit --colors=always"
-                ],
-                "test-coverage": [
-                    "phpunit --colors=always --coverage-clover clover.xml"
-                ],
-                "license-check": [
-                    "docheader check src/"
-                ]
-            },
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "description": "provides a nested object property based user interface for accessing this configuration data within application code",
-            "homepage": "https://laminas.dev",
-            "keywords": [
-                "config",
-                "laminas"
-            ],
-            "support": {
-                "docs": "https://docs.laminas.dev/laminas-config/",
-                "issues": "https://github.com/laminas/laminas-config/issues",
-                "source": "https://github.com/laminas/laminas-config",
-                "rss": "https://github.com/laminas/laminas-config/releases.atom",
-                "chat": "https://laminas.dev/chat",
-                "forum": "https://discourse.laminas.dev"
-            },
-            "abandoned": true,
-            "time": "2025-11-11T09:10:06+00:00"
-        },
-        {
-            "name": "laminas/laminas-di",
-            "version": "dev-Php-8.5-support",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sandesh-as/laminas-di.git",
-                "reference": "052b9476218adce12737f6c1818a90e87a3c68be"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/sandesh-as/laminas-di/zipball/052b9476218adce12737f6c1818a90e87a3c68be",
-                "reference": "052b9476218adce12737f6c1818a90e87a3c68be",
-                "shasum": ""
-            },
-            "require": {
-                "laminas/laminas-stdlib": "^3.21.0",
-                "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
-                "psr/container": "^1.1.1",
-                "psr/log": "^1.1.4 || ^2.0.0 ||  ^3.0.0"
-            },
-            "conflict": {
-                "amphp/amp": "<2.6.4",
-                "laminas/laminas-servicemanager": "<3.13.0 || >=4.0.0",
-                "laminas/laminas-servicemanager-di": "*",
-                "zendframework/zend-di": "*"
-            },
-            "require-dev": {
-                "laminas/laminas-coding-standard": "~2.5.0",
-                "laminas/laminas-servicemanager": "^3.22",
-                "mikey179/vfsstream": "^1.6.12",
-                "phpbench/phpbench": "^1.2.7",
-                "phpunit/phpunit": "^11.0",
-                "psalm/plugin-phpunit": "^0.18.0 || ^0.19.0",
-                "squizlabs/php_codesniffer": "^3.7.1",
-                "vimeo/psalm": "^6.0"
-            },
-            "suggest": {
-                "laminas/laminas-servicemanager": "An IoC container without auto wiring capabilities"
-            },
-            "type": "library",
-            "extra": {
-                "laminas": {
-                    "component": "Laminas\\Di",
-                    "config-provider": "Laminas\\Di\\ConfigProvider"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Laminas\\Di\\": "src/"
-                }
-            },
-            "autoload-dev": {
-                "psr-4": {
-                    "LaminasTest\\Di\\": "test/",
-                    "LaminasBench\\Di\\": "benchmarks/"
-                }
-            },
-            "scripts": {
-                "benchmark": [
-                    "phpbench run --revs=2 --iterations=2 --report=aggregate"
-                ],
-                "check": [
-                    "@cs-check",
-                    "@test"
-                ],
-                "cs-check": [
-                    "phpcs"
-                ],
-                "cs-fix": [
-                    "phpcbf"
-                ],
-                "analyse": [
-                    "psalm --shepherd --stats"
-                ],
-                "test": [
-                    "phpunit --colors=always"
-                ],
-                "test-coverage": [
-                    "phpunit --colors=always --coverage-clover clover.xml"
-                ]
-            },
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "description": "Automated dependency injection for PSR-11 containers",
-            "homepage": "https://laminas.dev",
-            "keywords": [
-                "di",
-                "laminas",
-                "psr-11"
-            ],
-            "support": {
-                "docs": "https://docs.laminas.dev/laminas-di/",
-                "issues": "https://github.com/laminas/laminas-di/issues",
-                "source": "https://github.com/laminas/laminas-di",
-                "rss": "https://github.com/laminas/laminas-di/releases.atom",
-                "chat": "https://laminas.dev/chat",
-                "forum": "https://discourse.laminas.dev"
-            },
-            "time": "2025-12-05T08:59:45+00:00"
         },
         {
             "name": "laminas/laminas-escaper",
@@ -2836,84 +2516,6 @@
             "time": "2025-12-15T14:23:40+00:00"
         },
         {
-            "name": "laminas/laminas-json",
-            "version": "dev-Php-8.5-support",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sandesh-as/laminas-json.git",
-                "reference": "13e46a39c0479a145d9f6764f7b5f97a24f6c55c"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/sandesh-as/laminas-json/zipball/13e46a39c0479a145d9f6764f7b5f97a24f6c55c",
-                "reference": "13e46a39c0479a145d9f6764f7b5f97a24f6c55c",
-                "shasum": ""
-            },
-            "require": {
-                "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0"
-            },
-            "conflict": {
-                "zendframework/zend-json": "*"
-            },
-            "require-dev": {
-                "laminas/laminas-coding-standard": "~2.4.0",
-                "laminas/laminas-stdlib": "^2.7.7 || ^3.19",
-                "phpunit/phpunit": "^9.5.25"
-            },
-            "suggest": {
-                "laminas/laminas-json-server": "For implementing JSON-RPC servers",
-                "laminas/laminas-xml2json": "For converting XML documents to JSON"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Laminas\\Json\\": "src/"
-                }
-            },
-            "autoload-dev": {
-                "psr-4": {
-                    "LaminasTest\\Json\\": "test/"
-                }
-            },
-            "scripts": {
-                "check": [
-                    "@cs-check",
-                    "@test"
-                ],
-                "cs-check": [
-                    "phpcs"
-                ],
-                "cs-fix": [
-                    "phpcbf"
-                ],
-                "test": [
-                    "phpunit --colors=always"
-                ],
-                "test-coverage": [
-                    "phpunit --colors=always --coverage-clover clover.xml"
-                ]
-            },
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "description": "provides convenience methods for serializing native PHP to JSON and decoding JSON to native PHP",
-            "homepage": "https://laminas.dev",
-            "keywords": [
-                "json",
-                "laminas"
-            ],
-            "support": {
-                "docs": "https://docs.laminas.dev/laminas-json/",
-                "issues": "https://github.com/laminas/laminas-json/issues",
-                "source": "https://github.com/laminas/laminas-json",
-                "rss": "https://github.com/laminas/laminas-json/releases.atom",
-                "chat": "https://laminas.dev/chat",
-                "forum": "https://discourse.laminas.dev"
-            },
-            "abandoned": true,
-            "time": "2025-11-11T10:43:50+00:00"
-        },
-        {
             "name": "laminas/laminas-loader",
             "version": "2.12.0",
             "source": {
@@ -3176,91 +2778,6 @@
             "time": "2025-12-05T10:07:10+00:00"
         },
         {
-            "name": "laminas/laminas-server",
-            "version": "dev-Php-8.5-support",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sandesh-as/laminas-server.git",
-                "reference": "c032882f6d767880ec61d58e8ace3da55ceab444"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/sandesh-as/laminas-server/zipball/c032882f6d767880ec61d58e8ace3da55ceab444",
-                "reference": "c032882f6d767880ec61d58e8ace3da55ceab444",
-                "shasum": ""
-            },
-            "require": {
-                "laminas/laminas-code": "^4.7.1",
-                "laminas/laminas-stdlib": "^3.3.1",
-                "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0"
-            },
-            "conflict": {
-                "zendframework/zend-server": "*"
-            },
-            "require-dev": {
-                "amphp/dns": "^2.2",
-                "amphp/socket": "^2.3.1",
-                "laminas/laminas-coding-standard": "~3.1.0",
-                "phpunit/phpunit": "^10.5.58",
-                "psalm/plugin-phpunit": "^0.19.0",
-                "vimeo/psalm": "^6.13.1"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Laminas\\Server\\": "src/"
-                }
-            },
-            "autoload-dev": {
-                "psr-4": {
-                    "LaminasTest\\Server\\": "test/"
-                },
-                "files": [
-                    "test/Reflection/TestAsset/functions.php",
-                    "test/TestAsset/reflectionTestFunction.php"
-                ]
-            },
-            "scripts": {
-                "check": [
-                    "@cs-check",
-                    "@test"
-                ],
-                "cs-check": [
-                    "phpcs"
-                ],
-                "cs-fix": [
-                    "phpcbf"
-                ],
-                "static-analysis": [
-                    "psalm --shepherd --stats"
-                ],
-                "test": [
-                    "phpunit --colors=always"
-                ],
-                "test-coverage": [
-                    "phpunit --colors=always --coverage-clover clover.xml"
-                ]
-            },
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "description": "Create Reflection-based RPC servers",
-            "homepage": "https://laminas.dev",
-            "keywords": [
-                "laminas",
-                "server"
-            ],
-            "support": {
-                "docs": "https://docs.laminas.dev/laminas-server/",
-                "issues": "https://github.com/laminas/laminas-server/issues",
-                "source": "https://github.com/laminas/laminas-server",
-                "rss": "https://github.com/laminas/laminas-server/releases.atom",
-                "chat": "https://laminas.dev/chat",
-                "forum": "https://discourse.laminas.dev"
-            },
-            "time": "2025-12-04T12:26:37+00:00"
-        },
-        {
             "name": "laminas/laminas-servicemanager",
             "version": "3.24.0",
             "source": {
@@ -3436,100 +2953,6 @@
             "time": "2025-11-14T12:52:38+00:00"
         },
         {
-            "name": "laminas/laminas-soap",
-            "version": "dev-Php-8.5-support",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sandesh-as/laminas-soap.git",
-                "reference": "a937a7593198f83110c809ca948ed95579b47ab3"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/sandesh-as/laminas-soap/zipball/a937a7593198f83110c809ca948ed95579b47ab3",
-                "reference": "a937a7593198f83110c809ca948ed95579b47ab3",
-                "shasum": ""
-            },
-            "require": {
-                "ext-dom": "*",
-                "ext-soap": "*",
-                "laminas/laminas-server": "^2.15",
-                "laminas/laminas-stdlib": "^3.16",
-                "laminas/laminas-uri": "^2.10",
-                "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0"
-            },
-            "conflict": {
-                "amphp/amp": "<2.6.4",
-                "laminas/laminas-code": "<4.4",
-                "zendframework/zend-soap": "*"
-            },
-            "require-dev": {
-                "amphp/dns": "^2.4",
-                "amphp/socket": "^2.3.1",
-                "laminas/laminas-coding-standard": "^2.5",
-                "laminas/laminas-config": "^3.9",
-                "laminas/laminas-http": "^2.18",
-                "phpspec/prophecy-phpunit": "^2.0.2",
-                "phpunit/phpunit": "^11.5",
-                "psalm/plugin-phpunit": "^0.19.0",
-                "vimeo/psalm": "^6.13"
-            },
-            "suggest": {
-                "ext-curl": "Curl is required when .NET compatibility is required",
-                "laminas/laminas-http": "Laminas\\Http component"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Laminas\\Soap\\": "src/"
-                }
-            },
-            "autoload-dev": {
-                "psr-4": {
-                    "LaminasTest\\Soap\\": "test/"
-                },
-                "files": [
-                    "test/TestAsset/commontypes.php",
-                    "test/TestAsset/call_user_func.php"
-                ]
-            },
-            "scripts": {
-                "check": [
-                    "@cs-check",
-                    "@test"
-                ],
-                "cs-check": [
-                    "phpcs"
-                ],
-                "cs-fix": [
-                    "phpcbf"
-                ],
-                "test": [
-                    "phpunit"
-                ],
-                "test-coverage": [
-                    "phpunit --coverage-clover clover.xml"
-                ]
-            },
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "description": " ",
-            "homepage": "https://laminas.dev",
-            "keywords": [
-                "laminas",
-                "soap"
-            ],
-            "support": {
-                "docs": "https://docs.laminas.dev/laminas-soap/",
-                "issues": "https://github.com/laminas/laminas-soap/issues",
-                "source": "https://github.com/laminas/laminas-soap",
-                "rss": "https://github.com/laminas/laminas-soap/releases.atom",
-                "chat": "https://laminas.dev/chat",
-                "forum": "https://discourse.laminas.dev"
-            },
-            "time": "2025-12-08T05:55:14+00:00"
-        },
-        {
             "name": "laminas/laminas-stdlib",
             "version": "3.21.0",
             "source": {
@@ -3587,89 +3010,6 @@
                 }
             ],
             "time": "2025-10-11T18:13:12+00:00"
-        },
-        {
-            "name": "laminas/laminas-text",
-            "version": "dev-Php-8.5-support",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sandesh-as/laminas-text.git",
-                "reference": "cee104c7a467eda4bdccd8ae492a1d7a2d8043f1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/sandesh-as/laminas-text/zipball/cee104c7a467eda4bdccd8ae492a1d7a2d8043f1",
-                "reference": "cee104c7a467eda4bdccd8ae492a1d7a2d8043f1",
-                "shasum": ""
-            },
-            "require": {
-                "laminas/laminas-servicemanager": "^3.22.0 || ^4.5",
-                "laminas/laminas-stdlib": "^3.7.1",
-                "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0"
-            },
-            "conflict": {
-                "zendframework/zend-text": "*"
-            },
-            "require-dev": {
-                "laminas/laminas-coding-standard": "^3.0.1",
-                "phpunit/phpunit": "^10.5.38",
-                "psalm/plugin-phpunit": "^0.18.4",
-                "vimeo/psalm": "^5.26.1"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Laminas\\Text\\": "src/"
-                }
-            },
-            "autoload-dev": {
-                "psr-4": {
-                    "LaminasTest\\Text\\": "test/"
-                }
-            },
-            "scripts": {
-                "check": [
-                    "@cs-check",
-                    "@test"
-                ],
-                "cs-check": [
-                    "phpcs"
-                ],
-                "cs-fix": [
-                    "phpcbf"
-                ],
-                "test": [
-                    "phpunit --colors=always --testsuite \"unit test\""
-                ],
-                "test-coverage": [
-                    "phpunit --colors=always --coverage-clover clover.xml"
-                ],
-                "test-integration": [
-                    "phpunit --colors=always --testsuite \"integration test\""
-                ],
-                "upload-coverage": [
-                    "coveralls -v"
-                ]
-            },
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "description": "Create FIGlets and text-based tables",
-            "homepage": "https://laminas.dev",
-            "keywords": [
-                "laminas",
-                "text"
-            ],
-            "support": {
-                "docs": "https://docs.laminas.dev/laminas-text/",
-                "issues": "https://github.com/laminas/laminas-text/issues",
-                "source": "https://github.com/laminas/laminas-text",
-                "rss": "https://github.com/laminas/laminas-text/releases.atom",
-                "chat": "https://laminas.dev/chat",
-                "forum": "https://discourse.laminas.dev"
-            },
-            "abandoned": true,
-            "time": "2026-01-02T08:25:53+00:00"
         },
         {
             "name": "laminas/laminas-translator",
@@ -4374,6 +3714,503 @@
                 "source": "https://github.com/magento/magento-composer-installer/tree/0.4.0"
             },
             "time": "2022-12-01T15:21:32+00:00"
+        },
+        {
+            "name": "magento/magento-zf-captcha",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/magento/magento-zf-captcha.git",
+                "reference": "7f95e0e1fa8c5c34b0dc736eab5c2efd559200a1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/magento/magento-zf-captcha/zipball/7f95e0e1fa8c5c34b0dc736eab5c2efd559200a1",
+                "reference": "7f95e0e1fa8c5c34b0dc736eab5c2efd559200a1",
+                "shasum": ""
+            },
+            "require": {
+                "laminas/laminas-recaptcha": "^3.4.0",
+                "laminas/laminas-session": "^2.25 || ^3.0",
+                "laminas/laminas-stdlib": "^3.10.1",
+                "laminas/laminas-text": "^2.12.1",
+                "laminas/laminas-validator": "^2.19.0 || ^3.0",
+                "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0"
+            },
+            "conflict": {
+                "zendframework/zend-captcha": "*"
+            },
+            "replace": {
+                "laminas/laminas-captcha": "^2.19"
+            },
+            "require-dev": {
+                "ext-gd": "*",
+                "laminas/laminas-coding-standard": "~2.5.0",
+                "phpunit/phpunit": "^9.5.26",
+                "psalm/plugin-phpunit": "^0.19.0",
+                "vimeo/psalm": "^6.13"
+            },
+            "suggest": {
+                "laminas/laminas-i18n-resources": "Translations of captcha messages"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Laminas\\Captcha\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "Generate and validate CAPTCHAs using Figlets, images, ReCaptcha, and more",
+            "homepage": "https://laminas.dev",
+            "keywords": [
+                "captcha",
+                "laminas"
+            ],
+            "support": {
+                "chat": "https://laminas.dev/chat",
+                "docs": "https://docs.laminas.dev/laminas-captcha/",
+                "forum": "https://discourse.laminas.dev",
+                "issues": "https://github.com/laminas/laminas-captcha/issues",
+                "rss": "https://github.com/laminas/laminas-captcha/releases.atom",
+                "source": "https://github.com/laminas/laminas-captcha"
+            },
+            "time": "2026-01-20T07:20:51+00:00"
+        },
+        {
+            "name": "magento/magento-zf-config",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/magento/magento-zf-config.git",
+                "reference": "a1c465a696f92837effdc6fac3ff04d4352d5afe"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/magento/magento-zf-config/zipball/a1c465a696f92837effdc6fac3ff04d4352d5afe",
+                "reference": "a1c465a696f92837effdc6fac3ff04d4352d5afe",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "laminas/laminas-stdlib": "^3.6",
+                "php": "^8.1",
+                "psr/container": "^1.0"
+            },
+            "conflict": {
+                "container-interop/container-interop": "<1.2.0",
+                "zendframework/zend-config": "*"
+            },
+            "replace": {
+                "laminas/laminas-config": "^3.10"
+            },
+            "require-dev": {
+                "laminas/laminas-coding-standard": "^3.0.1",
+                "laminas/laminas-filter": "^2.39.0",
+                "laminas/laminas-i18n": "^2.29.0",
+                "laminas/laminas-servicemanager": "^3.23.0",
+                "phpunit/phpunit": "^10.5.38"
+            },
+            "suggest": {
+                "laminas/laminas-filter": "^2.7.2; install if you want to use the Filter processor",
+                "laminas/laminas-i18n": "^2.7.4; install if you want to use the Translator processor",
+                "laminas/laminas-servicemanager": "^2.7.8 || ^3.3; if you need an extensible plugin manager for use with the Config Factory"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Laminas\\Config\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "provides a nested object property based user interface for accessing this configuration data within application code",
+            "homepage": "https://laminas.dev",
+            "keywords": [
+                "config",
+                "laminas"
+            ],
+            "support": {
+                "chat": "https://laminas.dev/chat",
+                "docs": "https://docs.laminas.dev/laminas-config/",
+                "forum": "https://discourse.laminas.dev",
+                "issues": "https://github.com/laminas/laminas-config/issues",
+                "rss": "https://github.com/laminas/laminas-config/releases.atom",
+                "source": "https://github.com/laminas/laminas-config"
+            },
+            "abandoned": true,
+            "time": "2026-01-20T09:12:07+00:00"
+        },
+        {
+            "name": "magento/magento-zf-di",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/magento/magento-zf-di.git",
+                "reference": "7f8a640729cf53effaec44002ddbbb4d762857fa"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/magento/magento-zf-di/zipball/7f8a640729cf53effaec44002ddbbb4d762857fa",
+                "reference": "7f8a640729cf53effaec44002ddbbb4d762857fa",
+                "shasum": ""
+            },
+            "require": {
+                "laminas/laminas-stdlib": "^3.21.0",
+                "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
+                "psr/container": "^1.1.1",
+                "psr/log": "^1.1.4 || ^2.0.0 ||  ^3.0.0"
+            },
+            "conflict": {
+                "amphp/amp": "<2.6.4",
+                "laminas/laminas-servicemanager": "<3.13.0 || >=4.0.0",
+                "laminas/laminas-servicemanager-di": "*",
+                "zendframework/zend-di": "*"
+            },
+            "replace": {
+                "laminas/laminas-di": "^3.15"
+            },
+            "require-dev": {
+                "laminas/laminas-coding-standard": "~2.5.0",
+                "laminas/laminas-servicemanager": "^3.22",
+                "mikey179/vfsstream": "^1.6.12",
+                "phpbench/phpbench": "^1.2.7",
+                "phpunit/phpunit": "^11.0",
+                "psalm/plugin-phpunit": "^0.18.0 || ^0.19.0",
+                "squizlabs/php_codesniffer": "^3.7.1",
+                "vimeo/psalm": "^6.0"
+            },
+            "suggest": {
+                "laminas/laminas-servicemanager": "An IoC container without auto wiring capabilities"
+            },
+            "type": "library",
+            "extra": {
+                "laminas": {
+                    "component": "Laminas\\Di",
+                    "config-provider": "Laminas\\Di\\ConfigProvider"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Laminas\\Di\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "Automated dependency injection for PSR-11 containers",
+            "homepage": "https://laminas.dev",
+            "keywords": [
+                "PSR-11",
+                "di",
+                "laminas"
+            ],
+            "support": {
+                "chat": "https://laminas.dev/chat",
+                "docs": "https://docs.laminas.dev/laminas-di/",
+                "forum": "https://discourse.laminas.dev",
+                "issues": "https://github.com/laminas/laminas-di/issues",
+                "rss": "https://github.com/laminas/laminas-di/releases.atom",
+                "source": "https://github.com/laminas/laminas-di"
+            },
+            "time": "2026-01-20T07:30:46+00:00"
+        },
+        {
+            "name": "magento/magento-zf-duo_api_php",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/magento/magento-zf-duo_api_php.git",
+                "reference": "135fca9a0923a31f3df03b7399df04fd2bd33659"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/magento/magento-zf-duo_api_php/zipball/135fca9a0923a31f3df03b7399df04fd2bd33659",
+                "reference": "135fca9a0923a31f3df03b7399df04fd2bd33659",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "php": ">=8.0"
+            },
+            "replace": {
+                "duosecurity/duo_api_php": "^1.2"
+            },
+            "require-dev": {
+                "php-coveralls/php-coveralls": "dev-master",
+                "phpunit/phpunit": "~9",
+                "squizlabs/php_codesniffer": "2.*"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "DuoAPI\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "description": "A PHP implementation of the Duo API.",
+            "homepage": "https://duo.com/",
+            "support": {
+                "email": "support@duosecurity.com",
+                "source": "https://github.com/magento/magento-zf-duo_api_php/tree/1.0.0"
+            },
+            "time": "2026-01-20T09:19:02+00:00"
+        },
+        {
+            "name": "magento/magento-zf-json",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/magento/magento-zf-json.git",
+                "reference": "682975c14c3d7e561a325c57d73c2eee3aae97c8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/magento/magento-zf-json/zipball/682975c14c3d7e561a325c57d73c2eee3aae97c8",
+                "reference": "682975c14c3d7e561a325c57d73c2eee3aae97c8",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "conflict": {
+                "zendframework/zend-json": "*"
+            },
+            "replace": {
+                "laminas/laminas-json": "^3.7"
+            },
+            "require-dev": {
+                "laminas/laminas-coding-standard": "~2.4.0",
+                "laminas/laminas-stdlib": "^2.7.7 || ^3.19",
+                "phpunit/phpunit": "^9.5.25"
+            },
+            "suggest": {
+                "laminas/laminas-json-server": "For implementing JSON-RPC servers",
+                "laminas/laminas-xml2json": "For converting XML documents to JSON"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Laminas\\Json\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "provides convenience methods for serializing native PHP to JSON and decoding JSON to native PHP",
+            "homepage": "https://laminas.dev",
+            "keywords": [
+                "json",
+                "laminas"
+            ],
+            "support": {
+                "chat": "https://laminas.dev/chat",
+                "docs": "https://docs.laminas.dev/laminas-json/",
+                "forum": "https://discourse.laminas.dev",
+                "issues": "https://github.com/laminas/laminas-json/issues",
+                "rss": "https://github.com/laminas/laminas-json/releases.atom",
+                "source": "https://github.com/laminas/laminas-json"
+            },
+            "abandoned": true,
+            "time": "2026-01-20T08:49:32+00:00"
+        },
+        {
+            "name": "magento/magento-zf-server",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/magento/magento-zf-server.git",
+                "reference": "22efdcf68b387b073eea8bd702baefe8d1707c35"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/magento/magento-zf-server/zipball/22efdcf68b387b073eea8bd702baefe8d1707c35",
+                "reference": "22efdcf68b387b073eea8bd702baefe8d1707c35",
+                "shasum": ""
+            },
+            "require": {
+                "laminas/laminas-code": "^4.7.1",
+                "laminas/laminas-stdlib": "^3.3.1",
+                "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0"
+            },
+            "conflict": {
+                "zendframework/zend-server": "*"
+            },
+            "replace": {
+                "laminas/laminas-server": "^2.18"
+            },
+            "require-dev": {
+                "amphp/dns": "^2.2",
+                "amphp/socket": "^2.3.1",
+                "laminas/laminas-coding-standard": "~3.1.0",
+                "phpunit/phpunit": "^10.5.58",
+                "psalm/plugin-phpunit": "^0.19.0",
+                "vimeo/psalm": "^6.13.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Laminas\\Server\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "Create Reflection-based RPC servers",
+            "homepage": "https://laminas.dev",
+            "keywords": [
+                "laminas",
+                "server"
+            ],
+            "support": {
+                "chat": "https://laminas.dev/chat",
+                "docs": "https://docs.laminas.dev/laminas-server/",
+                "forum": "https://discourse.laminas.dev",
+                "issues": "https://github.com/laminas/laminas-server/issues",
+                "rss": "https://github.com/laminas/laminas-server/releases.atom",
+                "source": "https://github.com/laminas/laminas-server"
+            },
+            "time": "2026-01-20T08:42:38+00:00"
+        },
+        {
+            "name": "magento/magento-zf-soap",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/magento/magento-zf-soap.git",
+                "reference": "bd4c62d8efc1b14da0d6e8616ea3309cebba8251"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/magento/magento-zf-soap/zipball/bd4c62d8efc1b14da0d6e8616ea3309cebba8251",
+                "reference": "bd4c62d8efc1b14da0d6e8616ea3309cebba8251",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "ext-soap": "*",
+                "laminas/laminas-server": "^2.15",
+                "laminas/laminas-stdlib": "^3.16",
+                "laminas/laminas-uri": "^2.10",
+                "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0"
+            },
+            "conflict": {
+                "amphp/amp": "<2.6.4",
+                "laminas/laminas-code": "<4.4",
+                "zendframework/zend-soap": "*"
+            },
+            "replace": {
+                "laminas/laminas-soap": "^2.14"
+            },
+            "require-dev": {
+                "amphp/dns": "^2.4",
+                "amphp/socket": "^2.3.1",
+                "laminas/laminas-coding-standard": "^2.5",
+                "laminas/laminas-config": "^3.9",
+                "laminas/laminas-http": "^2.18",
+                "phpspec/prophecy-phpunit": "^2.0.2",
+                "phpunit/phpunit": "^11.5",
+                "psalm/plugin-phpunit": "^0.19.0",
+                "vimeo/psalm": "^6.13"
+            },
+            "suggest": {
+                "ext-curl": "Curl is required when .NET compatibility is required",
+                "laminas/laminas-http": "Laminas\\Http component"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Laminas\\Soap\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "homepage": "https://laminas.dev",
+            "keywords": [
+                "laminas",
+                "soap"
+            ],
+            "support": {
+                "chat": "https://laminas.dev/chat",
+                "docs": "https://docs.laminas.dev/laminas-soap/",
+                "forum": "https://discourse.laminas.dev",
+                "issues": "https://github.com/laminas/laminas-soap/issues",
+                "rss": "https://github.com/laminas/laminas-soap/releases.atom",
+                "source": "https://github.com/laminas/laminas-soap"
+            },
+            "time": "2026-01-20T07:38:37+00:00"
+        },
+        {
+            "name": "magento/magento-zf-text",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/magento/magento-zf-text.git",
+                "reference": "1f516d49bfcaa162c1f3348666342f0983c9a6e1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/magento/magento-zf-text/zipball/1f516d49bfcaa162c1f3348666342f0983c9a6e1",
+                "reference": "1f516d49bfcaa162c1f3348666342f0983c9a6e1",
+                "shasum": ""
+            },
+            "require": {
+                "laminas/laminas-servicemanager": "^3.22.0",
+                "laminas/laminas-stdlib": "^3.7.1",
+                "php": "^8.1"
+            },
+            "conflict": {
+                "zendframework/zend-text": "*"
+            },
+            "replace": {
+                "laminas/laminas-text": "^2.12"
+            },
+            "require-dev": {
+                "laminas/laminas-coding-standard": "^3.0.1",
+                "phpunit/phpunit": "^10.5.38",
+                "psalm/plugin-phpunit": "^0.18.4",
+                "vimeo/psalm": "^5.26.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Laminas\\Text\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "Create FIGlets and text-based tables",
+            "homepage": "https://laminas.dev",
+            "keywords": [
+                "laminas",
+                "text"
+            ],
+            "support": {
+                "chat": "https://laminas.dev/chat",
+                "docs": "https://docs.laminas.dev/laminas-text/",
+                "forum": "https://discourse.laminas.dev",
+                "issues": "https://github.com/laminas/laminas-text/issues",
+                "rss": "https://github.com/laminas/laminas-text/releases.atom",
+                "source": "https://github.com/laminas/laminas-text"
+            },
+            "abandoned": true,
+            "time": "2026-01-20T08:52:26+00:00"
         },
         {
             "name": "magento/zend-cache",
@@ -5171,16 +5008,16 @@
         },
         {
             "name": "opensearch-project/opensearch-php",
-            "version": "2.5.0",
+            "version": "2.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/opensearch-project/opensearch-php.git",
-                "reference": "478c5125ab62c5f01c29043b9ab5015b67156d85"
+                "reference": "6e193551266c1f284bdf005d587a85ebff00f29e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/opensearch-project/opensearch-php/zipball/478c5125ab62c5f01c29043b9ab5015b67156d85",
-                "reference": "478c5125ab62c5f01c29043b9ab5015b67156d85",
+                "url": "https://api.github.com/repos/opensearch-project/opensearch-php/zipball/6e193551266c1f284bdf005d587a85ebff00f29e",
+                "reference": "6e193551266c1f284bdf005d587a85ebff00f29e",
                 "shasum": ""
             },
             "require": {
@@ -5196,7 +5033,7 @@
                 "psr/http-message": "^2.0",
                 "psr/http-message-implementation": "*",
                 "psr/log": "^3.0.2",
-                "symfony/yaml": "^v6.4.26|^7.3.5"
+                "symfony/yaml": "^v6.4.26|^7.3.5|^v8.0.0"
             },
             "require-dev": {
                 "aws/aws-sdk-php": "^3.359.8",
@@ -5212,16 +5049,16 @@
                 "phpstan/phpstan-phpunit": "^1.4.2",
                 "phpunit/phpunit": "^10.5.58",
                 "react/promise": "^v3.3",
-                "symfony/console": "^v6.4.27|^7.3.6",
-                "symfony/finder": "^v6.4.27|^7.3.6",
-                "symfony/http-client": "^6.4.27|^7.3.6",
-                "symfony/http-client-contracts": "^v3.6.0"
+                "symfony/console": "^v6.4.27|^7.3.6|^v8.0.0",
+                "symfony/finder": "^v6.4.27|^7.3.6|^v8.0.0",
+                "symfony/http-client": "^6.4.27|^7.3.6|^v8.0.0",
+                "symfony/http-client-contracts": "^v3.6.0|^v8.0.0"
             },
             "suggest": {
                 "aws/aws-sdk-php": "Required (^3.0.0) in order to use the AWS Signing Client Decorator",
                 "guzzlehttp/psr7": "Required (^2.7) in order to use the Guzzle HTTP client",
                 "monolog/monolog": "Allows for client-level logging and tracing",
-                "symfony/http-client": "Required (^6.4|^7.0) in order to use the Symfony HTTP client"
+                "symfony/http-client": "Required (^6.4|^7.0|^8.0) in order to use the Symfony HTTP client"
             },
             "type": "library",
             "autoload": {
@@ -5251,9 +5088,9 @@
             ],
             "support": {
                 "issues": "https://github.com/opensearch-project/opensearch-php/issues",
-                "source": "https://github.com/opensearch-project/opensearch-php/tree/2.5.0"
+                "source": "https://github.com/opensearch-project/opensearch-php/tree/2.5.1"
             },
-            "time": "2025-11-14T21:48:40+00:00"
+            "time": "2026-01-16T21:44:15+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -10836,7 +10673,7 @@
         },
         {
             "name": "allure-framework/allure-phpunit",
-            "version": "dev-main",
+            "version": "v3.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/allure-framework/allure-phpunit.git",
@@ -10871,7 +10708,6 @@
                 "squizlabs/php_codesniffer": "^3.7.2",
                 "vimeo/psalm": "^6.14.3"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -11061,16 +10897,16 @@
         },
         {
             "name": "codeception/codeception",
-            "version": "5.3.3",
+            "version": "5.3.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Codeception/Codeception.git",
-                "reference": "0a3ffdbbb812019c13a6e6b01a2baa346a08962a"
+                "reference": "cb4c200ec0a7fe21964f51872bb403701f53f35b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Codeception/Codeception/zipball/0a3ffdbbb812019c13a6e6b01a2baa346a08962a",
-                "reference": "0a3ffdbbb812019c13a6e6b01a2baa346a08962a",
+                "url": "https://api.github.com/repos/Codeception/Codeception/zipball/cb4c200ec0a7fe21964f51872bb403701f53f35b",
+                "reference": "cb4c200ec0a7fe21964f51872bb403701f53f35b",
                 "shasum": ""
             },
             "require": {
@@ -11176,7 +11012,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Codeception/Codeception/issues",
-                "source": "https://github.com/Codeception/Codeception/tree/5.3.3"
+                "source": "https://github.com/Codeception/Codeception/tree/5.3.4"
             },
             "funding": [
                 {
@@ -11184,7 +11020,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2025-12-17T14:56:15+00:00"
+            "time": "2026-01-14T11:55:19+00:00"
         },
         {
             "name": "codeception/lib-asserts",
@@ -12093,16 +11929,16 @@
         },
         {
             "name": "magento/magento2-functional-testing-framework",
-            "version": "dev-develop",
+            "version": "5.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/magento/magento2-functional-testing-framework.git",
-                "reference": "ec82ed7b91593f176868c03177b8b400cebe7a20"
+                "reference": "5b7e4912ababd79288827f51f52d3beb4afcb8c2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/magento/magento2-functional-testing-framework/zipball/ec82ed7b91593f176868c03177b8b400cebe7a20",
-                "reference": "ec82ed7b91593f176868c03177b8b400cebe7a20",
+                "url": "https://api.github.com/repos/magento/magento2-functional-testing-framework/zipball/5b7e4912ababd79288827f51f52d3beb4afcb8c2",
+                "reference": "5b7e4912ababd79288827f51f52d3beb4afcb8c2",
                 "shasum": ""
             },
             "require": {
@@ -12147,7 +11983,6 @@
             "suggest": {
                 "hoa/console": "Enables <pause /> action and interactive console functionality"
             },
-            "default-branch": true,
             "bin": [
                 "bin/mftf"
             ],
@@ -12180,9 +12015,9 @@
             ],
             "support": {
                 "issues": "https://github.com/magento/magento2-functional-testing-framework/issues",
-                "source": "https://github.com/magento/magento2-functional-testing-framework/tree/develop"
+                "source": "https://github.com/magento/magento2-functional-testing-framework/tree/5.2.0"
             },
-            "time": "2026-01-13T15:03:17+00:00"
+            "time": "2026-01-14T15:44:27+00:00"
         },
         {
             "name": "magento/php-compatibility-fork",
@@ -12372,12 +12207,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/pdepend/pdepend.git",
-                "reference": "62f7baf9f59b739bce6fd36484658e938be365f0"
+                "reference": "5e9d15029f745622a8c44a365f2ef1f9dc85c60e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pdepend/pdepend/zipball/62f7baf9f59b739bce6fd36484658e938be365f0",
-                "reference": "62f7baf9f59b739bce6fd36484658e938be365f0",
+                "url": "https://api.github.com/repos/pdepend/pdepend/zipball/5e9d15029f745622a8c44a365f2ef1f9dc85c60e",
+                "reference": "5e9d15029f745622a8c44a365f2ef1f9dc85c60e",
                 "shasum": ""
             },
             "require": {
@@ -12393,7 +12228,7 @@
             },
             "require-dev": {
                 "brianium/paratest": "^7.3",
-                "easy-doc/easy-doc": "0.0.0 || ^1.2.3",
+                "easy-doc/easy-doc": "^1.2.3",
                 "friendsofphp/php-cs-fixer": "^3.57",
                 "gregwar/rst": "^1.0.6",
                 "phpstan/phpstan": "~2.1.32",
@@ -12403,6 +12238,7 @@
             "suggest": {
                 "ext-sockets": "Recommended on Windows for multiprocessing support"
             },
+            "default-branch": true,
             "bin": [
                 "bin/pdepend"
             ],
@@ -12438,7 +12274,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-01-10T14:13:46+00:00"
+            "time": "2026-01-19T06:52:34+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -12723,12 +12559,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpmd/phpmd.git",
-                "reference": "b5a19d6577f4ffddb0b3d63c848842a4bc698dcc"
+                "reference": "6a3ae1ffc8941b8a0f7f6a6e2235951ad32508fe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpmd/phpmd/zipball/b5a19d6577f4ffddb0b3d63c848842a4bc698dcc",
-                "reference": "b5a19d6577f4ffddb0b3d63c848842a4bc698dcc",
+                "url": "https://api.github.com/repos/phpmd/phpmd/zipball/6a3ae1ffc8941b8a0f7f6a6e2235951ad32508fe",
+                "reference": "6a3ae1ffc8941b8a0f7f6a6e2235951ad32508fe",
                 "shasum": ""
             },
             "require": {
@@ -12737,7 +12573,7 @@
                 "pdepend/pdepend": "3.x-dev#9f22e169d1707a4e546077665eb7e9e9aef17e22",
                 "php": "^8.1",
                 "symfony/console": "^6.4|^7.0|^8.0",
-                "symfony/yaml": "^5.4.31 || ^6.0 || ^7.0"
+                "symfony/yaml": "^5.4.31 || ^6.0 || ^7.0 || ^8.0"
             },
             "require-dev": {
                 "brianium/paratest": "^7.3",
@@ -12804,7 +12640,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-01-10T14:14:25+00:00"
+            "time": "2026-01-17T16:58:39+00:00"
         },
         {
             "name": "phpstan/phpstan",
@@ -15289,51 +15125,10 @@
             "time": "2016-07-21T11:18:01+00:00"
         }
     ],
-    "aliases": [
-        {
-            "package": "duosecurity/duo_api_php",
-            "version": "dev-php_85_deprecation_fix",
-            "alias": "1.2.0",
-            "alias_normalized": "1.2.0.0"
-        },
-        {
-            "package": "laminas/laminas-config",
-            "version": "dev-Php-8.5-support",
-            "alias": "3.10.2",
-            "alias_normalized": "3.10.2.0"
-        },
-        {
-            "package": "laminas/laminas-json",
-            "version": "dev-Php-8.5-support",
-            "alias": "3.7.2",
-            "alias_normalized": "3.7.2.0"
-        },
-        {
-            "package": "laminas/laminas-server",
-            "version": "dev-Php-8.5-support",
-            "alias": "2.19.0",
-            "alias_normalized": "2.19.0.0"
-        },
-        {
-            "package": "laminas/laminas-text",
-            "version": "dev-Php-8.5-support",
-            "alias": "2.13.0",
-            "alias_normalized": "2.13.0.0"
-        }
-    ],
+    "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "allure-framework/allure-phpunit": 20,
-        "duosecurity/duo_api_php": 20,
-        "laminas/laminas-captcha": 20,
-        "laminas/laminas-config": 20,
-        "laminas/laminas-di": 20,
-        "laminas/laminas-json": 20,
-        "laminas/laminas-server": 20,
-        "laminas/laminas-soap": 20,
-        "laminas/laminas-text": 20,
         "magento/composer": 20,
-        "magento/magento2-functional-testing-framework": 20,
         "pdepend/pdepend": 20,
         "phpmd/phpmd": 20
     },
