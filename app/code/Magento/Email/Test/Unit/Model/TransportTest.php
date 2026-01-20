@@ -24,16 +24,31 @@ use Symfony\Component\Mime\Header\Headers;
 use Symfony\Component\Mime\Message as SymfonyMessage;
 
 /**
- * Tests for email transport functionality.
+ * Unit tests for email transport functionality.
  *
  * @coversDefaultClass \Magento\Email\Model\Transport
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class TransportTest extends TestCase
 {
+    /**
+     * @var LoggerInterface&MockObject
+     */
     private LoggerInterface&MockObject $loggerMock;
+
+    /**
+     * @var SymfonyMessage&MockObject
+     */
     private SymfonyMessage&MockObject $symfonyMessageMock;
+
+    /**
+     * @var EmailMessage&MockObject
+     */
     private EmailMessage&MockObject $emailMessageMock;
+
+    /**
+     * @var Transport
+     */
     private Transport $transport;
 
     /**
@@ -63,6 +78,9 @@ class TransportTest extends TestCase
 
     /**
      * Create a test email with standard test data.
+     *
+     * @param string|null $fromEmail
+     * @return Email
      */
     private function createTestEmail(?string $fromEmail = 'sender@example.com'): Email
     {
@@ -74,7 +92,10 @@ class TransportTest extends TestCase
     }
 
     /**
-     * Create Transport with given config overrides.
+     * Create Transport instance with given config overrides.
+     *
+     * @param array $config
+     * @return Transport
      */
     private function createTransport(array $config = []): Transport
     {
@@ -100,8 +121,9 @@ class TransportTest extends TestCase
     }
 
     /**
-     * Verify exception is properly handled when message sent fails.
+     * Verify exception is properly handled when message sent fails due to RFC compliance.
      *
+     * @return void
      * @covers ::sendMessage
      */
     public function testSendMessageBrokenMessage(): void
@@ -116,6 +138,8 @@ class TransportTest extends TestCase
 
     /**
      * Data provider for setReturnPath tests.
+     *
+     * @return array
      */
     public static function setReturnPathDataProvider(): array
     {
@@ -130,7 +154,13 @@ class TransportTest extends TestCase
     /**
      * Test setReturnPath behavior with various configurations.
      *
+     * @param string $isSetReturnPath
+     * @param string|null $returnPathEmail
+     * @param string|null $fromEmail
+     * @param string|null $expectedSender
+     * @return void
      * @dataProvider setReturnPathDataProvider
+     * @covers ::__construct
      * @covers ::setReturnPath
      */
     public function testSetReturnPath(
@@ -164,6 +194,10 @@ class TransportTest extends TestCase
     }
 
     /**
+     * Test getMessage returns the injected email message instance.
+     *
+     * @return void
+     * @covers ::__construct
      * @covers ::getMessage
      */
     public function testGetMessageReturnsEmailMessage(): void
@@ -173,6 +207,8 @@ class TransportTest extends TestCase
 
     /**
      * Data provider for transport type tests.
+     *
+     * @return array
      */
     public static function transportTypeDataProvider(): array
     {
@@ -184,6 +220,11 @@ class TransportTest extends TestCase
     }
 
     /**
+     * Test getTransport returns correct transport type based on configuration.
+     *
+     * @param string|null $transportType
+     * @param string $expectedClass
+     * @return void
      * @dataProvider transportTypeDataProvider
      * @covers ::getTransport
      * @covers ::createSmtpTransport
@@ -197,6 +238,9 @@ class TransportTest extends TestCase
     }
 
     /**
+     * Test getTransport caches the transport instance for subsequent calls.
+     *
+     * @return void
      * @covers ::getTransport
      */
     public function testGetTransportCachesTransportInstance(): void
@@ -206,7 +250,9 @@ class TransportTest extends TestCase
     }
 
     /**
-     * Data provider for all SMTP configurations (SSL + auth combinations and edge cases).
+     * Data provider for SMTP configurations including SSL, auth combinations and edge cases.
+     *
+     * @return array
      */
     public static function smtpConfigDataProvider(): array
     {
@@ -227,7 +273,6 @@ class TransportTest extends TestCase
             }
         }
 
-        // Edge cases
         $edgeCases = [
             'empty host' => ['host' => '', 'port' => '587'],
             'zero port' => ['host' => 'smtp.example.com', 'port' => '0'],
@@ -258,6 +303,15 @@ class TransportTest extends TestCase
     }
 
     /**
+     * Test createSmtpTransport with various SSL, auth, and edge case configurations.
+     *
+     * @param string $host
+     * @param string|null $port
+     * @param string|null $username
+     * @param string|null $password
+     * @param string|null $ssl
+     * @param string $auth
+     * @return void
      * @dataProvider smtpConfigDataProvider
      * @covers ::getTransport
      * @covers ::createSmtpTransport
@@ -283,6 +337,8 @@ class TransportTest extends TestCase
 
     /**
      * Data provider for SMTP exception scenarios.
+     *
+     * @return array
      */
     public static function smtpExceptionDataProvider(): array
     {
@@ -311,6 +367,12 @@ class TransportTest extends TestCase
     }
 
     /**
+     * Test createSmtpTransport throws appropriate exceptions for invalid configurations.
+     *
+     * @param array $config
+     * @param string $expectedException
+     * @param string|null $expectedMessage
+     * @return void
      * @dataProvider smtpExceptionDataProvider
      * @covers ::getTransport
      * @covers ::createSmtpTransport
@@ -329,6 +391,9 @@ class TransportTest extends TestCase
     }
 
     /**
+     * Test sendMessage logs transport exception and throws MailException.
+     *
+     * @return void
      * @covers ::sendMessage
      */
     public function testSendMessageLogsTransportExceptionAndThrowsMailException(): void
