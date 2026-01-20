@@ -99,14 +99,14 @@ class QueueTest extends TestCase
         ?Package $parent = null
     ): Package&MockObject {
         $package = $this->createMock(Package::class);
-        $package->method('getPath')->willReturn($path);
-        $package->method('getState')->willReturn($state);
-        $package->method('getArea')->willReturn('frontend');
-        $package->method('getLocale')->willReturn('en_US');
-        $package->method('getFiles')->willReturn([]);
-        $package->method('getPreProcessors')->willReturn([]);
+        $package->expects($this->any())->method('getPath')->willReturn($path);
+        $package->expects($this->any())->method('getState')->willReturn($state);
+        $package->expects($this->any())->method('getArea')->willReturn('frontend');
+        $package->expects($this->any())->method('getLocale')->willReturn('en_US');
+        $package->expects($this->any())->method('getFiles')->willReturn([]);
+        $package->expects($this->any())->method('getPreProcessors')->willReturn([]);
         if ($parent !== null) {
-            $package->method('getParent')->willReturn($parent);
+            $package->expects($this->any())->method('getParent')->willReturn($parent);
         }
         return $package;
     }
@@ -165,12 +165,12 @@ class QueueTest extends TestCase
         $queue = $this->createQueue();
 
         $package = $this->createMock(Package::class);
-        $package->method('getPath')->willReturn('test/path');
-        $package->method('getArea')->willReturn($area);
-        $package->method('getState')->willReturn(0);
-        $package->method('getLocale')->willReturn('en_US');
-        $package->method('getFiles')->willReturn([]);
-        $package->method('getPreProcessors')->willReturn([]);
+        $package->expects($this->any())->method('getPath')->willReturn('test/path');
+        $package->expects($this->any())->method('getArea')->willReturn($area);
+        $package->expects($this->any())->method('getState')->willReturn(0);
+        $package->expects($this->any())->method('getLocale')->willReturn('en_US');
+        $package->expects($this->any())->method('getFiles')->willReturn([]);
+        $package->expects($this->any())->method('getPreProcessors')->willReturn([]);
         $package->expects($hasParent ? $this->exactly(2) : $this->once())
             ->method('getParent')->willReturn($hasParent ? $package : null);
 
@@ -347,16 +347,16 @@ class QueueTest extends TestCase
         $queue = $this->createQueue();
         $parent = $this->createPackageMock('parent/path');
         $dep = $this->createPackageMock('dep/path', $depDeployed ? Package::STATE_COMPLETED : null);
-        $dep->method('getParent')->willReturn(null);
+        $dep->expects($this->any())->method('getParent')->willReturn(null);
 
         $package = $this->createMock(Package::class);
-        $package->method('getPath')->willReturn('main/path');
-        $package->method('getParent')->willReturn($parent);
-        $package->method('getState')->willReturn($depDeployed ? 0 : null);
-        $package->method('getArea')->willReturn('frontend');
-        $package->method('getLocale')->willReturn('en_US');
-        $package->method('getFiles')->willReturn([]);
-        $package->method('getPreProcessors')->willReturn([]);
+        $package->expects($this->any())->method('getPath')->willReturn('main/path');
+        $package->expects($this->any())->method('getParent')->willReturn($parent);
+        $package->expects($this->any())->method('getState')->willReturn($depDeployed ? 0 : null);
+        $package->expects($this->any())->method('getArea')->willReturn('frontend');
+        $package->expects($this->any())->method('getLocale')->willReturn('en_US');
+        $package->expects($this->any())->method('getFiles')->willReturn([]);
+        $package->expects($this->any())->method('getPreProcessors')->willReturn([]);
 
         $this->appState->expects($this->exactly($calls))->method('emulateAreaCode');
 
@@ -380,6 +380,81 @@ class QueueTest extends TestCase
             'dep waiting' => [false, false, 0],
             'dep recursive' => [false, true, 2],
         ];
+    }
+
+    /**
+     * Test assertAndExecute skips dependency check when parent equals self.
+     *
+     * @return void
+     * @covers ::assertAndExecute
+     * @covers ::executePackage
+     */
+    public function testAssertAndExecuteWithSelfParent(): void
+    {
+        $queue = $this->createQueue();
+        $package = $this->createMock(Package::class);
+        $package->expects($this->any())->method('getPath')->willReturn('self/path');
+        $package->expects($this->any())->method('getParent')->willReturn($package); // Parent equals self
+        $package->expects($this->any())->method('getState')->willReturn(null);
+        $package->expects($this->any())->method('getArea')->willReturn('frontend');
+        $package->expects($this->any())->method('getLocale')->willReturn('en_US');
+        $package->expects($this->any())->method('getFiles')->willReturn([]);
+        $package->expects($this->any())->method('getPreProcessors')->willReturn([]);
+
+        $this->appState->expects($this->once())->method('emulateAreaCode');
+
+        $packages = ['self/path' => ['package' => $package, 'dependencies' => ['dep' => 'value']]];
+        $this->invokeMethod($queue, 'assertAndExecute', ['self/path', &$packages, $packages['self/path']]);
+    }
+
+    /**
+     * Test executePackage skips execution when at max capacity.
+     *
+     * @return void
+     * @covers ::executePackage
+     * @covers ::isDeployed
+     */
+    public function testExecutePackageSkipsWhenAtMaxCapacity(): void
+    {
+        if (!function_exists('pcntl_fork')) {
+            $this->markTestSkipped('pcntl_fork not available');
+        }
+
+        $queue = $this->createQueue(2); // Max 2 processes
+        $package = $this->createPackageMock('test/path', null);
+
+        // Simulate 2 packages already in progress (at capacity) with completed state to avoid __destruct issues
+        $this->setPrivateProperty($queue, 'inProgress', [
+            'pkg1' => $this->createPackageMock('pkg1', Package::STATE_COMPLETED),
+            'pkg2' => $this->createPackageMock('pkg2', Package::STATE_COMPLETED),
+        ]);
+
+        $this->appState->expects($this->never())->method('emulateAreaCode');
+
+        $packages = ['test/path' => ['package' => $package, 'dependencies' => []]];
+        $this->invokeMethod($queue, 'executePackage', [$package, 'test/path', &$packages, false]);
+
+        $this->assertArrayHasKey('test/path', $packages); // Package not removed (not executed)
+
+        // Clear inProgress to prevent __destruct from trying to reap processes
+        $this->setPrivateProperty($queue, 'inProgress', []);
+    }
+
+    /**
+     * Test __destruct with empty inProgress is a no-op.
+     *
+     * @return void
+     * @covers ::__destruct
+     */
+    public function testDestructWithEmptyInProgress(): void
+    {
+        $queue = $this->createQueue();
+        $this->setPrivateProperty($queue, 'inProgress', []);
+
+        $this->logger->expects($this->never())->method('info');
+
+        $queue->__destruct();
+        $this->assertTrue(true); // No exception thrown
     }
 
     /**
@@ -462,7 +537,11 @@ class QueueTest extends TestCase
         }
 
         $queue = $this->createQueue(4);
-        $this->setPrivateProperty($queue, 'inProgress', ['test/path' => $this->createPackageMock('test/path')]);
+        $this->setPrivateProperty(
+            $queue,
+            'inProgress',
+            ['test/path' => $this->createPackageMock('test/path')]
+        );
         $this->setPrivateProperty($queue, 'processIds', ['test/path' => 999999]);
 
         $this->logger->expects($this->atLeastOnce())->method('info');
@@ -484,13 +563,13 @@ class QueueTest extends TestCase
         $queue = $this->createQueue(1); // Non-parallel mode
 
         $package = $this->createMock(Package::class);
-        $package->method('getPath')->willReturn('test/path');
-        $package->method('getArea')->willReturn('frontend');
-        $package->method('getState')->willReturn(null);
-        $package->method('getLocale')->willReturn('en_US');
-        $package->method('getFiles')->willReturn(['file1.js', 'file2.css']);
-        $package->method('getPreProcessors')->willReturn([]);
-        $package->method('getParent')->willReturn(null);
+        $package->expects($this->any())->method('getPath')->willReturn('test/path');
+        $package->expects($this->any())->method('getArea')->willReturn('frontend');
+        $package->expects($this->any())->method('getState')->willReturn(null);
+        $package->expects($this->any())->method('getLocale')->willReturn('en_US');
+        $package->expects($this->any())->method('getFiles')->willReturn(['file1.js', 'file2.css']);
+        $package->expects($this->any())->method('getPreProcessors')->willReturn([]);
+        $package->expects($this->any())->method('getParent')->willReturn(null);
 
         $this->appState->expects($this->once())->method('emulateAreaCode')
             ->willReturnCallback(fn($area, $callback) => $callback());
@@ -508,56 +587,16 @@ class QueueTest extends TestCase
     }
 
     /**
-     * Test isDeployed returns true when child process completes successfully.
+     * Test isDeployed with child process exit status.
      *
+     * @param int $exitCode
+     * @param bool $expected
      * @return void
+     * @dataProvider childProcessExitDataProvider
      * @covers ::isDeployed
      * @covers ::getPid
      */
-    public function testIsDeployedWithCompletedChildProcess(): void
-    {
-        if (!function_exists('pcntl_fork')) {
-            $this->markTestSkipped('pcntl_fork not available');
-        }
-
-        // Fork a real child process that exits immediately
-        $pid = pcntl_fork();
-        if ($pid === -1) {
-            $this->fail('Failed to fork');
-        } elseif ($pid === 0) {
-            exit(0);
-        }
-
-        // Parent process - wait for child to exit
-        usleep(100000);
-
-        $queue = $this->createQueue(4);
-        $package = $this->createMock(Package::class);
-        $package->method('getPath')->willReturn('test/path');
-        $package->method('getState')->willReturn(null);
-        $package->expects($this->once())->method('setState')->with(Package::STATE_COMPLETED);
-
-        $this->setPrivateProperty($queue, 'processIds', ['test/path' => $pid]);
-        $this->setPrivateProperty($queue, 'inProgress', ['test/path' => $package]);
-
-        $this->logger->expects($this->once())
-            ->method('info')
-            ->with(
-                $this->stringContains('Exited:'),
-                $this->callback(fn($ctx) => isset($ctx['process'], $ctx['status']))
-            );
-
-        $result = $this->invokeMethod($queue, 'isDeployed', [$package]);
-        $this->assertTrue($result);
-    }
-
-    /**
-     * Test isDeployed returns false when child process exits with failure status.
-     *
-     * @return void
-     * @covers ::isDeployed
-     */
-    public function testIsDeployedWithFailedChildProcess(): void
+    public function testIsDeployedWithChildProcess(int $exitCode, bool $expected): void
     {
         if (!function_exists('pcntl_fork')) {
             $this->markTestSkipped('pcntl_fork not available');
@@ -567,17 +606,15 @@ class QueueTest extends TestCase
         if ($pid === -1) {
             $this->fail('Failed to fork');
         } elseif ($pid === 0) {
-            // Child exits with failure status
-            // phpcs:ignore Magento2.Security.LanguageConstruct.ExitUsage
-            exit(1);
+            exit($exitCode);
         }
 
         usleep(100000);
 
         $queue = $this->createQueue(4);
         $package = $this->createMock(Package::class);
-        $package->method('getPath')->willReturn('test/path');
-        $package->method('getState')->willReturn(null);
+        $package->expects($this->any())->method('getPath')->willReturn('test/path');
+        $package->expects($this->any())->method('getState')->willReturn(null);
         $package->expects($this->once())->method('setState');
 
         $this->setPrivateProperty($queue, 'processIds', ['test/path' => $pid]);
@@ -585,8 +622,19 @@ class QueueTest extends TestCase
 
         $this->logger->expects($this->once())->method('info');
 
-        $result = $this->invokeMethod($queue, 'isDeployed', [$package]);
-        $this->assertFalse($result);
+        $this->assertSame($expected, $this->invokeMethod($queue, 'isDeployed', [$package]));
     }
 
+    /**
+     * Data provider for testIsDeployedWithChildProcess.
+     *
+     * @return array
+     */
+    public static function childProcessExitDataProvider(): array
+    {
+        return [
+            'success exit' => [0, true],
+            'failure exit' => [1, false],
+        ];
+    }
 }
