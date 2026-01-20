@@ -80,7 +80,7 @@ class DataFixtureTest extends TestCase
             ->getMock();
         /** @var ObjectManagerInterface|MockObject $objectManager */
         $objectManager = $this->getMockBuilder(ObjectManagerInterface::class)
-            ->onlyMethods(['get', 'create'])
+            ->onlyMethods(['get', 'create', 'configure'])
             ->disableOriginalConstructor()
             ->getMock();
 
