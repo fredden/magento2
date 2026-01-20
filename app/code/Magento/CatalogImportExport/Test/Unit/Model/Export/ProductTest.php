@@ -177,21 +177,7 @@ class ProductTest extends TestCase
         $this->logger = $this->createMock(Monolog::class);
 
         $this->collection = $this->createMock(\Magento\Catalog\Model\ResourceModel\Product\CollectionFactory::class);
-        $this->abstractCollection = $this->createMock(
-            AbstractCollection::class,
-            [],
-            '',
-            false,
-            true,
-            true,
-            [
-                'count',
-                'setOrder',
-                'setStoreId',
-                'getCurPage',
-                'getLastPageNumber',
-            ]
-        );
+        $this->abstractCollection = $this->createMock(AbstractCollection::class);
         $this->exportConfig = $this->createMock(\Magento\ImportExport\Model\Export\Config::class);
 
         // Create Product ResourceModel mock

@@ -359,7 +359,7 @@ class RowCustomizer implements RowCustomizerInterface
      */
     protected function getTypeValue($type)
     {
-        $type = $type ?? '';
+        $type = (string)$type;
         return $this->typeMapping[$type] ?? self::VALUE_DYNAMIC;
     }
 
@@ -371,7 +371,7 @@ class RowCustomizer implements RowCustomizerInterface
      */
     protected function getPriceViewValue($type)
     {
-        $type = $type ?? '';
+        $type = (string)$type;
         return $this->priceViewMapping[$type] ?? self::VALUE_PRICE_RANGE;
     }
 
@@ -383,7 +383,7 @@ class RowCustomizer implements RowCustomizerInterface
      */
     protected function getPriceTypeValue($type)
     {
-        $type = $type ?? '';
+        $type = (string)$type;
         return $this->priceTypeMapping[$type] ?? null;
     }
 
@@ -395,7 +395,7 @@ class RowCustomizer implements RowCustomizerInterface
      */
     private function getShipmentTypeValue($type)
     {
-        $type = $type ?? '';
+        $type = (string)$type;
         return $this->shipmentTypeMapping[$type] ?? null;
     }
 

@@ -147,7 +147,7 @@ class Type implements OptionSourceInterface, ResetAfterRequestInterface
      */
     public function priceFactory($productType)
     {
-        $productType = $productType ?? '';
+        $productType = (string)$productType;
         if (isset($this->_priceModels[$productType])) {
             return $this->_priceModels[$productType];
         }

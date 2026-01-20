@@ -41,7 +41,7 @@ class AddressRegistry implements ResetAfterRequestInterface
      */
     public function retrieve($addressId)
     {
-        $registryKey = $addressId ?? '';
+        $registryKey = (string)$addressId;
         if (isset($this->registry[$registryKey])) {
             return $this->registry[$registryKey];
         }

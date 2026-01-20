@@ -175,7 +175,7 @@ class ColumnFactory
      */
     protected function getFilterType($frontendInput)
     {
-        $frontendInput = $frontendInput ?? '';
+        $frontendInput = (string)$frontendInput;
         $filtersMap = ['date' => 'dateRange', 'datetime' => 'dateRange'];
         $result = array_replace_recursive($this->dataTypeMap, $filtersMap);
 

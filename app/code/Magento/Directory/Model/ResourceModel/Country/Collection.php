@@ -204,7 +204,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
                 if (is_array($iso)) {
                     $whereOr = [];
                     foreach ($iso as $iso_curr) {
-                        $whereOr[] .= $this->_getConditionSql("{$iso_curr}_code", ['in' => $countryCode]);
+                            $whereOr[] = $this->_getConditionSql("{$iso_curr}_code", ['in' => $countryCode]);
                     }
                     $this->_select->where('(' . implode(') OR (', $whereOr) . ')');
                 } else {
@@ -214,7 +214,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
                 if (is_array($iso)) {
                     $whereOr = [];
                     foreach ($iso as $iso_curr) {
-                        $whereOr[] .= $this->_getConditionSql("{$iso_curr}_code", $countryCode);
+                            $whereOr[] = $this->_getConditionSql("{$iso_curr}_code", $countryCode);
                     }
                     $this->_select->where('(' . implode(') OR (', $whereOr) . ')');
                 } else {

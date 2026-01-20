@@ -288,8 +288,8 @@ class Config implements ResetAfterRequestInterface
         } else {
             $websiteId = 0;
         }
-        $entityTypeCode = $entityTypeCode ?? '';
-        $attributeCode = $attributeCode ?? '';
+        $entityTypeCode = (string)$entityTypeCode;
+        $attributeCode = (string)$attributeCode;
         $this->attributes[$websiteId][$entityTypeCode][$attributeCode] = $attribute;
     }
 
@@ -328,8 +328,8 @@ class Config implements ResetAfterRequestInterface
      */
     protected function _addAttributeReference($id, $code, $entityTypeCode)
     {
-        $entityTypeCode = $entityTypeCode ?? '';
-        $id = $id ?? '';
+        $entityTypeCode = (string)$entityTypeCode;
+        $id = (string)$id;
         $this->_references['attribute'][$entityTypeCode][$id] = $code;
         return $this;
     }

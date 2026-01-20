@@ -881,7 +881,7 @@ class Configurable extends \Magento\Catalog\Model\Product\Type\AbstractType impl
         }
 
         $sku = $product->getSku();
-        $cacheKey = $storeId ?? 0;
+        $cacheKey = $storeId === null ? 0 : $storeId;
         if (isset($this->isSaleableBySku[$cacheKey][$sku])) {
             return $this->isSaleableBySku[$cacheKey][$sku];
         }
