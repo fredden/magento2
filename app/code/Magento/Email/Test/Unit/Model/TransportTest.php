@@ -32,24 +32,32 @@ use Symfony\Component\Mime\Message as SymfonyMessage;
 class TransportTest extends TestCase
 {
     /**
-     * @var LoggerInterface&MockObject
+     * Logger mock instance.
+     *
+     * @var LoggerInterface|MockObject
      */
-    private LoggerInterface&MockObject $loggerMock;
+    private $loggerMock;
 
     /**
-     * @var SymfonyMessage&MockObject
+     * Symfony message mock instance.
+     *
+     * @var SymfonyMessage|MockObject
      */
-    private SymfonyMessage&MockObject $symfonyMessageMock;
+    private $symfonyMessageMock;
 
     /**
-     * @var EmailMessage&MockObject
+     * Email message mock instance.
+     *
+     * @var EmailMessage|MockObject
      */
-    private EmailMessage&MockObject $emailMessageMock;
+    private $emailMessageMock;
 
     /**
+     * Transport instance under test.
+     *
      * @var Transport
      */
-    private Transport $transport;
+    private $transport;
 
     /**
      * @inheritdoc
@@ -288,15 +296,16 @@ class TransportTest extends TestCase
                 ['host' => 'smtp.example.com', 'port' => '587', 'username' => null, 'password' => null],
         ];
 
+        $edgeCaseDefaults = [
+            'host' => 'smtp.example.com',
+            'port' => '587',
+            'username' => 'user@example.com',
+            'password' => 'password',
+            'ssl' => '',
+            'auth' => 'none',
+        ];
         foreach ($edgeCases as $name => $overrides) {
-            $configs[$name] = array_merge([
-                'host' => 'smtp.example.com',
-                'port' => '587',
-                'username' => 'user@example.com',
-                'password' => 'password',
-                'ssl' => '',
-                'auth' => 'none',
-            ], $overrides);
+            $configs[$name] = [...$edgeCaseDefaults, ...$overrides];
         }
 
         return $configs;
