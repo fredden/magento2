@@ -31,30 +31,10 @@ use Symfony\Component\Mime\Message as SymfonyMessage;
  */
 class TransportTest extends TestCase
 {
-    /**
-     * @var LoggerInterface&MockObject
-     */
-    private $loggerMock;
-
-    /**
-     * @var SymfonyMessage&MockObject
-     */
-    private $symfonyMessageMock;
-
-    /**
-     * @var EmailMessage&MockObject
-     */
-    private $emailMessageMock;
-
-    /**
-     * @var Transport
-     */
-    private $transport;
-
-    /**
-     * @var ScopeConfigInterface&MockObject
-     */
-    private $scopeConfigMock;
+    private LoggerInterface&MockObject $loggerMock;
+    private SymfonyMessage&MockObject $symfonyMessageMock;
+    private EmailMessage&MockObject $emailMessageMock;
+    private Transport $transport;
 
     /**
      * @inheritdoc
@@ -63,7 +43,6 @@ class TransportTest extends TestCase
     protected function setUp(): void
     {
         $this->loggerMock = $this->createMock(LoggerInterface::class);
-        $this->scopeConfigMock = $this->createMock(ScopeConfigInterface::class);
         $this->symfonyMessageMock = $this->createMock(SymfonyMessage::class);
         $this->symfonyMessageMock->expects($this->any())
             ->method('getHeaders')
@@ -77,18 +56,27 @@ class TransportTest extends TestCase
 
         $this->transport = new Transport(
             $this->emailMessageMock,
-            $this->scopeConfigMock,
+            $this->createMock(ScopeConfigInterface::class),
             $this->loggerMock
         );
     }
 
     /**
-     * Create a scope config mock with the given configuration values.
-     *
-     * @param array $config
-     * @return ScopeConfigInterface&MockObject
+     * Create a test email with standard test data.
      */
-    private function createScopeConfigMock(array $config): ScopeConfigInterface
+    private function createTestEmail(?string $fromEmail = 'sender@example.com'): Email
+    {
+        $email = new Email();
+        if ($fromEmail) {
+            $email->from($fromEmail);
+        }
+        return $email->to('recipient@example.com')->subject('Test')->text('Test body');
+    }
+
+    /**
+     * Create Transport with given config overrides.
+     */
+    private function createTransport(array $config = []): Transport
     {
         $defaults = [
             Transport::XML_PATH_SENDING_SET_RETURN_PATH => '0',
@@ -103,39 +91,45 @@ class TransportTest extends TestCase
         ];
         $config = array_merge($defaults, $config);
 
-        $mock = $this->createMock(ScopeConfigInterface::class);
-        $mock->expects($this->atLeastOnce())
+        $scopeConfig = $this->createMock(ScopeConfigInterface::class);
+        $scopeConfig->expects($this->atLeastOnce())
             ->method('getValue')
             ->willReturnCallback(fn($path) => $config[$path] ?? null);
 
-        return $mock;
+        return new Transport($this->createMock(EmailMessage::class), $scopeConfig, $this->loggerMock);
     }
 
     /**
-     * Verify exception is properly handled in case one occurred when message sent.
+     * Verify exception is properly handled when message sent fails.
      *
-     * @return void
-     * @throws Exception
-     * @throws \ReflectionException
+     * @covers ::sendMessage
      */
     public function testSendMessageBrokenMessage(): void
     {
         $exception = new RfcComplianceException('Email "" does not comply with addr-spec of RFC 2822.');
         $this->loggerMock->expects(self::once())->method('error')->with($exception);
-        $this->expectException('Magento\Framework\Exception\MailException');
+        $this->expectException(MailException::class);
         $this->expectExceptionMessage('Unable to send mail. Please try again later.');
 
         $this->transport->sendMessage();
     }
 
     /**
+     * Data provider for setReturnPath tests.
+     */
+    public static function setReturnPathDataProvider(): array
+    {
+        return [
+            'custom return path (mode=2)' => ['2', 'return@example.com', 'sender@example.com', 'return@example.com'],
+            'from address (mode=1)' => ['1', null, 'sender@example.com', 'sender@example.com'],
+            'no sender (mode=1, no from)' => ['1', null, null, null],
+            'disabled (mode=0)' => ['0', null, 'sender@example.com', null],
+        ];
+    }
+
+    /**
      * Test setReturnPath behavior with various configurations.
      *
-     * @param string $isSetReturnPath
-     * @param string|null $returnPathEmail
-     * @param string|null $fromEmail
-     * @param string|null $expectedSender
-     * @return void
      * @dataProvider setReturnPathDataProvider
      * @covers ::setReturnPath
      */
@@ -145,16 +139,10 @@ class TransportTest extends TestCase
         ?string $fromEmail,
         ?string $expectedSender
     ): void {
-        $email = new Email();
-        if ($fromEmail) {
-            $email->from($fromEmail);
-        }
-        $email->to('recipient@example.com');
-        $email->subject('Test');
-        $email->text('Test body');
+        $email = $this->createTestEmail($fromEmail);
 
-        $scopeConfigMock = $this->createMock(ScopeConfigInterface::class);
-        $scopeConfigMock->expects($this->exactly(2))
+        $scopeConfig = $this->createMock(ScopeConfigInterface::class);
+        $scopeConfig->expects($this->exactly(2))
             ->method('getValue')
             ->willReturnCallback(fn($path) => match ($path) {
                 Transport::XML_PATH_SENDING_SET_RETURN_PATH => $isSetReturnPath,
@@ -162,19 +150,11 @@ class TransportTest extends TestCase
                 default => null
             });
 
-        $transport = new Transport(
-            $this->createMock(EmailMessage::class),
-            $scopeConfigMock,
-            $this->loggerMock
-        );
-
-        $reflection = new \ReflectionClass($transport);
-        $method = $reflection->getMethod('setReturnPath');
-        $method->setAccessible(true);
+        $transport = new Transport($this->createMock(EmailMessage::class), $scopeConfig, $this->loggerMock);
+        $method = (new \ReflectionClass($transport))->getMethod('setReturnPath');
         $method->invoke($transport, $email);
 
         $senderHeader = $email->getHeaders()->get('Sender');
-
         if ($expectedSender === null) {
             $this->assertNull($senderHeader, 'Sender header should not be set');
         } else {
@@ -184,81 +164,26 @@ class TransportTest extends TestCase
     }
 
     /**
-     * Data provider for setReturnPath tests.
-     *
-     * @return array
-     */
-    public static function setReturnPathDataProvider(): array
-    {
-        return [
-            'custom return path when isSetReturnPath is 2' => [
-                'isSetReturnPath' => '2',
-                'returnPathEmail' => 'return@example.com',
-                'fromEmail' => 'sender@example.com',
-                'expectedSender' => 'return@example.com',
-            ],
-            'from address when isSetReturnPath is 1' => [
-                'isSetReturnPath' => '1',
-                'returnPathEmail' => null,
-                'fromEmail' => 'sender@example.com',
-                'expectedSender' => 'sender@example.com',
-            ],
-            'no sender when isSetReturnPath is 1 but from is empty' => [
-                'isSetReturnPath' => '1',
-                'returnPathEmail' => null,
-                'fromEmail' => null,
-                'expectedSender' => null,
-            ],
-            'no sender when isSetReturnPath is 0' => [
-                'isSetReturnPath' => '0',
-                'returnPathEmail' => null,
-                'fromEmail' => 'sender@example.com',
-                'expectedSender' => null,
-            ],
-        ];
-    }
-
-    /**
-     * Test getMessage returns the injected email message.
-     *
-     * @return void
      * @covers ::getMessage
      */
     public function testGetMessageReturnsEmailMessage(): void
     {
         $this->assertInstanceOf(EmailMessageInterface::class, $this->transport->getMessage());
-        $this->assertSame($this->emailMessageMock, $this->transport->getMessage());
     }
 
     /**
-     * Data provider for getTransport tests.
-     *
-     * @return array
+     * Data provider for transport type tests.
      */
     public static function transportTypeDataProvider(): array
     {
         return [
-            'SMTP transport' => [
-                'transportType' => 'smtp',
-                'expectedClass' => EsmtpTransport::class,
-            ],
-            'Sendmail transport' => [
-                'transportType' => 'sendmail',
-                'expectedClass' => SymfonyTransportInterface::class,
-            ],
-            'Null transport defaults to Sendmail' => [
-                'transportType' => null,
-                'expectedClass' => SymfonyTransportInterface::class,
-            ],
+            'SMTP' => ['smtp', EsmtpTransport::class],
+            'Sendmail' => ['sendmail', SymfonyTransportInterface::class],
+            'Null defaults to Sendmail' => [null, SymfonyTransportInterface::class],
         ];
     }
 
     /**
-     * Test getTransport returns correct transport type based on configuration.
-     *
-     * @param string|null $transportType
-     * @param string $expectedClass
-     * @return void
      * @dataProvider transportTypeDataProvider
      * @covers ::getTransport
      * @covers ::createSmtpTransport
@@ -266,140 +191,175 @@ class TransportTest extends TestCase
      */
     public function testGetTransportReturnsCorrectType(?string $transportType, string $expectedClass): void
     {
-        $transport = new Transport(
-            $this->createMock(EmailMessage::class),
-            $this->createScopeConfigMock(['system/smtp/transport' => $transportType]),
-            $this->loggerMock
-        );
-        $this->assertInstanceOf($expectedClass, $transport->getTransport());
+        $this->assertInstanceOf($expectedClass, $this->createTransport([
+            'system/smtp/transport' => $transportType
+        ])->getTransport());
     }
 
     /**
-     * Test getTransport caches the transport instance.
-     *
-     * @return void
      * @covers ::getTransport
-     * @covers ::createSendmailTransport
      */
     public function testGetTransportCachesTransportInstance(): void
     {
-        $transport = new Transport(
-            $this->createMock(EmailMessage::class),
-            $this->createScopeConfigMock([]),
-            $this->loggerMock
-        );
-
+        $transport = $this->createTransport();
         $this->assertSame($transport->getTransport(), $transport->getTransport());
     }
 
     /**
-     * Data provider for createSmtpTransport configuration tests.
-     *
-     * @return array
+     * Data provider for all SMTP configurations (SSL + auth combinations and edge cases).
      */
     public static function smtpConfigDataProvider(): array
     {
-        return [
-            'TLS + login' => ['ssl' => 'tls', 'auth' => 'login'],
-            'TLS + plain' => ['ssl' => 'tls', 'auth' => 'plain'],
-            'TLS + none' => ['ssl' => 'tls', 'auth' => 'none'],
-            'SSL + login' => ['ssl' => 'ssl', 'auth' => 'login'],
-            'SSL + plain' => ['ssl' => 'ssl', 'auth' => 'plain'],
-            'SSL + none' => ['ssl' => 'ssl', 'auth' => 'none'],
-            'No SSL + login' => ['ssl' => '', 'auth' => 'login'],
-            'No SSL + plain' => ['ssl' => '', 'auth' => 'plain'],
-            'No SSL + none' => ['ssl' => '', 'auth' => 'none'],
-            'Null SSL + none' => ['ssl' => null, 'auth' => 'none'],
+        $configs = [];
+
+        // SSL + auth combinations
+        foreach (['tls', 'ssl', '', null] as $ssl) {
+            foreach (['login', 'plain', 'none'] as $auth) {
+                $sslLabel = $ssl === null ? 'null' : ($ssl ?: 'none');
+                $configs["SSL={$sslLabel}, auth={$auth}"] = [
+                    'host' => 'smtp.example.com',
+                    'port' => '587',
+                    'username' => 'user@example.com',
+                    'password' => 'password',
+                    'ssl' => $ssl,
+                    'auth' => $auth,
+                ];
+            }
+        }
+
+        // Edge cases
+        $edgeCases = [
+            'empty host' => ['host' => '', 'port' => '587'],
+            'zero port' => ['host' => 'smtp.example.com', 'port' => '0'],
+            'empty port' => ['host' => 'smtp.example.com', 'port' => ''],
+            'null port' => ['host' => 'smtp.example.com', 'port' => null],
+            'empty username' => ['host' => 'smtp.example.com', 'port' => '587', 'username' => ''],
+            'null username' => ['host' => 'smtp.example.com', 'port' => '587', 'username' => null],
+            'empty password' => ['host' => 'smtp.example.com', 'port' => '587', 'password' => ''],
+            'null password' => ['host' => 'smtp.example.com', 'port' => '587', 'password' => null],
+            'all credentials empty' =>
+                ['host' => 'smtp.example.com', 'port' => '587', 'username' => '', 'password' => ''],
+            'all credentials null' =>
+                ['host' => 'smtp.example.com', 'port' => '587', 'username' => null, 'password' => null],
         ];
+
+        foreach ($edgeCases as $name => $overrides) {
+            $configs[$name] = array_merge([
+                'host' => 'smtp.example.com',
+                'port' => '587',
+                'username' => 'user@example.com',
+                'password' => 'password',
+                'ssl' => '',
+                'auth' => 'none',
+            ], $overrides);
+        }
+
+        return $configs;
     }
 
     /**
-     * Test createSmtpTransport with various SSL and auth configurations.
-     *
-     * @param string|null $ssl
-     * @param string $auth
-     * @return void
      * @dataProvider smtpConfigDataProvider
      * @covers ::getTransport
      * @covers ::createSmtpTransport
      */
-    public function testCreateSmtpTransport(?string $ssl, string $auth): void
-    {
-        $transport = new Transport(
-            $this->createMock(EmailMessage::class),
-            $this->createScopeConfigMock([
-                'system/smtp/transport' => 'smtp',
-                'system/smtp/ssl' => $ssl,
-                'system/smtp/auth' => $auth,
-            ]),
-            $this->loggerMock
-        );
-
-        $this->assertInstanceOf(EsmtpTransport::class, $transport->getTransport());
+    public function testCreateSmtpTransport(
+        string $host,
+        ?string $port,
+        ?string $username,
+        ?string $password,
+        ?string $ssl,
+        string $auth
+    ): void {
+        $this->assertInstanceOf(EsmtpTransport::class, $this->createTransport([
+            'system/smtp/transport' => 'smtp',
+            'system/smtp/host' => $host,
+            'system/smtp/port' => $port,
+            'system/smtp/username' => $username,
+            'system/smtp/password' => $password,
+            'system/smtp/ssl' => $ssl,
+            'system/smtp/auth' => $auth,
+        ])->getTransport());
     }
 
     /**
-     * Test createSmtpTransport throws exception for invalid auth type.
-     *
-     * @return void
+     * Data provider for SMTP exception scenarios.
+     */
+    public static function smtpExceptionDataProvider(): array
+    {
+        return [
+            'null host' => [
+                ['system/smtp/host' => null, 'system/smtp/auth' => 'none'],
+                \TypeError::class,
+                null,
+            ],
+            'invalid auth' => [
+                ['system/smtp/auth' => 'invalid_auth_type'],
+                \InvalidArgumentException::class,
+                'Invalid authentication type: invalid_auth_type',
+            ],
+            'null auth' => [
+                ['system/smtp/auth' => null],
+                \InvalidArgumentException::class,
+                'Invalid authentication type:',
+            ],
+            'empty auth' => [
+                ['system/smtp/auth' => ''],
+                \InvalidArgumentException::class,
+                'Invalid authentication type:',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider smtpExceptionDataProvider
      * @covers ::getTransport
      * @covers ::createSmtpTransport
      */
-    public function testCreateSmtpTransportThrowsExceptionForInvalidAuth(): void
-    {
-        $transport = new Transport(
-            $this->createMock(EmailMessage::class),
-            $this->createScopeConfigMock([
-                'system/smtp/transport' => 'smtp',
-                'system/smtp/auth' => 'invalid_auth_type',
-            ]),
-            $this->loggerMock
-        );
+    public function testCreateSmtpTransportThrowsException(
+        array $config,
+        string $expectedException,
+        ?string $expectedMessage
+    ): void {
+        $this->expectException($expectedException);
+        if ($expectedMessage) {
+            $this->expectExceptionMessage($expectedMessage);
+        }
 
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid authentication type: invalid_auth_type');
-
-        $transport->getTransport();
+        $this->createTransport(array_merge(['system/smtp/transport' => 'smtp'], $config))->getTransport();
     }
 
     /**
-     * Test sendMessage logs transport exception and throws MailException.
-     *
-     * @return void
      * @covers ::sendMessage
      */
     public function testSendMessageLogsTransportExceptionAndThrowsMailException(): void
     {
-        $email = new Email();
-        $email->from('sender@example.com');
-        $email->to('recipient@example.com');
-        $email->subject('Test');
-        $email->text('Test body');
-
         $emailMessageMock = $this->createMock(EmailMessage::class);
         $emailMessageMock->expects($this->once())
             ->method('getSymfonyMessage')
-            ->willReturn($email);
+            ->willReturn($this->createTestEmail());
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $loggerMock->expects($this->once())
             ->method('error')
-            ->with($this->stringContains(''));
+            ->with($this->stringContains('Transport error while sending email:'));
 
-        $transport = new Transport(
-            $emailMessageMock,
-            $this->createScopeConfigMock([
+        $scopeConfig = $this->createMock(ScopeConfigInterface::class);
+        $scopeConfig->expects($this->atLeastOnce())
+            ->method('getValue')
+            ->willReturnCallback(fn($path) => match ($path) {
                 'system/smtp/transport' => 'smtp',
                 'system/smtp/host' => 'invalid.host.example',
-                'system/smtp/username' => '',
-                'system/smtp/password' => '',
+                'system/smtp/port' => '587',
                 'system/smtp/auth' => 'none',
                 'system/smtp/ssl' => '',
-            ]),
-            $loggerMock
-        );
+                Transport::XML_PATH_SENDING_SET_RETURN_PATH => '0',
+                default => null
+            });
+
+        $transport = new Transport($emailMessageMock, $scopeConfig, $loggerMock);
 
         $this->expectException(MailException::class);
+        $this->expectExceptionMessage('Transport error: Unable to send mail at this time.');
 
         $transport->sendMessage();
     }
