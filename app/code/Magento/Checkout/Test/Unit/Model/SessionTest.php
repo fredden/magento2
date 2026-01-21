@@ -33,6 +33,7 @@ use Psr\Log\LoggerInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Customer\Model\Session as SessionModel;
 
 /**
  * Test class for \Magento\Checkout\Model\Session
@@ -520,7 +521,7 @@ class SessionTest extends TestCase
         $existingCustomerId = 1;
         $currentCustomerId = 2;
         $storeManager = $this->createMock(StoreManagerInterface::class);
-        $customerSession = $this->createMock(\Magento\Customer\Model\Session::class);
+        $customerSession = $this->createMock(SessionModel::class);
         $quoteRepository = $this->createMock(CartRepositoryInterface::class);
         $quoteFactory = $this->createMock(QuoteFactory::class);
         $customerRepository = $this->createMock(CustomerRepositoryInterface::class);
@@ -603,7 +604,7 @@ class SessionTest extends TestCase
      *
      * @return MockObject|Quote
      */
-    private function createNewQuoteMock(): MockObject
+    private function createNewQuoteMock(): MockObject|Quote
     {
         $newQuote = $this->getMockBuilder(Quote::class)
             ->disableOriginalConstructor()
@@ -630,7 +631,7 @@ class SessionTest extends TestCase
      *
      * @return MockObject|Store
      */
-    private function createStoreMock(): MockObject
+    private function createStoreMock(): MockObject|Store
     {
         $store = $this->getMockBuilder(Store::class)
             ->disableOriginalConstructor()
@@ -646,7 +647,7 @@ class SessionTest extends TestCase
      * @param int $quoteId
      * @return MockObject|Storage
      */
-    private function createStorageMock(int $quoteId): MockObject
+    private function createStorageMock(int $quoteId): MockObject|Storage
     {
         $storage = $this->getMockBuilder(Storage::class)
             ->disableOriginalConstructor()
