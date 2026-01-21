@@ -13,7 +13,6 @@
         "magento/module-sales": "*",
         "magento/module-store": "*",
         "magento/module-authorization": "*",
-        "magento/magento-zf-captcha": "^1.0",
         "php-db/phpdb": "^0.4"
     },
     "type": "magento2-module",

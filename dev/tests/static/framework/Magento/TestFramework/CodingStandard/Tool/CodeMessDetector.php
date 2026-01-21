@@ -10,7 +10,6 @@
 namespace Magento\TestFramework\CodingStandard\Tool;
 
 use \Magento\TestFramework\CodingStandard\ToolInterface;
-use Magento\TestFramework\CodingStandard\Tool\CodeMessOutput;
 
 class CodeMessDetector implements ToolInterface
 {
@@ -55,7 +54,8 @@ class CodeMessDetector implements ToolInterface
             return class_exists(\PHPMD\TextUI\ExitCode::class) ? \PHPMD\TextUI\ExitCode::Success : 0;
         }
 
-        $command = new \PHPMD\TextUI\Command(new CodeMessOutput());
+        // Instantiate PHPMD command without passing OutputInterface per Symfony 7 command signature
+        $command = new \PHPMD\TextUI\Command();
         $input = new \Symfony\Component\Console\Input\ArrayInput(
             [
                 'input' => implode(',', $whiteList),
