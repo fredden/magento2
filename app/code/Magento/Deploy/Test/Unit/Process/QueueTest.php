@@ -404,7 +404,7 @@ class QueueTest extends TestCase
         $queue = $this->createQueue();
         $package = $this->createMock(Package::class);
         $package->expects($this->any())->method('getPath')->willReturn('self/path');
-        $package->expects($this->any())->method('getParent')->willReturn($package); // Parent equals self
+        $package->expects($this->any())->method('getParent')->willReturn($package);
         $package->expects($this->any())->method('getState')->willReturn(null);
         $package->expects($this->any())->method('getArea')->willReturn('frontend');
         $package->expects($this->any())->method('getLocale')->willReturn('en_US');
@@ -590,7 +590,11 @@ class QueueTest extends TestCase
         $package->expects($this->any())->method('getParent')->willReturn(null);
 
         $this->appState->expects($this->once())->method('emulateAreaCode')
-            ->willReturnCallback(fn($_area, $callback) => $callback());
+            ->with('frontend', $this->isType('callable'))
+            ->willReturnCallback(static function (string $area, callable $callback): mixed {
+                assert($area === 'frontend');
+                return $callback();
+            });
 
         $this->localeResolver->expects($this->once())->method('setLocale')->with('en_US');
 
