@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace Magento\Captcha\Model\ResourceModel;
 
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Http\PhpEnvironment\RemoteAddress;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Framework\Model\ResourceModel\Db\Context;
 use Magento\Framework\Stdlib\DateTime\DateTime;
