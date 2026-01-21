@@ -592,7 +592,7 @@ class QueueTest extends TestCase
         $this->appState->expects($this->once())->method('emulateAreaCode')
             ->with('frontend', $this->isType('callable'))
             ->willReturnCallback(static function (string $area, callable $callback): mixed {
-                assert($area === 'frontend');
+                unset($area);
                 return $callback();
             });
 
