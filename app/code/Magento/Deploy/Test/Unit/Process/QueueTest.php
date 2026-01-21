@@ -26,29 +26,39 @@ use Psr\Log\LoggerInterface;
 class QueueTest extends TestCase
 {
     /**
-     * @var AppState&MockObject
+     * App state mock.
+     *
+     * @var AppState|MockObject
      */
-    private AppState&MockObject $appState;
+    private $appState;
 
     /**
-     * @var LocaleResolver&MockObject
+     * Locale resolver mock.
+     *
+     * @var LocaleResolver|MockObject
      */
-    private LocaleResolver&MockObject $localeResolver;
+    private $localeResolver;
 
     /**
-     * @var ResourceConnection&MockObject
+     * Resource connection mock.
+     *
+     * @var ResourceConnection|MockObject
      */
-    private ResourceConnection&MockObject $resourceConnection;
+    private $resourceConnection;
 
     /**
-     * @var LoggerInterface&MockObject
+     * Logger mock.
+     *
+     * @var LoggerInterface|MockObject
      */
-    private LoggerInterface&MockObject $logger;
+    private $logger;
 
     /**
-     * @var DeployPackage&MockObject
+     * Deploy package service mock.
+     *
+     * @var DeployPackage|MockObject
      */
-    private DeployPackage&MockObject $deployPackageService;
+    private $deployPackageService;
 
     /**
      * Set up test fixtures.
@@ -546,10 +556,18 @@ class QueueTest extends TestCase
 
         $this->logger->expects($this->atLeastOnce())->method('info');
 
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Error encountered waiting for child process');
+        $exceptionThrown = false;
+        try {
+            $queue->__destruct();
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('Error encountered waiting for child process', $e->getMessage());
+            $exceptionThrown = true;
+        } finally {
+            // Clear inProgress to prevent double destruct
+            $this->setPrivateProperty($queue, 'inProgress', []);
+        }
 
-        $queue->__destruct();
+        $this->assertTrue($exceptionThrown, 'Expected RuntimeException was not thrown');
     }
 
     /**
@@ -572,7 +590,7 @@ class QueueTest extends TestCase
         $package->expects($this->any())->method('getParent')->willReturn(null);
 
         $this->appState->expects($this->once())->method('emulateAreaCode')
-            ->willReturnCallback(fn($area, $callback) => $callback());
+            ->willReturnCallback(fn($_area, $callback) => $callback());
 
         $this->localeResolver->expects($this->once())->method('setLocale')->with('en_US');
 
@@ -606,6 +624,7 @@ class QueueTest extends TestCase
         if ($pid === -1) {
             $this->fail('Failed to fork');
         } elseif ($pid === 0) {
+            // phpcs:ignore Magento2.Security.LanguageConstruct.ExitUsage
             exit($exitCode);
         }
 
