@@ -62,16 +62,8 @@ class Set extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      */
     protected function _afterSave(\Magento\Framework\Model\AbstractModel $object)
     {
-        if ($object->getGroups()) {
-            /* @var $group \Magento\Eav\Model\Entity\Attribute\Group */
-            foreach ($object->getGroups() as $group) {
-                $group->setAttributeSetId($object->getId());
-                if ($group->itemExists() && !$group->getId()) {
-                    continue;
-                }
-                $group->save();
-            }
-        }
+        $this->saveAttributeGroups($object);
+        
         if ($object->getRemoveGroups()) {
             foreach ($object->getRemoveGroups() as $group) {
                 /* @var $group \Magento\Eav\Model\Entity\Attribute\Group */
@@ -86,12 +78,43 @@ class Set extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             }
         }
 
+        $this->cleanAttributeSetCache($object);
+
+        return parent::_afterSave($object);
+    }
+
+    /**
+     * Save attribute groups
+     *
+     * @param \Magento\Framework\Model\AbstractModel $object
+     * @return void
+     */
+    private function saveAttributeGroups(\Magento\Framework\Model\AbstractModel $object)
+    {
+        if ($object->getGroups()) {
+            /* @var $group \Magento\Eav\Model\Entity\Attribute\Group */
+            foreach ($object->getGroups() as $group) {
+                $group->setAttributeSetId($object->getId());
+                if ($group->itemExists() && !$group->getId()) {
+                    continue;
+                }
+                $group->save();
+            }
+        }
+    }
+
+    /**
+     * Clean attribute set cache
+     *
+     * @param \Magento\Framework\Model\AbstractModel $object
+     * @return void
+     */
+    private function cleanAttributeSetCache(\Magento\Framework\Model\AbstractModel $object)
+    {
         if ($this->eavConfig->isCacheEnabled()) {
             $this->eavConfig->getCache()->remove($this->getCacheKey());
             $this->eavConfig->getCache()->remove($this->getCacheKey($object->getId()));
         }
-
-        return parent::_afterSave($object);
     }
 
     /**
