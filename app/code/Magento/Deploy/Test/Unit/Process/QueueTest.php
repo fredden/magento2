@@ -632,20 +632,25 @@ class QueueTest extends TestCase
             exit($exitCode);
         }
 
-        usleep(100000);
+        // Wait for child to exit and become a zombie (500ms should be plenty)
+        usleep(500000);
 
         $queue = $this->createQueue(4);
         $package = $this->createMock(Package::class);
         $package->expects($this->any())->method('getPath')->willReturn('test/path');
         $package->expects($this->any())->method('getState')->willReturn(null);
-        $package->expects($this->once())->method('setState');
+        $package->expects($this->once())->method('setState')->with(Package::STATE_COMPLETED);
 
         $this->setPrivateProperty($queue, 'processIds', ['test/path' => $pid]);
         $this->setPrivateProperty($queue, 'inProgress', ['test/path' => $package]);
 
         $this->logger->expects($this->once())->method('info');
 
-        $this->assertSame($expected, $this->invokeMethod($queue, 'isDeployed', [$package]));
+        $result = $this->invokeMethod($queue, 'isDeployed', [$package]);
+        $this->assertSame($expected, $result);
+
+        // Clean up inProgress to prevent __destruct issues
+        $this->setPrivateProperty($queue, 'inProgress', []);
     }
 
     /**
