@@ -575,12 +575,17 @@ class PhpRule implements RuleInterface
      * Retrieve default module name (by area)
      *
      * @param string $area
-     * @return null
+     * @return string|null
      */
     protected function _getDefaultModuleName($area = 'default')
     {
-        if (isset($this->_defaultModules[$area])) {
-            return $this->_defaultModules[$area];
+        // Normalize null/empty area to 'default' to avoid deprecated null array offset access in PHP 8.5+
+        $normalizedArea = $area ?? 'default';
+        if ($normalizedArea === '') {
+            $normalizedArea = 'default';
+        }
+        if (isset($this->_defaultModules[$normalizedArea])) {
+            return $this->_defaultModules[$normalizedArea];
         }
         return null;
     }

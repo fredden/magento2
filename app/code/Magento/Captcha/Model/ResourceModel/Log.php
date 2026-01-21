@@ -3,55 +3,47 @@
  * Copyright 2015 Adobe
  * All Rights Reserved.
  */
-declare(strict_types=1);
-
 namespace Magento\Captcha\Model\ResourceModel;
-
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
-use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
-use Magento\Framework\Model\ResourceModel\Db\Context;
-use Magento\Framework\Stdlib\DateTime\DateTime;
-use PhpDb\Sql\Expression;
 
 /**
  * Log Attempts resource
  *
+ * @author      Magento Core Team <core@magentocommerce.com>
  */
-class Log extends AbstractDb
+class Log extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
      * Remote Address log type
      */
-    public const TYPE_REMOTE_ADDRESS = 1;
+    const TYPE_REMOTE_ADDRESS = 1;
 
     /**
      * Type User Login Name
      */
-    public const TYPE_LOGIN = 2;
+    const TYPE_LOGIN = 2;
 
     /**
-     * Date helper
+     * Core Date
      *
-     * @var DateTime
+     * @var \Magento\Framework\Stdlib\DateTime\DateTime
      */
     protected $_coreDate;
 
     /**
-     * @var RemoteAddress
+     * @var \Magento\Framework\HTTP\PhpEnvironment\RemoteAddress
      */
     protected $_remoteAddress;
 
     /**
-     * @param Context $context
-     * @param DateTime $coreDate
-     * @param RemoteAddress $remoteAddress
+     * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
+     * @param \Magento\Framework\Stdlib\DateTime\DateTime $coreDate
+     * @param \Magento\Framework\HTTP\PhpEnvironment\RemoteAddress $remoteAddress
      * @param string $connectionName
      */
     public function __construct(
-        Context $context,
-        DateTime $coreDate,
-        RemoteAddress $remoteAddress,
+        \Magento\Framework\Model\ResourceModel\Db\Context $context,
+        \Magento\Framework\Stdlib\DateTime\DateTime $coreDate,
+        \Magento\Framework\HTTP\PhpEnvironment\RemoteAddress $remoteAddress,
         $connectionName = null
     ) {
         $this->_coreDate = $coreDate;
@@ -74,7 +66,7 @@ class Log extends AbstractDb
      *
      * @param string|null $login
      * @return $this
-     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function logAttempt($login)
     {
@@ -87,7 +79,7 @@ class Log extends AbstractDb
                     'count' => 1,
                     'updated_at' => $this->_coreDate->gmtDate()
                 ],
-                ['count' => new Expression('count+1'), 'updated_at']
+                ['count' => new \Laminas\Db\Sql\Expression('count+1'), 'updated_at']
             );
         }
         $ip = $this->_remoteAddress->getRemoteAddress();
@@ -100,7 +92,7 @@ class Log extends AbstractDb
                     'count' => 1,
                     'updated_at' => $this->_coreDate->gmtDate()
                 ],
-                ['count' => new Expression('count+1'), 'updated_at']
+                ['count' => new \Laminas\Db\Sql\Expression('count+1'), 'updated_at']
             );
         }
         return $this;
@@ -111,7 +103,7 @@ class Log extends AbstractDb
      *
      * @param string $login
      * @return $this
-     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function deleteUserAttempts($login)
     {
@@ -136,7 +128,7 @@ class Log extends AbstractDb
      * Get count attempts by ip
      *
      * @return null|int
-     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function countAttemptsByRemoteAddress()
     {
@@ -163,7 +155,7 @@ class Log extends AbstractDb
      *
      * @param string $login
      * @return null|int
-     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function countAttemptsByUserLogin($login)
     {
@@ -188,7 +180,7 @@ class Log extends AbstractDb
      * Delete attempts with expired in update_at time
      *
      * @return void
-     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function deleteOldAttempts()
     {
