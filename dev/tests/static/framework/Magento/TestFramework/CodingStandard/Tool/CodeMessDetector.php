@@ -54,17 +54,16 @@ class CodeMessDetector implements ToolInterface
             return class_exists(\PHPMD\TextUI\ExitCode::class) ? \PHPMD\TextUI\ExitCode::Success : 0;
         }
 
-        // Instantiate PHPMD command without passing OutputInterface per Symfony 7 command signature
         $command = new \PHPMD\TextUI\Command();
-        $input = new \Symfony\Component\Console\Input\ArrayInput(
-            [
-                'input' => implode(',', $whiteList),
-                'format' => 'text',
-                'rulesets' => $this->rulesetFile,
-                '--reportfile' => $this->reportFile,
-            ],
-            $command->getDefinition()
-        );
+        $commandLineArguments = [
+            'run_file_mock',
+            implode(',', $whiteList),
+            'text',
+            $this->rulesetFile,
+            '--reportfile',
+            $this->reportFile,
+        ];
+        $input = new \Symfony\Component\Console\Input\ArrayInput($commandLineArguments, $command->getDefinition());
         $options = new \PHPMD\TextUI\CommandLineOptions($input);
 
         return $command->run($options, new \PHPMD\RuleSetFactory());
