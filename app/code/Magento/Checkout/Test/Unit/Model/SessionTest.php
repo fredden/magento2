@@ -30,6 +30,9 @@ use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
+use Magento\Customer\Api\Data\CustomerInterface;
 
 /**
  * Test class for \Magento\Checkout\Model\Session
@@ -502,5 +505,162 @@ class SessionTest extends TestCase
             ]
         ];
         $this->assertEquals($expectedResult, $session->getSteps());
+    }
+
+    /**
+     * Test that save() is not called when quote has no ID, even if currency codes differ.
+     * This prevents creating invalid quotes without customer information.
+     * Scenario: Customer ID mismatch causes new quote creation, then currency check occurs.
+     *
+     * @return void
+     */
+    public function testGetQuoteDoesNotSaveWhenQuoteHasNoId(): void
+    {
+        $quoteId = 123;
+        $existingCustomerId = 1;
+        $currentCustomerId = 2;
+        $storeManager = $this->createMock(StoreManagerInterface::class);
+        $customerSession = $this->createMock(\Magento\Customer\Model\Session::class);
+        $quoteRepository = $this->createMock(CartRepositoryInterface::class);
+        $quoteFactory = $this->createMock(QuoteFactory::class);
+        $customerRepository = $this->createMock(CustomerRepositoryInterface::class);
+        $eventManager = $this->createMock(ManagerInterface::class);
+        $logger = $this->createMock(LoggerInterface::class);
+        $request = $this->createMock(Http::class);
+        $remoteAddress = $this->createMock(RemoteAddress::class);
+        $existingQuote = $this->createExistingQuoteMock($existingCustomerId);
+        $newQuote = $this->createNewQuoteMock();
+        $store = $this->createStoreMock();
+        $storage = $this->createStorageMock($quoteId);
+        $quoteFactory->expects($this->exactly(2))->method('create')->willReturn($newQuote);
+        $customerSession->expects($this->any())->method('isLoggedIn')->willReturn(true);
+        $customerSession->expects($this->exactly(2))
+            ->method('getCustomerId')
+            ->willReturn($currentCustomerId);
+        $storeManager->expects($this->any())->method('getStore')->willReturn($store);
+        $remoteAddress->expects($this->once())->method('getRemoteAddress')->willReturn(null);
+        $quoteRepository->expects($this->never())->method('save');
+        $quoteRepository->expects($this->once())
+            ->method('getActive')
+            ->with($quoteId)
+            ->willReturn($existingQuote);
+        $customerData = $this->createMock(CustomerInterface::class);
+        $customerRepository->expects($this->once())
+            ->method('getById')
+            ->with($currentCustomerId)
+            ->willReturn($customerData);
+        $eventManager->expects($this->atLeastOnce())->method('dispatch');
+        $constructArguments = $this->helper->getConstructArguments(
+            Session::class,
+            [
+                'storeManager' => $storeManager,
+                'quoteRepository' => $quoteRepository,
+                'customerSession' => $customerSession,
+                'customerRepository' => $customerRepository,
+                'storage' => $storage,
+                'quoteFactory' => $quoteFactory,
+                'eventManager' => $eventManager,
+                'logger' => $logger,
+                'request' => $request,
+                'remoteAddress' => $remoteAddress
+            ]
+        );
+        $this->session = $this->helper->getObject(Session::class, $constructArguments);
+        $this->session->getQuote();
+    }
+
+    /**
+     * Create mock for existing quote with customer ID and currency code.
+     *
+     * @param int $existingCustomerId
+     * @return MockObject|Quote
+     */
+    private function createExistingQuoteMock(int $existingCustomerId): MockObject|Quote
+    {
+        $quoteCurrencyCode = 'USD';
+        $existingQuote = $this->getMockBuilder(Quote::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getId', 'getData', 'setStore', 'collectTotals'])
+            ->addMethods(['getQuoteCurrencyCode', 'getTotalsCollectedFlag'])
+            ->getMock();
+        $existingQuote->expects($this->atLeastOnce())
+            ->method('getData')
+            ->willReturnCallback(function ($key) use ($existingCustomerId, $quoteCurrencyCode) {
+                if ($key === 'customer_id') {
+                    return $existingCustomerId;
+                }
+                if ($key === 'quote_currency_code') {
+                    return $quoteCurrencyCode;
+                }
+                return null;
+            });
+        $existingQuote->expects($this->any())->method('getTotalsCollectedFlag')->willReturn(false);
+        return $existingQuote;
+    }
+
+    /**
+     * Create mock for new quote.
+     *
+     * @return MockObject|Quote
+     */
+    private function createNewQuoteMock(): MockObject
+    {
+        $newQuote = $this->getMockBuilder(Quote::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getId', 'getData', 'setStore', 'collectTotals', 'setCustomerIsGuest', 'setCustomer'])
+            ->addMethods(
+                [
+                    'getQuoteCurrencyCode',
+                    'getTotalsCollectedFlag',
+                    'setIsCheckoutCart',
+                    'setRemoteIp',
+                    'setXForwardedFor'
+                ]
+            )
+            ->getMock();
+        $newQuote->expects($this->once())->method('getId')->willReturn(123);
+        $newQuote->expects($this->once())->method('getTotalsCollectedFlag')->willReturn(false);
+        $newQuote->expects($this->once())->method('setCustomer')->willReturnSelf();
+        $newQuote->expects($this->once())->method('setStore')->willReturnSelf();
+        return $newQuote;
+    }
+
+    /**
+     * Create mock for store.
+     *
+     * @return MockObject|Store
+     */
+    private function createStoreMock(): MockObject
+    {
+        $store = $this->getMockBuilder(Store::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getWebsiteId', 'getCurrentCurrencyCode', 'getId'])
+            ->getMock();
+        $store->expects($this->any())->method('getWebsiteId')->willReturn(1);
+        return $store;
+    }
+
+    /**
+     * Create mock for storage.
+     *
+     * @param int $quoteId
+     * @return MockObject|Storage
+     */
+    private function createStorageMock(int $quoteId): MockObject
+    {
+        $storage = $this->getMockBuilder(Storage::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['setData', 'getData'])
+            ->getMock();
+        $storage->expects($this->any())
+            ->method('getData')
+            ->willReturnCallback(function ($key) use ($quoteId) {
+                if ($key === 'quote_id_1') {
+                    return $quoteId;
+                }
+                return null;
+            });
+        $storage->expects($this->any())->method('setData')->willReturnSelf();
+        return $storage;
     }
 }
