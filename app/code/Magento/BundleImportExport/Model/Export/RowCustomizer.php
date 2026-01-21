@@ -517,9 +517,11 @@ class RowCustomizer implements RowCustomizerInterface
                 $storeId = $this->getWebsiteDefaultStoreId((int) $websiteId);
                 foreach ($this->getProductOptionCollection($product, $storeId) as $option) {
                     foreach ($option->getSelections() as $selection) {
-                        $selectionData = $selections[$option->getOptionId()][$selection->getSelectionId()] ?? [];
+                        $optionId = (string)$option->getOptionId();
+                        $selectionId = (string)$selection->getSelectionId();
+                        $selectionData = $selections[$optionId][$selectionId] ?? [];
                         if ($selectionData && $selection->getPriceScope() == $websiteId) {
-                            $selections[$option->getOptionId()][$selection->getSelectionId()] = [
+                            $selections[$optionId][$selectionId] = [
                                 ...$selectionData,
                                 'price_website_' . $websiteCode => $selection->getSelectionPriceValue(),
                                 'price_type_website_' . $websiteCode =>
@@ -550,7 +552,9 @@ class RowCustomizer implements RowCustomizerInterface
             /** @var Option $option*/
             foreach ($option->getSelections() as $selection) {
                 /** @var Selection $selection*/
-                $data[$option->getOptionId()][$selection->getSelectionId()] = [
+                $optionId = (string)$option->getOptionId();
+                $selectionId = (string)$selection->getSelectionId();
+                $data[$optionId][$selectionId] = [
                     'sku' => $selection->getSku(),
                     'price' => $selection->getSelectionPriceValue(),
                     'default' => $selection->getIsDefault(),
