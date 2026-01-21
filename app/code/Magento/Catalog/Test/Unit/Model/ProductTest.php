@@ -296,7 +296,9 @@ class ProductTest extends TestCase
             Manager::class,
             ['isEnabled']
         );
-        $this->extensionAttributes = $this->createMock(ProductExtensionInterface::class);
+        $this->extensionAttributes = $this->createMock(ProductExtensionAttributesStub::class);
+        $this->extensionAttributes->method('getStockItem')
+            ->willReturn($this->createStub(StockItemInterface::class));
 
         $this->stockItemFactoryMock = $this->createPartialMock(
             StockItemInterfaceFactory::class,
@@ -393,7 +395,8 @@ class ProductTest extends TestCase
         $this->mediaConfig = $this->createMock(MediaConfig::class);
         $this->eavConfig = $this->createMock(Config::class);
 
-        $this->productExtAttributes = $this->createMock(ProductExtensionInterface::class);
+        $this->productExtAttributes = $this->createMock(ProductExtensionAttributesStub::class);
+        $this->productExtAttributes->method('getStockItem')->willReturn(null);
         $this->extensionAttributesFactory
             ->method('create')->willReturn($this->productExtAttributes);
 
@@ -830,7 +833,7 @@ class ProductTest extends TestCase
 
     protected function getMockForExtensionAttribute()
     {
-        $extensionAttributesMock = $this->createMock(ProductExtensionInterface::class);
+        $extensionAttributesMock = $this->createMock(ProductExtensionAttributesStub::class);
         $stockItemMock = $this->createStub(StockItemInterface::class);
         $extensionAttributesMock->method('getStockItem')->willReturn($stockItemMock);
         return $extensionAttributesMock;
@@ -2437,5 +2440,20 @@ class ProductTest extends TestCase
         if ($originalObjectManager !== null) {
             \Magento\Framework\App\ObjectManager::setInstance($originalObjectManager);
         }
+    }
+}
+
+/**
+ * Lightweight extension attributes stub for product tests.
+ */
+class ProductExtensionAttributesStub implements ExtensionAttributesInterface
+{
+    public function getStockItem(): ?StockItemInterface
+    {
+        return null;
+    }
+
+    public function setConfigurableProductLinks($links): void
+    {
     }
 }
