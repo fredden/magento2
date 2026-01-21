@@ -23,7 +23,6 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Indexer\Table\StrategyInterface;
 use Magento\Framework\Model\ResourceModel\Db\Context;
 use Magento\Store\Model\ScopeInterface;
-use Magento\InventoryIndexer\Model\ResourceModel\DefaultStock as MsiDefaultStock;
 use PDO;
 use Zend_Db;
 
@@ -33,8 +32,10 @@ use Zend_Db;
  * @api
  * @since 100.0.2
  *
- * @deprecated 100.3.0 Replaced by Multi Source Inventory stock indexers.
- * @see MsiDefaultStock
+ * @deprecated 100.3.0 Replaced with Multi Source Inventory
+ * @see 4bdbf6b6ebc4b53dbde9483df745cfca7e864a36
+ * @link https://developer.adobe.com/commerce/webapi/rest/inventory/index.html
+ * @link https://developer.adobe.com/commerce/webapi/rest/inventory/inventory-api-reference.html
  */
 class DefaultStock extends AbstractIndexer implements StockInterface
 {
@@ -413,9 +414,9 @@ class DefaultStock extends AbstractIndexer implements StockInterface
      *
      * @return StockConfigurationInterface
      *
-     * @deprecated 100.1.0 Use injected StockConfigurationInterface directly.
-     * @see StockConfigurationInterface
+     * @deprecated 100.1.0
      * @since 100.1.0
+     * @see 4b5626478af59cc427d76024c459bd3109ec91b9
      */
     protected function getStockConfiguration()
     {
