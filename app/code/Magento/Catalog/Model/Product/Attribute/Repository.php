@@ -164,11 +164,12 @@ class Repository implements \Magento\Catalog\Api\ProductAttributeRepositoryInter
 
             $frontendLabel = $this->updateDefaultFrontendLabel($attribute, null);
 
+            $this->validateFrontendInput($attribute->getFrontendInput());
+
             $attribute->setAttributeCode(
                 $attribute->getAttributeCode() ?: $this->generateCode($frontendLabel)
             );
             $this->validateCode($attribute->getAttributeCode());
-            $this->validateFrontendInput($attribute->getFrontendInput());
 
             $backendType = $attribute->getBackendTypeByInput($attribute->getFrontendInput());
             if ($attribute->getBackendType() && $attribute->getBackendType() !== $backendType) {
