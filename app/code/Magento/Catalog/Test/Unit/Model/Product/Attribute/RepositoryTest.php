@@ -85,6 +85,11 @@ class RepositoryTest extends TestCase
     protected $searchResultMock;
 
     /**
+     * @var MockObject
+     */
+    protected $attributeCodeValidatorMock;
+
+    /**
      * @inheritdoc
      */
     protected function setUp(): void
@@ -111,6 +116,8 @@ class RepositoryTest extends TestCase
         $this->searchResultMock =
             $this->createMock(SearchResultsInterface::class);
 
+        $this->attributeCodeValidatorMock = $this->createMock(Code::class);
+
         $this->model = new Repository(
             $this->attributeResourceMock,
             $this->productHelperMock,
@@ -118,7 +125,8 @@ class RepositoryTest extends TestCase
             $this->eavAttributeRepositoryMock,
             $this->eavConfigMock,
             $this->validatorFactoryMock,
-            $this->searchCriteriaBuilderMock
+            $this->searchCriteriaBuilderMock,
+            $this->attributeCodeValidatorMock
         );
     }
 
