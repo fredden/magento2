@@ -5,6 +5,8 @@
  */
 namespace Magento\Captcha\Model\ResourceModel;
 
+use PhpDb\Sql\Expression;
+
 /**
  * Log Attempts resource
  *
@@ -79,7 +81,7 @@ class Log extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
                     'count' => 1,
                     'updated_at' => $this->_coreDate->gmtDate()
                 ],
-                ['count' => new \Laminas\Db\Sql\Expression('count+1'), 'updated_at']
+                ['count' => new Expression('count+1'), 'updated_at']
             );
         }
         $ip = $this->_remoteAddress->getRemoteAddress();
@@ -92,7 +94,7 @@ class Log extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
                     'count' => 1,
                     'updated_at' => $this->_coreDate->gmtDate()
                 ],
-                ['count' => new \Laminas\Db\Sql\Expression('count+1'), 'updated_at']
+                ['count' => new Expression('count+1'), 'updated_at']
             );
         }
         return $this;

@@ -58,8 +58,8 @@ class CodeMessDetector implements ToolInterface
         $input = new \Symfony\Component\Console\Input\ArrayInput(
             [
                 'paths' => implode(',', $whiteList),
-                'format' => 'text',
-                'rulesets' => $this->rulesetFile,
+                '--format' => 'text',
+                '--rulesets' => $this->rulesetFile,
                 '--reportfile' => $this->reportFile,
             ],
             $command->getDefinition()
