@@ -28,7 +28,6 @@ class SitemapHelper extends Helper
         $curl->setOption(CURLOPT_RETURNTRANSFER, true);
         $curl->setOption(CURLOPT_FOLLOWLOCATION, false);
         $curl->setOption(CURLOPT_NOBODY, true); // HEAD request
-
         $curl->get($url);
 
         return (int) $curl->getStatus();
@@ -46,7 +45,6 @@ class SitemapHelper extends Helper
         $curl->setOption(CURLOPT_RETURNTRANSFER, true);
         $curl->setOption(CURLOPT_FOLLOWLOCATION, false);
         $curl->setOption(CURLOPT_NOBODY, true); // HEAD request
-
         $curl->get($url);
 
         $headers = $curl->getHeaders();
@@ -67,7 +65,6 @@ class SitemapHelper extends Helper
         $curl = new Curl();
         $curl->setOption(CURLOPT_RETURNTRANSFER, true);
         $curl->setOption(CURLOPT_FOLLOWLOCATION, false);
-
         $curl->get($url);
 
         $body = $curl->getBody();
