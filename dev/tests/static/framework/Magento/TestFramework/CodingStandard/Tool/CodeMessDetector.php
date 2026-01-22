@@ -58,7 +58,7 @@ class CodeMessDetector implements ToolInterface
         $command = new \PHPMD\TextUI\Command();
         $input = new \Symfony\Component\Console\Input\ArrayInput(
             [
-                'input' => implode(',', $whiteList),
+                'paths' => implode(',', $whiteList),
                 'format' => 'text',
                 'rulesets' => $this->rulesetFile,
                 '--reportfile' => $this->reportFile,
