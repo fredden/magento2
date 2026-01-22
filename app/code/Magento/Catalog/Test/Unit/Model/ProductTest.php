@@ -296,7 +296,9 @@ class ProductTest extends TestCase
             Manager::class,
             ['isEnabled']
         );
-        $this->extensionAttributes = $this->createMock(ProductExtensionInterface::class);
+        $this->extensionAttributes = $this->createExtensionAttributesStub(
+            $this->createStub(StockItemInterface::class)
+        );
 
         $this->stockItemFactoryMock = $this->createPartialMock(
             StockItemInterfaceFactory::class,
@@ -393,7 +395,7 @@ class ProductTest extends TestCase
         $this->mediaConfig = $this->createMock(MediaConfig::class);
         $this->eavConfig = $this->createMock(Config::class);
 
-        $this->productExtAttributes = $this->createMock(ProductExtensionInterface::class);
+        $this->productExtAttributes = $this->createExtensionAttributesStub();
         $this->extensionAttributesFactory
             ->method('create')->willReturn($this->productExtAttributes);
 
@@ -830,10 +832,42 @@ class ProductTest extends TestCase
 
     protected function getMockForExtensionAttribute()
     {
-        $extensionAttributesMock = $this->createMock(ProductExtensionInterface::class);
         $stockItemMock = $this->createStub(StockItemInterface::class);
-        $extensionAttributesMock->method('getStockItem')->willReturn($stockItemMock);
-        return $extensionAttributesMock;
+        return $this->createExtensionAttributesStub($stockItemMock);
+    }
+
+    private function createExtensionAttributesStub(
+        ?StockItemInterface $stockItem = null,
+        ?callable $onSetLinks = null
+    ): ExtensionAttributesInterface {
+        return new class ($stockItem, $onSetLinks) implements ExtensionAttributesInterface {
+            /**
+             * @var StockItemInterface|null
+             */
+            private ?StockItemInterface $stockItem;
+            /**
+             * @var callable|null
+             */
+            private $onSetLinks;
+
+            public function __construct(?StockItemInterface $stockItem, ?callable $onSetLinks)
+            {
+                $this->stockItem = $stockItem;
+                $this->onSetLinks = $onSetLinks;
+            }
+
+            public function getStockItem(): ?StockItemInterface
+            {
+                return $this->stockItem;
+            }
+
+            public function setConfigurableProductLinks($links): void
+            {
+                if ($this->onSetLinks !== null) {
+                    ($this->onSetLinks)($links);
+                }
+            }
+        };
     }
     /**
      * @return array
@@ -1984,13 +2018,60 @@ class ProductTest extends TestCase
     {
         $productIds = [1, 2, 3];
 
-        $this->productExtAttributes->expects($this->once())
-            ->method('setConfigurableProductLinks')
-            ->with($productIds);
+        $capturedLinks = null;
+        $this->productExtAttributes = $this->createExtensionAttributesStub(
+            null,
+            function ($links) use (&$capturedLinks): void {
+                $capturedLinks = $links;
+            }
+        );
+        $extensionAttributesFactoryMock = $this->createMock(ExtensionAttributesFactory::class);
+        $extensionAttributesFactoryMock
+            ->method('create')
+            ->willReturn($this->productExtAttributes);
 
-        $result = $this->model->setAssociatedProductIds($productIds);
+        $model = new Product(
+            $this->createMock(Context::class),
+            $this->registry,
+            $extensionAttributesFactoryMock,
+            $this->attributeValueFactory,
+            $this->storeManager,
+            $this->metadataServiceMock,
+            $this->createMock(ProductUrl::class),
+            $this->createMock(ProductLink::class),
+            $this->createMock(ItemOptionFactory::class),
+            $this->stockItemFactoryMock,
+            $this->createMock(OptionFactory::class),
+            $this->createMock(Visibility::class),
+            $this->createMock(Status::class),
+            $this->mediaConfig,
+            $this->productTypeInstanceMock,
+            $this->moduleManager,
+            $this->_catalogProduct,
+            $this->resource,
+            $this->createMock(ProductCollection::class),
+            $this->collectionFactoryMock,
+            $this->filesystemMock,
+            $this->indexerRegistryMock,
+            $this->productFlatProcessor,
+            $this->productPriceProcessor,
+            $this->createMock(EavProcessor::class),
+            $this->categoryRepository,
+            $this->imageCacheFactory,
+            $this->createMock(ProductLinkCollectionProvider::class),
+            $this->createMock(LinkTypeProvider::class),
+            $this->createMock(ProductLinkInterfaceFactory::class),
+            $this->createMock(ProductLinkExtensionFactory::class),
+            $this->mediaGalleryEntryConverterPoolMock,
+            $this->dataObjectHelperMock,
+            $this->createMock(JoinProcessorInterface::class),
+            ['id' => 1],
+            $this->eavConfig,
+            $this->filterCustomAttribute
+        );
+        $model->setAssociatedProductIds($productIds);
 
-        $this->assertSame($this->model, $result);
+        $this->assertSame($productIds, $capturedLinks);
     }
 
     /**
@@ -2439,3 +2520,7 @@ class ProductTest extends TestCase
         }
     }
 }
+
+/**
+ * Lightweight extension attributes stub for product tests.
+ */
