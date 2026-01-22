@@ -179,8 +179,8 @@ abstract class AbstractReport extends \Magento\Framework\Model\ResourceModel\Db\
         }
 
         if ($subSelect !== null) {
-            $dataRange = $this->getRange($subSelect);
-            $deleteCondition = $this->getConnection()->prepareSqlCondition('period', ['in' => $dataRange]);
+            $datesRange = $this->getRange($subSelect);
+            $deleteCondition = $this->getConnection()->prepareSqlCondition('period', ['in' => $datesRange]);
         } else {
             $condition = [];
             if ($from !== null) {
