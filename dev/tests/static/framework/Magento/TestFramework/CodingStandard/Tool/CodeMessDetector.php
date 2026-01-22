@@ -55,15 +55,15 @@ class CodeMessDetector implements ToolInterface
         }
 
         $command = new \PHPMD\TextUI\Command();
-        $commandLineArguments = [
-            'run_file_mock',
-            implode(',', $whiteList),
-            'text',
-            $this->rulesetFile,
-            '--reportfile',
-            $this->reportFile,
-        ];
-        $input = new \Symfony\Component\Console\Input\ArrayInput($commandLineArguments, $command->getDefinition());
+        $input = new \Symfony\Component\Console\Input\ArrayInput(
+            [
+                'input' => implode(',', $whiteList),
+                'format' => 'text',
+                'rulesets' => $this->rulesetFile,
+                '--reportfile' => $this->reportFile,
+            ],
+            $command->getDefinition()
+        );
         $options = new \PHPMD\TextUI\CommandLineOptions($input);
 
         return $command->run($options, new \PHPMD\RuleSetFactory());
