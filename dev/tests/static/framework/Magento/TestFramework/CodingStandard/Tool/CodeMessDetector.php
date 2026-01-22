@@ -55,15 +55,13 @@ class CodeMessDetector implements ToolInterface
         }
 
         $command = new \PHPMD\TextUI\Command();
-        $input = new \Symfony\Component\Console\Input\ArrayInput(
-            [
-                'paths' => implode(',', $whiteList),
-                '--format' => 'text',
-                '--rulesets' => $this->rulesetFile,
-                '--reportfile' => $this->reportFile,
-            ],
-            $command->getDefinition()
-        );
+        // Build positional CLI string to avoid name mismatches across PHPMD/Symfony definitions:
+        // <paths> <format> <rulesets> [--reportfile=...]
+        $paths = implode(',', $whiteList);
+        $cli = sprintf('%s %s %s --reportfile=%s', $paths, 'text', $this->rulesetFile, $this->reportFile);
+        $input = new \Symfony\Component\Console\Input\StringInput($cli);
+        // Bind to command definition for validation
+        $input->bind($command->getDefinition());
         $options = new \PHPMD\TextUI\CommandLineOptions($input);
 
         return $command->run($options, new \PHPMD\RuleSetFactory());
