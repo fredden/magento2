@@ -23,7 +23,6 @@
             <!--Login as Admin-->
             <actionGroup ref="AdminLoginActionGroup" stepKey="loginAsAdmin"/>
             <!--Create product-->
-            <createData entity="SimpleProduct" stepKey="createProduct"/>
             <actionGroup ref="AdminOpenNewProductFormPageActionGroup" stepKey="openNewProductPage"/>
             <actionGroup ref="FillMainProductFormActionGroup" stepKey="createProduct">
                 <argument name="product" value="SimpleProduct"/>
