@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Magento\Sitemap\Test\Mftf\Helper;
 
-use Codeception\Lib\ModuleContainer;
 use Magento\FunctionalTestingFramework\Helper\Helper;
 use Magento\Framework\HTTP\Client\Curl;
 
