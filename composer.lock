@@ -11789,16 +11789,16 @@
         },
         {
             "name": "magento/magento2-functional-testing-framework",
-            "version": "5.2.0",
+            "version": "5.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/magento/magento2-functional-testing-framework.git",
-                "reference": "5b7e4912ababd79288827f51f52d3beb4afcb8c2"
+                "reference": "695d92aaa976c74a92e794f1c76b31d89b7732c7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/magento/magento2-functional-testing-framework/zipball/5b7e4912ababd79288827f51f52d3beb4afcb8c2",
-                "reference": "5b7e4912ababd79288827f51f52d3beb4afcb8c2",
+                "url": "https://api.github.com/repos/magento/magento2-functional-testing-framework/zipball/695d92aaa976c74a92e794f1c76b31d89b7732c7",
+                "reference": "695d92aaa976c74a92e794f1c76b31d89b7732c7",
                 "shasum": ""
             },
             "require": {
@@ -11823,14 +11823,11 @@
                 "php": "^8.2",
                 "php-webdriver/webdriver": "^1.14.0",
                 "spomky-labs/otphp": "^10.0||^11.0",
-                "symfony/console": "^7.4",
-                "symfony/dotenv": "^7.4",
-                "symfony/finder": "^7.4",
-                "symfony/intl": "^7.4",
-                "symfony/mailer": "^7.4",
-                "symfony/mime": "^7.4",
-                "symfony/process": "^7.4",
-                "symfony/string": "^7.4",
+                "symfony/console": "^7.0",
+                "symfony/dotenv": "^7.0",
+                "symfony/finder": "^7.0",
+                "symfony/mime": "^7.0",
+                "symfony/process": "^7.0",
                 "weew/helpers-array": "^1.3"
             },
             "require-dev": {
@@ -11875,9 +11872,9 @@
             ],
             "support": {
                 "issues": "https://github.com/magento/magento2-functional-testing-framework/issues",
-                "source": "https://github.com/magento/magento2-functional-testing-framework/tree/5.2.0"
+                "source": "https://github.com/magento/magento2-functional-testing-framework/tree/5.1.0"
             },
-            "time": "2026-01-14T15:44:27+00:00"
+            "time": "2025-11-26T15:32:23+00:00"
         },
         {
             "name": "magento/php-compatibility-fork",
