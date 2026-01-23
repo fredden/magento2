@@ -289,7 +289,7 @@ class ConfigurableRegularPriceTest extends TestCase
 
         // Mock the getUsedProducts method through reflection
         $reflection = new \ReflectionClass($this->model);
-        $getUsedProductsMethod = $reflection->getMethod('getUsedProducts');
+        $reflection->getMethod('getUsedProducts');
         // We need to mock the configurable options provider
         $configurableOptionsProviderProperty = $reflection->getProperty('configurableOptionsProvider');
         $configurableOptionsProviderProperty->setValue($this->model, $this->configurableOptionsProviderMock);

@@ -24,6 +24,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.UnusedFormalParameter)
  */
 class CategoriesTest extends AbstractModifierTestCase
 {
@@ -205,7 +206,7 @@ class CategoriesTest extends AbstractModifierTestCase
             ->willReturnArgument(2);
 
         $modifyMeta = $this->createModel()->modifyMeta($meta);
-        
+
         // Debug: Check what the modifyMeta actually returns
         if (isset($modifyMeta['children']['category_ids']['arguments']['data']['config']['disabled'])) {
             $this->assertEquals(
@@ -219,7 +220,7 @@ class CategoriesTest extends AbstractModifierTestCase
                 'category_ids field not found in modifyMeta result'
             );
         }
-        
+
         if (isset($modifyMeta['children']['create_category_button']['arguments']['data']['config']['disabled'])) {
             $this->assertEquals(
                 $locked,

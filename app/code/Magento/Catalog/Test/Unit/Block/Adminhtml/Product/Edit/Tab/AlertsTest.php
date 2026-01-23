@@ -24,6 +24,7 @@ use PHPUnit\Framework\TestCase;
  * Unit test for Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\Alerts
  *
  * @covers \Magento\Catalog\Block\Adminhtml\Product\Edit\Tab\Alerts
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class AlertsTest extends TestCase
 {

@@ -596,6 +596,7 @@ class PhpRule implements RuleInterface
      *
      * @param string $area
      * @return string|null
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     protected function _getDefaultModuleName($area = 'default')
     {

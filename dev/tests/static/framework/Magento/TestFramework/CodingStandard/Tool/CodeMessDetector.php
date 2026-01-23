@@ -60,7 +60,7 @@ class CodeMessDetector implements ToolInterface
             [
                 'paths' => array_values($whiteList),
                 '--format' => 'text',
-                '--ruleset' => [$this->rulesetFile],
+                '--ruleset' => [realpath($this->rulesetFile)],
                 '--reportfile-text' => $this->reportFile,
             ],
             $command->getDefinition()

@@ -318,7 +318,7 @@ class ProductTest extends TestCase
             ['getAreaCode', 'isAreaCodeEmulated']
         );
         $this->appStateMock->method('getAreaCode')->willReturn(FrontNameResolver::AREA_CODE);
-      
+
         $this->eventManagerMock = $this->createStub(ManagerInterface::class);
         $actionValidatorMock = $this->createMock(
             RemoveAction::class
@@ -330,7 +330,7 @@ class ProductTest extends TestCase
             Context::class,
             ['getEventDispatcher', 'getCacheManager', 'getAppState', 'getActionValidator']
         );
-      
+
         $contextMock->method('getAppState')->willReturn($this->appStateMock);
         $contextMock->method('getEventDispatcher')->willReturn($this->eventManagerMock);
         $contextMock->method('getCacheManager')->willReturn($cacheInterfaceMock);
@@ -751,7 +751,7 @@ class ProductTest extends TestCase
 
         // Configure the catalog product helper mock to return false for price indexer check
         $this->_catalogProduct->method('isDataForPriceIndexerWasChanged')->willReturn(false);
-            
+
         $this->model = new Product(
             $this->createMock(Context::class),
             $this->registry,
@@ -836,6 +836,9 @@ class ProductTest extends TestCase
         return $this->createExtensionAttributesStub($stockItemMock);
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.UnusedLocalVariable)
+     */
     private function createExtensionAttributesStub(
         ?StockItemInterface $stockItem = null,
         ?callable $onSetLinks = null
@@ -861,6 +864,9 @@ class ProductTest extends TestCase
                 return $this->stockItem;
             }
 
+            /**
+             * @SuppressWarnings(PHPMD.UnusedLocalVariable)
+             */
             public function setConfigurableProductLinks($links): void
             {
                 if ($this->onSetLinks !== null) {
@@ -1335,10 +1341,10 @@ class ProductTest extends TestCase
         $typeInstance = $this->createPartialMock(AbstractType::class, ['getSku','deleteTypeSpecificData']);
         $typeInstance->method('getSku')->willReturn('model');
         $this->productTypeInstanceMock->method('factory')->willReturn($typeInstance);
-        
+
         // Set the linkRepository property directly to avoid ObjectManager dependency
         $this->setPropertyValue($this->model, 'linkRepository', $this->productLinkRepositoryMock);
-        
+
         $links = $this->model->getProductLinks();
         $this->assertEquals($links, $expectedOutput);
     }
