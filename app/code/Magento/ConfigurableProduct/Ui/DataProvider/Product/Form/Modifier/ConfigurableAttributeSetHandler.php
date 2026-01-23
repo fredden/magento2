@@ -3,8 +3,6 @@
  * Copyright 2016 Adobe
  * All Rights Reserved.
  */
-declare(strict_types=1);
-
 namespace Magento\ConfigurableProduct\Ui\DataProvider\Product\Form\Modifier;
 
 use Magento\Catalog\Ui\DataProvider\Product\Form\Modifier\AbstractModifier;
@@ -18,7 +16,7 @@ use Magento\Framework\UrlInterface;
  */
 class ConfigurableAttributeSetHandler extends AbstractModifier
 {
-    public const ATTRIBUTE_SET_HANDLER_MODAL = 'configurable_attribute_set_handler_modal';
+    const ATTRIBUTE_SET_HANDLER_MODAL = 'configurable_attribute_set_handler_modal';
 
     /**
      * @var UrlInterface
@@ -218,43 +216,44 @@ class ConfigurableAttributeSetHandler extends AbstractModifier
      * Returns configuration for existing attribute set options
      *
      * @param array $meta
-     * @return array
+     * @return null|array
      */
     protected function getExistingAttributeSet($meta)
     {
-        $options = [];
-        $name = $this->getGeneralPanelName($meta);
-        if ($name && !empty($meta[$name]['children']['attribute_set_id']['arguments']['data']['config']['options'])) {
-            $options = $meta[$name]['children']['attribute_set_id']['arguments']['data']['config']['options'];
-        }
-
-        return [
-            'arguments' => [
-                'data' => [
-                    'config' => [
-                        'component' => 'Magento_Ui/js/form/element/ui-select',
-                        'disableLabel' => true,
-                        'filterOptions' => false,
-                        'elementTmpl' => 'ui/grid/filters/elements/ui-select',
-                        'formElement' => 'select',
-                        'componentType' => Form\Field::NAME,
-                        'options' => $options,
-                        'label' => __('Choose existing Attribute Set'),
-                        'dataScope' => 'configurableExistingAttributeSetId',
-                        'sortOrder' => 60,
-                        'multiple' => false,
-                        'visible' => !empty($options),
-                        'imports' => [
-                            'value' => 'ns = ${ $.ns }, index = attribute_set_id:value',
-                            'visible' => 'ns = ${ $.ns }, index = affectedAttributeSetExisting:checked',
-                            'disabled' =>
-                                '!ns = ${ $.ns }, index = affectedAttributeSetExisting:checked',
-                            '__disableTmpl' => ['disabled' => false, 'value' => false, 'visible' => false],
+        $ret = null;
+        if ($name = $this->getGeneralPanelName($meta)) {
+            if (!empty($meta[$name]['children']['attribute_set_id']['arguments']['data']['config']['options'])) {
+                $options = $meta[$name]['children']['attribute_set_id']['arguments']['data']['config']['options'];
+                $ret = [
+                    'arguments' => [
+                        'data' => [
+                            'config' => [
+                                'component' => 'Magento_Ui/js/form/element/ui-select',
+                                'disableLabel' => true,
+                                'filterOptions' => false,
+                                'elementTmpl' => 'ui/grid/filters/elements/ui-select',
+                                'formElement' => 'select',
+                                'componentType' => Form\Field::NAME,
+                                'options' => $options,
+                                'label' => __('Choose existing Attribute Set'),
+                                'dataScope' => 'configurableExistingAttributeSetId',
+                                'sortOrder' => 60,
+                                'multiple' => false,
+                                'imports' => [
+                                    'value' => 'ns = ${ $.ns }, index = attribute_set_id:value',
+                                    'visible' => 'ns = ${ $.ns }, index = affectedAttributeSetExisting:checked',
+                                    'disabled' =>
+                                        '!ns = ${ $.ns }, index = affectedAttributeSetExisting:checked',
+                                    '__disableTmpl' => ['disabled' => false, 'value' => false, 'visible' => false],
+                                ],
+                            ],
                         ],
                     ],
-                ],
-            ],
-        ];
+                ];
+            }
+        }
+
+        return $ret;
     }
 
     /**
