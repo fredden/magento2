@@ -84,9 +84,75 @@ class CreateShippingLabelTest extends TestCase
     }
 
     /**
-     * Test creating shipment with multiple packages and tracking information.
+     * Place order from cart and return order entity.
      *
-     * Covers Steps 1-6: Open order, create shipment with shipping label, add packages
+     * @param mixed $cart
+     * @return Order
+     */
+    private function placeOrderFromCart($cart): Order
+    {
+        $quoteManagement = $this->objectManager->get(QuoteManagement::class);
+        $orderId = $quoteManagement->placeOrder($cart->getId());
+        return $this->orderRepository->get($orderId);
+    }
+
+    /**
+     * Create shipment for order with all items.
+     *
+     * @param Order $order
+     * @return Shipment
+     */
+    private function createShipmentForOrder(Order $order): Shipment
+    {
+        $items = [];
+        foreach ($order->getItems() as $item) {
+            $items[$item->getId()] = $item->getQtyOrdered();
+        }
+        return $this->shipmentFactory->create($order, $items);
+    }
+
+    /**
+     * Build package data for shipment.
+     *
+     * @param array $orderItemsArray
+     * @param object $product1
+     * @param object $product2
+     * @return array
+     */
+    private function buildMultiPackageData(array $orderItemsArray, $product1, $product2): array
+    {
+        return [
+            1 => [
+                'params' => [
+                    'container' => 'YOUR_PACKAGING', 'weight' => 5.0, 'weight_units' => 'LB',
+                    'length' => 10, 'width' => 8, 'height' => 6, 'dimension_units' => 'IN',
+                    'customs_value' => 100.00, 'delivery_confirmation' => 'SIGNATURE',
+                ],
+                'items' => [[
+                    'qty' => 1, 'customs_value' => 50.00, 'price' => 50.00,
+                    'name' => $product1->getName(), 'weight' => 2.5,
+                    'product_id' => $product1->getId(), 'order_item_id' => $orderItemsArray[0]->getId(),
+                ]],
+            ],
+            2 => [
+                'params' => [
+                    'container' => 'YOUR_PACKAGING', 'weight' => 3.0, 'weight_units' => 'LB',
+                    'length' => 8, 'width' => 6, 'height' => 4, 'dimension_units' => 'IN',
+                    'customs_value' => 50.00, 'delivery_confirmation' => 'NO_SIGNATURE_REQUIRED',
+                ],
+                'items' => [[
+                    'qty' => 1, 'customs_value' => 50.00, 'price' => 50.00,
+                    'name' => $product2->getName(), 'weight' => 3.0,
+                    'product_id' => $product2->getId(), 'order_item_id' => $orderItemsArray[1]->getId(),
+                ]],
+            ],
+        ];
+    }
+
+    /**
+     * Test creating shipment with multiple packages.
+     *
+     * @return void
      */
     #[
         ConfigFixture('carriers/fedex/active', '1', 'store', 'default'),
@@ -103,8 +169,8 @@ class CreateShippingLabelTest extends TestCase
         ConfigFixture('shipping/origin/street_line1', '123 Test Street'),
         ConfigFixture('general/store_information/name', 'Test Store'),
         ConfigFixture('general/store_information/phone', '5551234567'),
-        DataFixture(ProductFixture::class, ['sku' => 'simple-product-1', 'price' => 50.00, 'weight' => 2.5], 'product1'),
-        DataFixture(ProductFixture::class, ['sku' => 'simple-product-2', 'price' => 50.00, 'weight' => 3.0], 'product2'),
+        DataFixture(ProductFixture::class, ['sku' => 'prod-1', 'price' => 50.00, 'weight' => 2.5], 'product1'),
+        DataFixture(ProductFixture::class, ['sku' => 'prod-2', 'price' => 50.00, 'weight' => 3.0], 'product2'),
         DataFixture(Customer::class, as: 'customer'),
         DataFixture(CustomerCart::class, ['customer_id' => '$customer.id$'], 'cart'),
         DataFixture(AddProductToCart::class, ['cart_id' => '$cart.id$', 'product_id' => '$product1.id$', 'qty' => 1]),
@@ -116,105 +182,40 @@ class CreateShippingLabelTest extends TestCase
     ]
     public function testCreateShipmentWithMultiplePackages(): void
     {
-        // Place order from cart
-        $cart = $this->fixtures->get('cart');
-        $product1 = $this->fixtures->get('product1');
-        $product2 = $this->fixtures->get('product2');
-
-        $quoteManagement = $this->objectManager->get(QuoteManagement::class);
-        $orderId = $quoteManagement->placeOrder($cart->getId());
-
-        // Open placed order
-        $order = $this->orderRepository->get($orderId);
-        // For check/money order, state might be 'new' or 'processing' depending on configuration
+        $order = $this->placeOrderFromCart($this->fixtures->get('cart'));
         $this->assertContains($order->getState(), [Order::STATE_NEW, Order::STATE_PROCESSING]);
 
-        // Create shipment with items
-        $items = [];
-        foreach ($order->getItems() as $item) {
-            $items[$item->getId()] = $item->getQtyOrdered();
-        }
-
-        /** @var Shipment $shipment */
-        $shipment = $this->shipmentFactory->create($order, $items);
+        $shipment = $this->createShipmentForOrder($order);
         $this->assertInstanceOf(ShipmentInterface::class, $shipment);
 
-        // Add packages (2 packages with products)
-        $orderItems = $order->getItems();
-        $orderItemsArray = [];
-        foreach ($orderItems as $item) {
-            $orderItemsArray[] = $item;
-        }
-
-        $packages = [
-            1 => [
-                'params' => [
-                    'container' => 'YOUR_PACKAGING',
-                    'weight' => 5.0,
-                    'weight_units' => 'LB',
-                    'length' => 10,
-                    'width' => 8,
-                    'height' => 6,
-                    'dimension_units' => 'IN',
-                    'customs_value' => 100.00,
-                    'delivery_confirmation' => 'SIGNATURE',
-                ],
-                'items' => [
-                    [
-                        'qty' => 1,
-                        'customs_value' => 50.00,
-                        'price' => 50.00,
-                        'name' => $product1->getName(),
-                        'weight' => 2.5,
-                        'product_id' => $product1->getId(),
-                        'order_item_id' => $orderItemsArray[0]->getId(),
-                    ],
-                ],
-            ],
-            2 => [
-                'params' => [
-                    'container' => 'YOUR_PACKAGING',
-                    'weight' => 3.0,
-                    'weight_units' => 'LB',
-                    'length' => 8,
-                    'width' => 6,
-                    'height' => 4,
-                    'dimension_units' => 'IN',
-                    'customs_value' => 50.00,
-                    'delivery_confirmation' => 'NO_SIGNATURE_REQUIRED',
-                ],
-                'items' => [
-                    [
-                        'qty' => 1,
-                        'customs_value' => 50.00,
-                        'price' => 50.00,
-                        'name' => $product2->getName(),
-                        'weight' => 3.0,
-                        'product_id' => $product2->getId(),
-                        'order_item_id' => $orderItemsArray[1]->getId(),
-                    ],
-                ],
-            ],
-        ];
-
+        $orderItemsArray = array_values(iterator_to_array($order->getItems()));
+        $packages = $this->buildMultiPackageData(
+            $orderItemsArray,
+            $this->fixtures->get('product1'),
+            $this->fixtures->get('product2')
+        );
         $shipment->setPackages($packages);
-
-        // Save shipment and verify packages are stored
         $savedShipment = $this->shipmentRepository->save($shipment);
 
         $this->assertNotNull($savedShipment->getEntityId());
         $this->assertCount(2, $savedShipment->getPackages());
+        $this->assertPackageData($savedShipment->getPackages());
+    }
 
-        // Verify package 1 data (Type, Weight, Dimensions, Signature Confirmation)
-        $savedPackages = $savedShipment->getPackages();
+    /**
+     * Assert package data is correct.
+     *
+     * @param array $savedPackages
+     * @return void
+     */
+    private function assertPackageData(array $savedPackages): void
+    {
         $this->assertEquals(5.0, $savedPackages[1]['params']['weight']);
         $this->assertEquals(10, $savedPackages[1]['params']['length']);
         $this->assertEquals(8, $savedPackages[1]['params']['width']);
         $this->assertEquals(6, $savedPackages[1]['params']['height']);
         $this->assertEquals(100.00, $savedPackages[1]['params']['customs_value']);
         $this->assertEquals('SIGNATURE', $savedPackages[1]['params']['delivery_confirmation']);
-
-        // Verify package 2 data
         $this->assertEquals(3.0, $savedPackages[2]['params']['weight']);
         $this->assertEquals(8, $savedPackages[2]['params']['length']);
         $this->assertEquals('NO_SIGNATURE_REQUIRED', $savedPackages[2]['params']['delivery_confirmation']);
@@ -223,8 +224,10 @@ class CreateShippingLabelTest extends TestCase
     /**
      * Test adding tracking information to shipment.
      *
-     * Covers Steps 6-7: Create shipping label and verify tracking information
-     * (Tracking Number, Carrier, Status, Service Type, Weight)
+     *  Covers Steps 6-7: Create shipping label and verify tracking information
+     *  (Tracking Number, Carrier, Status, Service Type, Weight)
+     *
+     * @return void
      */
     #[
         ConfigFixture('carriers/fedex/active', '1', 'store', 'default'),
@@ -239,18 +242,8 @@ class CreateShippingLabelTest extends TestCase
     ]
     public function testAddTrackingInformationToShipment(): void
     {
-        // Place order
-        $cart = $this->fixtures->get('cart');
-        $quoteManagement = $this->objectManager->get(QuoteManagement::class);
-        $orderId = $quoteManagement->placeOrder($cart->getId());
-        $order = $this->orderRepository->get($orderId);
-
-        $items = [];
-        foreach ($order->getItems() as $item) {
-            $items[$item->getId()] = $item->getQtyOrdered();
-        }
-
-        $shipment = $this->shipmentFactory->create($order, $items);
+        $order = $this->placeOrderFromCart($this->fixtures->get('cart'));
+        $shipment = $this->createShipmentForOrder($order);
 
         // Add tracking information (simulating shipping label creation response)
         // Tracking info includes: Tracking Number, Carrier, Service Type
@@ -295,7 +288,9 @@ class CreateShippingLabelTest extends TestCase
     /**
      * Test shipment packages can be retrieved after save.
      *
-     * Verify packages are stored and retrievable (Show Packages)
+     *  Verify packages are stored and retrievable (Show Packages)
+     *
+     * @return void
      */
     #[
         ConfigFixture('carriers/fedex/active', '1', 'store', 'default'),
@@ -310,19 +305,8 @@ class CreateShippingLabelTest extends TestCase
     ]
     public function testShipmentPackagesArePersisted(): void
     {
-        // Place order
-        $cart = $this->fixtures->get('cart');
-        $quoteManagement = $this->objectManager->get(QuoteManagement::class);
-        $orderId = $quoteManagement->placeOrder($cart->getId());
-        $order = $this->orderRepository->get($orderId);
-
-        $items = [];
-        foreach ($order->getItems() as $item) {
-            $items[$item->getId()] = $item->getQtyOrdered();
-        }
-
-        /** @var Shipment $shipment */
-        $shipment = $this->shipmentFactory->create($order, $items);
+        $order = $this->placeOrderFromCart($this->fixtures->get('cart'));
+        $shipment = $this->createShipmentForOrder($order);
 
         // Create 2 packages with complete data
         $packages = [
@@ -375,11 +359,13 @@ class CreateShippingLabelTest extends TestCase
     /**
      * Test shipment is associated with correct order for storefront access.
      *
-     * Verify shipment can be accessed from order (storefront scenario)
-     * - Log in to Storefront
-     * - Go to My Account > My Orders
-     * - Open Order Shipments tab
-     * - Click tracking number link
+     *  Verify shipment can be accessed from order (storefront scenario)
+     *  - Log in to Storefront
+     *  - Go to My Account > My Orders
+     *  - Open Order Shipments tab
+     *  - Click tracking number link
+     *
+     * @return void
      */
     #[
         ConfigFixture('carriers/fedex/active', '1', 'store', 'default'),
@@ -394,23 +380,11 @@ class CreateShippingLabelTest extends TestCase
     ]
     public function testShipmentAccessibleFromOrder(): void
     {
-        // Place order
-        $cart = $this->fixtures->get('cart');
         $customer = $this->fixtures->get('customer');
-
-        $quoteManagement = $this->objectManager->get(QuoteManagement::class);
-        $orderId = $quoteManagement->placeOrder($cart->getId());
-        $order = $this->orderRepository->get($orderId);
-
-        // Verify order is associated with customer
+        $order = $this->placeOrderFromCart($this->fixtures->get('cart'));
         $this->assertEquals($customer->getId(), $order->getCustomerId());
 
-        $items = [];
-        foreach ($order->getItems() as $item) {
-            $items[$item->getId()] = $item->getQtyOrdered();
-        }
-
-        $shipment = $this->shipmentFactory->create($order, $items);
+        $shipment = $this->createShipmentForOrder($order);
         $track = $this->objectManager->create(ShipmentTrackInterface::class);
         $track->setNumber('794644790134')
             ->setTitle('FedEx 2Day')
@@ -449,6 +423,8 @@ class CreateShippingLabelTest extends TestCase
 
     /**
      * Test FedEx carrier is properly configured and active.
+     *
+     * @return void
      */
     #[
         ConfigFixture('carriers/fedex/active', '1', 'store', 'default'),
@@ -471,8 +447,10 @@ class CreateShippingLabelTest extends TestCase
     /**
      * Test package weight and dimensions validation with all required fields.
      *
-     * Specify data for Packages
-     * (Type, Customs Value, Total Weight, Length, Width, Height, Signature Confirmation)
+     *  Specify data for Packages
+     *  (Type, Customs Value, Total Weight, Length, Width, Height, Signature Confirmation)
+     *
+     * @return void
      */
     #[
         ConfigFixture('carriers/fedex/active', '1', 'store', 'default'),
@@ -487,23 +465,10 @@ class CreateShippingLabelTest extends TestCase
     ]
     public function testPackageDataValidation(): void
     {
-        // Place order
-        $cart = $this->fixtures->get('cart');
         $product = $this->fixtures->get('product');
-
-        $quoteManagement = $this->objectManager->get(QuoteManagement::class);
-        $orderId = $quoteManagement->placeOrder($cart->getId());
-        $order = $this->orderRepository->get($orderId);
-
-        $items = [];
-        $orderItemId = null;
-        foreach ($order->getItems() as $item) {
-            $items[$item->getId()] = $item->getQtyOrdered();
-            $orderItemId = $item->getId();
-        }
-
-        /** @var Shipment $shipment */
-        $shipment = $this->shipmentFactory->create($order, $items);
+        $order = $this->placeOrderFromCart($this->fixtures->get('cart'));
+        $shipment = $this->createShipmentForOrder($order);
+        $orderItemId = array_values(iterator_to_array($order->getItems()))[0]->getId();
 
         // Test with complete package data as per Step 6 requirements
         $packages = [
