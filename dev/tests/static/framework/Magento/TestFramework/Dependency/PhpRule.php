@@ -538,37 +538,57 @@ class PhpRule implements RuleInterface
      * @param string|null $area
      * @param string $block
      * @return array
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     protected function _checkDependencyLayoutBlock(string $currentModule, ?string $area, string $block): array
     {
-        // Evaluate null area first to avoid deprecated null array offset access on PHP 8.1+
-        if ($area === null || isset($this->_mapLayoutBlocks[$area][$block])) {
-            // CASE 1: No dependencies
-            $modules = [];
-            if ($area === null) {
-                foreach ($this->_mapLayoutBlocks as $blocks) {
-                    if (array_key_exists($block, $blocks)) {
-                        $modules += $blocks[$block];
-                    }
-                }
-            } else {
-                $modules = $this->_mapLayoutBlocks[$area][$block];
-            }
-            if (isset($modules[$currentModule])) {
-                return ['modules' => []];
-            }
-            // CASE 2: Single dependency
-            if (1 == count($modules)) {
-                return ['modules' => $modules];
-            }
-            // CASE 3: Default module dependency
-            $defaultModule = $this->_getDefaultModuleName($area);
-            if (isset($modules[$defaultModule])) {
-                return ['modules' => [$defaultModule]];
-            }
+        // Gather candidate modules for the given area/block
+        $modules = $this->collectModulesForArea($area, $block);
+        if (empty($modules)) {
+            // No mapping for this block/area
+            return [];
         }
-        // CASE 4: \Exception - Undefined block
+
+        // CASE 1: No dependencies if current module already listed
+        if (isset($modules[$currentModule])) {
+            return ['modules' => []];
+        }
+
+        // CASE 2: Single dependency -> return it directly
+        if (count($modules) === 1) {
+            return ['modules' => $modules];
+        }
+
+        // CASE 3: Default module dependency
+        $defaultModule = $this->_getDefaultModuleName($area);
+        if ($defaultModule !== null && isset($modules[$defaultModule])) {
+            return ['modules' => [$defaultModule]];
+        }
+
+        // CASE 4: no explicit dependency
         return [];
+    }
+
+    /**
+     * Collect all modules associated with a given block, optionally scoped by area.
+     *
+     * @param string|null $area
+     * @param string $block
+     * @return array<string, mixed>
+     */
+    private function collectModulesForArea(?string $area, string $block): array
+    {
+        if ($area === null) {
+            $result = [];
+            foreach ($this->_mapLayoutBlocks as $blocks) {
+                if (isset($blocks[$block])) {
+                    $result += $blocks[$block];
+                }
+            }
+            return $result;
+        }
+
+        return $this->_mapLayoutBlocks[$area][$block] ?? [];
     }
 
     /**
