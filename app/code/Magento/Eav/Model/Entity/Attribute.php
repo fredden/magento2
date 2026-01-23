@@ -287,8 +287,7 @@ class Attribute extends \Magento\Eav\Model\Entity\Attribute\AbstractAttribute im
             $numberFormatter = new \NumberFormatter($this->_localeResolver->getLocale(), \NumberFormatter::DECIMAL);
             $position = 0;
             $parsedValue = $numberFormatter->parse($defaultValue, \NumberFormatter::TYPE_DOUBLE, $position);
-            // PHP 8.5 Compatibility: Check if the entire string was parsed
-            // In PHP 8.5, parse() may return a partial result instead of false
+            // PHP 8.5: validate full parse, not partial
             if ($parsedValue === false || $position !== strlen((string)$defaultValue)) {
                 throw new LocalizedException(
                     __('The default decimal value is invalid. Verify the value and try again.')
