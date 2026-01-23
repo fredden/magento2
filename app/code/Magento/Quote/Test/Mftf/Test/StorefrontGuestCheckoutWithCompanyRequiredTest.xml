@@ -22,6 +22,8 @@
             <magentoCLI command="config:set {{ShowCompanyRequiredConfigData.path}} {{ShowCompanyRequiredConfigData.value}}" stepKey="setCompanyRequired"/>
             <!-- Step 2: Create simple product -->
             <createData entity="ApiSimpleProduct" stepKey="createProduct"/>
+            <magentoCLI command="cache:flush" stepKey="flushCacheAfterCleanup"/>
+            <magentoCLI command="indexer:reindex" stepKey="reindexAfterCleanup"/>
         </before>
         <after>
             <!-- Revert company attribute to optional -->
@@ -60,11 +62,9 @@
         <grabTextFrom selector="{{CheckoutSuccessMainSection.orderNumber}}" stepKey="grabOrderNumber"/>
         <!-- Verify order in admin -->
         <actionGroup ref="AdminLoginActionGroup" stepKey="loginAsAdmin"/>
-        <actionGroup ref="AdminOrdersPageOpenActionGroup" stepKey="goToOrdersPage"/>
-        <actionGroup ref="FilterOrderGridByIdActionGroup" stepKey="filterOrderById">
-            <argument name="orderId" value="$grabOrderNumber"/>
+        <actionGroup ref="AdminOpenOrderByEntityIdActionGroup" stepKey="openOrder">
+            <argument name="entityId" value="{$grabOrderNumber}"/>
         </actionGroup>
-        <actionGroup ref="AdminOrderGridClickFirstRowActionGroup" stepKey="openOrder"/>
         <!-- Verify billing address contains company -->
         <waitForText selector="{{AdminOrderDetailsInformationSection.billingAddress}}" userInput="{{CustomerAddressSimple.company}}" stepKey="verifyCompanyInBillingAddress"/>
         <!-- Verify shipping address contains company -->
