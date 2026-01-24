@@ -14,7 +14,7 @@ define([
             'Magento_Theme/js/model/breadcrumb-list': jasmine.createSpyObj(['unshift'])
         };
 
-    describe('Magento_Theme/js/view/breadcrumbs', function () {
+    describe('Magento_Theme/js/view/add-home-breadcrumb', function () {
         var breadcrumbs,
             mixin,
             defaultContext = require.s.contexts._;

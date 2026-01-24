@@ -67,7 +67,7 @@ define([
         });
     });
 
-    describe('Magento_Checkout/js/model/payment-service', function () {
+    describe('Magento_Checkout/js/model/payment-service vault methods', function () {
         beforeEach(function (done) {
             injector.mock(mocksPaymentMethodVault);
             // eslint-disable-next-line max-nested-callbacks
