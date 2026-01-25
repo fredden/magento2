@@ -50,6 +50,45 @@ function init(config) {
         configs = files.requirejsConfigs[staticMode].map(render);
         requireJs = renderTemplate(themeData, files.requireJs[staticMode]);
 
+        var isCI = process.env.CI || process.env.JENKINS_HOME || process.env.GITHUB_ACTIONS;
+        var isMacOS = process.platform === 'darwin';
+        var isLinux = process.platform === 'linux';
+        
+        var chromeConfig = {
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            defaultViewport: {width: 400, height: 400, hasTouch: true}
+        };
+        
+        // Configure Chrome executable path based on environment
+        if (isMacOS) {
+            chromeConfig.executablePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+        } else if (isLinux) {
+            // Common Linux Chrome paths (try in order)
+            var linuxPaths = [
+                '/usr/bin/google-chrome-stable',
+                '/usr/bin/google-chrome',
+                '/usr/bin/chromium-browser',
+                '/usr/bin/chromium'
+            ];
+            for (var i = 0; i < linuxPaths.length; i++) {
+                try {
+                    require('fs').accessSync(linuxPaths[i]);
+                    chromeConfig.executablePath = linuxPaths[i];
+                    break;
+                } catch (e) {
+                    // Continue to next path
+                }
+            }
+        }
+        
+        // CI environments should run headless
+        if (isCI) {
+            chromeConfig.headless = true;
+        } else {
+            // Local development: visible browser for debugging
+            chromeConfig.headless = false;
+        }
+
         tasks[themeName] = {
             src: configs,
             options: {
@@ -68,10 +107,7 @@ function init(config) {
                  * @todo rename "helpers" to "specs" (implies overriding grunt-contrib-jasmine code)
                  */
                 helpers: specs,
-                sandboxArgs: {
-                    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-                    defaultViewport: {width: 400, height: 400, hasTouch: true}
-                }
+                sandboxArgs: chromeConfig
             }
         };
     });
