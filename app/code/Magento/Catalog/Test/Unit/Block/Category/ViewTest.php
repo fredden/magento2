@@ -515,7 +515,6 @@ class ViewTest extends TestCase
             $reflection = $reflection->getParentClass();
         }
         $property = $reflection->getProperty($propertyName);
-        $property->setAccessible(true);
         $property->setValue($object, $value);
     }
 }

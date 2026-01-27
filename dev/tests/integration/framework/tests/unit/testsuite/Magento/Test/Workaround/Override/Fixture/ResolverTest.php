@@ -30,7 +30,6 @@ class ResolverTest extends TestCase
         $resolverMock = $this->createResolverMock();
         $reflection = new \ReflectionClass(Resolver::class);
         $reflectionMethod = $reflection->getMethod('getApplierByFixtureType');
-        $reflectionMethod->setAccessible(true);
         $reflectionMethod->invoke($resolverMock, 'unsupportedFixtureType');
     }
 
@@ -60,7 +59,7 @@ class ResolverTest extends TestCase
         $mock->method('getComponentRegistrar')->willReturn(new ComponentRegistrar());
         $reflection = new \ReflectionClass(Resolver::class);
         $reflectionProperty = $reflection->getProperty('instance');
-        $reflectionProperty->setValue(null, $mock);
+        $reflectionProperty->setValue(Resolver::class, $mock);
 
         return $mock;
     }

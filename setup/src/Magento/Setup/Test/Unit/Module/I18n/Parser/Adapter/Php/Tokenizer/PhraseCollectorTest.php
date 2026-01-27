@@ -252,7 +252,6 @@ class PhraseCollectorTest extends TestCase
             '_collectPhrase'
         );
 
-        $reflectionMethod->setAccessible(true);
         $this->assertSame($phraseString, $reflectionMethod->invoke($this->phraseCollector, $phraseTokens));
     }
 }

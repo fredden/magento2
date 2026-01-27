@@ -149,7 +149,6 @@ class AbstractDbTest extends TestCase
             AbstractDb::class,
             '_idFieldName'
         );
-        $idFieldNameProperty->setAccessible(true);
         $idFieldNameProperty->setValue($this->_model, $data);
         $this->assertEquals($data, $this->_model->getIdFieldName());
     }
@@ -176,7 +175,6 @@ class AbstractDbTest extends TestCase
             AbstractDb::class,
             '_mainTable'
         );
-        $mainTableProperty->setAccessible(true);
         $mainTableProperty->setValue($this->_model, $tableName);
         $this->_resourcesMock->expects($this->once())
             ->method('getTableName')
@@ -218,7 +216,6 @@ class AbstractDbTest extends TestCase
             AbstractDb::class,
             '_tables'
         );
-        $tablesProperty->setAccessible(true);
         $tablesProperty->setValue($this->_model, [$data]);
         $this->assertEquals($data, $this->_model->getTable($data));
     }
@@ -275,7 +272,6 @@ class AbstractDbTest extends TestCase
             AbstractDb::class,
             '_uniqueFields'
         );
-        $uniqueFields->setAccessible(true);
         $uniqueFields->setValue($this->_model, ['uniqueField1', 'uniqueField2']);
         $this->_model->resetUniqueField();
         $this->assertEquals([], $this->_model->getUniqueFields());
@@ -290,7 +286,6 @@ class AbstractDbTest extends TestCase
             AbstractDb::class,
             '_uniqueFields'
         );
-        $uniqueFieldsReflection->setAccessible(true);
         $uniqueFieldsReflection->setValue($this->_model, null);
         $this->assertEquals([], $this->_model->getUniqueFields());
     }
@@ -373,13 +368,11 @@ class AbstractDbTest extends TestCase
             AbstractDb::class,
             '_mainTable'
         );
-        $mainTableReflection->setAccessible(true);
         $mainTableReflection->setValue($this->_model, 'tableName');
         $idFieldNameReflection = new ReflectionProperty(
             AbstractDb::class,
             '_idFieldName'
         );
-        $idFieldNameReflection->setAccessible(true);
         $idFieldNameReflection->setValue($this->_model, 'idFieldName');
         $connectionInterfaceMock->expects($this->any())->method('delete')->with('tableName', 'idFieldName');
         $connectionInterfaceMock->expects($this->any())->method('quoteInto')->willReturn('idFieldName');
@@ -439,7 +432,6 @@ class AbstractDbTest extends TestCase
             AbstractDb::class,
             '_mainTable'
         );
-        $mainTableProperty->setAccessible(true);
         $mainTableProperty->setValue($this->_model, 'table');
 
         $this->_resourcesMock->expects($this->once())
@@ -513,13 +505,11 @@ class AbstractDbTest extends TestCase
             AbstractDb::class,
             '_mainTable'
         );
-        $mainTableReflection->setAccessible(true);
         $mainTableReflection->setValue($this->_model, 'tableName');
         $idFieldNameReflection = new ReflectionProperty(
             AbstractDb::class,
             '_idFieldName'
         );
-        $idFieldNameReflection->setAccessible(true);
         $idFieldNameReflection->setValue($this->_model, 'idFieldName');
         // Removed: save() doesn't exist in AdapterInterface - it's a custom method
         // $connectionMock->expects($this->any())->method('save')->with('tableName', 'idFieldName');
@@ -611,9 +601,7 @@ class AbstractDbTest extends TestCase
          * make saveNewObject and _isPkAutoIncrement public
          */
         $reflectionMethod = new \ReflectionMethod($model, 'saveNewObject');
-        $reflectionMethod->setAccessible(true);
         $reflectionProperty = new ReflectionProperty($model, '_isPkAutoIncrement');
-        $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($model, $pkIncrement);
 
         // Mocked behavior - AdapterInterface has 94 methods, use createMock()

@@ -59,11 +59,9 @@ class AbstractFactoryTest extends TestCase
             ->getMock();
             
         $property = new \ReflectionProperty(AbstractFactory::class, 'invokableClasses');
-        $property->setAccessible(true);
         $property->setValue($this->_factory, $this->_invokableList);
 
         $property = new \ReflectionProperty(AbstractFactory::class, 'shared');
-        $property->setAccessible(true);
         $property->setValue($this->_factory, $this->_sharedList);
     }
 
@@ -114,7 +112,6 @@ class AbstractFactoryTest extends TestCase
     public function testCreateFilter($alias, $arguments, $isShared)
     {
         $property = new \ReflectionProperty(AbstractFactory::class, 'sharedInstances');
-        $property->setAccessible(true);
 
         $filterMock = $this->createPartialMockWithReflection(
             \stdClass::class,

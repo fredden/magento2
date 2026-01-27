@@ -261,7 +261,6 @@ class CarrierTest extends TestCase
     {
         $model = $this->objectManager->getObject(Carrier::class);
         $method = new \ReflectionMethod($model, '_prepareShippingLabelContent');
-        $method->setAccessible(true);
         return $method->invoke($model, $xml);
     }
 
@@ -362,7 +361,6 @@ class CarrierTest extends TestCase
     public function testBuildMessageReference($servicePrefix)
     {
         $method = new \ReflectionMethod($this->model, 'buildMessageReference');
-        $method->setAccessible(true);
 
         $messageReference = $method->invoke($this->model, $servicePrefix);
         $this->assertGreaterThanOrEqual(28, strlen($messageReference));
@@ -391,7 +389,6 @@ class CarrierTest extends TestCase
         $this->expectException('Magento\Framework\Exception\LocalizedException');
         $this->expectExceptionMessage('Invalid service prefix');
         $method = new \ReflectionMethod($this->model, 'buildMessageReference');
-        $method->setAccessible(true);
 
         $method->invoke($this->model, 'INVALID');
     }
@@ -406,7 +403,6 @@ class CarrierTest extends TestCase
     public function testBuildSoftwareName($productName)
     {
         $method = new \ReflectionMethod($this->model, 'buildSoftwareName');
-        $method->setAccessible(true);
 
         $this->productMetadataMock->method('getName')->willReturn($productName);
 
@@ -437,7 +433,6 @@ class CarrierTest extends TestCase
     public function testBuildSoftwareVersion($productVersion)
     {
         $method = new \ReflectionMethod($this->model, 'buildSoftwareVersion');
-        $method->setAccessible(true);
 
         $this->productMetadataMock->method('getVersion')->willReturn($productVersion);
 
@@ -489,7 +484,6 @@ class CarrierTest extends TestCase
         );
 
         $method = new \ReflectionMethod($this->model, 'getGatewayURL');
-        $method->setAccessible(true);
         $this->assertEquals($expectedURL, $method->invoke($this->model));
     }
 

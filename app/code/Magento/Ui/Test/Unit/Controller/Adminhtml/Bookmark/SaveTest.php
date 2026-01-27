@@ -157,7 +157,6 @@ class SaveTest extends TestCase
                 ['namespace'] => 'product_listing'
             });
         $reflectionProperty = new \ReflectionProperty($this->model, '_request');
-        $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($this->model, $request);
 
         $current = $this->createBookmark();
@@ -213,7 +212,6 @@ class SaveTest extends TestCase
                 ['namespace'] => 'product_listing'
             });
         $reflectionProperty = new \ReflectionProperty($this->model, '_request');
-        $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($this->model, $request);
 
         $this->serializer->expects($this->once())->method('unserialize')->with($currentConfig)

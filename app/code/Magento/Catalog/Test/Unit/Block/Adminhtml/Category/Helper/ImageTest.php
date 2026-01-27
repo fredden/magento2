@@ -49,7 +49,6 @@ class ImageTest extends TestCase
         // Inject the storeManager dependency using reflection
         $reflection = new \ReflectionClass($this->model);
         $property = $reflection->getProperty('_storeManager');
-        $property->setAccessible(true);
         $property->setValue($this->model, $this->storeManagerMock);
     }
 
@@ -64,7 +63,6 @@ class ImageTest extends TestCase
 
         $reflection = new \ReflectionClass($this->model);
         $method = $reflection->getMethod('_getUrl');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->model);
 
@@ -95,7 +93,6 @@ class ImageTest extends TestCase
 
         $reflection = new \ReflectionClass($this->model);
         $method = $reflection->getMethod('_getUrl');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->model);
 
@@ -127,7 +124,6 @@ class ImageTest extends TestCase
 
         $reflection = new \ReflectionClass($this->model);
         $method = $reflection->getMethod('_getUrl');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->model);
 
@@ -145,7 +141,6 @@ class ImageTest extends TestCase
 
         $reflection = new \ReflectionClass($this->model);
         $method = $reflection->getMethod('_getUrl');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->model);
 

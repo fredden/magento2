@@ -314,11 +314,9 @@ class TabsTest extends TestCase
             ->willReturn(Tabs::ADVANCED_TAB_GROUP_CODE);
 
         $tabsProperty = $reflection->getProperty('_tabs');
-        $tabsProperty->setAccessible(true);
         $tabsProperty->setValue($this->tabs, ['advanced-pricing' => $tabDataObjectMock]);
 
         $activeTabProperty = $reflection->getProperty('_activeTab');
-        $activeTabProperty->setAccessible(true);
         $activeTabProperty->setValue($this->tabs, 'advanced-pricing');
 
         $result = $this->tabs->isAdvancedTabGroupActive();
@@ -344,11 +342,9 @@ class TabsTest extends TestCase
             ->willReturn(Tabs::BASIC_TAB_GROUP_CODE);
 
         $tabsProperty = $reflection->getProperty('_tabs');
-        $tabsProperty->setAccessible(true);
         $tabsProperty->setValue($this->tabs, ['basic-tab' => $tabDataObjectMock]);
 
         $activeTabProperty = $reflection->getProperty('_activeTab');
-        $activeTabProperty->setAccessible(true);
         $activeTabProperty->setValue($this->tabs, 'basic-tab');
 
         $result = $this->tabs->isAdvancedTabGroupActive();
@@ -393,7 +389,6 @@ class TabsTest extends TestCase
 
         $reflection = new ReflectionClass($this->tabs);
         $tabsProperty = $reflection->getProperty('_tabs');
-        $tabsProperty->setAccessible(true);
         $tabsProperty->setValue($this->tabs, [$childTabMock]);
 
         $tabsMock = $this->getMockBuilder(Tabs::class)
@@ -450,7 +445,6 @@ class TabsTest extends TestCase
 
         $reflection = new ReflectionClass($this->tabs);
         $tabsProperty = $reflection->getProperty('_tabs');
-        $tabsProperty->setAccessible(true);
 
         $tabsMock = $this->getMockBuilder(Tabs::class)
             ->setConstructorArgs([
@@ -531,7 +525,6 @@ class TabsTest extends TestCase
 
         $reflection = new ReflectionClass($this->tabs);
         $tabsProperty = $reflection->getProperty('_tabs');
-        $tabsProperty->setAccessible(true);
 
         $tabsMock = $this->getMockBuilder(Tabs::class)
             ->setConstructorArgs([
@@ -579,7 +572,6 @@ class TabsTest extends TestCase
 
         $reflection = new ReflectionClass($this->tabs);
         $tabsProperty = $reflection->getProperty('_tabs');
-        $tabsProperty->setAccessible(true);
 
         $tabsMock = $this->getMockBuilder(Tabs::class)
             ->setConstructorArgs([
@@ -636,7 +628,6 @@ class TabsTest extends TestCase
 
         $reflection = new ReflectionClass($this->tabs);
         $method = $reflection->getMethod('_translateHtml');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->tabs, $html);
         $this->assertEquals($expectedHtml, $result);
@@ -692,7 +683,6 @@ class TabsTest extends TestCase
 
         $reflection = new ReflectionClass($tabsMock);
         $method = $reflection->getMethod('_prepareLayout');
-        $method->setAccessible(true);
 
         $result = $method->invoke($tabsMock);
         $this->assertSame($tabsMock, $result);
@@ -867,7 +857,6 @@ class TabsTest extends TestCase
 
         $reflection = new ReflectionClass($tabsMock);
         $method = $reflection->getMethod('_prepareLayout');
-        $method->setAccessible(true);
 
         $result = $method->invoke($tabsMock);
         $this->assertSame($tabsMock, $result);
@@ -1092,7 +1081,6 @@ class TabsTest extends TestCase
 
         $reflection = new ReflectionClass($tabsMock);
         $method = $reflection->getMethod('_prepareLayout');
-        $method->setAccessible(true);
 
         $result = $method->invoke($tabsMock);
         $this->assertSame($tabsMock, $result);
@@ -1152,11 +1140,9 @@ class TabsTest extends TestCase
 
         $reflection = new ReflectionClass($this->tabs);
         $activeTabProperty = $reflection->getProperty('_activeTab');
-        $activeTabProperty->setAccessible(true);
         $activeTabProperty->setValue($this->tabs, 'test-tab');
 
         $tabsProperty = $reflection->getProperty('_tabs');
-        $tabsProperty->setAccessible(true);
         $tabsProperty->setValue($this->tabs, ['test-tab' => $tabMock]);
 
         $result = $this->tabs->isAdvancedTabGroupActive();
@@ -1181,7 +1167,6 @@ class TabsTest extends TestCase
 
         $reflection = new ReflectionClass($this->tabs);
         $tabsProperty = $reflection->getProperty('_tabs');
-        $tabsProperty->setAccessible(true);
         $tabsProperty->setValue($this->tabs, []);
 
         $result = $this->tabs->getAccordion($parentTabMock);
@@ -1295,7 +1280,6 @@ class TabsTest extends TestCase
 
         $reflection = new ReflectionClass($this->tabs);
         $method = $reflection->getMethod('_translateHtml');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->tabs, null);
         $this->assertNull($result);
@@ -1315,7 +1299,6 @@ class TabsTest extends TestCase
 
         $reflection = new ReflectionClass($this->tabs);
         $method = $reflection->getMethod('_translateHtml');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->tabs, '');
         $this->assertEquals('', $result);
@@ -1339,7 +1322,6 @@ class TabsTest extends TestCase
 
         $reflection = new ReflectionClass($this->tabs);
         $method = $reflection->getMethod('_translateHtml');
-        $method->setAccessible(true);
 
         $result = $method->invoke($this->tabs, $html);
         $this->assertEquals($html, $result);
@@ -1371,7 +1353,6 @@ class TabsTest extends TestCase
 
         $reflection = new ReflectionClass($this->tabs);
         $tabsProperty = $reflection->getProperty('_tabs');
-        $tabsProperty->setAccessible(true);
 
         $tabsMock = $this->getMockBuilder(Tabs::class)
             ->setConstructorArgs([

@@ -574,8 +574,7 @@ class DataFixtureTest extends TestCase
             ->getMock();
         $reflection = new \ReflectionClass(Resolver::class);
         $reflectionProperty = $reflection->getProperty('instance');
-        $reflectionProperty->setAccessible(true);
-        $reflectionProperty->setValue(null, $mock);
+        $reflectionProperty->setValue(Resolver::class, $mock);
         $mock->method('applyDataFixtures')
             ->willReturnArgument(1);
     }

@@ -104,7 +104,6 @@ class CreateTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->block);
         $property = $reflection->getProperty('_config');
-        $property->setAccessible(true);
 
         $this->assertNull($property->getValue($this->block));
     }
@@ -120,7 +119,6 @@ class CreateTest extends TestCase
 
         $reflection = new \ReflectionClass($this->block);
         $property = $reflection->getProperty('_config');
-        $property->setAccessible(true);
 
         $this->assertInstanceOf(DataObject::class, $property->getValue($this->block));
     }
@@ -181,7 +179,6 @@ class CreateTest extends TestCase
         // Call protected method
         $reflection = new \ReflectionClass($this->block);
         $method = $reflection->getMethod('_beforeToHtml');
-        $method->setAccessible(true);
         $method->invoke($this->block);
 
         $this->assertSame('create_attribute_' . $groupId, $this->block->getId());
@@ -199,7 +196,6 @@ class CreateTest extends TestCase
 
         $reflection = new \ReflectionClass($this->block);
         $method = $reflection->getMethod('_beforeToHtml');
-        $method->setAccessible(true);
         $method->invoke($this->block);
 
         $this->assertSame('button', $this->block->getType());
@@ -217,7 +213,6 @@ class CreateTest extends TestCase
 
         $reflection = new \ReflectionClass($this->block);
         $method = $reflection->getMethod('_beforeToHtml');
-        $method->setAccessible(true);
         $method->invoke($this->block);
 
         $this->assertSame('action-add', $this->block->getClass());
@@ -259,7 +254,6 @@ class CreateTest extends TestCase
 
         $reflection = new \ReflectionClass($this->block);
         $method = $reflection->getMethod('_beforeToHtml');
-        $method->setAccessible(true);
         $method->invoke($this->block);
 
         $this->assertSame($expectedUrl, $this->block->getConfig()->getUrl());
@@ -284,7 +278,6 @@ class CreateTest extends TestCase
 
         $reflection = new \ReflectionClass($this->block);
         $method = $reflection->getMethod('_toHtml');
-        $method->setAccessible(true);
         $method->invoke($this->block);
 
         $this->assertTrue($eventDispatched);
@@ -307,7 +300,6 @@ class CreateTest extends TestCase
 
         $reflection = new \ReflectionClass($this->block);
         $method = $reflection->getMethod('_toHtml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->block);
 
         $this->assertSame('', $result);
@@ -333,7 +325,6 @@ class CreateTest extends TestCase
 
         $reflection = new \ReflectionClass($this->block);
         $method = $reflection->getMethod('_toHtml');
-        $method->setAccessible(true);
         $method->invoke($this->block);
 
         $this->assertTrue($canShowValue);
@@ -351,7 +342,6 @@ class CreateTest extends TestCase
 
         $reflection = new \ReflectionClass($this->block);
         $method = $reflection->getMethod('_beforeToHtml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->block);
 
         $this->assertSame($this->block, $result);
@@ -395,7 +385,6 @@ class CreateTest extends TestCase
 
         $reflection = new \ReflectionClass($blockMock);
         $method = $reflection->getMethod('_toHtml');
-        $method->setAccessible(true);
         $result = $method->invoke($blockMock);
 
         $this->assertSame($expectedHtml, $result);

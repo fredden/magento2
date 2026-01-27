@@ -331,7 +331,7 @@ class ProductTest extends TestCase
             Context::class,
             ['getEventDispatcher', 'getCacheManager', 'getAppState', 'getActionValidator']
         );
-      
+
         $contextMock->method('getAppState')->willReturn($this->appStateMock);
         $contextMock->method('getEventDispatcher')->willReturn($this->eventManagerMock);
         $contextMock->method('getCacheManager')->willReturn($cacheInterfaceMock);
@@ -755,7 +755,7 @@ class ProductTest extends TestCase
 
         // Configure the catalog product helper mock to return false for price indexer check
         $this->_catalogProduct->method('isDataForPriceIndexerWasChanged')->willReturn(false);
-            
+
         $this->model = new Product(
             $this->createMock(Context::class),
             $this->registry,
@@ -841,8 +841,47 @@ class ProductTest extends TestCase
             $this->getProductExtensionMethods()
         );
         $stockItemMock = $this->createStub(StockItemInterface::class);
-        $extensionAttributesMock->method('getStockItem')->willReturn($stockItemMock);
-        return $extensionAttributesMock;
+        return $this->createExtensionAttributesStub($stockItemMock);
+    }
+
+    /**
+     * @SuppressWarnings(PHPMD.UnusedLocalVariable)
+     */
+    private function createExtensionAttributesStub(
+        ?StockItemInterface $stockItem = null,
+        ?callable $onSetLinks = null
+    ): ExtensionAttributesInterface {
+        return new class ($stockItem, $onSetLinks) implements ExtensionAttributesInterface {
+            /**
+             * @var StockItemInterface|null
+             */
+            private ?StockItemInterface $stockItem;
+            /**
+             * @var callable|null
+             */
+            private $onSetLinks;
+
+            public function __construct(?StockItemInterface $stockItem, ?callable $onSetLinks)
+            {
+                $this->stockItem = $stockItem;
+                $this->onSetLinks = $onSetLinks;
+            }
+
+            public function getStockItem(): ?StockItemInterface
+            {
+                return $this->stockItem;
+            }
+
+            /**
+             * @SuppressWarnings(PHPMD.UnusedLocalVariable)
+             */
+            public function setConfigurableProductLinks($links): void
+            {
+                if ($this->onSetLinks !== null) {
+                    ($this->onSetLinks)($links);
+                }
+            }
+        };
     }
     /**
      * @return array
@@ -1310,10 +1349,10 @@ class ProductTest extends TestCase
         $typeInstance = $this->createPartialMock(AbstractType::class, ['getSku','deleteTypeSpecificData']);
         $typeInstance->method('getSku')->willReturn('model');
         $this->productTypeInstanceMock->method('factory')->willReturn($typeInstance);
-        
+
         // Set the linkRepository property directly to avoid ObjectManager dependency
         $this->setPropertyValue($this->model, 'linkRepository', $this->productLinkRepositoryMock);
-        
+
         $links = $this->model->getProductLinks();
         $this->assertEquals($links, $expectedOutput);
     }
@@ -1812,7 +1851,6 @@ class ProductTest extends TestCase
     {
         $reflection = new \ReflectionClass(get_class($object));
         $reflectionProperty = $reflection->getProperty($property);
-        $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($object, $value);
         return $object;
     }
@@ -1825,7 +1863,6 @@ class ProductTest extends TestCase
     {
         $reflection = new \ReflectionClass(get_class($object));
         $reflectionProperty = $reflection->getProperty($property);
-        $reflectionProperty->setAccessible(true);
 
         return $reflectionProperty->getValue($object);
     }
@@ -1978,7 +2015,6 @@ class ProductTest extends TestCase
         // Use reflection to set the private mediaGalleryProcessor property
         $reflection = new \ReflectionClass($this->model);
         $property = $reflection->getProperty('mediaGalleryProcessor');
-        $property->setAccessible(true);
         $property->setValue($this->model, $processorMock);
 
         // Mock the type instance to return attributes including media_gallery
@@ -2024,9 +2060,48 @@ class ProductTest extends TestCase
 
         $this->productExtAttributes->method('setConfigurableProductLinks');
 
-        $result = $this->model->setAssociatedProductIds($productIds);
+        $model = new Product(
+            $this->createMock(Context::class),
+            $this->registry,
+            $extensionAttributesFactoryMock,
+            $this->attributeValueFactory,
+            $this->storeManager,
+            $this->metadataServiceMock,
+            $this->createMock(ProductUrl::class),
+            $this->createMock(ProductLink::class),
+            $this->createMock(ItemOptionFactory::class),
+            $this->stockItemFactoryMock,
+            $this->createMock(OptionFactory::class),
+            $this->createMock(Visibility::class),
+            $this->createMock(Status::class),
+            $this->mediaConfig,
+            $this->productTypeInstanceMock,
+            $this->moduleManager,
+            $this->_catalogProduct,
+            $this->resource,
+            $this->createMock(ProductCollection::class),
+            $this->collectionFactoryMock,
+            $this->filesystemMock,
+            $this->indexerRegistryMock,
+            $this->productFlatProcessor,
+            $this->productPriceProcessor,
+            $this->createMock(EavProcessor::class),
+            $this->categoryRepository,
+            $this->imageCacheFactory,
+            $this->createMock(ProductLinkCollectionProvider::class),
+            $this->createMock(LinkTypeProvider::class),
+            $this->createMock(ProductLinkInterfaceFactory::class),
+            $this->createMock(ProductLinkExtensionFactory::class),
+            $this->mediaGalleryEntryConverterPoolMock,
+            $this->dataObjectHelperMock,
+            $this->createMock(JoinProcessorInterface::class),
+            ['id' => 1],
+            $this->eavConfig,
+            $this->filterCustomAttribute
+        );
+        $model->setAssociatedProductIds($productIds);
 
-        $this->assertSame($this->model, $result);
+        $this->assertSame($productIds, $capturedLinks);
     }
 
     /**
@@ -2099,19 +2174,15 @@ class ProductTest extends TestCase
         $reflection = new \ReflectionClass($this->model);
 
         $customOptionsProperty = $reflection->getProperty('_customOptions');
-        $customOptionsProperty->setAccessible(true);
         $this->assertEquals([], $customOptionsProperty->getValue($this->model));
 
         $errorsProperty = $reflection->getProperty('_errors');
-        $errorsProperty->setAccessible(true);
         $this->assertEquals([], $errorsProperty->getValue($this->model));
 
         $canAffectOptionsProperty = $reflection->getProperty('_canAffectOptions');
-        $canAffectOptionsProperty->setAccessible(true);
         $this->assertFalse($canAffectOptionsProperty->getValue($this->model));
 
         $productIdCachedProperty = $reflection->getProperty('_productIdCached');
-        $productIdCachedProperty->setAccessible(true);
         $this->assertNull($productIdCachedProperty->getValue($this->model));
     }
 
@@ -2188,7 +2259,6 @@ class ProductTest extends TestCase
 
         $reflection = new \ReflectionClass($this->model);
         $property = $reflection->getProperty('linkRepository');
-        $property->setAccessible(true);
         $property->setValue($this->model, $linkRepositoryMock);
 
         $result = $this->model->getProductLinks();
@@ -2233,7 +2303,6 @@ class ProductTest extends TestCase
         // Use reflection to set the private mediaGalleryProcessor property
         $reflection = new \ReflectionClass($this->model);
         $property = $reflection->getProperty('mediaGalleryProcessor');
-        $property->setAccessible(true);
         $property->setValue($this->model, $processorMock);
 
         // Mock the type instance to return attributes including media_gallery
@@ -2278,7 +2347,6 @@ class ProductTest extends TestCase
 
         $reflection = new \ReflectionClass($this->model);
         $property = $reflection->getProperty('linkRepository');
-        $property->setAccessible(true);
         $property->setValue($this->model, $linkRepositoryMock);
 
         // Call getProductLinks - this will cache the result in _links
@@ -2325,7 +2393,6 @@ class ProductTest extends TestCase
         // Ensure mediaGalleryProcessor is null (not pre-set)
         $reflection = new \ReflectionClass($this->model);
         $property = $reflection->getProperty('mediaGalleryProcessor');
-        $property->setAccessible(true);
         $property->setValue($this->model, null);
 
         // Mock the type instance to return attributes including media_gallery
@@ -2393,7 +2460,6 @@ class ProductTest extends TestCase
         // Ensure linkRepository is null (not pre-set)
         $reflection = new \ReflectionClass($this->model);
         $property = $reflection->getProperty('linkRepository');
-        $property->setAccessible(true);
         $property->setValue($this->model, null);
 
         // This should trigger lazy loading of linkRepository
@@ -2484,3 +2550,7 @@ class ProductTest extends TestCase
         }
     }
 }
+
+/**
+ * Lightweight extension attributes stub for product tests.
+ */

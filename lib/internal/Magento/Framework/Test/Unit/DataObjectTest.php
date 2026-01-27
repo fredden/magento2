@@ -387,7 +387,6 @@ string',
     {
         $refObject = new \ReflectionObject($this->dataObject);
         $refMethod = $refObject->getMethod('_underscore');
-        $refMethod->setAccessible(true);
         $output = $refMethod->invoke($this->dataObject, $input);
         $this->assertEquals($expectedOutput, $output);
     }

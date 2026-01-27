@@ -313,7 +313,6 @@ class PagerTest extends TestCase
 
         $reflection = new ReflectionClass($pager);
         $initFrameMethod = $reflection->getMethod('_initFrame');
-        $initFrameMethod->setAccessible(true);
         $initFrameMethod->invoke($pager);
 
         $this->assertEquals($frameStart, $pager->getFrameStart());
@@ -687,7 +686,6 @@ class PagerTest extends TestCase
     private function setProtectedProperty(string $property, mixed $value): void
     {
         $reflection = new ReflectionProperty($this->pager, $property);
-        $reflection->setAccessible(true);
         $reflection->setValue($this->pager, $value);
     }
 

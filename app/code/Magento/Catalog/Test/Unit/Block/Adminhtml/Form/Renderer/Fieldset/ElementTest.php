@@ -143,7 +143,6 @@ class ElementTest extends TestCase
     {
         if ($ref->hasProperty($property)) {
             $refProp = $ref->getProperty($property);
-            $refProp->setAccessible(true);
             $refProp->setValue($object, $value);
             return;
         }

@@ -133,7 +133,6 @@ class KernelTest extends TestCase
 
         $reflection = new \ReflectionClass(Kernel::class);
         $reflectionProperty = $reflection->getProperty('fullPageCache');
-        $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($this->kernel, $this->fullPageCacheMock);
     }
 

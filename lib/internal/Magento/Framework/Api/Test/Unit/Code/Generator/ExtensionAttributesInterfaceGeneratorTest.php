@@ -86,7 +86,6 @@ class ExtensionAttributesInterfaceGeneratorTest extends TestCase
         $expectedResult = file_get_contents(__DIR__ . '/_files/SampleExtensionInterface.txt');
         $reflectionObject = new \ReflectionObject($model);
         $reflectionMethod = $reflectionObject->getMethod('_generateCode');
-        $reflectionMethod->setAccessible(true);
         $generatedCode = $reflectionMethod->invoke($model);
         $this->assertEquals($expectedResult, $generatedCode);
     }
@@ -104,8 +103,6 @@ class ExtensionAttributesInterfaceGeneratorTest extends TestCase
         );
         $reflectionObject = new \ReflectionObject($model);
         $reflectionMethod = $reflectionObject->getMethod('_validateData');
-        $reflectionMethod->setAccessible(true);
-
         $expectedValidationResult = false;
         $this->assertEquals($expectedValidationResult, $reflectionMethod->invoke($model));
         $this->assertContains(

@@ -599,7 +599,6 @@ class AbstractEntityUrlTest extends TestCase
 
         $reflection = new \ReflectionClass($this->resolver);
         $method = $reflection->getMethod('sanitizeType');
-        $method->setAccessible(true);
 
         foreach ($testCases as $input => $expected) {
             $result = $method->invoke($this->resolver, $input);
@@ -660,7 +659,6 @@ class AbstractEntityUrlTest extends TestCase
 
         $reflection = new \ReflectionClass($this->resolver);
         $method = $reflection->getMethod('parseUrl');
-        $method->setAccessible(true);
 
         foreach ($testCases as $input => $expected) {
             $result = $method->invoke($this->resolver, $input);
@@ -675,7 +673,6 @@ class AbstractEntityUrlTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->resolver);
         $method = $reflection->getMethod('parseUrl');
-        $method->setAccessible(true);
 
         // Test cases where parse_url might return false or fail
         $malformedUrls = [
@@ -706,7 +703,6 @@ class AbstractEntityUrlTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->resolver);
         $method = $reflection->getMethod('parseUrl');
-        $method->setAccessible(true);
 
         // Test edge cases for path normalization
         $testCases = [

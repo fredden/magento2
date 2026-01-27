@@ -574,7 +574,6 @@ class EscaperTest extends TestCase
     public function testInlineSensitiveEscapeHtmlAttrWithTripleBraces(): void
     {
         $method = new \ReflectionMethod(Escaper::class, 'inlineSensitiveEscapeHtmlAttr');
-        $method->setAccessible(true);
 
         $input = '{{{Search entire store here...}}}';
         $expected = '{{{Search&#x20;entire&#x20;store&#x20;here...}}}';
@@ -585,7 +584,6 @@ class EscaperTest extends TestCase
     public function testInlineSensitiveEscapeHtmlAttrWithoutTripleBracesFallsBack(): void
     {
         $method = new \ReflectionMethod(Escaper::class, 'inlineSensitiveEscapeHtmlAttr');
-        $method->setAccessible(true);
 
         $input = 'Simple string';
         $expected = 'Simple&#x20;string';
@@ -596,7 +594,6 @@ class EscaperTest extends TestCase
     public function testEscapeScriptIdentifiersReplacesKnownIdentifiers(): void
     {
         $method = new \ReflectionMethod(Escaper::class, 'escapeScriptIdentifiers');
-        $method->setAccessible(true);
 
         $input = 'prefix javascript:alert(1) and vbscript:and data:text/plain';
         $expected = 'prefix :alert(1) and :and :text/plain';
@@ -607,8 +604,7 @@ class EscaperTest extends TestCase
     public function testEscapeScriptIdentifiersReturnsEmptyOnSecondPregReplaceError(): void
     {
         $patternProp = new \ReflectionProperty(Escaper::class, 'xssFiltrationPattern');
-        $patternProp->setAccessible(true);
-        $original = $patternProp->getValue($this->escaper);
+        $original = $patternProp->getValue();
 
         // Force preg_replace to fail and return null using an invalid pattern
         $patternProp->setValue($this->escaper, '/[/');
@@ -619,7 +615,6 @@ class EscaperTest extends TestCase
                 return true; // suppress warning from invalid regex
             });
             $method = new \ReflectionMethod(Escaper::class, 'escapeScriptIdentifiers');
-            $method->setAccessible(true);
 
             $this->assertSame('', $method->invoke($this->escaper, 'javascript:alert(1)'));
         } finally {
@@ -632,16 +627,13 @@ class EscaperTest extends TestCase
     public function testEscapeScriptIdentifiersRecursiveReprocessing(): void
     {
         $patternProp = new \ReflectionProperty(Escaper::class, 'xssFiltrationPattern');
-        $patternProp->setAccessible(true);
-        $original = $patternProp->getValue($this->escaper);
+        $original = $patternProp->getValue();
 
         // Use a pattern that still matches after replacement to trigger recursion
-        $patternProp->setValue($this->escaper, '/::/');
+        $patternProp->setValue(null, '/::/');
 
         try {
             $method = new \ReflectionMethod(Escaper::class, 'escapeScriptIdentifiers');
-            $method->setAccessible(true);
-
             $this->assertSame(':', $method->invoke($this->escaper, ':::'));
         } finally {
             $patternProp->setValue($this->escaper, $original);
@@ -651,7 +643,6 @@ class EscaperTest extends TestCase
     public function testPrepareUnescapedCharactersReplacesAmpersands(): void
     {
         $method = new \ReflectionMethod(Escaper::class, 'prepareUnescapedCharacters');
-        $method->setAccessible(true);
 
         $input = '& < & >';
         $expected = '&amp; < &amp; >';
@@ -662,7 +653,6 @@ class EscaperTest extends TestCase
     public function testPrepareUnescapedCharactersNoAmpersandNoOp(): void
     {
         $method = new \ReflectionMethod(Escaper::class, 'prepareUnescapedCharacters');
-        $method->setAccessible(true);
 
         $input = 'Plain text without ampersands';
 
@@ -672,7 +662,6 @@ class EscaperTest extends TestCase
     public function testPrepareUnescapedCharactersReturnsNullOnMalformedUtf8(): void
     {
         $method = new \ReflectionMethod(Escaper::class, 'prepareUnescapedCharacters');
-        $method->setAccessible(true);
 
         // Invalid UTF-8 sequence; with /u modifier preg_replace returns null
         $bad = "\xC3\x28 &";
@@ -709,7 +698,6 @@ class EscaperTest extends TestCase
         $body->appendChild($div);
 
         $method = new \ReflectionMethod(Escaper::class, 'removeNotAllowedTags');
-        $method->setAccessible(true);
         $method->invoke($this->escaper, $doc, ['span', 'b']);
 
         $xpath = new \DOMXPath($doc);
@@ -740,7 +728,6 @@ class EscaperTest extends TestCase
         $body->appendChild($div);
 
         $method = new \ReflectionMethod(Escaper::class, 'removeNotAllowedTags');
-        $method->setAccessible(true);
         $method->invoke($this->escaper, $doc, []);
 
         $xpath = new \DOMXPath($doc);
@@ -770,7 +757,6 @@ class EscaperTest extends TestCase
         $body->appendChild($span);
 
         $method = new \ReflectionMethod(Escaper::class, 'removeNotAllowedAttributes');
-        $method->setAccessible(true);
         $method->invoke($this->escaper, $doc);
 
         $xpath = new \DOMXPath($doc);
@@ -805,7 +791,6 @@ class EscaperTest extends TestCase
         $body->appendChild($a);
 
         $method = new \ReflectionMethod(Escaper::class, 'removeNotAllowedAttributes');
-        $method->setAccessible(true);
         $method->invoke($this->escaper, $doc);
 
         $xpath = new \DOMXPath($doc);
@@ -849,7 +834,6 @@ class EscaperTest extends TestCase
         $body->appendChild($div);
 
         $method = new \ReflectionMethod(Escaper::class, 'removeComments');
-        $method->setAccessible(true);
         $method->invoke($this->escaper, $doc);
 
         $xpath = new \DOMXPath($doc);
@@ -877,7 +861,6 @@ class EscaperTest extends TestCase
         $body->appendChild($div);
 
         $method = new \ReflectionMethod(Escaper::class, 'removeComments');
-        $method->setAccessible(true);
         $method->invoke($this->escaper, $doc);
 
         $xpath = new \DOMXPath($doc);
@@ -911,7 +894,6 @@ class EscaperTest extends TestCase
         $body->appendChild($span);
 
         $method = new \ReflectionMethod(Escaper::class, 'escapeText');
-        $method->setAccessible(true);
         $method->invoke($this->escaper, $doc);
 
         $xpath = new \DOMXPath($doc);
@@ -961,7 +943,6 @@ class EscaperTest extends TestCase
         $body->appendChild($a);
 
         $method = new \ReflectionMethod(Escaper::class, 'escapeAttributeValues');
-        $method->setAccessible(true);
         $method->invoke($this->escaper, $doc);
 
         $xpath = new \DOMXPath($doc);
@@ -992,7 +973,6 @@ class EscaperTest extends TestCase
     public function testEscapeAttributeValueHrefUsesEscapeUrl(): void
     {
         $method = new \ReflectionMethod(Escaper::class, 'escapeAttributeValue');
-        $method->setAccessible(true);
 
         $name = 'href';
         $value = 'http://test.com/?redirect=javascript:alert(1)&test=1';
@@ -1005,7 +985,6 @@ class EscaperTest extends TestCase
     public function testEscapeAttributeValueNonHrefUsesEscapeHtml(): void
     {
         $method = new \ReflectionMethod(Escaper::class, 'escapeAttributeValue');
-        $method->setAccessible(true);
 
         $name = 'title';
         $value = 'He said "Hi" & \'ok\' < >';
@@ -1022,7 +1001,6 @@ class EscaperTest extends TestCase
     public function testFilterProhibitedTagsRemovesDisallowedAndLogs(): void
     {
         $method = new \ReflectionMethod(Escaper::class, 'filterProhibitedTags');
-        $method->setAccessible(true);
 
         // Expect a critical log mentioning the prohibited tag
         $this->loggerMock->expects($this->once())
@@ -1038,7 +1016,6 @@ class EscaperTest extends TestCase
     public function testFilterProhibitedTagsNoLogWhenClean(): void
     {
         $method = new \ReflectionMethod(Escaper::class, 'filterProhibitedTags');
-        $method->setAccessible(true);
 
         // No prohibited tags, so no logging
         $this->loggerMock->expects($this->never())
@@ -1054,11 +1031,9 @@ class EscaperTest extends TestCase
     {
         $existing = new ZendEscaper();
         $prop = new \ReflectionProperty(Escaper::class, 'escaper');
-        $prop->setAccessible(true);
         $prop->setValue($this->escaper, $existing);
 
         $method = new \ReflectionMethod(Escaper::class, 'getEscaper');
-        $method->setAccessible(true);
         $result = $method->invoke($this->escaper);
 
         $this->assertSame($existing, $result);
@@ -1067,13 +1042,11 @@ class EscaperTest extends TestCase
     public function testGetEscaperFetchesFromObjectManagerWhenNull(): void
     {
         $prop = new \ReflectionProperty(Escaper::class, 'escaper');
-        $prop->setAccessible(true);
         $prop->setValue($this->escaper, null);
 
         $zendEscaper = new ZendEscaper();
 
         $rp = new \ReflectionProperty(\Magento\Framework\App\ObjectManager::class, '_instance');
-        $rp->setAccessible(true);
         $originalOm = $rp->getValue();
         $stubOm = new class($zendEscaper) implements \Magento\Framework\ObjectManagerInterface
         {
@@ -1118,7 +1091,6 @@ class EscaperTest extends TestCase
 
         try {
             $method = new \ReflectionMethod(Escaper::class, 'getEscaper');
-            $method->setAccessible(true);
             $result = $method->invoke($this->escaper);
             $this->assertSame($zendEscaper, $result);
         } finally {
@@ -1134,11 +1106,9 @@ class EscaperTest extends TestCase
     {
         $existing = $this->createMock(\Magento\Framework\Translate\InlineInterface::class);
         $prop = new \ReflectionProperty(Escaper::class, 'translateInline');
-        $prop->setAccessible(true);
         $prop->setValue($this->escaper, $existing);
 
         $method = new \ReflectionMethod(Escaper::class, 'getTranslateInline');
-        $method->setAccessible(true);
         $result = $method->invoke($this->escaper);
 
         $this->assertSame($existing, $result);
@@ -1147,13 +1117,11 @@ class EscaperTest extends TestCase
     public function testGetTranslateInlineFetchesFromObjectManagerWhenNull(): void
     {
         $prop = new \ReflectionProperty(Escaper::class, 'translateInline');
-        $prop->setAccessible(true);
         $prop->setValue($this->escaper, null);
 
         $inlineMock = $this->createMock(\Magento\Framework\Translate\InlineInterface::class);
 
         $rp = new \ReflectionProperty(\Magento\Framework\App\ObjectManager::class, '_instance');
-        $rp->setAccessible(true);
         $originalOm = $rp->getValue();
         $stubOm = new class($inlineMock) implements \Magento\Framework\ObjectManagerInterface
         {
@@ -1198,7 +1166,6 @@ class EscaperTest extends TestCase
 
         try {
             $method = new \ReflectionMethod(Escaper::class, 'getTranslateInline');
-            $method->setAccessible(true);
             $result = $method->invoke($this->escaper);
             $this->assertSame($inlineMock, $result);
         } finally {
@@ -1213,13 +1180,11 @@ class EscaperTest extends TestCase
     public function testGetLoggerFetchesFromObjectManagerWhenNull(): void
     {
         $refProp = new \ReflectionProperty(Escaper::class, 'logger');
-        $refProp->setAccessible(true);
         $refProp->setValue($this->escaper, null);
 
         $loggerMock = $this->createMock(\Psr\Log\LoggerInterface::class);
 
         $rp = new \ReflectionProperty(\Magento\Framework\App\ObjectManager::class, '_instance');
-        $rp->setAccessible(true);
         $originalOm = $rp->getValue();
         $stubOm = new class($loggerMock) implements \Magento\Framework\ObjectManagerInterface
         {
@@ -1264,7 +1229,6 @@ class EscaperTest extends TestCase
 
         try {
             $refMethod = new \ReflectionMethod(Escaper::class, 'getLogger');
-            $refMethod->setAccessible(true);
             $logger = $refMethod->invoke($this->escaper);
             $this->assertSame($loggerMock, $logger);
         } finally {
@@ -1279,11 +1243,9 @@ class EscaperTest extends TestCase
     public function testGetLoggerReturnsExistingInstance(): void
     {
         $refProp = new \ReflectionProperty(Escaper::class, 'logger');
-        $refProp->setAccessible(true);
         $refProp->setValue($this->escaper, $this->loggerMock);
 
         $refMethod = new \ReflectionMethod(Escaper::class, 'getLogger');
-        $refMethod->setAccessible(true);
         $logger = $refMethod->invoke($this->escaper);
 
         $this->assertSame($this->loggerMock, $logger);

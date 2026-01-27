@@ -56,7 +56,6 @@ class DataFixtureTest extends TestCase
             ['data_set_config'],
         ];
         $reflectionMethod = new \ReflectionMethod(DataFixture::class, 'getPrioritizedConfig');
-        $reflectionMethod->setAccessible(true);
         $this->assertEquals($expectedResult, $reflectionMethod->invoke($this->object));
     }
 

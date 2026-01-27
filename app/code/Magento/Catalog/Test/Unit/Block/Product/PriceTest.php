@@ -245,7 +245,6 @@ class PriceTest extends TestCase
         }
 
         $method = new \ReflectionMethod(Price::class, '_toHtml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->block);
 
         $this->assertSame('', $result);
