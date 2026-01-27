@@ -22,8 +22,6 @@
             <magentoCLI command="config:set {{ShowCompanyRequiredConfigData.path}} {{ShowCompanyRequiredConfigData.value}}" stepKey="setCompanyRequired"/>
             <!-- Step 2: Create simple product -->
             <createData entity="ApiSimpleProduct" stepKey="createProduct"/>
-            <magentoCLI command="cache:flush" stepKey="flushCacheAfterCleanup"/>
-            <magentoCLI command="indexer:reindex" stepKey="reindexAfterCleanup"/>
         </before>
         <after>
             <!-- Revert company attribute to optional -->
