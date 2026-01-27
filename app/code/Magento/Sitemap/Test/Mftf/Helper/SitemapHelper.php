@@ -8,14 +8,12 @@ declare(strict_types=1);
 namespace Magento\Sitemap\Test\Mftf\Helper;
 
 use Magento\FunctionalTestingFramework\Helper\Helper;
-use Magento\Framework\HTTP\Client\Curl;
 
 /**
  * Helper class for sitemap HTTP assertions in MFTF tests
  */
 class SitemapHelper extends Helper
 {
-
     /**
      * Check HTTP status code for a given URL
      *
@@ -24,13 +22,16 @@ class SitemapHelper extends Helper
      */
     public function getHttpStatusCode(string $url): int
     {
-        $curl = new Curl();
-        $curl->setOption(CURLOPT_RETURNTRANSFER, true);
-        $curl->setOption(CURLOPT_FOLLOWLOCATION, false);
-        $curl->setOption(CURLOPT_NOBODY, true); // HEAD request
-        $curl->get($url);
+        $session = curl_init($url);
+        curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($session, CURLOPT_FOLLOWLOCATION, false);
+        curl_setopt($session, CURLOPT_NOBODY, true); // HEAD request
 
-        return (int) $curl->getStatus();
+        curl_exec($session);
+        $httpCode = (int) curl_getinfo($session, CURLINFO_HTTP_CODE);
+        curl_close($session);
+
+        return $httpCode;
     }
 
     /**
@@ -41,16 +42,16 @@ class SitemapHelper extends Helper
      */
     public function isImageContentType(string $url): bool
     {
-        $curl = new Curl();
-        $curl->setOption(CURLOPT_RETURNTRANSFER, true);
-        $curl->setOption(CURLOPT_FOLLOWLOCATION, false);
-        $curl->setOption(CURLOPT_NOBODY, true); // HEAD request
-        $curl->get($url);
+        $session = curl_init($url);
+        curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($session, CURLOPT_FOLLOWLOCATION, false);
+        curl_setopt($session, CURLOPT_NOBODY, true); // HEAD request
 
-        $headers = $curl->getHeaders();
-        $contentType = $headers['content-type'] ?? $headers['Content-Type'] ?? '';
+        curl_exec($session);
+        $contentType = curl_getinfo($session, CURLINFO_CONTENT_TYPE);
+        curl_close($session);
 
-        return str_contains(strtolower($contentType), 'image/');
+        return str_contains(strtolower($contentType ?: ''), 'image/');
     }
 
     /**
@@ -62,13 +63,13 @@ class SitemapHelper extends Helper
      */
     public function responseContains(string $url, string $searchText): bool
     {
-        $curl = new Curl();
-        $curl->setOption(CURLOPT_RETURNTRANSFER, true);
-        $curl->setOption(CURLOPT_FOLLOWLOCATION, false);
-        $curl->get($url);
+        $session = curl_init($url);
+        curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($session, CURLOPT_FOLLOWLOCATION, false);
 
-        $body = $curl->getBody();
+        $responseBody = curl_exec($session);
+        curl_close($session);
 
-        return str_contains($body, $searchText);
+        return str_contains($responseBody ?: '', $searchText);
     }
 }
