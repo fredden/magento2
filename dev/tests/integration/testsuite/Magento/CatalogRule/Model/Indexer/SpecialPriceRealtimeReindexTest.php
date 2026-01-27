@@ -22,6 +22,7 @@ use Magento\TestFramework\Helper\Bootstrap;
 
 /**
  * Test for special price reindex on product save in case of catalog price scope = website
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class SpecialPriceRealtimeReindexTest extends \PHPUnit\Framework\TestCase
 {
