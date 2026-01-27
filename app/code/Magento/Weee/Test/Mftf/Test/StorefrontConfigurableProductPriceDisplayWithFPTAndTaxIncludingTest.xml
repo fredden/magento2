@@ -88,10 +88,8 @@
             <!-- Delete tax rule and rate -->
             <deleteData createDataKey="createTaxRule" stepKey="deleteTaxRule"/>
             <deleteData createDataKey="createTaxRate19" stepKey="deleteTaxRate"/>
-            <!-- Delete products -->
-            <deleteData createDataKey="createSimpleProduct1" stepKey="deleteSimpleProduct1"/>
-            <deleteData createDataKey="createSimpleProduct2" stepKey="deleteSimpleProduct2"/>
-            <deleteData createDataKey="createConfigProduct" stepKey="deleteConfigProduct"/>
+            <!-- Delete all products via API -->
+            <helper class="Magento\Catalog\Test\Mftf\Helper\ProductApiHelper" method="deleteAllProductsApi" stepKey="deleteAllProductsViaApi"/>
             <!-- Delete attribute -->
             <deleteData createDataKey="createConfigProductAttribute" stepKey="deleteConfigProductAttribute"/>
             <!-- Admin logout -->
