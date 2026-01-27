@@ -306,4 +306,3 @@ class PrintShippingLabelsTest extends TestCase
         ];
     }
 }
-
