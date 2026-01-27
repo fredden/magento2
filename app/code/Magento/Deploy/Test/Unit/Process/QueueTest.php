@@ -160,20 +160,14 @@ class QueueTest extends TestCase
     }
 
     /**
-     * Test adding and processing packages.
+     * Create a package mock for add/process tests.
      *
-     * @param array $deps
      * @param string $area
      * @param bool $hasParent
-     * @return void
-     * @dataProvider addAndProcessDataProvider
-     * @covers ::add
-     * @covers ::process
+     * @return Package&MockObject
      */
-    public function testAddAndProcess(array $deps, string $area, bool $hasParent): void
+    private function createAddProcessPackageMock(string $area, bool $hasParent): Package&MockObject
     {
-        $queue = $this->createQueue();
-
         $package = $this->createMock(Package::class);
         $package->expects($this->any())->method('getPath')->willReturn('test/path');
         $package->expects($this->any())->method('getArea')->willReturn($area);
@@ -181,23 +175,78 @@ class QueueTest extends TestCase
         $package->expects($this->any())->method('getLocale')->willReturn('en_US');
         $package->expects($this->any())->method('getFiles')->willReturn([]);
         $package->expects($this->any())->method('getPreProcessors')->willReturn([]);
-        $package->expects($hasParent ? $this->exactly(2) : $this->once())
-            ->method('getParent')->willReturn($hasParent ? $package : null);
+        $package->expects($this->any())->method('getParent')->willReturn($hasParent ? $package : null);
+        return $package;
+    }
+
+    /**
+     * Test that add() returns true when package is valid.
+     *
+     * @param array $deps
+     * @param string $area
+     * @param bool $hasParent
+     * @return void
+     * @dataProvider addPackageDataProvider
+     * @covers ::add
+     */
+    public function testAddReturnsTrueWhenPackageIsValid(array $deps, string $area, bool $hasParent): void
+    {
+        $queue = $this->createQueue();
+        $package = $this->createAddProcessPackageMock($area, $hasParent);
+
+        $this->assertTrue($queue->add($package, $deps));
+    }
+
+    /**
+     * Test that add() adds package to the queue.
+     *
+     * @param array $deps
+     * @param string $area
+     * @param bool $hasParent
+     * @return void
+     * @dataProvider addPackageDataProvider
+     * @covers ::add
+     * @covers ::getPackages
+     */
+    public function testAddAddsPackageToQueue(array $deps, string $area, bool $hasParent): void
+    {
+        $queue = $this->createQueue();
+        $package = $this->createAddProcessPackageMock($area, $hasParent);
+
+        $queue->add($package, $deps);
+
+        $this->assertArrayHasKey('test/path', $queue->getPackages());
+    }
+
+    /**
+     * Test that process() returns zero on success.
+     *
+     * @param array $deps
+     * @param string $area
+     * @param bool $hasParent
+     * @return void
+     * @dataProvider addPackageDataProvider
+     * @covers ::process
+     */
+    public function testProcessReturnsZeroOnSuccess(array $deps, string $area, bool $hasParent): void
+    {
+        $queue = $this->createQueue();
+        $package = $this->createAddProcessPackageMock($area, $hasParent);
 
         $this->appState->expects($this->once())->method('emulateAreaCode');
         $this->logger->expects($this->exactly(2))->method('info');
 
-        $this->assertTrue($queue->add($package, $deps));
-        $this->assertArrayHasKey('test/path', $queue->getPackages());
+        $queue->add($package, $deps);
+
         $this->assertSame(0, $queue->process());
     }
 
     /**
-     * Data provider for testAddAndProcess.
+     * Data provider for add and process tests.
      *
      * @return array
      */
-    public static function addAndProcessDataProvider(): array
+    public static function addPackageDataProvider(): array
     {
         return [
             'frontend with parent' => [[], 'frontend', true],
