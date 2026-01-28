@@ -1,5 +1,5 @@
 # Copyright 2018 Adobe
-# See COPYING.txt for license details.
+# All Rights Reserved.
 
 type Query {
     products (
