@@ -26,6 +26,8 @@ use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 
 /**
  * Test for \Magento\Eav\Model\Validator\Attribute\Data
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class DataTest extends TestCase
 {

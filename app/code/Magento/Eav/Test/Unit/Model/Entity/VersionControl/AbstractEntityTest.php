@@ -24,6 +24,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Test for version control abstract entity model.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class AbstractEntityTest extends \Magento\Eav\Test\Unit\Model\Entity\AbstractEntityTest
 {

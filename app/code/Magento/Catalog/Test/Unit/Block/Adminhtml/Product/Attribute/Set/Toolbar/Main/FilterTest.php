@@ -27,6 +27,7 @@ use ReflectionMethod;
  * Unit test for Filter block
  *
  * @covers \Magento\Catalog\Block\Adminhtml\Product\Attribute\Set\Toolbar\Main\Filter
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class FilterTest extends TestCase
 {

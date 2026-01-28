@@ -25,6 +25,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Magento\Catalog\Block\Product\Price
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class PriceTest extends TestCase
 {
