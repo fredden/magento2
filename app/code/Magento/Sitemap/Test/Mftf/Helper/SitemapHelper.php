@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace Magento\Sitemap\Test\Mftf\Helper;
 
+use Magento\FunctionalTestingFramework\DataTransport\Protocol\CurlInterface;
+use Magento\FunctionalTestingFramework\DataTransport\Protocol\CurlTransport;
 use Magento\FunctionalTestingFramework\Helper\Helper;
 
 /**
@@ -22,16 +24,23 @@ class SitemapHelper extends Helper
      */
     public function getHttpStatusCode(string $url): int
     {
-        $session = curl_init($url);
-        curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($session, CURLOPT_FOLLOWLOCATION, false);
-        curl_setopt($session, CURLOPT_NOBODY, true); // HEAD request
+        $curl = new CurlTransport();
 
-        curl_exec($session);
-        $httpCode = (int) curl_getinfo($session, CURLINFO_HTTP_CODE);
-        curl_close($session);
-
-        return $httpCode;
+        try {
+            $curl->addOption(CURLOPT_FOLLOWLOCATION, false);
+            $curl->addOption(CURLOPT_NOBODY, true); // HEAD request
+            $curl->write($url, [], CurlInterface::GET);
+            try {
+                $curl->read();
+            } catch (\Exception $e) {
+                // Ignore exception - we just want the status code
+            }
+            return (int) $curl->getInfo(CURLINFO_HTTP_CODE);
+        } catch (\Exception $e) {
+            return 0;
+        } finally {
+            $curl->close();
+        }
     }
 
     /**
@@ -42,16 +51,23 @@ class SitemapHelper extends Helper
      */
     public function isImageContentType(string $url): bool
     {
-        $session = curl_init($url);
-        curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($session, CURLOPT_FOLLOWLOCATION, false);
-        curl_setopt($session, CURLOPT_NOBODY, true); // HEAD request
-
-        curl_exec($session);
-        $contentType = curl_getinfo($session, CURLINFO_CONTENT_TYPE);
-        curl_close($session);
-
-        return str_contains(strtolower($contentType ?: ''), 'image/');
+        $curl = new CurlTransport();
+        try {
+            $curl->addOption(CURLOPT_FOLLOWLOCATION, false);
+            $curl->addOption(CURLOPT_NOBODY, true); // HEAD request
+            $curl->write($url, [], CurlInterface::GET);
+            try {
+                $curl->read();
+            } catch (\Exception $e) {
+                // Ignore exception - we just want the content type
+            }
+            $contentType = $curl->getInfo(CURLINFO_CONTENT_TYPE);
+            return str_contains(strtolower($contentType ?: ''), 'image/');
+        } catch (\Exception $e) {
+            return false;
+        } finally {
+            $curl->close();
+        }
     }
 
     /**
@@ -63,13 +79,19 @@ class SitemapHelper extends Helper
      */
     public function responseContains(string $url, string $searchText): bool
     {
-        $session = curl_init($url);
-        curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($session, CURLOPT_FOLLOWLOCATION, false);
+        $curl = new CurlTransport();
 
-        $responseBody = curl_exec($session);
-        curl_close($session);
-
-        return str_contains($responseBody ?: '', $searchText);
+        try {
+            $curl->addOption(CURLOPT_FOLLOWLOCATION, false);
+            $curl->write($url, [], CurlInterface::GET);
+            // Note: read() executes the request and throws exception if HTTP code
+            // is not in SUCCESSFUL_HTTP_CODES (200-205), so non-2xx responses return false
+            $responseBody = $curl->read();
+            return str_contains($responseBody ?: '', $searchText);
+        } catch (\Exception $e) {
+            return false;
+        } finally {
+            $curl->close();
+        }
     }
 }
