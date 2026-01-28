@@ -836,10 +836,6 @@ class ProductTest extends TestCase
 
     protected function getMockForExtensionAttribute()
     {
-        $extensionAttributesMock = $this->createPartialMockWithReflection(
-            ProductExtensionInterface::class,
-            $this->getProductExtensionMethods()
-        );
         $stockItemMock = $this->createStub(StockItemInterface::class);
         return $this->createExtensionAttributesStub($stockItemMock);
     }
@@ -2058,7 +2054,17 @@ class ProductTest extends TestCase
     {
         $productIds = [1, 2, 3];
 
-        $this->productExtAttributes->method('setConfigurableProductLinks');
+        $capturedLinks = null;
+        $this->productExtAttributes = $this->createExtensionAttributesStub(
+            null,
+            function ($links) use (&$capturedLinks): void {
+                $capturedLinks = $links;
+            }
+        );
+        $extensionAttributesFactoryMock = $this->createMock(ExtensionAttributesFactory::class);
+        $extensionAttributesFactoryMock
+            ->method('create')
+            ->willReturn($this->productExtAttributes);
 
         $model = new Product(
             $this->createMock(Context::class),
