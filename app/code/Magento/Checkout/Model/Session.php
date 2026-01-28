@@ -277,9 +277,7 @@ class Session extends \Magento\Framework\Session\SessionManager
                      * need recalculate totals of quote. It is possible if customer use currency switcher or
                      * store switcher.
                      */
-                    if ($quote->getId() &&
-                        $quote->getQuoteCurrencyCode() != $this->_storeManager->getStore()->getCurrentCurrencyCode()
-                    ) {
+                    if ($quote->getQuoteCurrencyCode() != $this->_storeManager->getStore()->getCurrentCurrencyCode()) {
                         $quote->setStore($this->_storeManager->getStore());
                         $this->quoteRepository->save($quote->collectTotals());
                         /*
@@ -488,7 +486,9 @@ class Session extends \Magento\Framework\Session\SessionManager
      */
     public function clearQuote()
     {
-        $this->_eventManager->dispatch('checkout_quote_destroy', ['quote' => $this->getQuote()]);
+        if ($this->_quote !== null) {
+            $this->_eventManager->dispatch('checkout_quote_destroy', ['quote' => $this->_quote]);
+        }
         $this->_quote = null;
         $this->setQuoteId(null);
         $this->setLastSuccessQuoteId(null);
