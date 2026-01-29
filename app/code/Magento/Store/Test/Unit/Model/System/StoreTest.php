@@ -14,6 +14,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Store\Model\Website;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Magento\Store\Model\System\Store as sysStore;
 
 class StoreTest extends TestCase
 {
@@ -47,6 +48,11 @@ class StoreTest extends TestCase
      */
     protected static $groupId = 2;
 
+    /**
+     * @var int
+     */
+    protected $groupWebsiteId = 3;
+
     protected function setUp(): void
     {
         $objectManager = new ObjectManager($this);
@@ -71,14 +77,23 @@ class StoreTest extends TestCase
             []
         );
         $this->groupMock->expects($this->any())->method('getStores')->willReturn([$this->storeMock]);
-        $this->groupMock->expects($this->atLeastOnce())->method('getId')->willReturn(self::$groupId);
-        $this->websiteMock->expects($this->atLeastOnce())->method('getGroups')->willReturn([$this->groupMock]);
-        $this->storeManagerMock->expects($this->atLeastOnce())->method('getWebsites')->willReturn([$this->websiteMock]);
-        $this->storeManagerMock->expects($this->atLeastOnce())->method('getStores')->willReturn([$this->storeMock]);
-        $this->model = $objectManager->getObject(
-            \Magento\Store\Model\System\Store::class,
-            ['storeManager' => $this->storeManagerMock]
-        );
+        $this->groupMock->expects($this->any())->method('getId')->willReturn(self::$groupId);
+        $this->groupWebsiteId = 3;
+        $this->groupMock->expects($this->any())->method('getWebsiteId')->willReturnCallback(function() {
+            return $this->groupWebsiteId;
+        });
+        $this->websiteMock->expects($this->any())->method('getId')->willReturn(3);
+        $this->websiteMock->expects($this->any())->method('getGroups')->willReturn([$this->groupMock]);
+        $this->storeManagerMock
+            ->expects($this->any())
+            ->method('getWebsites')
+            ->willReturn([3 => $this->websiteMock]);
+        $this->storeManagerMock->expects($this->any())->method('getGroups')->willReturn([$this->groupMock]);
+        $this->storeManagerMock
+            ->expects($this->any())
+            ->method('getStores')
+            ->willReturn([1 => $this->storeMock]);
+        $this->model = new sysStore($this->storeManagerMock);
     }
 
     /**
@@ -200,15 +215,25 @@ class StoreTest extends TestCase
         $groupWebsiteId,
         $expectedResult
     ) {
+        $this->groupWebsiteId = $groupWebsiteId;
         $this->websiteMock->expects($this->any())->method('getId')->willReturn($websiteId);
         $this->websiteMock->expects($this->any())->method('getName')->willReturn($websiteName);
         $this->groupMock->expects($this->any())->method('getId')->willReturn($groupId);
         $this->groupMock->expects($this->any())->method('getName')->willReturn($groupName);
-        $this->groupMock->expects($this->any())->method('getWebsiteId')->willReturn($groupWebsiteId);
+        $this->groupMock->expects($this->any())->method('getStores')->willReturn([$this->storeMock]);
         $this->storeMock->expects($this->any())->method('getId')->willReturn($storeId);
         $this->storeMock->expects($this->any())->method('getName')->willReturn($storeName);
         $this->storeMock->expects($this->any())->method('getGroupId')->willReturn($storeGroupId);
-
+        $this->storeManagerMock->expects($this->any())
+            ->method('getWebsites')
+            ->willReturn([$websiteId => $this->websiteMock]);
+        $this->storeManagerMock->expects($this->any())
+            ->method('getGroups')
+            ->willReturn([$this->groupMock]);
+        $this->storeManagerMock->expects($this->any())
+            ->method('getStores')
+            ->willReturn([$storeId => $this->storeMock]);
+        $this->model->reload();
         $this->model->setIsAdminScopeAllowed(true);
         $this->assertEquals(
             $this->model->getStoreValuesForForm($empty, $all),
