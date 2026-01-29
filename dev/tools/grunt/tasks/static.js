@@ -8,7 +8,6 @@ module.exports = function (grunt) {
 
     var pc = require('../configs/path'),
         fs = require('fs'),
-        path = require('path'),
         cvf = require('../tools/collect-validation-files'),
         setConfig = function (task, target, data) {
             var config = grunt.config.get(task);
@@ -24,7 +23,7 @@ module.exports = function (grunt) {
                 config[target].options.overrideConfig.push({
                     languageOptions: {
                         ecmaVersion: 2021,
-                        sourceType: "script"
+                        sourceType: 'script'
                     }
                 });
             }
