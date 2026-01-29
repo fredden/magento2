@@ -72,9 +72,13 @@ define([
          * @return {Object}
          */
         prepareClientConfig: function () {
+            var quoteData;
+
             this._super();
-            this.clientConfig.quoteId = window.checkoutConfig.quoteData['entity_id'];
-            this.clientConfig.customerId = window.customerData.id;
+            quoteData = window.checkoutConfig && window.checkoutConfig.quoteData;
+
+            this.clientConfig.quoteId = quoteData && (quoteData.entity_id || quoteData['entity_id']);
+            this.clientConfig.customerId = window.customerData && window.customerData.id;
             this.clientConfig.button = 0;
 
             return this.clientConfig;
