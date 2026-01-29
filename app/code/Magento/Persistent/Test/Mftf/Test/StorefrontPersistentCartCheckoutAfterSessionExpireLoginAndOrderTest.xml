@@ -17,6 +17,7 @@
             <severity value="MAJOR"/>
             <testCaseId value="AC-5489"/>
             <group value="persistent"/>
+        </annotations>
         <before>
             <!-- Step 2: Enable Persistence shopping cart and set enable persistence to yes -->
             <createData entity="PersistentConfigSettings" stepKey="enablePersistentConfigSettings"/>
