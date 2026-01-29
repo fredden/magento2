@@ -77,7 +77,7 @@ class StoreTest extends TestCase
         $this->groupMock->expects($this->any())->method('getStores')->willReturn([$this->storeMock]);
         $this->groupMock->expects($this->any())->method('getId')->willReturn(self::$groupId);
         $this->groupWebsiteId = 3;
-        $this->groupMock->expects($this->any())->method('getWebsiteId')->willReturnCallback(function() {
+        $this->groupMock->expects($this->any())->method('getWebsiteId')->willReturnCallback(function () {
             return $this->groupWebsiteId;
         });
         $this->websiteMock->expects($this->any())->method('getId')->willReturn(3);
