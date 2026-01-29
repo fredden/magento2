@@ -566,7 +566,7 @@ define([
                 $.ajax = $ajaxMock;
 
                 return waitUntilReady(function (resolve) {
-                    editor = new Editor($.extend({}, configJson, {readOnly: true}));
+                    editor = new Editor({...configJson, readOnly: true});
                     editor.error = jasmine.createSpy('error');
                     resolve();
                 });
@@ -692,14 +692,16 @@ define([
             describe('initial data is empty', function () {
                 beforeEach(function () {
                     return waitUntilReady(function (resolve) {
-                        editor = new Editor($.extend(true, {}, configJson, {
+                        editor = new Editor({
+                            ...configJson,
                             tree: {
                                 assigned: configJson.tree.assigned,
-                                unassigned: $.extend(true, {}, configJson.tree.unassigned, {
+                                unassigned: {
+                                    ...configJson.tree.unassigned,
                                     data: []
-                                })
+                                }
                             }
-                        }));
+                        });
                         editor.error = jasmine.createSpy('error');
                         resolve();
                     });
@@ -728,10 +730,12 @@ define([
             describe('initial data has empty node', function () {
                 beforeEach(function () {
                     return waitUntilReady(function (resolve) {
-                        editor = new Editor($.extend(true, {}, configJson, {
+                        editor = new Editor({
+                            ...configJson,
                             tree: {
                                 assigned: configJson.tree.assigned,
-                                unassigned: $.extend(true, {}, configJson.tree.unassigned, {
+                                unassigned: {
+                                    ...configJson.tree.unassigned,
                                     data: [
                                         {
                                             'id' :'empty',
@@ -741,9 +745,9 @@ define([
                                             'allowDrag': false
                                         }
                                     ]
-                                })
+                                }
                             }
-                        }));
+                        });
                         editor.error = jasmine.createSpy('error');
                         resolve();
                     });
