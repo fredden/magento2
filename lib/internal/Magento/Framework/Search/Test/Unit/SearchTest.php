@@ -110,7 +110,12 @@ class SearchTest extends TestCase
             ->method('getFilterGroups')
             ->willReturn([$filterGroup]);
 
-        $searchResult = $this->createMock(SearchResult::class);
+        $searchResultMock = $this->createMock(SearchResult::class);
+        // SearchResult must support setSearchCriteria() method chaining
+        $searchResultMock->expects($this->once())
+            ->method('setSearchCriteria')
+            ->with($searchCriteria)
+            ->willReturnSelf();
 
         $request = $this->createMock(RequestInterface::class);
 
@@ -136,7 +141,7 @@ class SearchTest extends TestCase
         $this->searchResponseBuilder->expects($this->once())
             ->method('build')
             ->with($response)
-            ->willReturn($searchResult);
+            ->willReturn($searchResultMock);
 
         $this->scopeResolver->expects($this->once())
             ->method('getScope')
@@ -146,17 +151,10 @@ class SearchTest extends TestCase
             ->method('getId')
             ->willReturn($scopeId);
 
-        $searchResult = $this->model->search($searchCriteria);
+        $actualResult = $this->model->search($searchCriteria);
 
-        // Skip if searchResult is null - pre-existing issue with mock configuration
-        if ($searchResult === null) {
-            $this->markTestSkipped(
-                'Pre-existing issue: Search::search() returns null instead of SearchResultInterface. ' .
-                'This indicates a mock configuration issue or production code change.'
-            );
-        }
-
-        $this->assertInstanceOf(SearchResultInterface::class, $searchResult);
+        $this->assertInstanceOf(SearchResultInterface::class, $actualResult);
+        $this->assertSame($searchResultMock, $actualResult);
     }
 
     /**

@@ -56,11 +56,6 @@ class MessageControllerTest extends TestCase
      */
     public function testLockWithNotFoundException()
     {
-        $this->markTestSkipped(
-            'Environment issue: File permission error on generated factory files. ' .
-            'Fix permissions on dev/tests/unit/tmp/generated/code/ directory.'
-        );
-        
         $properties = [];
         $consumerName = '';
         $this->expectException(NotFoundException::class);

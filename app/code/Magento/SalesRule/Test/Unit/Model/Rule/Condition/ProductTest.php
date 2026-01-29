@@ -632,17 +632,21 @@ class ProductTest extends TestCase
 
     /**
      * Ensures hidden scope field is appended to attribute element HTML.
-     * @group skip
      */
     public function testGetAttributeElementHtmlAppendsHiddenScopeField(): void
     {
-        $this->markTestSkipped('Test requires complete form setup - skipped during PHPUnit 12 migration');
         // Ensure scope is set to "parent" so it should be passed as hidden field value
         $this->model->setAttribute('parent::quote_item_qty');
 
-        $elementHidden = $this->createMock(AbstractElement::class);
+        $elementHidden = $this->getMockBuilder(AbstractElement::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getHtml'])
+            ->getMock();
         $elementHidden->method('getHtml')->willReturn('HIDDEN_HTML');
-        $elementSelect = $this->createMock(AbstractElement::class);
+        $elementSelect = $this->getMockBuilder(AbstractElement::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getHtml'])
+            ->getMock();
         $elementSelect->method('getHtml')->willReturn('ATTR_HTML');
 
         $capturedConfig = null;

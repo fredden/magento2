@@ -125,6 +125,11 @@ class AbstractExtensibleModelTest extends TestCase
             AbstractExtensibleModel::class,
             ['getCustomAttributesCodes']
         );
+        
+        // Inject extensionAttributesFactory and attributeValueFactory into model via reflection
+        $this->setPropertyValue($this->model, 'extensionAttributesFactory', $extensionAttributesFactory);
+        $this->setPropertyValue($this->model, 'customAttributeFactory', $this->attributeValueFactoryMock);
+        
         $this->customAttribute = new AttributeValue();
     }
 
@@ -154,11 +159,6 @@ class AbstractExtensibleModelTest extends TestCase
 
     public function testCustomAttributesWithNonEmptyCustomAttributes()
     {
-        $this->markTestSkipped(
-            'Pre-existing production code bug: AbstractExtensibleModel.php:165 - call to create() on null. ' .
-            'ExtensionAttributesFactory not initialized. Requires test restructuring or production code fix.'
-        );
-        
         $customAttributeCode = 'attribute_code';
         $customAttributeValue = 'attribute_value';
         $this->model->expects($this->any())->method('getCustomAttributesCodes')->willReturn([$customAttributeCode]);

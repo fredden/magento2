@@ -15,6 +15,7 @@ use Magento\Framework\Api\ExtensionAttribute\Config\Converter;
 use Magento\Framework\Reflection\TypeProcessor;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\TestCase;
+use ReflectionObject;
 
 class ExtensionAttributesInterfaceGeneratorTest extends TestCase
 {
@@ -26,13 +27,6 @@ class ExtensionAttributesInterfaceGeneratorTest extends TestCase
      */
     public function testGenerate()
     {
-        $this->markTestSkipped(
-            'Pre-existing issue: TypeProcessor cannot be mocked in this unit test. ' .
-            'The ExtensionAttributesInterfaceGenerator lazily loads TypeProcessor from ObjectManager, ' .
-            'making it impossible to inject a mock. This test requires refactoring of the production code ' .
-            'to accept TypeProcessor via constructor injection.'
-        );
-
         $objectManager = new ObjectManager($this);
         $configMock = $this->getMockBuilder(Config::class)
             ->disableOriginalConstructor()
@@ -69,7 +63,7 @@ class ExtensionAttributesInterfaceGeneratorTest extends TestCase
             ->getMock();
         $typeProcessorMock->method('isValidTypeDeclaration')
             ->willReturnCallback(function ($type) {
-                return $type === BundleOptionInterface::class;
+                return $type === '\\' . BundleOptionInterface::class;
             });
 
         /** @var ExtensionAttributesInterfaceGenerator $model */
@@ -77,14 +71,19 @@ class ExtensionAttributesInterfaceGeneratorTest extends TestCase
             ExtensionAttributesInterfaceGenerator::class,
             [
                 'config' => $configMock,
-                'typeProcessor' => $typeProcessorMock,
                 'sourceClassName' => \Magento\Catalog\Api\Data\Product::class,
                 'resultClassName' => \Magento\Catalog\Api\Data\ProductExtensionInterface::class,
                 'classGenerator' => null
             ]
         );
+        
+        // Inject typeProcessor via reflection to bypass ObjectManager::getInstance()
+        $reflectionObject = new ReflectionObject($model);
+        $parentClass = $reflectionObject->getParentClass();
+        $typeProcessorProperty = $parentClass->getProperty('typeProcessor');
+        $typeProcessorProperty->setValue($model, $typeProcessorMock);
+        
         $expectedResult = file_get_contents(__DIR__ . '/_files/SampleExtensionInterface.txt');
-        $reflectionObject = new \ReflectionObject($model);
         $reflectionMethod = $reflectionObject->getMethod('_generateCode');
         $generatedCode = $reflectionMethod->invoke($model);
         $this->assertEquals($expectedResult, $generatedCode);
@@ -101,7 +100,7 @@ class ExtensionAttributesInterfaceGeneratorTest extends TestCase
                 'resultClassName' => ProductInterface::class
             ]
         );
-        $reflectionObject = new \ReflectionObject($model);
+        $reflectionObject = new ReflectionObject($model);
         $reflectionMethod = $reflectionObject->getMethod('_validateData');
         $expectedValidationResult = false;
         $this->assertEquals($expectedValidationResult, $reflectionMethod->invoke($model));

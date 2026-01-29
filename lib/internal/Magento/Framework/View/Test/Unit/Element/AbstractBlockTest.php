@@ -317,8 +317,8 @@ class AbstractBlockTest extends TestCase
         $this->block->setData('module_name', $moduleName);
         $this->block->setData('cache_lifetime', $cacheLifetime);
 
-        $expects = is_string($expectsDispatchEvent) 
-            ? $this->createInvocationMatcher($expectsDispatchEvent) 
+        $expects = is_string($expectsDispatchEvent)
+            ? $this->createInvocationMatcher($expectsDispatchEvent)
             : $expectsDispatchEvent;
         $this->eventManagerMock->expects($expects)
             ->method('dispatch');
@@ -388,11 +388,6 @@ class AbstractBlockTest extends TestCase
      */
     public function testExtractModuleName()
     {
-        $this->markTestSkipped(
-            'PHPUnit 12 limitation: Static method extractModuleName() cannot be mocked. ' .
-            'Requires production code refactoring to make method non-static or testable via other means.'
-        );
-        
         $blockClassNames = $this->getPossibleBlockClassNames();
 
         foreach ($blockClassNames as $expectedModuleName => $className) {

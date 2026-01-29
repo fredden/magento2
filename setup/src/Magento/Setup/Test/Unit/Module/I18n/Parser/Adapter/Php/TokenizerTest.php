@@ -9,7 +9,7 @@ namespace Magento\Setup\Test\Unit\Module\I18n\Parser\Adapter\Php;
 
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Setup\Module\I18n\Parser\Adapter\Php\Tokenizer;
-
+use PHPUnit\Framework\Attributes\RequiresPhp;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -61,9 +61,9 @@ class TokenizerTest extends TestCase
     /**
      * Test getting next Real token for PHP > 8, where namespaced names are treated as single token.
      *
-     * @requires PHP >= 8.0
      * @return void
      */
+    #[RequiresPhp('>=8.0')]
     public function testGetNextRealTokenWhenNamespaceIsSingleToken(): void
     {
         $this->parseFile();
@@ -77,13 +77,11 @@ class TokenizerTest extends TestCase
 
     /**
      * @covers \Magento\Setup\Module\I18n\Parser\Adapter\Php\Tokenizer::getNextRealToken
-     * @requires PHP < 8.0
+     * @return void
      */
-    public function testGetNextRealToken()
+    #[RequiresPhp('<8.0')]
+    public function testGetNextRealToken(): void
     {
-        if (PHP_VERSION_ID >= 80000) {
-            $this->markTestSkipped('Token behavior changed in PHP 8.0+ - namespaces are tokenized differently');
-        }
         $this->parseFile();
         $this->assertEquals('new', $this->tokenizer->getNextRealToken()->getValue());
         $this->assertEquals('\\', $this->tokenizer->getNextRealToken()->getValue());
@@ -100,20 +98,42 @@ class TokenizerTest extends TestCase
 
     /**
      * @covers \Magento\Setup\Module\I18n\Parser\Adapter\Php\Tokenizer::isEndOfLoop
-     * @requires PHP < 8.0
+     * @return void
      */
-    public function testIsEndOfLoop()
+    #[RequiresPhp('<8.0')]
+    public function testIsEndOfLoop(): void
     {
-        if (PHP_VERSION_ID >= 80000) {
-            $this->markTestSkipped('Token behavior changed in PHP 8.0+ - different token count due to namespace tokenization changes');
-        }
         $this->parseFile();
-        //We have 27 total tokens in objectsCode.php file (excluding whitespaces)
-        //So the isEndOfLoop function should return true after we pick 28th non-existent token
-        for ($i = 0; $i < 28; $i++) {
+        
+        // PHP < 8.0: 27 total tokens in objectsCode.php file (excluding whitespaces)
+        for ($i = 0; $i < 27; $i++) {
             $this->assertFalse($this->tokenizer->isEndOfLoop());
             $this->tokenizer->getNextRealToken();
         }
+        
+        $this->assertTrue($this->tokenizer->isEndOfLoop());
+    }
+
+    /**
+     * Test isEndOfLoop for PHP >= 8.0, where namespaces are single tokens.
+     *
+     * In PHP >= 8.0, we have 18 tokens because namespaces like \Magento\Framework\Phrase
+     * are treated as single T_NAME_FULLY_QUALIFIED tokens.
+     *
+     * @covers \Magento\Setup\Module\I18n\Parser\Adapter\Php\Tokenizer::isEndOfLoop
+     * @return void
+     */
+    #[RequiresPhp('>=8.0')]
+    public function testIsEndOfLoopWhenNamespaceIsSingleToken(): void
+    {
+        $this->parseFile();
+        
+        // PHP >= 8.0: 18 tokens (namespaces as single T_NAME_FULLY_QUALIFIED tokens)
+        for ($i = 0; $i < 18; $i++) {
+            $this->assertFalse($this->tokenizer->isEndOfLoop());
+            $this->tokenizer->getNextRealToken();
+        }
+        
         $this->assertTrue($this->tokenizer->isEndOfLoop());
     }
 

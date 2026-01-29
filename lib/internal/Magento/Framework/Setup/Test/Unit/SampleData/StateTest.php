@@ -9,6 +9,7 @@ namespace Magento\Framework\Setup\Test\Unit\SampleData;
 
 use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\Directory\WriteInterface;
+use Magento\Framework\Filesystem\File\WriteInterface as FileWriteInterface;
 use Magento\Framework\Setup\SampleData\State;
 use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
@@ -44,8 +45,19 @@ class StateTest extends TestCase
             ->onlyMethods(['getDirectoryWrite'])
             ->disableOriginalConstructor()
             ->getMock();
-        // WriteInterface has 19 abstract methods - use createMock() and skip custom method expectations
-        $this->writeInterface = $this->createMock(WriteInterface::class);
+        
+        // Directory WriteInterface (19 methods) - use createMock for all interface methods
+        $directoryWriteMock = $this->createMock(WriteInterface::class);
+        
+        // File WriteInterface (what openFile returns) has write(), read(), and close() methods
+        $this->writeInterface = $this->createMock(FileWriteInterface::class);
+        
+        // Configure directory mock: file exists and openFile returns file stream
+        $directoryWriteMock->method('isExist')->willReturn(true);
+        $directoryWriteMock->method('openFile')->willReturn($this->writeInterface);
+        
+        $this->filesystem->method('getDirectoryWrite')->willReturn($directoryWriteMock);
+        
         $objectManager = new ObjectManager($this);
         $this->state = $objectManager->getObject(
             State::class,
@@ -55,9 +67,7 @@ class StateTest extends TestCase
 
     public function testClearState()
     {
-        $this->filesystem->expects($this->any())->method('getDirectoryWrite')->willReturn($this->writeInterface);
-        $this->writeInterface->expects($this->any())->method('openFile')->willReturnSelf();
-
+        // writeInterface is already set up in setUp() via filesystem mock
         $this->state->clearState();
     }
 
@@ -66,14 +76,10 @@ class StateTest extends TestCase
      */
     public function testHasError()
     {
-        $this->markTestSkipped(
-            'Interface limitation: write() not part of WriteInterface (19 abstract methods). ' .
-            'Cannot add custom methods to complex interfaces. Requires production code refactoring.'
-        );
-        
-        $this->filesystem->expects($this->any())->method('getDirectoryWrite')->willReturn($this->writeInterface);
-        $this->writeInterface->expects($this->any())->method('openFile')->willReturnSelf();
+        // writeInterface (File\WriteInterface) has write() method
         $this->writeInterface->expects($this->any())->method('write')->willReturnSelf();
+        $this->writeInterface->expects($this->any())->method('read')->willReturn(State::ERROR);
+        
         $this->state->setError();
         $this->assertTrue($this->state->hasError());
     }
@@ -83,9 +89,7 @@ class StateTest extends TestCase
      */
     protected function tearDown(): void
     {
-        $this->filesystem->expects($this->any())->method('getDirectoryWrite')->willReturn($this->writeInterface);
-        $this->writeInterface->expects($this->any())->method('openFile')->willReturnSelf($this->absolutePath);
-
+        // writeInterface is already set up in setUp()
         $this->state->clearState();
     }
 }

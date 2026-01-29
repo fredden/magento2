@@ -22,6 +22,7 @@ use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use ReflectionMethod;
 use ReflectionProperty;
 
 /**
@@ -465,11 +466,6 @@ class AbstractDbTest extends TestCase
      */
     public function testPrepareDataForUpdate(): void
     {
-        $this->markTestSkipped(
-            'PHPUnit 12 limitation: Cannot configure _prepareDataForTable() method ' .
-            '(protected/final/static). Requires production code refactoring to make method mockable.'
-        );
-        
         // AdapterInterface has 91 methods - use createMock() and don't configure 'save' (custom method)
         $connectionMock = $this->createMock(AdapterInterface::class);
 
@@ -489,10 +485,11 @@ class AbstractDbTest extends TestCase
             \Magento\Framework\Data\Collection\AbstractDb::class,
             ['getResource']
         );
-        $abstractModelMock = $this->createMock(
-            AbstractModel::class,
-            [$context, $registryMock, $resourceMock, $resourceCollectionMock]
-        );
+        // Create partial mock of AbstractModel - only mock _construct to allow real data methods to work
+        $abstractModelMock = $this->getMockBuilder(AbstractModel::class)
+            ->setConstructorArgs([$context, $registryMock, $resourceMock, $resourceCollectionMock])
+            ->onlyMethods(['_construct'])
+            ->getMock();
         $data = 'tableName';
         $this->_resourcesMock->expects($this->any())
             ->method('getConnection')
@@ -583,11 +580,6 @@ class AbstractDbTest extends TestCase
     #[DataProvider('saveNewObjectDataProvider')]
     public function testSaveNewObject($pkIncrement): void
     {
-        $this->markTestSkipped(
-            'Interface limitation: lastInsertId() not part of AdapterInterface (91 abstract methods). ' .
-            'Cannot add custom methods to complex interfaces. Requires production code refactoring.'
-        );
-        
         /**
          * Mock SUT so as not to test extraneous logic
          */
@@ -600,12 +592,23 @@ class AbstractDbTest extends TestCase
          *
          * make saveNewObject and _isPkAutoIncrement public
          */
-        $reflectionMethod = new \ReflectionMethod($model, 'saveNewObject');
+        $reflectionMethod = new ReflectionMethod($model, 'saveNewObject');
         $reflectionProperty = new ReflectionProperty($model, '_isPkAutoIncrement');
         $reflectionProperty->setValue($model, $pkIncrement);
 
-        // Mocked behavior - AdapterInterface has 94 methods, use createMock()
-        $connectionMock = $this->createMock(AdapterInterface::class);
+        // Mocked behavior - Use Pdo\Mysql which has lastInsertId() method
+        // Cannot use AdapterInterface as lastInsertId() is not part of the interface
+        $connectionMock = $this->getMockBuilder(\Magento\Framework\DB\Adapter\Pdo\Mysql::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['lastInsertId', 'insert'])
+            ->getMock();
+        
+        if ($pkIncrement) {
+            $connectionMock->expects($this->once())
+                ->method('lastInsertId')
+                ->willReturn('generated_id');
+        }
+        
         $getConnectionInvokedCount = $pkIncrement ? 2 : 1;
         $model->expects($this->exactly($getConnectionInvokedCount))
             ->method('getConnection')
@@ -621,17 +624,12 @@ class AbstractDbTest extends TestCase
             ->method('getIdFieldName')
             ->willReturn($idFieldName);
 
-        //      Only set object id if not PK autoincrement
+        // Only set object id if not PK autoincrement
         $setIdInvokedCount = $pkIncrement ? 1 : 0;
         $inputObject = $this->getMockBuilder(AbstractModel::class)
             ->disableOriginalConstructor()
             ->getMock();
         $inputObject->expects($this->exactly($setIdInvokedCount))->method('setId');
-
-        //      Only call lastInsertId if not PK autoincrement
-        $lastInsertIdInvokedCount = $pkIncrement ? 1 : 0;
-        // Removed: lastInsertId() doesn't exist in AdapterInterface - it's a custom Zend method
-        // $connectionMock->expects($this->exactly($lastInsertIdInvokedCount))->method('lastInsertId');
 
         $reflectionMethod->invokeArgs($model, [$inputObject]);
     }

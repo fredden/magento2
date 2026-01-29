@@ -50,22 +50,12 @@ class XsdTest extends TestCase
         $validationState->expects($this->atLeastOnce())
             ->method('isValidationRequired')
             ->willReturn(true);
-        // Skip validation error message format checks for PHP/libxml version differences
-        if (!empty($expectedErrors) && strpos($expectedErrors[0], 'handlerType') !== false) {
-            $this->markTestSkipped(
-                'Pre-existing issue: XSD validation error message format varies across PHP/libxml versions. ' .
-                'The validation itself works correctly, but the exact error message format has changed.'
-            );
-        }
-        
         $messageFormat = '%message%';
         $dom = new Dom($fixtureXml, $validationState, [], null, null, $messageFormat);
         $actualErrors = [];
         $actualResult = $dom->validate($this->schemaFile, $actualErrors);
         $this->assertEquals(empty($expectedErrors), $actualResult, "Validation result is invalid.");
-        foreach ($expectedErrors as $error) {
-            $this->assertContains($error, $actualErrors, "Validation errors does not match.");
-        }
+        $this->assertExpectedErrors($expectedErrors, $actualErrors);
     }
 
     /**
@@ -248,14 +238,6 @@ class XsdTest extends TestCase
     #[DataProvider('exemplarQueueXmlDataProvider')]
     public function testExemplarQueueXml($fixtureXml, array $expectedErrors)
     {
-        // Skip validation error message format checks for PHP/libxml version differences
-        if (!empty($expectedErrors) && (strpos($expectedErrors[0], 'handlerType') !== false || strpos($expectedErrors[0], 'instanceType') !== false)) {
-            $this->markTestSkipped(
-                'Pre-existing issue: XSD validation error message format varies across PHP/libxml versions. ' .
-                'The validation itself works correctly, but the exact error message format has changed.'
-            );
-        }
-        
         $validationState = $this->createMock(ValidationStateInterface::class);
         $validationState->expects($this->atLeastOnce())
             ->method('isValidationRequired')
@@ -265,9 +247,7 @@ class XsdTest extends TestCase
         $actualErrors = [];
         $actualResult = $dom->validate($this->schemaQueueFile, $actualErrors);
         $this->assertEquals(empty($expectedErrors), $actualResult, "Validation result is invalid.");
-        foreach ($expectedErrors as $error) {
-            $this->assertContains($error, $actualErrors, "Validation errors does not match.");
-        }
+        $this->assertExpectedErrors($expectedErrors, $actualErrors);
     }
 
     /**
@@ -382,5 +362,40 @@ class XsdTest extends TestCase
             ],
         ];
         // @codingStandardsIgnoreEnd
+    }
+
+    /**
+     * Assert expected errors match actual errors with flexible attribute matching
+     *
+     * @param array $expectedErrors
+     * @param array $actualErrors
+     * @return void
+     */
+    private function assertExpectedErrors(array $expectedErrors, array $actualErrors): void
+    {
+        foreach ($expectedErrors as $error) {
+            // For XSD type validation errors, use flexible matching (attribute name only)
+            // because error message format varies across PHP/libxml versions
+            if (preg_match("/attribute '([^']+)'/", $error, $matches) &&
+                (strpos($error, 'handlerType') !== false ||
+                 strpos($error, 'instanceType') !== false ||
+                 strpos($error, 'atomic type') !== false)) {
+                $attributeName = $matches[1];
+                $found = false;
+                foreach ($actualErrors as $actualError) {
+                    if (strpos($actualError, "attribute '$attributeName'") !== false) {
+                        $found = true;
+                        break;
+                    }
+                }
+                $this->assertTrue(
+                    $found,
+                    "Expected error about attribute '$attributeName' not found in: " . implode("\n", $actualErrors)
+                );
+            } else {
+                // For all other errors, use exact match
+                $this->assertContains($error, $actualErrors, "Validation errors does not match.");
+            }
+        }
     }
 }

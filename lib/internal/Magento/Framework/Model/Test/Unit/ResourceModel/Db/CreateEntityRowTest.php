@@ -41,13 +41,16 @@ class CreateEntityRowTest extends TestCase
 
     protected function setUp(): void
     {
-        // AdapterInterface has 94 methods - use createMock()
-        $this->connection = $this->createMock(AdapterInterface::class);
+        // Use concrete Pdo\Mysql which has lastInsertId() method
+        // Cannot use AdapterInterface as lastInsertId() is not part of the interface
+        $this->connection = $this->getMockBuilder(\Magento\Framework\DB\Adapter\Pdo\Mysql::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['lastInsertId', 'insert', 'describeTable'])
+            ->getMock();
 
-        // Removed: lastInsertId() doesn't exist in AdapterInterface - it's a custom Zend method
-        // $this->connection->expects($this->any())
-        //     ->method('lastInsertId')
-        //     ->willReturn(1);
+        $this->connection->expects($this->any())
+            ->method('lastInsertId')
+            ->willReturn(1);
 
         $metadata = $this->createMock(EntityMetadata::class);
 
@@ -92,11 +95,6 @@ class CreateEntityRowTest extends TestCase
     #[DataProvider('executeDataProvider')]
     public function testExecute($inputData, $tableData, $preparedData, $finalData)
     {
-        $this->markTestSkipped(
-            'Interface limitation: lastInsertId() not part of AdapterInterface (94 abstract methods). ' .
-            'Cannot add custom methods to complex interfaces. Requires production code refactoring.'
-        );
-        
         $this->connection->expects($this->any())
             ->method('describeTable')
             ->with('entity_table')

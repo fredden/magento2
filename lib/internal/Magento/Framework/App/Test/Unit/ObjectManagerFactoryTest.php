@@ -50,12 +50,6 @@ class ObjectManagerFactoryTest extends TestCase
 
     public function testCreateObjectManagerFactoryCouldBeOverridden()
     {
-        $this->markTestSkipped(
-            'Pre-existing test failure: BadMethodCallException is not thrown. ' .
-            'This appears to be an environmental issue or production code change. ' .
-            'Requires investigation of Bootstrap::createObjectManagerFactory behavior.'
-        );
-        
         $this->expectException('BadMethodCallException');
         $this->expectExceptionMessage('Magento\Framework\App\Test\Unit\ObjectManager\FactoryStub::__construct');
         $rootPath = __DIR__ . '/_files/';

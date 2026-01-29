@@ -32,7 +32,7 @@ class AbstractCollectionTest extends TestCase
 {
     use MockCreationTrait;
 
-    const TABLE_NAME = 'some_table';
+    private const TABLE_NAME = 'some_table';
 
     /** @var Uut */
     protected $uut;
@@ -431,23 +431,22 @@ class AbstractCollectionTest extends TestCase
 
     public function testResetItemsDataChanged()
     {
-        $this->markTestSkipped(
-            'Pre-existing test bug: Item creation returns null, causing TypeError in Collection::addItem(). ' .
-            'Requires test refactoring to properly create item mocks.'
-        );
-        
+        // Use AbstractModel partial mocks with constructor to get proper hasDataChanges behavior
         for ($i = 0; $i < 3; $i++) {
-            /** @var AbstractModel $item */
             $item = $this->getMockBuilder(AbstractModel::class)
                 ->disableOriginalConstructor()
+                ->onlyMethods(['_construct'])
                 ->getMock();
-            $this->uut->addItem($item->setDataChanges(true));
+            $item->setDataChanges(true);
+            $this->uut->addItem($item);
         }
 
-        $this->assertInstanceOf(Uut::class, $this->uut->resetItemsDataChanged());
+        $result = $this->uut->resetItemsDataChanged();
+        $this->assertInstanceOf(Uut::class, $result);
 
+        // Verify all items have dataChanges reset to false
         foreach ($this->uut->getItems() as $item) {
-            $this->assertFalse($item->hasDataChanges());
+            $this->assertFalse($item->hasDataChanges(), 'Item dataChanges should be false after reset');
         }
     }
 
