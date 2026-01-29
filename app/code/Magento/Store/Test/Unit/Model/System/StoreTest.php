@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Magento\Store\Test\Unit\Model\System;
 
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Store\Model\Group;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
@@ -55,7 +54,6 @@ class StoreTest extends TestCase
 
     protected function setUp(): void
     {
-        $objectManager = new ObjectManager($this);
         $this->websiteMock = $this->getMockBuilder(Website::class)
             ->disableOriginalConstructor()
             ->getMock();
