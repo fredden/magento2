@@ -41,7 +41,8 @@ define([
             try {
                 injector.clean();
                 injector.remove();
-            } catch (e) {}
+            } catch (e) { // eslint-disable-line no-unused-vars
+            }
         });
 
         it('mixin is applied to Magento_Theme/js/view/breadcrumbs', function () {

@@ -54,7 +54,7 @@ define([
 
                 try {
                     error = JSON.parse(response.responseText);
-                } catch (exception) {
+                } catch (exception) { // eslint-disable-line no-unused-vars
                     error = this.paymentActionError;
                 }
 

@@ -566,7 +566,7 @@ define([
                 $.ajax = $ajaxMock;
 
                 return waitUntilReady(function (resolve) {
-                    editor = new Editor({...configJson, readOnly: true});
+                    editor = new Editor($.extend({}, configJson, {readOnly: true}));
                     editor.error = jasmine.createSpy('error');
                     resolve();
                 });

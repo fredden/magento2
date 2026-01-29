@@ -49,7 +49,8 @@ define(['squire', 'ko'], function (Squire, ko) {
         try {
             injector.clean();
             injector.remove();
-        } catch (e) {}
+        } catch (e) { // eslint-disable-line no-unused-vars
+        }
     });
 
     describe('Magento_Customer/js/view/authentication-popup isActive method', function () {

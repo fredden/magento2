@@ -49,7 +49,8 @@ define([
         try {
             injector.remove();
             injector.clean();
-        } catch (e) {}
+        } catch (e) { // eslint-disable-line no-unused-vars
+        }
     });
 
     describe('Magento_Checkout/js/model/payment-service', function () {
