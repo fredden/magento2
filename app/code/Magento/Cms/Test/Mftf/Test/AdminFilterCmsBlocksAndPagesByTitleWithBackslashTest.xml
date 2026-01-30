@@ -19,7 +19,7 @@
             <group value="Cms"/>
         </annotations>
         <before>
-            <!--  Step 1: Create a cms block with title magento\store -->
+            <!-- Step 1: Create a cms block with title magento\store -->
             <createData entity="_emptyCmsBlock" stepKey="createTargetBlock">
                 <field key="title">Magento\Store</field>
             </createData>
@@ -35,29 +35,31 @@
             <deleteData createDataKey="createTargetPage" stepKey="deleteTargetPage"/>
             <actionGroup ref="AdminLogoutActionGroup" stepKey="logoutOfAdmin"/>
         </after>
-        <!-- Step 2: Input magento\store in title filter to search and then check the search result -->
+        <!-- Step 2: In cms blocks input magento\store in title filter to search and then check the search result -->
         <actionGroup ref="AdminOpenCmsBlocksGridActionGroup" stepKey="openCmsBlocksGrid"/>
         <actionGroup ref="ClearFiltersAdminDataGridActionGroup" stepKey="resetGridFilters"/>
-        <waitForElementClickable selector="{{AdminDataGridHeaderSection.filters}}" stepKey="waitToExpandFilters"/>
-        <click selector="{{AdminDataGridHeaderSection.filters}}" stepKey="expandFilters"/>
-        <waitForElementVisible selector="{{AdminDataGridHeaderSection.filterFieldInput('title')}}" stepKey="waitToFillTitleFilter"/>
-        <fillField selector="{{AdminDataGridHeaderSection.filterFieldInput('title')}}" userInput="$createTargetBlock.title$" stepKey="fillTitleFilter"/>
-        <waitForElementClickable selector="{{AdminDataGridHeaderSection.applyFilters}}" stepKey="waitToApplyFilters"/>
-        <click selector="{{AdminDataGridHeaderSection.applyFilters}}" stepKey="applyFilters"/>
-        <!--Step 3: Verify the created block appears in the filtered results -->
-        <waitForText selector="{{BlockPageActionsSection.blockGridRowByTitle($$createTargetBlock.title$$)}}" userInput="$createTargetBlock.title$" stepKey="seeBlockInGrid"/>
+        <actionGroup ref="AdminGridFilterFillInputFieldActionGroup" stepKey="filterGridByCmsBlockIdentifier">
+            <argument name="filterInputName" value="title" />
+            <argument name="filterValue" value="$createTargetBlock.title$" />
+        </actionGroup>
+        <actionGroup ref="AdminGridFilterApplyActionGroup" stepKey="applyGridFilter"/>
+        <!-- Step 3: Assert result contain magento\store in cms block -->
+        <actionGroup ref="AssertCMSPageInGridActionGroup" stepKey="asserCmsBlockInGrid">
+            <argument name="cmsPage" value="$$createTargetBlock$$" />
+        </actionGroup>
         <actionGroup ref="ClearFiltersAdminDataGridActionGroup" stepKey="clearGridFiltersIfAny"/>
-        <!-- Step 5: Input magento\store in title filter to search and then check the search result -->
+        <!-- Step 5: In cms pages input magento\store in title filter to search and then check the search result -->
         <actionGroup ref="AdminOpenCMSPagesGridActionGroup" stepKey="openCmsPagesGrid"/>
         <actionGroup ref="ClearFiltersAdminDataGridActionGroup" stepKey="resetPageGridFilters"/>
-        <waitForElementClickable selector="{{AdminDataGridHeaderSection.filters}}" stepKey="waitToExpandPageFilters"/>
-        <click selector="{{AdminDataGridHeaderSection.filters}}" stepKey="expandPageFilters"/>
-        <waitForElementVisible selector="{{AdminDataGridHeaderSection.filterFieldInput('title')}}" stepKey="waitToFillPageTitleFilter"/>
-        <fillField selector="{{AdminDataGridHeaderSection.filterFieldInput('title')}}" userInput="$createTargetPage.title$" stepKey="fillPageTitleFilter"/>
-        <waitForElementClickable selector="{{AdminDataGridHeaderSection.applyFilters}}" stepKey="waitToApplyTheFilters"/>
-        <click selector="{{AdminDataGridHeaderSection.applyFilters}}" stepKey="applyPageFilters"/>
-        <!--Step 6: Verify the created block appears in the filtered results -->
-        <waitForText selector="{{CmsPagesPageActionsSection.pagesGridRowByTitle($$createTargetPage.title$$)}}" userInput="$createTargetPage.title$" stepKey="seePageInGrid"/>
+        <actionGroup ref="AdminGridFilterFillInputFieldActionGroup" stepKey="filterGridByCmsPageIdentifier">
+            <argument name="filterInputName" value="title" />
+            <argument name="filterValue" value="$createTargetPage.title$" />
+        </actionGroup>
+        <actionGroup ref="AdminGridFilterApplyActionGroup" stepKey="applyGridFilters"/>
+        <!-- Step 6: Assert result contain magento\store in cms page -->
+        <actionGroup ref="AssertCMSPageInGridActionGroup" stepKey="assertCmsPageInGrid">
+            <argument name="cmsPage" value="$$$createTargetPage$$" />
+        </actionGroup>
         <actionGroup ref="ClearFiltersAdminDataGridActionGroup" stepKey="clearGridFilters"/>
     </test>
 </tests>
