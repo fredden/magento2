@@ -197,8 +197,6 @@ class DynamicStorageTest extends TestCase
             ->willReturn($canBeShownInCategory);
 
         $method = new ReflectionMethod($this->object, 'findProductRewriteByRequestPath');
-        $method->setAccessible(true);
-
         $this->assertSame($expectedProductRewrite, $method->invoke($this->object, $data));
     }
 
