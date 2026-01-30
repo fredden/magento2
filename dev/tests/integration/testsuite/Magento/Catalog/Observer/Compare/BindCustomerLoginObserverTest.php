@@ -8,14 +8,8 @@ declare(strict_types=1);
 namespace Magento\Catalog\Observer\Compare;
 
 use Magento\Catalog\Model\Product\Compare\ListCompareFactory;
-use Magento\Catalog\Test\Fixture\Product as ProductFixture;
 use Magento\Customer\Model\Session;
 use Magento\Customer\Model\Visitor;
-use Magento\Customer\Test\Fixture\Customer as CustomerFixture;
-use Magento\Eav\Model\Entity\Collection\AbstractCollection;
-use Magento\Framework\App\Area;
-use Magento\Framework\ObjectManagerInterface;
-use Magento\Store\Test\Fixture\Store as StoreFixture;
 use Magento\TestFramework\Fixture\AppArea;
 use Magento\TestFramework\Fixture\Config;
 use Magento\TestFramework\Fixture\DataFixture;
@@ -33,12 +27,11 @@ use PHPUnit\Framework\TestCase;
  * Attributes-based fixtures used for new test methods
  */
 #[
-    AppArea(Area::AREA_FRONTEND),
+    AppArea('frontend'),
     DbIsolation(true),
 ]
 class BindCustomerLoginObserverTest extends TestCase
 {
-    /** @var ObjectManagerInterface */
     private $objectManager;
 
     /** @var Session */
@@ -93,12 +86,12 @@ class BindCustomerLoginObserverTest extends TestCase
      * using new DataFixtures.
      */
     #[
-        AppArea(Area::AREA_FRONTEND),
+        AppArea('frontend'),
         DbIsolation(true),
 
         // Create a second store view in default website/group
         DataFixtureBeforeTransaction(
-            StoreFixture::class,
+            'Magento\Store\Test\Fixture\Store',
             [
                 'code'      => 'fixture_second_store',
                 'name'      => 'Fixture Store',
@@ -109,7 +102,7 @@ class BindCustomerLoginObserverTest extends TestCase
 
         // Create a simple product
         DataFixture(
-            ProductFixture::class,
+            'Magento\Catalog\Test\Fixture\Product',
             [
                 'sku'   => 'simple',
                 'name'  => 'Simple Product',
@@ -120,7 +113,7 @@ class BindCustomerLoginObserverTest extends TestCase
 
         // Create a customer
         DataFixture(
-            CustomerFixture::class,
+            'Magento\Customer\Test\Fixture\Customer',
             [
                 'email'     => 'customer@example.com',
                 'firstname' => 'John',
@@ -134,7 +127,7 @@ class BindCustomerLoginObserverTest extends TestCase
     ]
     public function testExecuteWithItemsAcrossTwoStores(): void
     {
-        $storeManager = $this->objectManager->get(\Magento\Store\Model\StoreManagerInterface::class);
+        $storeManager = $this->objectManager->get('Magento\Store\Model\StoreManagerInterface');
         $storage = DataFixtureStorageManager::getStorage();
         $defaultStore = $storeManager->getStore();
         $secondStoreData = $storage->get('second_store');
@@ -193,10 +186,10 @@ class BindCustomerLoginObserverTest extends TestCase
      * and visitor list is cleared after merge, using DataFixtures and programmatic setup.
      */
     #[
-        DataFixture(ProductFixture::class, ['sku' => 'simple', 'name' => 'Simple', 'price' => 10], 'p1'),
-        DataFixture(ProductFixture::class, ['sku' => 'simple2', 'name' => 'Simple 2', 'price' => 20], 'p2'),
+        DataFixture('Magento\Catalog\Test\Fixture\Product', ['sku' => 'simple', 'name' => 'Simple', 'price' => 10], 'p1'),
+        DataFixture('Magento\Catalog\Test\Fixture\Product', ['sku' => 'simple2', 'name' => 'Simple 2', 'price' => 20], 'p2'),
         DataFixture(
-            CustomerFixture::class,
+            'Magento\Customer\Test\Fixture\Customer',
             [
                 'email'     => 'customer2@example.com',
                 'firstname' => 'Jane',
@@ -224,8 +217,7 @@ class BindCustomerLoginObserverTest extends TestCase
         $this->listCompareFactory->create()->addProduct((int)$product1->getId());
 
         // Merge visitor list into customer using explicit visitor/customer ids to avoid visitor id rotation on login
-        /** @var \Magento\Catalog\Model\Product\Compare\Item $mergeItem */
-        $mergeItem = $this->objectManager->create(\Magento\Catalog\Model\Product\Compare\Item::class);
+        $mergeItem = $this->objectManager->create('Magento\Catalog\Model\Product\Compare\Item');
         $mergeItem->setCustomerId((int)$customer->getId());
         $mergeItem->setVisitorId(123);
         $mergeItem->bindCustomerLogin();
@@ -265,11 +257,11 @@ class BindCustomerLoginObserverTest extends TestCase
     /**
      * Check collection
      *
-     * @param AbstractCollection $collection
+     * @param mixed $collection
      * @param array $expectedSkus
      * @return void
      */
-    private function checkCollection(AbstractCollection $collection, array $expectedSkus): void
+    private function checkCollection($collection, array $expectedSkus): void
     {
         $this->assertCount(count($expectedSkus), $collection);
         foreach ($expectedSkus as $expectedSku) {
