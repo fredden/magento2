@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright 2026 Adobe
+ * Copyright 2025 Adobe
  * All Rights Reserved.
  */
 declare(strict_types=1);
@@ -73,6 +73,11 @@ class SymfonyL2Cache extends AbstractBackend implements ExtendedBackendInterface
     private const INVALID_KEY_PREFIX = '__invalid::';
 
     /**
+     * TTL for invalid markers for 24 hours
+     */
+    private const INVALID_MARK_TTL = 86400;
+
+    /**
      * Constructor
      *
      * @param FrontendInterface $remote Remote cache (L2 - persistent, shared)
@@ -109,8 +114,12 @@ class SymfonyL2Cache extends AbstractBackend implements ExtendedBackendInterface
         $isInvalid = $this->isInvalid($id);
 
         if ($isInvalid) {
-            $this->cleanInvalidFromRemote($id);
-            $this->markValid($id);
+            $remoteCleanSuccess = $this->cleanInvalidFromRemote($id);
+            $this->local->remove($id);
+
+            if ($remoteCleanSuccess) {
+                $this->markValid($id);
+            }
             return false;
         }
 
@@ -168,12 +177,21 @@ class SymfonyL2Cache extends AbstractBackend implements ExtendedBackendInterface
      */
     public function save($data, $id, $tags = [], $specificLifetime = null)
     {
-        // Calculate and save hash to remote for synchronization
-        $hash = $this->getDataHash($data);
-        $hashSaved = $this->remote->save($hash, $id . self::HASH_SUFFIX, $tags, $specificLifetime);
+        $hashSaved = false;
 
-        // Save data to remote
-        $remoteSaved = $this->remote->save($data, $id, $tags, $specificLifetime);
+        try {
+            // Save data first to avoid hash pointing to non-existent data
+            $remoteSaved = $this->remote->save($data, $id, $tags, $specificLifetime);
+
+            if ($remoteSaved !== false) {
+                // Calculate and save hash to remote for synchronization
+                $hash = $this->getDataHash($data);
+                $hashSaved = $this->remote->save($hash, $id . self::HASH_SUFFIX, $tags, $specificLifetime);
+            }
+        } catch (\Exception $e) {
+            $remoteSaved = false;
+            $hashSaved = false;
+        }
 
         // Save to local cache
         $this->local->save($data, $id, $tags, $specificLifetime);
@@ -194,11 +212,16 @@ class SymfonyL2Cache extends AbstractBackend implements ExtendedBackendInterface
      */
     public function remove($id)
     {
-        // Remove hash from remote
-        $hashRemoved = $this->remote->remove($id . self::HASH_SUFFIX);
+        try {
+            // Remove hash from remote
+            $hashRemoved = $this->remote->remove($id . self::HASH_SUFFIX);
 
-        // Remove from remote
-        $result = $this->remote->remove($id);
+            // Remove from remote
+            $result = $this->remote->remove($id);
+        } catch (\Exception $e) {
+            $hashRemoved = false;
+            $result = false;
+        }
 
         // Only remove from local if NOT using stale cache (keep stale data for availability)
         if (!$this->useStaleCache) {
@@ -381,7 +404,7 @@ class SymfonyL2Cache extends AbstractBackend implements ExtendedBackendInterface
      */
     private function markInvalid(string $id): void
     {
-        $this->local->save('1', self::INVALID_KEY_PREFIX . $id, [], 86400);
+        $this->local->save('1', self::INVALID_KEY_PREFIX . $id, [], self::INVALID_MARK_TTL);
     }
 
     /**
@@ -399,15 +422,17 @@ class SymfonyL2Cache extends AbstractBackend implements ExtendedBackendInterface
      * Clean an invalid key from remote cache
      *
      * @param string $id
-     * @return void
+     * @return bool
      */
-    private function cleanInvalidFromRemote(string $id): void
+    private function cleanInvalidFromRemote(string $id): bool
     {
         try {
             $this->remote->remove($id . self::HASH_SUFFIX);
             $this->remote->remove($id);
+            return true;
         } catch (\Exception $e) { // phpcs:ignore Magento2.CodeAnalysis.EmptyBlock
             // If remote is still unavailable, the invalid marker will be cleared anyway
+            return false;
         }
     }
 }

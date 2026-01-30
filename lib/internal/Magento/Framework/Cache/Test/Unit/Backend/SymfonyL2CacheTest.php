@@ -180,12 +180,12 @@ class SymfonyL2CacheTest extends TestCase
         $cacheData = 'test_data';
         $cacheHash = hash('sha256', $cacheData);
 
-        // Remote save succeeds
+        // Remote save succeeds data first then hash
         $this->remoteCacheMock->expects($this->exactly(2))
             ->method('save')
             ->willReturnMap([
-                [$cacheHash, $cacheId . ':hash', [], null, true],
-                [$cacheData, $cacheId, [], null, true]
+                [$cacheData, $cacheId, [], null, true],
+                [$cacheHash, $cacheId . ':hash', [], null, true]
             ]);
 
         // Local save
@@ -221,7 +221,7 @@ class SymfonyL2CacheTest extends TestCase
         $cacheData = 'test_data';
 
         // Remote save fails (returns false)
-        $this->remoteCacheMock->expects($this->exactly(2))
+        $this->remoteCacheMock->expects($this->once())
             ->method('save')
             ->willReturn(false);
 
@@ -280,10 +280,12 @@ class SymfonyL2CacheTest extends TestCase
                 return $id === $cacheId . ':hash' || $id === $cacheId;
             });
 
-        // Should clear invalid marker
-        $this->localCacheMock->expects($this->once())
+        // Should remove from local cache and clear invalid marker
+        $this->localCacheMock->expects($this->exactly(2))
             ->method('remove')
-            ->with('__invalid::' . $cacheId);
+            ->willReturnCallback(function ($id) use ($cacheId) {
+                return $id === $cacheId || $id === '__invalid::' . $cacheId;
+            });
 
         $result = $this->cache->load($cacheId);
 
