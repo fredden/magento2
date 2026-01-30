@@ -32,6 +32,7 @@ use PHPUnit\Framework\TestCase;
 ]
 class BindCustomerLoginObserverTest extends TestCase
 {
+    /** @var $objectManager */
     private $objectManager;
 
     /** @var Session */
@@ -186,8 +187,24 @@ class BindCustomerLoginObserverTest extends TestCase
      * and visitor list is cleared after merge, using DataFixtures and programmatic setup.
      */
     #[
-        DataFixture('Magento\Catalog\Test\Fixture\Product', ['sku' => 'simple', 'name' => 'Simple', 'price' => 10], 'p1'),
-        DataFixture('Magento\Catalog\Test\Fixture\Product', ['sku' => 'simple2', 'name' => 'Simple 2', 'price' => 20], 'p2'),
+        DataFixture(
+            'Magento\Catalog\Test\Fixture\Product',
+            [
+                'sku'   => 'simple',
+                'name'  => 'Simple',
+                'price' => 10,
+            ],
+            'p1'
+        ),
+        DataFixture(
+            'Magento\Catalog\Test\Fixture\Product',
+            [
+                'sku'   => 'simple2',
+                'name'  => 'Simple 2',
+                'price' => 20,
+            ],
+            'p2'
+        ),
         DataFixture(
             'Magento\Customer\Test\Fixture\Customer',
             [
