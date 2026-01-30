@@ -33,6 +33,11 @@ class StateTest extends TestCase
      * @var WriteInterface|MockObject
      */
     protected $writeInterface;
+    
+    /**
+     * @var WriteInterface|MockObject
+     */
+    protected $directoryWriteMock;
 
     /**
      * @var string
@@ -47,16 +52,17 @@ class StateTest extends TestCase
             ->getMock();
         
         // Directory WriteInterface (19 methods) - use createMock for all interface methods
-        $directoryWriteMock = $this->createMock(WriteInterface::class);
+        $this->directoryWriteMock = $this->createMock(WriteInterface::class);
         
         // File WriteInterface (what openFile returns) has write(), read(), and close() methods
         $this->writeInterface = $this->createMock(FileWriteInterface::class);
         
         // Configure directory mock: file exists and openFile returns file stream
-        $directoryWriteMock->method('isExist')->willReturn(true);
-        $directoryWriteMock->method('openFile')->willReturn($this->writeInterface);
+        $this->directoryWriteMock->method('isExist')->willReturn(true);
+        $this->directoryWriteMock->method('openFile')->willReturn($this->writeInterface);
+        $this->directoryWriteMock->method('delete')->willReturn(true);
         
-        $this->filesystem->method('getDirectoryWrite')->willReturn($directoryWriteMock);
+        $this->filesystem->method('getDirectoryWrite')->willReturn($this->directoryWriteMock);
         
         $objectManager = new ObjectManager($this);
         $this->state = $objectManager->getObject(
@@ -67,7 +73,7 @@ class StateTest extends TestCase
 
     public function testClearState()
     {
-        // writeInterface is already set up in setUp() via filesystem mock
+        // Test clearState - should not throw any exceptions
         $this->state->clearState();
     }
 
@@ -76,9 +82,9 @@ class StateTest extends TestCase
      */
     public function testHasError()
     {
-        // writeInterface (File\WriteInterface) has write() method
-        $this->writeInterface->expects($this->any())->method('write')->willReturnSelf();
-        $this->writeInterface->expects($this->any())->method('read')->willReturn(State::ERROR);
+        // Configure mocks for write and read operations
+        $this->writeInterface->method('write')->willReturnSelf();
+        $this->writeInterface->method('read')->willReturn(State::ERROR);
         
         $this->state->setError();
         $this->assertTrue($this->state->hasError());
@@ -89,7 +95,9 @@ class StateTest extends TestCase
      */
     protected function tearDown(): void
     {
-        // writeInterface is already set up in setUp()
-        $this->state->clearState();
+        // Ensure mocks are still available for tearDown
+        if ($this->state && $this->filesystem) {
+            $this->state->clearState();
+        }
     }
 }
