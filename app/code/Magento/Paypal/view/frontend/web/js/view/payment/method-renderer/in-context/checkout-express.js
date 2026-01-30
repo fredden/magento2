@@ -54,7 +54,7 @@ define([
 
                 try {
                     error = JSON.parse(response.responseText);
-                } catch (exception) { // eslint-disable-line no-unused-vars
+                } catch (exception) {
                     error = this.paymentActionError;
                 }
 
@@ -72,13 +72,9 @@ define([
          * @return {Object}
          */
         prepareClientConfig: function () {
-            var quoteData;
-
             this._super();
-            quoteData = window.checkoutConfig && window.checkoutConfig.quoteData;
-
-            this.clientConfig.quoteId = quoteData && (quoteData.entity_id || quoteData['entity_id']);
-            this.clientConfig.customerId = window.customerData && window.customerData.id;
+            this.clientConfig.quoteId = window.checkoutConfig.quoteData['entity_id'];
+            this.clientConfig.customerId = window.customerData.id;
             this.clientConfig.button = 0;
 
             return this.clientConfig;
