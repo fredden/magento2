@@ -173,18 +173,18 @@ define([
                 instance = this;
 
             $(document).on('move.tabs', function (event) {
-                    if (!$(event.target).closest(formSelector).length) {
-                        return;
-                    }
+                if (!$(event.target).closest(formSelector).length) {
+                    return;
+                }
 
-                    if (instance.hasWeightSwitcher()) {
-                        instance.switchWeight();
-                    }
+                if (instance.hasWeightSwitcher()) {
+                    instance.switchWeight();
+                }
 
-                    if (instance.hasWeightChangeToggle()) {
-                        instance.toggleSwitcher();
-                    }
-                });
+                if (instance.hasWeightChangeToggle()) {
+                    instance.toggleSwitcher();
+                }
+            });
 
             this.$weightSwitcher().find('input').on('change', this.switchWeight.bind(this));
         }
