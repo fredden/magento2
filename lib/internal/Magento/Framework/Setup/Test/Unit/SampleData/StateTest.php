@@ -95,9 +95,6 @@ class StateTest extends TestCase
      */
     protected function tearDown(): void
     {
-        // Ensure mocks are still available for tearDown
-        if ($this->state && $this->filesystem) {
-            $this->state->clearState();
-        }
+        unset($this->state, $this->filesystem, $this->directoryWriteMock, $this->writeInterface);
     }
 }
