@@ -128,7 +128,8 @@ class EmailMessageTest extends TestCase
         ]);
 
         $this->assertInstanceOf(SymfonyMessage::class, $message->getSymfonyMessage());
-        $this->assertNotEmpty($message->getHeaders());
+        $this->assertIsArray($message->getHeaders());
+        $this->assertGreaterThan(0, count($message->getHeaders()));
         $this->assertStringContainsString(self::BODY, $message->getBodyText());
         $this->assertStringContainsString(self::SUBJECT, $message->toString());
     }
@@ -179,14 +180,18 @@ class EmailMessageTest extends TestCase
      */
     public function testAddressGetters(string $method, string $option, bool $nullableIfEmpty): void
     {
+        $testEmail = 'test@test.com';
+        $testName = 'Test';
         $options = $option === 'to'
-            ? [$option => [new Address('test@test.com', 'Test')]]
-            : ['to' => [new Address(self::EMAIL, self::NAME)], $option => [new Address('test@test.com', 'Test')]];
+            ? [$option => [new Address($testEmail, $testName)]]
+            : ['to' => [new Address(self::EMAIL, self::NAME)], $option => [new Address($testEmail, $testName)]];
 
         $result = $this->createMessage($options)->$method();
         $this->assertIsArray($result);
         $this->assertCount(1, $result);
         $this->assertInstanceOf(Address::class, $result[0]);
+        $this->assertSame($testEmail, $result[0]->getEmail());
+        $this->assertSame($testName, $result[0]->getName());
 
         if ($nullableIfEmpty) {
             $this->assertNull($this->createMessage()->$method());
@@ -428,11 +433,34 @@ class EmailMessageTest extends TestCase
             'subject' => self::SUBJECT,
         ]);
 
-        $this->assertNotEmpty($message->getTo());
-        $this->assertNotEmpty($message->getFrom());
-        $this->assertNotEmpty($message->getCc());
-        $this->assertNotEmpty($message->getBcc());
-        $this->assertNotEmpty($message->getReplyTo());
-        $this->assertNotNull($message->getSender());
+        // Verify To address
+        $this->assertCount(1, $message->getTo());
+        $this->assertInstanceOf(Address::class, $message->getTo()[0]);
+        $this->assertSame(self::EMAIL, $message->getTo()[0]->getEmail());
+
+        // Verify From address
+        $this->assertCount(1, $message->getFrom());
+        $this->assertInstanceOf(Address::class, $message->getFrom()[0]);
+        $this->assertSame('from@test.com', $message->getFrom()[0]->getEmail());
+
+        // Verify Cc address
+        $this->assertCount(1, $message->getCc());
+        $this->assertInstanceOf(Address::class, $message->getCc()[0]);
+        $this->assertSame('cc@test.com', $message->getCc()[0]->getEmail());
+
+        // Verify Bcc address
+        $this->assertCount(1, $message->getBcc());
+        $this->assertInstanceOf(Address::class, $message->getBcc()[0]);
+        $this->assertSame('bcc@test.com', $message->getBcc()[0]->getEmail());
+
+        // Verify ReplyTo address
+        $this->assertCount(1, $message->getReplyTo());
+        $this->assertInstanceOf(Address::class, $message->getReplyTo()[0]);
+        $this->assertSame('reply@test.com', $message->getReplyTo()[0]->getEmail());
+
+        // Verify Sender address
+        $this->assertInstanceOf(Address::class, $message->getSender());
+        $this->assertSame('sender@test.com', $message->getSender()->getEmail());
+        $this->assertSame('Sender', $message->getSender()->getName());
     }
 }
