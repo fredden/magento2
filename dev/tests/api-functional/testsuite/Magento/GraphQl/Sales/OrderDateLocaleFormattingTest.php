@@ -28,6 +28,8 @@ use Magento\TestFramework\TestCase\GraphQlAbstract;
 /**
  * Test GraphQL CustomerOrder order_date field formatting and date integrity
  * @see \Magento\SalesGraphQl\Model\Formatter\Order::format()
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class OrderDateLocaleFormattingTest extends GraphQlAbstract
 {
