@@ -115,9 +115,13 @@ class TopmenuTest extends TestCase
     {
         $storeId = 1;
         $rootCategoryId = 2;
+        $categoryId = 4;
         $categoryParentId = 3;
         $categoryParentIds = [1, 2, 3];
 
+        $this->categoryMock->expects($this->once())
+            ->method('getId')
+            ->willReturn($categoryId);
         $this->categoryMock->expects($this->atLeastOnce())
             ->method('getParentId')
             ->willReturn($categoryParentId);
