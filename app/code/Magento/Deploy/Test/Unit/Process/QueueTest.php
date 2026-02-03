@@ -72,6 +72,7 @@ class QueueTest extends TestCase
         $this->resourceConnection = $this->createMock(ResourceConnection::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->deployPackageService = $this->createPartialMock(DeployPackage::class, ['deploy']);
+    }
 
     /**
      * Create Queue instance with mocked dependencies.
