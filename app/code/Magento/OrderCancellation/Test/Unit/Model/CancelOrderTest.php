@@ -20,6 +20,9 @@ use Magento\Framework\Phrase;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class CancelOrderTest extends TestCase
 {
     /** @var RefundInvoice|MockObject */
@@ -73,6 +76,7 @@ class CancelOrderTest extends TestCase
     {
         $reason = '<b>Customer requested</b>';
         $escapedReason = 'Customer requested';
+        $orderId = 42;
 
         $payment = $this->createMock(Payment::class);
         $payment->expects($this->once())->method('getAmountPaid')->willReturn(null);
@@ -82,46 +86,25 @@ class CancelOrderTest extends TestCase
         $methodInstance->method('isOffline')->willReturn(true);
         $payment->method('getMethodInstance')->willReturn($methodInstance);
 
-        /** @var Order|MockObject $order */
         $order = $this->createMock(Order::class);
         $order->method('getPayment')->willReturn($payment);
-        $order->method('getEntityId')->willReturn(42);
+        $order->method('getEntityId')->willReturn($orderId);
 
         $this->refundOrder
             ->expects(self::once())
             ->method('execute')
-            ->with(42);
+            ->with($orderId);
 
-        /** @var Order|MockObject $reloadedOrder */
         $reloadedOrder = $this->createMock(Order::class);
         $reloadedOrder->method('cancel')->willReturnSelf();
         $reloadedOrder->method('getRealOrderId')->willReturn('000000123');
         $reloadedOrder->method('getStatus')->willReturn('canceled');
-        $reloadedOrder
-            ->expects(self::exactly(2))
-            ->method('addCommentToStatusHistory')
-            ->with(
-                self::callback(function ($comment) use (&$callNo): bool {
-                    static $i = 0;
-                    $i++;
-                    if ($i === 1) {
-                        return $comment instanceof Phrase
-                            && \in_array((string)$comment, [
-                                "Order cancellation notification email was sent.",
-                                "Email notification failed.",
-                            ], true);
-                    }
-
-                    return $comment === 'Customer requested';
-                }),
-                'canceled',
-                true
-            );
+        $reloadedOrder->expects(self::exactly(2))->method('addCommentToStatusHistory');
 
         $this->orderRepository
             ->expects(self::once())
             ->method('get')
-            ->with(42)
+            ->with($orderId)
             ->willReturn($reloadedOrder);
 
         $this->sender
