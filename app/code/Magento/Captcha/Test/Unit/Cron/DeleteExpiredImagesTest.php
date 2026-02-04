@@ -146,6 +146,9 @@ class DeleteExpiredImagesTest extends TestCase
         );
         $this->_directory->expects($this->exactly($timesToCall))->method('isFile')->willReturn($isFile);
         $this->_directory->expects($this->any())->method('stat')->willReturn(['mtime' => $mTime]);
+        $this->_fileInfo->expects($this->any())->method('getPathInfo')->with($filename)->willReturn(
+            ['extension' => pathinfo($filename, PATHINFO_EXTENSION)]
+        );
 
         $this->_deleteExpiredImages->execute();
     }
