@@ -23,6 +23,9 @@ use PHPUnit\Framework\Constraint\IsNull;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class DeleteExpiredImagesTest extends TestCase
 {
     /**
