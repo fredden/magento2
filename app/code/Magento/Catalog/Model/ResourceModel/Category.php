@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2015 Adobe
+ * All Rights Reserved.
  */
 
 /**
@@ -37,8 +37,6 @@ class Category extends AbstractResource implements ResetAfterRequestInterface
     protected $_tree;
 
     /**
-     * Catalog products table name
-     *
      * @var string
      */
     protected $_categoryProductTable;
@@ -49,15 +47,11 @@ class Category extends AbstractResource implements ResetAfterRequestInterface
     private $entitiesWhereAttributesIs;
 
     /**
-     * Id of 'is_active' category attribute
-     *
      * @var int
      */
     protected $_isActiveAttributeId = null;
 
     /**
-     * Id of store
-     *
      * @var int
      */
     protected $_storeId = null;
@@ -127,10 +121,10 @@ class Category extends AbstractResource implements ResetAfterRequestInterface
         \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory $categoryCollectionFactory,
         Processor $indexerProcessor,
         $data = [],
-        \Magento\Framework\Serialize\Serializer\Json $serializer = null,
-        MetadataPool $metadataPool = null,
-        \Magento\Framework\EntityManager\EntityManager $entityManager = null,
-        \Magento\Catalog\Model\ResourceModel\Category\AggregateCount $aggregateCount = null
+        ?\Magento\Framework\Serialize\Serializer\Json $serializer = null,
+        ?MetadataPool $metadataPool = null,
+        ?\Magento\Framework\EntityManager\EntityManager $entityManager = null,
+        ?\Magento\Catalog\Model\ResourceModel\Category\AggregateCount $aggregateCount = null
     ) {
         parent::__construct(
             $context,
@@ -316,11 +310,14 @@ class Category extends AbstractResource implements ResetAfterRequestInterface
                 $object->setPath($object->getPath() . '/');
             }
 
-            $this->getConnection()->update(
-                $this->getEntityTable(),
-                ['children_count' => new \Zend_Db_Expr('children_count+1')],
-                ['entity_id IN(?)' => $toUpdateChild]
-            );
+            $createdIn = $object->getData('created_in');
+            if (!$createdIn || $createdIn == 1) {
+                $this->getConnection()->update(
+                    $this->getEntityTable(),
+                    ['children_count' => new \Zend_Db_Expr('children_count+1')],
+                    ['entity_id IN(?)' => $toUpdateChild]
+                );
+            }
         }
         return $this;
     }
@@ -455,7 +452,7 @@ class Category extends AbstractResource implements ResetAfterRequestInterface
                     'position' => (int)$position,
                 ];
             }
-            $connection->insertMultiple($this->getCategoryProductTable(), $data);
+            $connection->insertOnDuplicate($this->getCategoryProductTable(), $data, ['position']);
         }
 
         /**
@@ -663,7 +660,9 @@ class Category extends AbstractResource implements ResetAfterRequestInterface
         $entityIdsFilterHash = md5($serializeData);
         // @codingStandardsIgnoreEnd
 
-        if (!isset($this->entitiesWhereAttributesIs[$entityIdsFilterHash][$attribute->getId()][$expectedValue])) {
+        $attributeId = $attribute->getId() ?? '';
+        
+        if (!isset($this->entitiesWhereAttributesIs[$entityIdsFilterHash][$attributeId][$expectedValue])) {
             $linkField = $this->getLinkField();
             $bind = ['attribute_id' => $attribute->getId(), 'value' => $expectedValue];
             $selectEntities = $this->getConnection()->select()->from(
@@ -680,11 +679,11 @@ class Category extends AbstractResource implements ResetAfterRequestInterface
                 $entityIdsFilter,
                 \Zend_Db::INT_TYPE
             );
-            $this->entitiesWhereAttributesIs[$entityIdsFilterHash][$attribute->getId()][$expectedValue] =
+            $this->entitiesWhereAttributesIs[$entityIdsFilterHash][$attributeId][$expectedValue] =
                 $this->getConnection()->fetchCol($selectEntities, $bind);
         }
 
-        return $this->entitiesWhereAttributesIs[$entityIdsFilterHash][$attribute->getId()][$expectedValue];
+        return $this->entitiesWhereAttributesIs[$entityIdsFilterHash][$attributeId][$expectedValue];
     }
 
     /**
