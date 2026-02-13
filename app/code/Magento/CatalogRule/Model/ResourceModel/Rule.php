@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2015 Adobe
+ * All Rights Reserved.
  */
 
 namespace Magento\CatalogRule\Model\ResourceModel;
@@ -157,6 +157,7 @@ class Rule extends \Magento\Rule\Model\ResourceModel\AbstractResource
      */
     public function getRulePrice($date, $wId, $gId, $pId)
     {
+        $pId = (string)$pId;
         $data = $this->getRulePrices($date, $wId, $gId, [$pId]);
         if (isset($data[$pId])) {
             return $data[$pId];

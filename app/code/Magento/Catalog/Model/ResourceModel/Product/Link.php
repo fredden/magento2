@@ -1,16 +1,22 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2015 Adobe
+ * All Rights Reserved.
  */
+declare(strict_types=1);
+
 namespace Magento\Catalog\Model\ResourceModel\Product;
 
 use Magento\Framework\DB\Adapter\AdapterInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Framework\Model\ResourceModel\Db\Context;
+use Zend_Db_Expr;
 
 /**
  * Catalog product link resource model
  */
-class Link extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
+class Link extends AbstractDb
 {
     /**
      * Product Link Attributes Table
@@ -20,18 +26,20 @@ class Link extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     protected $_attributesTable;
 
     /**
+     * Product relation model.
+     *
      * @var Relation
      */
     protected $_catalogProductRelation;
 
     /**
-     * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
+     * @param Context $context
      * @param Relation $catalogProductRelation
      * @param string|null $connectionName
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function __construct(
-        \Magento\Framework\Model\ResourceModel\Db\Context $context,
+        Context $context,
         Relation $catalogProductRelation,
         $connectionName = null
     ) {
@@ -54,7 +62,7 @@ class Link extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      *
      * @param int $linkId
      * @return int
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function deleteProductLink($linkId)
     {
@@ -68,7 +76,7 @@ class Link extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      * @param int $linkedProductId
      * @param int $typeId
      * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function getProductLinkId($parentId, $linkedProductId, $typeId)
     {
@@ -104,7 +112,7 @@ class Link extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         $connection = $this->getConnection();
         $select = $connection->select()->from(
             $this->getMainTable(),
-            ['count' => new \Zend_Db_Expr('COUNT(*)')]
+            ['count' => new Zend_Db_Expr('COUNT(*)')]
         )->where(
             'product_id = :product_id'
         ) ;
@@ -124,7 +132,7 @@ class Link extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      * @param array $data
      * @param int $typeId
      * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function saveProductLinks($parentId, $data, $typeId)
@@ -197,7 +205,7 @@ class Link extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         if ($type == 'int') {
             $value = (int)$value;
         } elseif ($type == 'decimal') {
-            $value = (double)sprintf('%F', $value);
+            $value = (float)sprintf('%F', $value);
         }
         return $value;
     }
