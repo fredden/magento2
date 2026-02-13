@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2015 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -12,10 +12,10 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Json\Helper\Data;
 use Magento\Framework\Phrase;
 use Magento\Theme\Model\Uploader\Service;
-use Magento\Theme\Test\Unit\Controller\Adminhtml\System\Design\ThemeTest;
+use Magento\Theme\Test\Unit\Controller\Adminhtml\System\Design\ThemeTestCase;
 use Psr\Log\LoggerInterface;
 
-class UploadCssTest extends ThemeTest
+class UploadCssTest extends ThemeTestCase
 {
     /**
      * @var string
@@ -93,7 +93,7 @@ class UploadCssTest extends ThemeTest
             ->with('css_file_uploader')
             ->willThrowException($exception);
 
-        $logger = $this->getMockForAbstractClass(LoggerInterface::class, [], '', false);
+        $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())
             ->method('critical');
 

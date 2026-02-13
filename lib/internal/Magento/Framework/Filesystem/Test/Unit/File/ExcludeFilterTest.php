@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2016 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -54,7 +54,7 @@ class ExcludeFilterTest extends TestCase
         foreach ($files as $file) {
             $item = $this->getMockBuilder(
                 \SplFileInfo::class
-            )->disableOriginalConstructor()->setMethods(['__toString', 'getFilename'])->getMock();
+            )->disableOriginalConstructor()->onlyMethods(['__toString', 'getFilename'])->getMock();
             $item->expects($this->any())->method('__toString')->willReturn($file);
             $item->expects($this->any())->method('getFilename')->willReturn('notDots');
             yield $item;

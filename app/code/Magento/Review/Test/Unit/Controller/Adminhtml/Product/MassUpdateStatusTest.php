@@ -1,22 +1,13 @@
 <?php
-/************************************************************************
+/**
  * Copyright 2023 Adobe
  * All Rights Reserved.
- *
- * NOTICE: All information contained herein is, and remains
- * the property of Adobe and its suppliers, if any. The intellectual
- * and technical concepts contained herein are proprietary to Adobe
- * and its suppliers and are protected by all applicable intellectual
- * property laws, including trade secret and copyright laws.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Adobe.
- * ************************************************************************
  */
 declare(strict_types=1);
 
 namespace Magento\Review\Test\Unit\Controller\Adminhtml\Product;
 
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Magento\Review\Controller\Adminhtml\Product\MassUpdateStatus;
@@ -38,6 +29,8 @@ use Magento\Review\Model\ResourceModel\Review as ReviewResourceModel;
  */
 class MassUpdateStatusTest extends TestCase
 {
+    use MockCreationTrait;
+
     /**
      * @var MassUpdateStatus
      */
@@ -132,11 +125,10 @@ class MassUpdateStatusTest extends TestCase
             ->method('addFieldToFilter')
             ->with('main_table.id', [1, 2])
             ->willReturnSelf();
-        $modelMock = $this->getMockBuilder(Review::class)
-            ->disableOriginalConstructor()
-            ->addMethods(['setStatusId'])
-            ->onlyMethods(['_getResource'])
-            ->getMock();
+        $modelMock = $this->createPartialMockWithReflection(
+            Review::class,
+            ['setStatusId', '_getResource']
+        );
         $modelMock->expects($this->once())
             ->method('setStatusId')
             ->with(Review::STATUS_APPROVED)

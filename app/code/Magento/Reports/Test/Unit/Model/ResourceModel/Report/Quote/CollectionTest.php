@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2015 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -52,7 +52,7 @@ class CollectionTest extends TestCase
     {
         /** @var MockObject $collection */
         $collection = $this->getMockBuilder(QuoteCollection::class)
-            ->setMethods(['getSelect'])
+            ->onlyMethods(['getSelect'])
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -72,7 +72,7 @@ class CollectionTest extends TestCase
         $constructArgs = $this->objectManager
             ->getConstructArguments(QuoteItemCollection::class);
         $collection = $this->getMockBuilder(QuoteItemCollection::class)
-            ->setMethods(['getSelect', 'getTable', 'getFlag', 'setFlag'])
+            ->onlyMethods(['getSelect', 'getTable', 'getFlag', 'setFlag'])
             ->disableOriginalConstructor()
             ->setConstructorArgs($constructArgs)
             ->getMock();
@@ -116,7 +116,7 @@ class CollectionTest extends TestCase
         /** @var MockObject $collection */
         $constructArgs = $this->objectManager
             ->getConstructArguments(QuoteItemCollection::class);
-        $constructArgs['eventManager'] = $this->getMockForAbstractClass(ManagerInterface::class);
+        $constructArgs['eventManager'] = $this->createMock(ManagerInterface::class);
         $resourceMock = $this->createMock(Quote::class);
         $resourceMock->expects($this->any())->method('getConnection')
             ->willReturn($this->createMock(Mysql::class));
@@ -127,7 +127,7 @@ class CollectionTest extends TestCase
         $constructArgs['orderResource'] = $orderResourceMock;
         $constructArgs['productDataRetriever'] = $this->productDataRetriever;
         $collection = $this->getMockBuilder(QuoteItemCollection::class)
-            ->setMethods(
+            ->onlyMethods(
                 [
                     '_beforeLoad',
                     '_renderFilters',

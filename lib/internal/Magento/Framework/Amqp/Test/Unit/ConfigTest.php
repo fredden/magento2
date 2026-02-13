@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2018 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -11,8 +11,10 @@ use Magento\Framework\Amqp\Config;
 use Magento\Framework\Amqp\Connection\Factory as ConnectionFactory;
 use Magento\Framework\Amqp\Connection\FactoryOptions;
 use Magento\Framework\App\DeploymentConfig;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AbstractConnection;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -42,9 +44,17 @@ class ConfigTest extends TestCase
 
     protected function setUp(): void
     {
+        $objectManager = new ObjectManager($this);
+        $objects = [
+            [
+                ConnectionFactory::class,
+                $this->createMock(ConnectionFactory::class)
+            ]
+        ];
+        $objectManager->prepareObjectManager($objects);
         $this->deploymentConfigMock = $this->getMockBuilder(DeploymentConfig::class)
             ->disableOriginalConstructor()
-            ->setMethods(['getConfigData'])
+            ->onlyMethods(['getConfigData'])
             ->getMock();
         $this->connectionFactory = $this->createMock(ConnectionFactory::class);
         $this->amqpConfig = new Config($this->deploymentConfigMock, 'amqp', $this->connectionFactory);
@@ -150,8 +160,8 @@ class ConfigTest extends TestCase
      * @param array $config
      * @param array $expected
      * @return void
-     * @dataProvider configDataProvider
      */
+    #[DataProvider('configDataProvider')]
     public function testCreateConnection(array $config, array $expected): void
     {
         $this->deploymentConfigMock->expects($this->once())
@@ -181,7 +191,7 @@ class ConfigTest extends TestCase
     /**
      * @return array
      */
-    public function configDataProvider(): array
+    public static function configDataProvider(): array
     {
         return [
             [

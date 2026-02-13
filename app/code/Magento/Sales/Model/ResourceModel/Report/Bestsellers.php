@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2015 Adobe
+ * All Rights Reserved.
  */
 namespace Magento\Sales\Model\ResourceModel\Report;
 
@@ -217,9 +217,14 @@ class Bestsellers extends AbstractReport
                 $to
             )
         );
-        $select = $connection->select();
-        $subSelect = $this->getRangeSubSelect($from, $to);
 
+        $subSelect = $this->getRangeSubSelect($from, $to);
+        if ($subSelect) {
+            $dataRange = $this->getRange($subSelect);
+            $whereCondition = $connection->prepareSqlCondition($periodExpr, ['in' => $dataRange]);
+        }
+
+        $select = $connection->select();
         $select->group([$periodExpr, 'source_table.store_id', 'order_item.product_id']);
 
         $columns = [
@@ -250,7 +255,7 @@ class Bestsellers extends AbstractReport
             " WHERE store_id = " . $storeId .
             " AND state != '" . \Magento\Sales\Model\Order::STATE_CANCELED . "'" .
             ($subSelect !== null ?
-                " AND " . $this->_makeConditionFromDateRangeSelect($subSelect, $periodExpr) :
+                " AND " . $whereCondition :
                 '') . ")"
         )->where(
             'order_item.product_type NOT IN(?)',

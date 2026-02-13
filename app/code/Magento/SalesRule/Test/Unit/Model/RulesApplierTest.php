@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2015 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -9,8 +9,12 @@ namespace Magento\SalesRule\Test\Unit\Model;
 
 use Magento\Catalog\Model\Product;
 use Magento\Framework\Api\ExtensionAttributesInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Event\Manager;
+use Magento\Framework\TestFramework\Unit\Helper\MockCreationTrait;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Quote\Model\Quote;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Quote\Model\Quote\Item\AbstractItem;
@@ -34,6 +38,7 @@ use PHPUnit\Framework\TestCase;
  */
 class RulesApplierTest extends TestCase
 {
+    use MockCreationTrait;
     /**
      * @var RulesApplier
      */
@@ -65,10 +70,33 @@ class RulesApplierTest extends TestCase
     protected $childrenValidationLocator;
 
     /**
+     * @var RuleDiscountInterfaceFactory|MockObject
+     */
+    protected $ruleDiscountInterfaceFactoryMock;
+
+    /**
+     * @var DiscountDataInterfaceFactory|MockObject
+     */
+    protected $discountDataInterfaceFactoryMock;
+
+    /**
+     * @var SelectRuleCoupon|MockObject
+     */
+    protected $selectRuleCouponMock;
+
+    /**
      * @inheritDoc
      */
     protected function setUp(): void
     {
+        $objectManager = new ObjectManager($this);
+        $objects = [
+            [
+                RuleDiscountInterfaceFactory::class,
+                $this->createMock(RuleDiscountInterfaceFactory::class)
+            ]
+        ];
+        $objectManager->prepareObjectManager($objects);
         $this->calculatorFactory = $this->createMock(
             CalculatorFactory::class
         );
@@ -85,15 +113,28 @@ class RulesApplierTest extends TestCase
             ChildrenValidationLocator::class,
             ['isChildrenValidationRequired']
         );
+        $this->ruleDiscountInterfaceFactoryMock = $this->getMockBuilder(RuleDiscountInterfaceFactory::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['create'])
+            ->getMock();
+        $this->discountDataInterfaceFactoryMock = $this->getMockBuilder(DiscountDataInterfaceFactory::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['create'])
+            ->getMock();
+        $this->selectRuleCouponMock = $this->getMockBuilder(SelectRuleCoupon::class)
+                                        ->disableOriginalConstructor()
+                                        ->onlyMethods(['execute'])
+                                        ->getMock();
+
         $this->rulesApplier = new RulesApplier(
             $this->calculatorFactory,
             $this->eventManager,
             $this->validatorUtility,
             $this->childrenValidationLocator,
             $this->discountFactory,
-            $this->createMock(RuleDiscountInterfaceFactory::class),
-            $this->createMock(DiscountDataInterfaceFactory::class),
-            $this->createMock(SelectRuleCoupon::class),
+            $this->ruleDiscountInterfaceFactoryMock,
+            $this->discountDataInterfaceFactoryMock,
+            $this->selectRuleCouponMock
         );
     }
 
@@ -102,8 +143,8 @@ class RulesApplierTest extends TestCase
      * @param bool $isContinue
      *
      * @return void
-     * @dataProvider dataProviderChildren
      */
+    #[DataProvider('dataProviderChildren')]
     public function testApplyRules(
         bool $isChildren,
         bool $isContinue
@@ -111,7 +152,7 @@ class RulesApplierTest extends TestCase
         $positivePrice = 1;
         $skipValidation = false;
         $item = $this->getPreparedItem();
-        $couponCode = 111;
+        $couponCode = [111];
 
         $ruleId = 1;
         $appliedRuleIds = [$ruleId => $ruleId];
@@ -124,16 +165,15 @@ class RulesApplierTest extends TestCase
         /**
          * @var Rule|MockObject $rule
          */
-        $rule = $this->getMockBuilder(Rule::class)
-            ->addMethods(['getCouponType', 'getRuleId'])
-            ->onlyMethods(['getStoreLabel', 'getActions'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $rule = $this->createPartialMockWithReflection(
+            Rule::class,
+            ['getCouponType', 'getRuleId', 'getStoreLabel', 'getActions']
+        );
 
-        $actionMock = $this->getMockBuilder(Collection::class)
-            ->addMethods(['validate'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $actionMock = $this->createPartialMockWithReflection(
+            Collection::class,
+            ['validate']
+        );
 
         $item->setDiscountCalculationPrice($positivePrice);
         $item->setData('calculation_price', $positivePrice);
@@ -176,7 +216,7 @@ class RulesApplierTest extends TestCase
             $this->applyRule($item, $rule);
         }
 
-        $result = $this->rulesApplier->applyRules($item, [$rule], $skipValidation, [$couponCode]);
+        $result = $this->rulesApplier->applyRules($item, [$rule], $skipValidation, $couponCode);
         $this->assertEquals($appliedRuleIds, $result);
     }
 
@@ -191,22 +231,20 @@ class RulesApplierTest extends TestCase
         /**
          * @var Rule|MockObject $rule
          */
-        $rule = $this->getMockBuilder(Rule::class)
-            ->addMethods(['getCouponType', 'getRuleId'])
-            ->onlyMethods(['getStoreLabel', 'getActions'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $rule = $this->createPartialMockWithReflection(
+            Rule::class,
+            ['getCouponType', 'getRuleId', 'getStoreLabel', 'getActions']
+        );
 
         $rule->setDescription($ruleDescription);
 
         /**
          * @var Address|MockObject $address
          */
-        $address = $this->getMockBuilder(Address::class)
-            ->addMethods(['setCouponCode', 'setAppliedRuleIds'])
-            ->onlyMethods(['getQuote'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $address = $this->createPartialMockWithReflection(
+            Address::class,
+            ['setCouponCode', 'setAppliedRuleIds', 'getQuote']
+        );
         $description = $address->getDiscountDescriptionArray();
         $description[$ruleId] = $rule->getDescription();
         $address->setDiscountDescriptionArray($description[$ruleId]);
@@ -217,7 +255,7 @@ class RulesApplierTest extends TestCase
     /**
      * @return array
      */
-    public function dataProviderChildren(): array
+    public static function dataProviderChildren(): array
     {
         return [
             ['isChildren' => true, 'isContinue' => false],
@@ -233,29 +271,32 @@ class RulesApplierTest extends TestCase
         /**
          * @var Address|MockObject $address
          */
-        $address = $this->getMockBuilder(Address::class)
-            ->addMethods(['setCouponCode', 'setAppliedRuleIds'])
-            ->onlyMethods(['getQuote'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $address = $this->createPartialMockWithReflection(
+            Address::class,
+            ['setCouponCode', 'setAppliedRuleIds', 'getQuote']
+        );
         /**
          * @var AbstractItem|MockObject $item
          */
-        $item = $this->getMockBuilder(Item::class)
-            ->addMethods(
-                [
-                    'setDiscountAmount',
-                    'setBaseDiscountAmount',
-                    'setDiscountPercent',
-                    'setAppliedRuleIds',
-                    'getAppliedRuleIds'
-                ]
-            )->onlyMethods(['getAddress', 'getChildren', 'getExtensionAttributes', 'getProduct', 'getQuote'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $itemExtension = $this->getMockBuilder(ExtensionAttributesInterface::class)
-            ->addMethods(['setDiscounts', 'getDiscounts'])
-            ->getMock();
+        $item = $this->createPartialMockWithReflection(
+            Item::class,
+            [
+                'setDiscountAmount',
+                'setBaseDiscountAmount',
+                'setDiscountPercent',
+                'setAppliedRuleIds',
+                'getAppliedRuleIds',
+                'getAddress',
+                'getChildren',
+                'getExtensionAttributes',
+                'getProduct',
+                'getQuote'
+            ]
+        );
+        $itemExtension = $this->createPartialMockWithReflection(
+            ExtensionAttributesInterface::class,
+            ['setDiscounts', 'getDiscounts']
+        );
         $itemExtension->method('getDiscounts')->willReturn([]);
         $itemExtension->expects($this->any())
             ->method('setDiscounts')

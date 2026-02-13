@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2015 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -14,11 +14,11 @@ use Magento\Framework\View\Design\Theme\FileInterface;
 use Magento\Framework\View\Design\Theme\FlyweightFactory;
 use Magento\Framework\View\Design\ThemeInterface;
 use Magento\Theme\Model\Uploader\Service;
-use Magento\Theme\Test\Unit\Controller\Adminhtml\System\Design\ThemeTest;
+use Magento\Theme\Test\Unit\Controller\Adminhtml\System\Design\ThemeTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
-class UploadJsTest extends ThemeTest
+class UploadJsTest extends ThemeTestCase
 {
     /**
      * @var string
@@ -64,17 +64,13 @@ class UploadJsTest extends ThemeTest
         $this->serviceModel = $this->createMock(Service::class);
         $this->themeFactory = $this->createMock(FlyweightFactory::class);
         $this->jsonHelper = $this->createMock(Data::class);
-        $this->logger = $this->getMockForAbstractClass(LoggerInterface::class, [], '', false);
-        $this->themeCustomization = $this->getMockForAbstractClass(
+        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->themeCustomization = $this->createPartialMockWithReflection(
             CustomizationInterface::class,
-            [],
-            '',
-            false,
-            false,
-            true,
             [
-                'generateFileInfo',
-                'getFilesByType'
+                'getFiles', 'getFilesByType', 'getCustomizationPath',
+                'getThemeFilesPath', 'getCustomViewConfigPath', 'reorder', 'delete',
+                'generateFileInfo'
             ]
         );
         $this->customizationJs = $this->createMock(Js::class);
@@ -161,19 +157,14 @@ class UploadJsTest extends ThemeTest
     public function testExecute(): void
     {
         $themeId = 23;
-        $theme = $this->getMockForAbstractClass(ThemeInterface::class, [], '', false);
-        $jsFile = $this->getMockForAbstractClass(
+        $theme = $this->createMock(ThemeInterface::class);
+        $jsFile = $this->createPartialMockWithReflection(
             FileInterface::class,
-            [],
-            '',
-            false,
-            true,
-            true,
             [
-                'setTheme',
-                'setFileName',
-                'setData',
-                'save'
+                'setCustomizationService', 'getCustomizationService',
+                'setTheme', 'getTheme', 'setFileName', 'getFileName',
+                'getFullPath', 'getFileInfo', 'getContent', 'save', 'delete',
+                'setData'
             ]
         );
 
