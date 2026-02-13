@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2011 Adobe
+ * All Rights Reserved.
  */
 
 namespace Magento\Eav\Model\Attribute\Data;
@@ -62,7 +62,7 @@ class Text extends \Magento\Eav\Model\Attribute\Data\AbstractData
      *
      * @param array|string $value
      * @return bool|array
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function validateValue($value)
     {
@@ -74,7 +74,7 @@ class Text extends \Magento\Eav\Model\Attribute\Data\AbstractData
             $value = $this->getEntity()->getDataUsingMethod($attribute->getAttributeCode());
         }
 
-        if (!$attribute->getIsRequired() && empty($value)) {
+        if ((!$attribute->getIsRequired() || ($this->getEntity()?->getSkipRequiredValidation())) && empty($value)) {
             return true;
         }
 
